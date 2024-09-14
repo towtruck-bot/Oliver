@@ -25,7 +25,7 @@ public class Intake {
         intakeRollerServo = new PriorityCRServo(
                 robot.hardwareMap.get(CRServo.class, "intakeRollerServo"),
                 "intakeRollerServo",
-                3, 5
+                1, 2
         );
         robot.hardwareQueue.addDevice(intakeRollerServo);
     }
@@ -42,7 +42,7 @@ public class Intake {
                 intakeRollerServo.setTargetPower(-1.0);
                 break;
             default:
-                throw new IllegalStateException("Unexpected value for intakeMotorState: " + intakeRollerState);
+                throw new IllegalStateException("Unexpected value for intakeRollerState: " + intakeRollerState);
         }
     }
 

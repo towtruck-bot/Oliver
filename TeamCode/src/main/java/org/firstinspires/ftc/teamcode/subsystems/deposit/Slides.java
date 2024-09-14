@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
+import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.sensors.Sensors;
 import org.firstinspires.ftc.teamcode.subsystems.drive.Drivetrain;
 import org.firstinspires.ftc.teamcode.utils.Globals;
@@ -38,12 +39,12 @@ public class Slides {
 
     private Drivetrain drivetrain;
 
-    public Slides(HardwareMap hardwareMap, HardwareQueue hardwareQueue, Sensors sensors, Drivetrain drivetrain) {
-        this.sensors = sensors;
-        this.drivetrain = drivetrain;
+    public Slides(Robot robot) {
+        this.sensors = robot.sensors;
+        this.drivetrain = robot.drivetrain;
 
-        m1 = hardwareMap.get(DcMotorEx.class, "slidesMotor0");
-        m2 = hardwareMap.get(DcMotorEx.class, "slidesMotor1");
+        m1 = robot.hardwareMap.get(DcMotorEx.class, "slidesMotor0");
+        m2 = robot.hardwareMap.get(DcMotorEx.class, "slidesMotor1");
 
         m2.setDirection(DcMotorSimple.Direction.REVERSE);
 
@@ -52,7 +53,7 @@ public class Slides {
         }
 
         slidesMotors = new PriorityMotor(new DcMotorEx[] {m1, m2}, "slidesMotor", 2, 5, new double[] {-1, -1}, sensors);
-        hardwareQueue.addDevice(slidesMotors);
+        robot.hardwareQueue.addDevice(slidesMotors);
     }
 
     public void resetSlidesEncoders() {

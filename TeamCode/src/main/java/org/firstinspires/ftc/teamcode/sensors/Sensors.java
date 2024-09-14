@@ -43,11 +43,10 @@ public class Sensors {
 
     public static double voltageK = 0.3;
 
-    public Sensors(HardwareMap hardwareMap, HardwareQueue hardwareQueue, Robot robot) {
-        this.hardwareMap = hardwareMap;
-        this.hardwareQueue = hardwareQueue;
+    public Sensors(Robot robot) {
+        this.hardwareMap = robot.hardwareMap;
+        this.hardwareQueue = robot.hardwareQueue;
         this.robot = robot;
-
 
         otos = hardwareMap.get(SparkFunOTOS.class, "sparkfunSensor");
         otos.setLinearUnit(SparkFunOTOS.LinearUnit.INCHES);

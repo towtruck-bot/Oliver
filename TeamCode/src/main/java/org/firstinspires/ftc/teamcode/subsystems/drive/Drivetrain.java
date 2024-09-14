@@ -63,9 +63,10 @@ public class Drivetrain {
     public Vision vision;
     public Robot robot;
 
-    public Drivetrain(HardwareMap hardwareMap, HardwareQueue hardwareQueue, Sensors sensors, Vision vision, Robot robot) {
-        this.hardwareQueue = hardwareQueue;
-        this.sensors = sensors;
+    public Drivetrain(Vision vision, Robot robot) {
+        HardwareMap hardwareMap = robot.hardwareMap;
+        this.hardwareQueue = robot.hardwareQueue;
+        this.sensors = robot.sensors;
         this.robot = robot;
 
         leftFront = new PriorityMotor(
@@ -129,8 +130,8 @@ public class Drivetrain {
         rightFront.motor[0].setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
 
-    public Drivetrain (HardwareMap hardwareMap, HardwareQueue hardwareQueue, Sensors sensors, Robot robot) {
-        this(hardwareMap, hardwareQueue, sensors, null, robot);
+    public Drivetrain (Robot robot) {
+        this(null, robot);
     }
 
     // leftFront, leftRear, rightRear, rightFront

@@ -9,30 +9,34 @@ import org.firstinspires.ftc.teamcode.sensors.Sensors;
 import org.firstinspires.ftc.teamcode.subsystems.deposit.Slides;
 import org.firstinspires.ftc.teamcode.subsystems.drive.Drivetrain;
 import org.firstinspires.ftc.teamcode.subsystems.drive.Spline;
+import org.firstinspires.ftc.teamcode.subsystems.intake.Intake;
 import org.firstinspires.ftc.teamcode.utils.Func;
 import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 import org.firstinspires.ftc.teamcode.utils.priority.HardwareQueue;
 import org.firstinspires.ftc.teamcode.vision.Vision;
 
 public class Robot {
-    public HardwareQueue hardwareQueue;
-
-    public Sensors sensors;
-
-    public Slides slides;
+    public final HardwareMap hardwareMap;
+    public final HardwareQueue hardwareQueue;
+    public final Sensors sensors;
+    public final Slides slides;
     public final Drivetrain drivetrain;
+    public final Intake intake;
 
     public Robot(HardwareMap hardwareMap) {
         this(hardwareMap, null);
     }
 
     public Robot(HardwareMap hardwareMap, Vision vision) {
-        hardwareQueue = new HardwareQueue();
+        this.hardwareMap = hardwareMap;
+        this.hardwareQueue = new HardwareQueue();
 
-        sensors = new Sensors(hardwareMap, hardwareQueue, this);
+        this.intake = new Intake(this);
 
-        drivetrain = new Drivetrain(hardwareMap, hardwareQueue, sensors, this);
-        slides = new Slides(hardwareMap, hardwareQueue, sensors, drivetrain);
+        this.drivetrain = new Drivetrain(this);
+        this.slides = new Slides(this);
+
+        this.sensors = new Sensors(this);
 
         TelemetryUtil.setup();
     }
@@ -44,10 +48,13 @@ public class Robot {
     }
 
     private void updateSubsystems() {
-        hardwareQueue.update();
         sensors.update();
 
+        intake.update();
+        slides.update();
         drivetrain.update();
+
+        hardwareQueue.update();
     }
 
     private void updateTelemetry() {

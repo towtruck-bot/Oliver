@@ -132,10 +132,6 @@ public class Slides {
         return Math.abs(targetLength - length) <= threshold;
     }
 
-    public double getLength(double length) {
-        return this.length;
-    }
-
     public double getLength() {
         return length;
     }

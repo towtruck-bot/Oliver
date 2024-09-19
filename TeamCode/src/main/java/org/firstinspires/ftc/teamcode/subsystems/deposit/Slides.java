@@ -8,7 +8,6 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 import org.firstinspires.ftc.teamcode.Robot;
-import org.firstinspires.ftc.teamcode.sensors.Sensors;
 import org.firstinspires.ftc.teamcode.subsystems.drive.Drivetrain;
 import org.firstinspires.ftc.teamcode.utils.Globals;
 import org.firstinspires.ftc.teamcode.utils.RunMode;
@@ -17,9 +16,9 @@ import org.firstinspires.ftc.teamcode.utils.priority.PriorityMotor;
 @Config
 public class Slides {
     private final PriorityMotor slidesMotors;
+    private final Robot robot;
     public double length;
     public double vel;
-    private final Sensors sensors;
     public static double ticksToInches = 0.04132142857142857;
     public static double maxSlidesHeight = 27.891;
     private double targetLength = 0;
@@ -38,7 +37,7 @@ public class Slides {
     private Drivetrain drivetrain;
 
     public Slides(Robot robot) {
-        this.sensors = robot.sensors;
+        this.robot = robot;
         this.drivetrain = robot.drivetrain;
 
         m1 = robot.hardwareMap.get(DcMotorEx.class, "slidesMotor0");
@@ -50,7 +49,7 @@ public class Slides {
             resetSlidesEncoders();
         }
 
-        slidesMotors = new PriorityMotor(new DcMotorEx[] {m1, m2}, "slidesMotor", 2, 5, new double[] {-1, -1}, sensors);
+        slidesMotors = new PriorityMotor(new DcMotorEx[] {m1, m2}, "slidesMotor", 2, 5, new double[] {-1, -1}, robot.sensors);
         robot.hardwareQueue.addDevice(slidesMotors);
     }
 
@@ -93,14 +92,14 @@ public class Slides {
             error = -4;
         }
         if (length <= Globals.slidesV4Thresh+2 && targetLength <= 0.6)
-            return (length <= 0.25? 0 : forceDownPower) + downPower * (12/sensors.getVoltage());
+            return (length <= 0.25? 0 : forceDownPower) + downPower * (12/this.robot.sensors.getVoltage());
         return (error * (maxVel / kA)) * kP + kStatic + ((Math.abs(error) > minPowerThresh) ? minPower * Math.signum(error) : 0);
     }
 
     public boolean manualMode = false;
     public void update() {
-        length = (double) sensors.getSlidesPos() * ticksToInches;
-        vel = sensors.getSlidesVelocity() * ticksToInches;
+        length = (double) this.robot.sensors.getSlidesPos() * ticksToInches;
+        vel = this.robot.sensors.getSlidesVelocity() * ticksToInches;
 
         if (!manualMode) {
 //            if (!(Globals.RUNMODE == RunMode.TESTER)) {

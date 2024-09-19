@@ -3,10 +3,10 @@ package org.firstinspires.ftc.teamcode.subsystems.intake;
 import androidx.annotation.NonNull;
 
 import com.acmerobotics.dashboard.config.Config;
-import com.qualcomm.robotcore.hardware.CRServo;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 
 import org.firstinspires.ftc.teamcode.Robot;
-import org.firstinspires.ftc.teamcode.utils.priority.PriorityCRServo;
+import org.firstinspires.ftc.teamcode.utils.priority.PriorityMotor;
 
 @Config
 public class Intake {
@@ -17,29 +17,29 @@ public class Intake {
     }
 
     public final Robot robot;
-    public final PriorityCRServo intakeRollerServo;
+    public final PriorityMotor intakeRollerMotor;
     private IntakeRollerState intakeRollerState = IntakeRollerState.OFF;
 
     public Intake(@NonNull Robot robot) {
         this.robot = robot;
-        intakeRollerServo = new PriorityCRServo(
-                robot.hardwareMap.get(CRServo.class, "intakeRollerServo"),
-                "intakeRollerServo",
-                1, 2
+        intakeRollerMotor = new PriorityMotor(
+                robot.hardwareMap.get(DcMotorEx.class, "intakeRollerMotor"),
+                "intakeRollerMotor",
+                1, 2, this.robot.sensors
         );
-        robot.hardwareQueue.addDevice(intakeRollerServo);
+        robot.hardwareQueue.addDevice(intakeRollerMotor);
     }
 
     public void update() {
         switch(intakeRollerState){
             case OFF:
-                intakeRollerServo.setTargetPower(0.0);
+                intakeRollerMotor.setTargetPower(0.0);
                 break;
             case ON:
-                intakeRollerServo.setTargetPower(1.0);
+                intakeRollerMotor.setTargetPower(1.0);
                 break;
             case REVERSE:
-                intakeRollerServo.setTargetPower(-1.0);
+                intakeRollerMotor.setTargetPower(-1.0);
                 break;
             default:
                 throw new IllegalStateException("Unexpected value for intakeRollerState: " + intakeRollerState);

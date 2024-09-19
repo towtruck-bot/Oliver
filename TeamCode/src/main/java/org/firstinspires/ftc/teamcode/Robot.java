@@ -31,12 +31,11 @@ public class Robot {
         this.hardwareMap = hardwareMap;
         this.hardwareQueue = new HardwareQueue();
 
-        this.intake = new Intake(this);
+        this.sensors = new Sensors(this);
 
+        this.intake = new Intake(this);
         this.drivetrain = new Drivetrain(this);
         this.slides = new Slides(this);
-
-        this.sensors = new Sensors(this);
 
         TelemetryUtil.setup();
     }

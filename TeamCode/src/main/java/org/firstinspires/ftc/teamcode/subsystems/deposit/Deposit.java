@@ -19,8 +19,6 @@ public class Deposit {
     };
     public State state;
 
-    private HardwareQueue hardwareQueue;
-
     public Robot robot;
     public Slides slides;
     public Sensors sensors;
@@ -31,13 +29,11 @@ public class Deposit {
     public static double angleSpecimenStart = 0.25;
     public static double angleSpecimenSTart = -0.25;
 
-    public Deposit(HardwareQueue hardwareQueue, HardwareMap hardwareMap, Sensors sensors, Robot robot){
-        this.hardwareQueue = hardwareQueue;
-        this.sensors = sensors;
-
-        this.state = State.IDLE;
+    public Deposit(Robot robot){
         this.robot = robot;
+        this.sensors = robot.sensors;
+        this.slides = robot.slides;
 
-        slides = new Slides(robot);
+        state = State.IDLE;
     }
 }

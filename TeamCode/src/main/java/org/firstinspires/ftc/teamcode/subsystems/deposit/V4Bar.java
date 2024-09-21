@@ -4,7 +4,7 @@ import org.firstinspires.ftc.teamcode.Robot;
 
 public class V4Bar {
 
-    private Robot robot;
+    public Robot robot;
 
     public V4Bar(Robot robot){
         this.robot = robot;

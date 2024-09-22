@@ -6,6 +6,7 @@ import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 
 import org.firstinspires.ftc.teamcode.Robot;
+import org.firstinspires.ftc.teamcode.utils.PID;
 import org.firstinspires.ftc.teamcode.utils.Utils;
 import org.firstinspires.ftc.teamcode.utils.priority.PriorityMotor;
 
@@ -14,6 +15,7 @@ public class Intake {
     public enum IntakeRollerState {
         ON,
         OFF,
+        UNJAM,
         REVERSE
     }
 
@@ -23,19 +25,18 @@ public class Intake {
 
     private IntakeRollerState intakeRollerState = IntakeRollerState.OFF;
 
+    public static double unjamDuration = 500; // milliseconds
+
+    public static double unjamLastTime;
+
     public final PriorityMotor intakeExtensionMotor;
 
     private double extensionCurrentPosition = 0;
     private double extensionTargetPosition = 0;
 
-    public static double KP;
-    public static double KI;
-    public static double KD;
+    public static double extensionMaxPosition = 50; // millimeters TODO Replace this placeholder value with actual limit
 
-    private double integral;
-    private long lastLoopTime;
-    private double lastError;
-    private boolean firstLoop = true;
+    public PID pid;
 
     /**
      * Initializes the intake. Uses motors intakeRollerMotor and intakeExtensionMotor. -- Daniel
@@ -57,6 +58,8 @@ public class Intake {
                 1, 2, this.robot.sensors
         );
         this.robot.hardwareQueue.addDevice(intakeExtensionMotor);
+
+        this.pid = new PID(1, 0, 0); // TODO Replace these placeholders
     }
 
     /**
@@ -72,35 +75,23 @@ public class Intake {
             case ON:
                 this.intakeRollerMotor.setTargetPower(1.0);
                 break;
+            case UNJAM:
+                this.intakeRollerMotor.setTargetPower(-1.0);
+                if (currentTime > unjamLastTime + unjamDuration * 1e6) setRollerReverse();
+                break;
             case REVERSE:
                 this.intakeRollerMotor.setTargetPower(-1.0);
                 break;
-            default:
-                throw new IllegalStateException("Unexpected value for intakeRollerState: " + this.intakeRollerState);
         }
 
         this.extensionCurrentPosition = this.robot.sensors.getIntakeExtensionPosition();
-        double error = this.extensionTargetPosition - this.extensionCurrentPosition;
-        double derivative = 0;
 
-        if (this.firstLoop) {
-            this.integral = 0;
-            this.firstLoop = false;
-        } else {
-            double loopTime = (currentTime - this.lastLoopTime) / 1.0e9; // Convert from nanoseconds to seconds
-            this.integral += error * loopTime;
-            derivative = (error - this.lastError) / loopTime;
-        }
-
-        this.lastError = error;
-        this.lastLoopTime = currentTime;
-
-        this.intakeExtensionMotor.setTargetPower(Utils.minMaxClip(error * KP + this.integral * KI + derivative * KD, -1.0, 1.0));
+        this.intakeExtensionMotor.setTargetPower(pid.update(this.extensionTargetPosition - this.extensionCurrentPosition, -1.0, 1.0));
     }
 
     /**
      * Gets the roller's state. -- Daniel
-     * @return the roller's state (ON, OFF, REVERSE)
+     * @return the roller's state (ON, OFF, UNJAM, REVERSE)
      */
     public IntakeRollerState getIntakeRollerState() { return this.intakeRollerState; }
 
@@ -113,6 +104,11 @@ public class Intake {
      * Sets the roller to on. -- Daniel
      */
     public void setRollerOn() { this.intakeRollerState = IntakeRollerState.ON; }
+
+    /**
+     * Sets the roller to unjam. -- Daniel
+     */
+    public void setRollerUnjam() { this.intakeRollerState = IntakeRollerState.UNJAM; unjamLastTime = System.nanoTime(); }
 
     /**
      * Sets the roller to reverse. -- Daniel
@@ -132,8 +128,8 @@ public class Intake {
     public double getExtensionTargetPosition() { return this.extensionTargetPosition; }
 
     /**
-     * Sets the position the extension is trying to reach. -- Daniel
+     * Sets the position the extension is trying to reach. The position is automatically clamped to range. -- Daniel
      * @param extensionTargetPosition the new extension target position, in millimeters
      */
-    public void setExtensionTargetPosition(double extensionTargetPosition) { this.extensionTargetPosition = extensionTargetPosition; }
+    public void setExtensionTargetPosition(double extensionTargetPosition) { this.extensionTargetPosition = Utils.minMaxClip(extensionTargetPosition, 0, extensionMaxPosition); }
 }

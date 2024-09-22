@@ -25,9 +25,9 @@ public class Intake {
 
     private IntakeRollerState intakeRollerState = IntakeRollerState.OFF;
 
-    public static double unjamDuration = 500; // milliseconds
+    public static long unjamDuration = 500; // milliseconds
 
-    public static double unjamLastTime;
+    public static long unjamLastTime;
 
     public final PriorityMotor intakeExtensionMotor;
 
@@ -36,7 +36,7 @@ public class Intake {
 
     public static double extensionMaxPosition = 50; // millimeters TODO Replace this placeholder value with actual limit
 
-    public PID pid;
+    public static PID pid = new PID(1, 0, 0); // TODO Replace these placeholders;
 
     /**
      * Initializes the intake. Uses motors intakeRollerMotor and intakeExtensionMotor. -- Daniel
@@ -58,8 +58,6 @@ public class Intake {
                 1, 2, this.robot.sensors
         );
         this.robot.hardwareQueue.addDevice(intakeExtensionMotor);
-
-        this.pid = new PID(1, 0, 0); // TODO Replace these placeholders
     }
 
     /**
@@ -77,7 +75,7 @@ public class Intake {
                 break;
             case UNJAM:
                 this.intakeRollerMotor.setTargetPower(-1.0);
-                if (currentTime > unjamLastTime + unjamDuration * 1e6) setRollerReverse();
+                if (currentTime > unjamLastTime + unjamDuration * 1e6) setRollerOn();
                 break;
             case REVERSE:
                 this.intakeRollerMotor.setTargetPower(-1.0);

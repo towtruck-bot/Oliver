@@ -34,7 +34,7 @@ public class Intake {
     private double extensionCurrentPosition = 0;
     private double extensionTargetPosition = 0;
 
-    public static double extensionMaxPosition = 50; // millimeters TODO Replace this placeholder value with actual limit
+    public static double extensionMaxPosition = 21; // inches TODO Replace this placeholder value with actual limit
 
     public static PID pid = new PID(1, 0, 0); // TODO Replace these placeholders;
 
@@ -115,19 +115,19 @@ public class Intake {
 
     /**
      * Gets the extension current position. -- Daniel
-     * @return the extension current position, in millimeters
+     * @return the extension current position, in inches
      */
     public double getExtensionCurrentPosition() { return this.extensionCurrentPosition; }
 
     /**
      * Gets the position the extension is trying to reach. -- Daniel
-     * @return the extension target position, in millimeters
+     * @return the extension target position, in inches
      */
     public double getExtensionTargetPosition() { return this.extensionTargetPosition; }
 
     /**
      * Sets the position the extension is trying to reach. The position is automatically clamped to range. -- Daniel
-     * @param extensionTargetPosition the new extension target position, in millimeters
+     * @param extensionTargetPosition the new extension target position, in inches
      */
     public void setExtensionTargetPosition(double extensionTargetPosition) { this.extensionTargetPosition = Utils.minMaxClip(extensionTargetPosition, 0, extensionMaxPosition); }
 }

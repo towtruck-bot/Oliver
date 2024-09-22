@@ -151,11 +151,11 @@ public class Sensors {
 
     /**
      * Gets the intake extension slides' position. -- Daniel
-     * @return the intake extension slides' position, in millimeters
+     * @return the intake extension slides' position, in inches
      */
     public double getIntakeExtensionPosition() {
-        final double mmPerTick = 1.049564285714286; // TODO This value is TEMPORARY (just used value in Centerstage/TeamCode/src/main/java/org/firstinspires/ftc/teamcode/subsystems/deposit/Slides.java, 0.04132142857142857, and converted it to mm)
-        return intakeExtensionEncoder * mmPerTick;
+        final double inchesPerTick = 0.04132142857142857; // TODO This value is TEMPORARY (Centerstage/TeamCode/src/main/java/org/firstinspires/ftc/teamcode/subsystems/deposit/Slides.java)
+        return intakeExtensionEncoder * inchesPerTick;
     }
 
     public double getVoltage() { return voltage; }

@@ -27,6 +27,8 @@ public class Sensors {
     private int slidesEncoder;
     private double slidesVelocity;
 
+    private int intakeExtensionEncoder;
+
     private final AnalogInput[] analogEncoders = new AnalogInput[2];
     public double[] analogVoltages = new double[analogEncoders.length];
 
@@ -118,6 +120,8 @@ public class Sensors {
 
         slidesEncoder = ((PriorityMotor) hardwareQueue.getDevice("rightFront")).motor[0].getCurrentPosition() * -1;
         slidesVelocity = ((PriorityMotor) hardwareQueue.getDevice("rightFront")).motor[0].getVelocity() * -1;
+
+        intakeExtensionEncoder = this.robot.intake.intakeExtensionMotor.motor[0].getCurrentPosition();
     }
 
     private void updateExpansionHub() {
@@ -145,6 +149,14 @@ public class Sensors {
         return slidesVelocity;
     }
 
+    /**
+     * Gets the intake extension slides' position. -- Daniel
+     * @return the intake extension slides' position, in millimeters
+     */
+    public double getIntakeExtensionPosition() {
+        final double mmPerTick = 1.049564285714286; // TODO This value is TEMPORARY (just used value in Centerstage/TeamCode/src/main/java/org/firstinspires/ftc/teamcode/subsystems/deposit/Slides.java, 0.04132142857142857, and converted it to mm)
+        return intakeExtensionEncoder * mmPerTick;
+    }
 
     public double getVoltage() { return voltage; }
 

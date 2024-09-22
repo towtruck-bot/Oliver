@@ -6,6 +6,7 @@ import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 
 import org.firstinspires.ftc.teamcode.Robot;
+import org.firstinspires.ftc.teamcode.utils.Utils;
 import org.firstinspires.ftc.teamcode.utils.priority.PriorityMotor;
 
 @Config
@@ -17,40 +18,122 @@ public class Intake {
     }
 
     public final Robot robot;
+
     public final PriorityMotor intakeRollerMotor;
+
     private IntakeRollerState intakeRollerState = IntakeRollerState.OFF;
 
+    public final PriorityMotor intakeExtensionMotor;
+
+    private double extensionCurrentPosition = 0;
+    private double extensionTargetPosition = 0;
+
+    public static double KP;
+    public static double KI;
+    public static double KD;
+
+    private double integral;
+    private long lastLoopTime;
+    private double lastError;
+    private boolean firstLoop = true;
+
+    /**
+     * Initializes the intake. Uses motors intakeRollerMotor and intakeExtensionMotor. -- Daniel
+     * @param robot the robot (must have robot.sensors defined)
+     */
     public Intake(@NonNull Robot robot) {
         this.robot = robot;
-        intakeRollerMotor = new PriorityMotor(
-                robot.hardwareMap.get(DcMotorEx.class, "intakeRollerMotor"),
+
+        this.intakeRollerMotor = new PriorityMotor(
+                this.robot.hardwareMap.get(DcMotorEx.class, "intakeRollerMotor"),
                 "intakeRollerMotor",
                 1, 2, this.robot.sensors
         );
-        robot.hardwareQueue.addDevice(intakeRollerMotor);
+        this.robot.hardwareQueue.addDevice(intakeRollerMotor);
+
+        this.intakeExtensionMotor = new PriorityMotor(
+                this.robot.hardwareMap.get(DcMotorEx.class, "intakeExtensionMotor"),
+                "intakeExtensionMotor",
+                1, 2, this.robot.sensors
+        );
+        this.robot.hardwareQueue.addDevice(intakeExtensionMotor);
     }
 
+    /**
+     * Updates the motors for both roller and extension. Uses PID for extension. -- Daniel
+     */
     public void update() {
-        switch(intakeRollerState){
+        long currentTime = System.nanoTime();
+
+        switch(this.intakeRollerState){
             case OFF:
-                intakeRollerMotor.setTargetPower(0.0);
+                this.intakeRollerMotor.setTargetPower(0.0);
                 break;
             case ON:
-                intakeRollerMotor.setTargetPower(1.0);
+                this.intakeRollerMotor.setTargetPower(1.0);
                 break;
             case REVERSE:
-                intakeRollerMotor.setTargetPower(-1.0);
+                this.intakeRollerMotor.setTargetPower(-1.0);
                 break;
             default:
-                throw new IllegalStateException("Unexpected value for intakeRollerState: " + intakeRollerState);
+                throw new IllegalStateException("Unexpected value for intakeRollerState: " + this.intakeRollerState);
         }
+
+        this.extensionCurrentPosition = this.robot.sensors.getIntakeExtensionPosition();
+        double error = this.extensionTargetPosition - this.extensionCurrentPosition;
+        double derivative = 0;
+
+        if (this.firstLoop) {
+            this.integral = 0;
+            this.firstLoop = false;
+        } else {
+            double loopTime = (currentTime - this.lastLoopTime) / 1.0e9; // Convert from nanoseconds to seconds
+            this.integral += error * loopTime;
+            derivative = (error - this.lastError) / loopTime;
+        }
+
+        this.lastError = error;
+        this.lastLoopTime = currentTime;
+
+        this.intakeExtensionMotor.setTargetPower(Utils.minMaxClip(error * KP + this.integral * KI + derivative * KD, -1.0, 1.0));
     }
 
-    public IntakeRollerState getIntakeRollerState() { return intakeRollerState; }
+    /**
+     * Gets the roller's state. -- Daniel
+     * @return the roller's state (ON, OFF, REVERSE)
+     */
+    public IntakeRollerState getIntakeRollerState() { return this.intakeRollerState; }
 
-    public void setOff() { intakeRollerState = IntakeRollerState.OFF; }
+    /**
+     * Sets the roller to off. -- Daniel
+     */
+    public void setRollerOff() { this.intakeRollerState = IntakeRollerState.OFF; }
 
-    public void setOn() { intakeRollerState = IntakeRollerState.ON; }
+    /**
+     * Sets the roller to on. -- Daniel
+     */
+    public void setRollerOn() { this.intakeRollerState = IntakeRollerState.ON; }
 
-    public void setReverse() { intakeRollerState = IntakeRollerState.REVERSE; }
+    /**
+     * Sets the roller to reverse. -- Daniel
+     */
+    public void setRollerReverse() { this.intakeRollerState = IntakeRollerState.REVERSE; }
+
+    /**
+     * Gets the extension current position. -- Daniel
+     * @return the extension current position, in millimeters
+     */
+    public double getExtensionCurrentPosition() { return this.extensionCurrentPosition; }
+
+    /**
+     * Gets the position the extension is trying to reach. -- Daniel
+     * @return the extension target position, in millimeters
+     */
+    public double getExtensionTargetPosition() { return this.extensionTargetPosition; }
+
+    /**
+     * Sets the position the extension is trying to reach. -- Daniel
+     * @param extensionTargetPosition the new extension target position, in millimeters
+     */
+    public void setExtensionTargetPosition(double extensionTargetPosition) { this.extensionTargetPosition = extensionTargetPosition; }
 }

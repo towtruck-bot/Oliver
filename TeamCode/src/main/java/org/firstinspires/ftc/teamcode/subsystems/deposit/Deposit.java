@@ -21,18 +21,23 @@ public class Deposit {
 
     public Robot robot;
     public Slides slides;
+    public Arm arm;
     public Sensors sensors;
 
-    public static double extendHeight = 1.0;
-    public static double angleSampleStart = 0.25;
-    public static double angleSampleFinish = -0.25;
-    public static double angleSpecimenStart = 0.25;
-    public static double angleSpecimenSTart = -0.25;
+    public static double armInitAngle = 0.0;
+    public static double armGrabAngle = 0.0;
+    public static double armDepositAngle = 0.0;
 
+    public static double clawInitAngle = 0.0;
+    public static double clawGrabAngle = 0.0;
+    public static double clawDepositAngle = 0.0;
+    
     public Deposit(Robot robot){
         this.robot = robot;
         this.sensors = robot.sensors;
         this.slides = robot.slides;
+
+        arm = new Arm(robot);
 
         state = State.IDLE;
     }

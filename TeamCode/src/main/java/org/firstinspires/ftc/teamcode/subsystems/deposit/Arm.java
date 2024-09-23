@@ -10,21 +10,18 @@ import org.firstinspires.ftc.teamcode.utils.priority.PriorityServo;
 
 public class Arm {
     public final Sensors sensors;
-    public final PriorityServo baseMovement;
-    public final PriorityServo armAngle;
+    public final PriorityServo mgnLinkage;
+    public final PriorityServo armRotation;
+    public final PriorityServo diffy;
+    public final PriorityServo clawActuation;
 
     public Arm(Robot robot){
-        //Talked with Neil
-        //There are two servos moving the whole v4 bar along the rail. Defined as baseMovement
-        //There are two servos controlling the angle of the arm. Defined as armAngle
-        //Should be one more servo controlling claw angle itself for more detailed adjustments, need to ask Ryan if he is using that
-        // - James
-        Servo[] base = new Servo[] {hardwareMap.get(Servo.class, "V4BarServo1"), hardwareMap.get(Servo.class, "V4BarServo2")};
-        baseMovement = new PriorityServo(
-                base,
-                "baseMovement",
+        Servo[] mgn = new Servo[] {hardwareMap.get(Servo.class, "mgnServoL"), hardwareMap.get(Servo.class,"mgnServoR")};
+        mgnLinkage = new PriorityServo(
+                mgn,
+                "mgnLinkage",
                 PriorityServo.ServoType.SPEED,
-                0.929999,
+                1.0,
                 0.0,
                 1.0,
                 0.0,
@@ -34,12 +31,42 @@ public class Arm {
                 new double[] {-1.0, 1.0}
         );
 
-        Servo[] angle = new Servo[] {hardwareMap.get(Servo.class, "V4BarServo3"), hardwareMap.get(Servo.class, "V4BarServo4")};
-        armAngle = new PriorityServo(
-                angle,
-                "armAngle",
+        Servo[] arm = new Servo[] {hardwareMap.get(Servo.class, "armServoL"), hardwareMap.get(Servo.class, "armServoR")};
+        armRotation = new PriorityServo(
+                mgn,
+                "armRotation",
                 PriorityServo.ServoType.SPEED,
-                0.92999,
+                1.0,
+                0.0,
+                1.0,
+                0.0,
+                false,
+                3.0,
+                5.0,
+                new double[] {-1.0, 1.0}
+        );
+
+        Servo[] diff = new Servo[] {hardwareMap.get(Servo.class, "diffL"), hardwareMap.get(Servo.class, "diffR")};
+        diffy = new PriorityServo(
+                mgn,
+                "diffy",
+                PriorityServo.ServoType.SPEED,
+                1.0,
+                0.0,
+                1.0,
+                0.0,
+                false,
+                3.0,
+                5.0,
+                new double[] {-1.0, 1.0}
+        );
+
+        Servo[] claw = new Servo[] {hardwareMap.get(Servo.class, "claw")};
+        clawActuation = new PriorityServo(
+                mgn,
+                "clawActuation",
+                PriorityServo.ServoType.SPEED,
+                1.0,
                 0.0,
                 1.0,
                 0.0,
@@ -53,6 +80,6 @@ public class Arm {
     }
 
     public boolean checkReady(){
-        return baseMovement.inPosition() && armAngle.inPosition();
+        return mgnLinkage.inPosition() && armRotation.inPosition() && diffy.inPosition() && clawActuation.inPosition();
     }
 }

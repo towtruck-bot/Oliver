@@ -25,18 +25,18 @@ public class Intake {
 
     private IntakeRollerState intakeRollerState = IntakeRollerState.OFF;
 
-    public static double unjamDuration = 500; // milliseconds
+    public static long unjamDuration = 500; // milliseconds
 
-    public static double unjamLastTime;
+    public static long unjamLastTime;
 
     public final PriorityMotor intakeExtensionMotor;
 
     private double extensionCurrentPosition = 0;
     private double extensionTargetPosition = 0;
 
-    public static double extensionMaxPosition = 50; // millimeters TODO Replace this placeholder value with actual limit
+    public static double extensionMaxPosition = 21; // inches TODO Replace this placeholder value with actual limit
 
-    public PID pid;
+    public static PID pid = new PID(1, 0, 0); // TODO Replace these placeholders;
 
     /**
      * Initializes the intake. Uses motors intakeRollerMotor and intakeExtensionMotor. -- Daniel
@@ -58,8 +58,6 @@ public class Intake {
                 1, 2, this.robot.sensors
         );
         this.robot.hardwareQueue.addDevice(intakeExtensionMotor);
-
-        this.pid = new PID(1, 0, 0); // TODO Replace these placeholders
     }
 
     /**
@@ -77,7 +75,7 @@ public class Intake {
                 break;
             case UNJAM:
                 this.intakeRollerMotor.setTargetPower(-1.0);
-                if (currentTime > unjamLastTime + unjamDuration * 1e6) setRollerReverse();
+                if (currentTime > unjamLastTime + unjamDuration * 1e6) setRollerOn();
                 break;
             case REVERSE:
                 this.intakeRollerMotor.setTargetPower(-1.0);
@@ -117,19 +115,19 @@ public class Intake {
 
     /**
      * Gets the extension current position. -- Daniel
-     * @return the extension current position, in millimeters
+     * @return the extension current position, in inches
      */
     public double getExtensionCurrentPosition() { return this.extensionCurrentPosition; }
 
     /**
      * Gets the position the extension is trying to reach. -- Daniel
-     * @return the extension target position, in millimeters
+     * @return the extension target position, in inches
      */
     public double getExtensionTargetPosition() { return this.extensionTargetPosition; }
 
     /**
      * Sets the position the extension is trying to reach. The position is automatically clamped to range. -- Daniel
-     * @param extensionTargetPosition the new extension target position, in millimeters
+     * @param extensionTargetPosition the new extension target position, in inches
      */
     public void setExtensionTargetPosition(double extensionTargetPosition) { this.extensionTargetPosition = Utils.minMaxClip(extensionTargetPosition, 0, extensionMaxPosition); }
 }

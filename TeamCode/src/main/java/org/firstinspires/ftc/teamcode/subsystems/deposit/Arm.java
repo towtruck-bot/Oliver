@@ -12,7 +12,7 @@ public class Arm {
     public final Sensors sensors;
     public final PriorityServo mgnLinkage;
     public final PriorityServo armRotation;
-    public final PriorityServo diffy;
+    public final PriorityServo diffyL, diffyR;
     public final PriorityServo clawActuation;
 
     public Arm(Robot robot){
@@ -33,7 +33,7 @@ public class Arm {
 
         Servo[] arm = new Servo[] {hardwareMap.get(Servo.class, "armServoL"), hardwareMap.get(Servo.class, "armServoR")};
         armRotation = new PriorityServo(
-                mgn,
+                arm,
                 "armRotation",
                 PriorityServo.ServoType.SPEED,
                 1.0,
@@ -46,10 +46,23 @@ public class Arm {
                 new double[] {-1.0, 1.0}
         );
 
-        Servo[] diff = new Servo[] {hardwareMap.get(Servo.class, "diffL"), hardwareMap.get(Servo.class, "diffR")};
-        diffy = new PriorityServo(
-                mgn,
-                "diffy",
+        diffyL = new PriorityServo(
+                new Servo[] {hardwareMap.get(Servo.class, "diffyL")},
+                "diffyL",
+                PriorityServo.ServoType.SPEED,
+                1.0,
+                0.0,
+                1.0,
+                0.0,
+                false,
+                3.0,
+                5.0,
+                new double[] {-1.0, 1.0}
+        );
+
+        diffyR = new PriorityServo(
+                new Servo[] {hardwareMap.get(Servo.class, "diffyR")},
+                "diffyR",
                 PriorityServo.ServoType.SPEED,
                 1.0,
                 0.0,
@@ -63,7 +76,7 @@ public class Arm {
 
         Servo[] claw = new Servo[] {hardwareMap.get(Servo.class, "claw")};
         clawActuation = new PriorityServo(
-                mgn,
+                claw,
                 "clawActuation",
                 PriorityServo.ServoType.SPEED,
                 1.0,
@@ -80,6 +93,6 @@ public class Arm {
     }
 
     public boolean checkReady(){
-        return mgnLinkage.inPosition() && armRotation.inPosition() && diffy.inPosition() && clawActuation.inPosition();
+        return mgnLinkage.inPosition() && armRotation.inPosition() && diffyL.inPosition() && diffyR.inPosition() && clawActuation.inPosition();
     }
 }

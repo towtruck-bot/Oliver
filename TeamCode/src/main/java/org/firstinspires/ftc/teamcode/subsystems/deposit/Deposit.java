@@ -1,10 +1,7 @@
 package org.firstinspires.ftc.teamcode.subsystems.deposit;
 
-import com.qualcomm.robotcore.hardware.HardwareMap;
-
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.sensors.Sensors;
-import org.firstinspires.ftc.teamcode.utils.priority.HardwareQueue;
 
 public class Deposit {
     public enum State{
@@ -24,13 +21,13 @@ public class Deposit {
     public Arm arm;
     public Sensors sensors;
 
-    public static double armInitAngle = 0.0;
-    public static double armGrabAngle = 0.0;
-    public static double armDepositAngle = 0.0;
+    public final double initAngle = Math.toRadians(180.0);
 
-    public static double clawInitAngle = 0.0;
-    public static double clawGrabAngle = 0.0;
-    public static double clawDepositAngle = 0.0;
+    public final double sampleDepositAngle = Math.toRadians(60.0);
+    public final double sampleDropHeight = 1.0;
+
+    public final double specimenHoldAngle = Math.toRadians(150.0);
+    public final double specimenAttachHeight = 0.5;
     
     public Deposit(Robot robot){
         this.robot = robot;

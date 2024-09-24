@@ -93,6 +93,6 @@ public class Arm {
     }
 
     public boolean checkReady(){
-        return mgnLinkage.inPosition() && armRotation.inPosition() && diffyL.inPosition() && diffyR.inPosition() && clawActuation.inPosition();
+        return mgnLinkage.inPosition() && armRotation.inPosition() && clawActuation.inPosition();
     }
 }

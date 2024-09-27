@@ -20,6 +20,10 @@ public class Deposit {
 
     public final double initArmAngle = Math.toRadians(180.0);
     public final double initClawAngle = Math.toRadians(180.0);
+    public final double initDiffyR = Math.toRadians(180.0);
+    public final double initDiffyL = Math.toRadians(180.0);
+
+
     public final double initRaiseHeight = 0.0;
     public final double initMGNPos = 0.0;
 
@@ -33,6 +37,12 @@ public class Deposit {
     public final double specimenRaiseHeight = 0.5;
     public final double specimenMGNPos = 0.0;
     public final double specimenDepositHeight = 1.0;
+    public double sample_rotation = 0.0; // update these values
+    public final double sample_spin = 0.0; // update these values
+    public final double specimen_rotation = 0.0; // update these values
+    public final double specimen_spin = 0.0; // update these values
+    public final double clawOpenAngle = Math.toRadians(0.0);
+
 
     public Deposit(Robot robot){
         this.robot = robot;
@@ -50,6 +60,8 @@ public class Deposit {
                 arm.armRotation.setTargetAngle(initArmAngle,1.0);
                 arm.clawActuation.setTargetAngle(initClawAngle, 1.0);
                 arm.mgnLinkage.setTargetPose(initMGNPos, 1.0); //i needa do math for this but im not thinking rn - James
+                arm.diffyR.setTargetPose(initDiffyR, 1.0);
+                arm.diffyL.setTargetAngle(initDiffyL, 1.0);
                 slides.setTargetLength(initRaiseHeight);
             case RAISEDSAMPLE:
                 arm.armRotation.setTargetAngle(sampleArmAngle,1.0);
@@ -58,7 +70,9 @@ public class Deposit {
                 slides.setTargetLength(sampleRaiseHeight);
                 if(arm.checkReady()){state = State.DEPOSITSAMPLE;}
             case DEPOSITSAMPLE:
-                //claw stuff here
+                arm.diffyL.setTargetAngle(sample_rotation+sample_spin, 1.0);
+                arm.diffyR.setTargetAngle(sample_rotation-sample_spin, 1.0);
+                arm.clawActuation.setTargetAngle(clawOpenAngle, 1.0);
                 state = State.IDLE;
             case RAISEDSPECIMEN:
                 arm.armRotation.setTargetAngle(specimenHoldAngle, 1.0);
@@ -68,6 +82,9 @@ public class Deposit {
                 if(arm.checkReady()){state = State.DEPOSITSPECIMEN;}
             case DEPOSITSPECIMEN:
                 slides.setTargetLength(specimenDepositHeight);
+                arm.diffyL.setTargetAngle(specimen_rotation+specimen_spin, 1.0);
+                arm.diffyR.setTargetAngle(specimen_rotation-specimen_spin, 1.0);
+                arm.clawActuation.setTargetAngle(clawOpenAngle, 1.0);
                 state = State.IDLE;
         }
     }

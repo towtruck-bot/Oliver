@@ -18,6 +18,11 @@ public class Deposit {
     public Arm arm;
     public Sensors sensors;
 
+    //let deposit be considered the "front side"
+    //the mgn rail will be x axis
+    //facing the front will be positive
+    //-James
+
     public final double initArmAngle = Math.toRadians(180.0);
     public final double initClawAngle = Math.toRadians(180.0);
     public final double initDiffyR = Math.toRadians(180.0);
@@ -57,34 +62,35 @@ public class Deposit {
     public void update(){
         switch(state){
             case IDLE:
-                arm.armRotation.setTargetAngle(initArmAngle,1.0);
-                arm.clawActuation.setTargetAngle(initClawAngle, 1.0);
-                arm.mgnLinkage.setTargetPose(initMGNPos, 1.0); //i needa do math for this but im not thinking rn - James
-                arm.diffyR.setTargetPose(initDiffyR, 1.0);
-                arm.diffyL.setTargetAngle(initDiffyL, 1.0);
+                arm.setArmAngle(initArmAngle);
+                arm.setClawAngle(initClawAngle);
+                arm.setMgnPosition(initMGNPos);
+                arm.setDiffy(initDiffyR, initDiffyL);
                 slides.setTargetLength(initRaiseHeight);
+
             case RAISEDSAMPLE:
-                arm.armRotation.setTargetAngle(sampleArmAngle,1.0);
-                arm.clawActuation.setTargetAngle(sampleClawAngle,1.0);
-                arm.mgnLinkage.setTargetPose(sampleMGNPos, 1.0);
+                arm.setArmAngle(sampleArmAngle);
+                arm.setClawAngle(sampleClawAngle);
+                arm.setMgnPosition(sampleMGNPos);
                 slides.setTargetLength(sampleRaiseHeight);
                 if(arm.checkReady()){state = State.DEPOSITSAMPLE;}
+
             case DEPOSITSAMPLE:
-                arm.diffyL.setTargetAngle(sample_rotation+sample_spin, 1.0);
-                arm.diffyR.setTargetAngle(sample_rotation-sample_spin, 1.0);
-                arm.clawActuation.setTargetAngle(clawOpenAngle, 1.0);
-                state = State.IDLE;
+                arm.setDiffy(sample_rotation - sample_spin, sample_rotation + sample_spin);
+                arm.setClawAngle(clawOpenAngle);
+                state = state.IDLE;
+
             case RAISEDSPECIMEN:
-                arm.armRotation.setTargetAngle(specimenHoldAngle, 1.0);
-                arm.clawActuation.setTargetAngle(specimenClawAngle, 1.0);
-                arm.mgnLinkage.setTargetPose(specimenMGNPos, 1.0);
+                arm.setArmAngle(specimenHoldAngle);
+                arm.setClawAngle(specimenClawAngle);
+                arm.setMgnPosition(specimenMGNPos);
                 slides.setTargetLength(specimenRaiseHeight);
                 if(arm.checkReady()){state = State.DEPOSITSPECIMEN;}
+
             case DEPOSITSPECIMEN:
                 slides.setTargetLength(specimenDepositHeight);
-                arm.diffyL.setTargetAngle(specimen_rotation+specimen_spin, 1.0);
-                arm.diffyR.setTargetAngle(specimen_rotation-specimen_spin, 1.0);
-                arm.clawActuation.setTargetAngle(clawOpenAngle, 1.0);
+                arm.setDiffy(specimen_rotation - specimen_spin, specimen_rotation + specimen_rotation);
+                arm.setClawAngle(clawOpenAngle);
                 state = State.IDLE;
         }
     }

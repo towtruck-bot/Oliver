@@ -15,6 +15,9 @@ public class Arm {
     public final PriorityServo diffyL, diffyR;
     public final PriorityServo clawActuation;
 
+    //assuming both parts of the linkage are the same length, will change if mechanical gives info
+    private final double mgnArmLength = 5.90551;
+    //private final double mgnArmLengthServo, mgnArmLengthCarriage;
     public Arm(Robot robot){
         Servo[] mgn = new Servo[] {hardwareMap.get(Servo.class, "mgnServoL"), hardwareMap.get(Servo.class,"mgnServoR")};
         mgnLinkage = new PriorityServo(
@@ -94,5 +97,22 @@ public class Arm {
 
     public boolean checkReady(){
         return mgnLinkage.inPosition() && armRotation.inPosition() && clawActuation.inPosition();
+    }
+
+    public void setArmAngle(double deg){
+        armRotation.setTargetAngle(Math.toRadians(deg), 1.0);
+    }
+
+    public void setClawAngle(double deg){
+        clawActuation.setTargetAngle(Math.toRadians(deg), 1.0);
+    }
+
+    public void setMgnPosition(double newPos){
+        mgnLinkage.setTargetAngle(Math.acos((mgnArmLength*mgnArmLength+mgnArmLength*mgnArmLength+newPos*newPos)/(-2.0 * mgnArmLength * newPos)), 1.0);
+    }
+
+    public void setDiffy(double degR, double degL){
+        diffyR.setTargetAngle(degR, 1.0);
+        diffyL.setTargetAngle(degL, 1.0);
     }
 }

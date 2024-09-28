@@ -17,7 +17,7 @@ public class Arm {
 
     //assuming both parts of the linkage are the same length, will change if mechanical gives info
     private final double mgnArmLength = 5.90551;
-
+    //private final double mgnArmLengthServo, mgnArmLengthCarriage;
     public Arm(Robot robot){
         Servo[] mgn = new Servo[] {hardwareMap.get(Servo.class, "mgnServoL"), hardwareMap.get(Servo.class,"mgnServoR")};
         mgnLinkage = new PriorityServo(
@@ -115,6 +115,4 @@ public class Arm {
         diffyR.setTargetAngle(degR, 1.0);
         diffyL.setTargetAngle(degL, 1.0);
     }
-
-
 }

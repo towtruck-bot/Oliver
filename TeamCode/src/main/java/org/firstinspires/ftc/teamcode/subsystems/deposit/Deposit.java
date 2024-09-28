@@ -18,17 +18,14 @@ public class Deposit {
     public Arm arm;
     public Sensors sensors;
 
-    //let deposit be considered the "front side"
-    //the mgn rail will be x axis
-    //facing the front will be positive
-    //-James
-
+    // Arm Servos
+    // Referring to the default position in this doc: https://docs.google.com/document/d/1J4mOFkPJLNY-hA3XU2I-XiUrz45ra0IlPodfkXszulE/edit?usp=sharing
+    // Let the intake side be defined as the back and deposit as the front
+    // The Mgn base + rail will be the x - axis
+    // 0 degrees will be in the positive direction(i.e. arm pointed straight out of the deposit along mgn rail is 0deg)
+    // mgn pos will begin at 0.0 length, currently defined as the base in between the vertical slides
     public final double initArmAngle = Math.toRadians(180.0);
     public final double initClawAngle = Math.toRadians(180.0);
-    public final double initDiffyR = Math.toRadians(180.0);
-    public final double initDiffyL = Math.toRadians(180.0);
-
-
     public final double initRaiseHeight = 0.0;
     public final double initMGNPos = 0.0;
 
@@ -42,11 +39,16 @@ public class Deposit {
     public final double specimenRaiseHeight = 0.5;
     public final double specimenMGNPos = 0.0;
     public final double specimenDepositHeight = 1.0;
+    public final double clawOpenAngle = Math.toRadians(0.0);
+
+    // Diffy Servos
+    // Ryan please add your definition of 0 radians here
+    public final double initDiffyR = Math.toRadians(180.0);
+    public final double initDiffyL = Math.toRadians(180.0);
     public double sample_rotation = 0.0; // update these values
     public final double sample_spin = 0.0; // update these values
     public final double specimen_rotation = 0.0; // update these values
     public final double specimen_spin = 0.0; // update these values
-    public final double clawOpenAngle = Math.toRadians(0.0);
 
 
     public Deposit(Robot robot){

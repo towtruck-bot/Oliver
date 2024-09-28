@@ -101,7 +101,7 @@ public class Intake {
         this.extensionCurrentPosition = this.robot.sensors.getIntakeExtensionPosition();
         double error = this.extensionTargetPosition - this.extensionCurrentPosition;
 
-        if (error < extensionDeadzone) {
+        if (Math.abs(error) < extensionDeadzone) {
             pid.resetIntegral();
             this.intakeExtensionMotor.setTargetPower(0);
         } else {

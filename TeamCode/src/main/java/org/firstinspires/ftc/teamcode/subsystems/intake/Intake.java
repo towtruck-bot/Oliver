@@ -4,11 +4,13 @@ import androidx.annotation.NonNull;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.utils.PID;
 import org.firstinspires.ftc.teamcode.utils.Utils;
 import org.firstinspires.ftc.teamcode.utils.priority.PriorityMotor;
+import org.firstinspires.ftc.teamcode.utils.priority.PriorityServo;
 
 @Config
 public class Intake {
@@ -20,23 +22,23 @@ public class Intake {
     }
 
     public final Robot robot;
-
     public final PriorityMotor intakeRollerMotor;
+    public final PriorityMotor intakeExtensionMotor;
+    public final PriorityServo intakeFlipServo;
 
     private IntakeRollerState intakeRollerState = IntakeRollerState.OFF;
-
     public static long unjamDuration = 500; // milliseconds
-
-    public static long unjamLastTime;
-
-    public final PriorityMotor intakeExtensionMotor;
+    private long unjamLastTime;
 
     private double extensionCurrentPosition = 0;
     private double extensionTargetPosition = 0;
+    public static double extensionMaxPosition = 21; // TODO Replace this placeholder value with actual limit
+    public static double extensionDeadzone = 0.1; // To prevent jitter TODO Replace this placeholder
+    public static PID pid = new PID(0.2, 0, 0.02); // TODO Replace these placeholders
 
-    public static double extensionMaxPosition = 21; // inches TODO Replace this placeholder value with actual limit
-
-    public static PID pid = new PID(1, 0, 0); // TODO Replace these placeholders;
+    private double flipTargetAngle = 0;
+    public static double flipDownAngle = Math.toRadians(180);
+    public static double flipUpAngle = Math.toRadians(90);
 
     /**
      * Initializes the intake. Uses motors intakeRollerMotor and intakeExtensionMotor. -- Daniel
@@ -58,6 +60,20 @@ public class Intake {
                 1, 2, this.robot.sensors
         );
         this.robot.hardwareQueue.addDevice(intakeExtensionMotor);
+
+        this.intakeFlipServo = new PriorityServo(
+                this.robot.hardwareMap.get(Servo.class, "intakeFlipServo"),
+                "intakeFlipServo",
+                PriorityServo.ServoType.AXON_MINI,
+                1.0,
+                0.0,
+                1.0,
+                0.0,
+                false,
+                1.0,
+                2.0
+        );
+        this.robot.hardwareQueue.addDevice(intakeFlipServo);
     }
 
     /**
@@ -75,7 +91,7 @@ public class Intake {
                 break;
             case UNJAM:
                 this.intakeRollerMotor.setTargetPower(-1.0);
-                if (currentTime > unjamLastTime + unjamDuration * 1e6) setRollerOn();
+                if (currentTime > this.unjamLastTime + unjamDuration * 1e6) setRollerOn();
                 break;
             case REVERSE:
                 this.intakeRollerMotor.setTargetPower(-1.0);
@@ -83,8 +99,16 @@ public class Intake {
         }
 
         this.extensionCurrentPosition = this.robot.sensors.getIntakeExtensionPosition();
+        double error = this.extensionTargetPosition - this.extensionCurrentPosition;
 
-        this.intakeExtensionMotor.setTargetPower(pid.update(this.extensionTargetPosition - this.extensionCurrentPosition, -1.0, 1.0));
+        if (error < extensionDeadzone) {
+            pid.resetIntegral();
+            this.intakeExtensionMotor.setTargetPower(0);
+        } else {
+            this.intakeExtensionMotor.setTargetPower(pid.update(error, -1.0, 1.0));
+        }
+
+        this.intakeFlipServo.setTargetAngle(this.flipTargetAngle, 1.0);
     }
 
     /**
@@ -106,7 +130,7 @@ public class Intake {
     /**
      * Sets the roller to unjam. -- Daniel
      */
-    public void setRollerUnjam() { this.intakeRollerState = IntakeRollerState.UNJAM; unjamLastTime = System.nanoTime(); }
+    public void setRollerUnjam() { this.intakeRollerState = IntakeRollerState.UNJAM; this.unjamLastTime = System.nanoTime(); }
 
     /**
      * Sets the roller to reverse. -- Daniel
@@ -130,4 +154,16 @@ public class Intake {
      * @param extensionTargetPosition the new extension target position, in inches
      */
     public void setExtensionTargetPosition(double extensionTargetPosition) { this.extensionTargetPosition = Utils.minMaxClip(extensionTargetPosition, 0, extensionMaxPosition); }
+
+    /**
+     * Gets the position the extension is trying to reach. -- Daniel
+     * @return the extension target position, in inches
+     */
+    public double getFlipTargetAngle() { return this.flipTargetAngle; }
+
+    /**
+     * Sets the angle for the bucket flip. The position is automatically clamped to range. -- Daniel
+     * @param flipTargetAngle the new extension target position, in inches
+     */
+    public void setFlipTargetAngle(double flipTargetAngle) { this.flipTargetAngle = Utils.minMaxClip(flipTargetAngle, 0, flipDownAngle); }
 }

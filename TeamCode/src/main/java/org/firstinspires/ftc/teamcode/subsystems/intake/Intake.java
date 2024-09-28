@@ -17,6 +17,7 @@ public class Intake {
     public enum IntakeRollerState {
         ON,
         OFF,
+        KEEP_IN,
         UNJAM,
         REVERSE,
     }
@@ -28,7 +29,7 @@ public class Intake {
         PICK_UP,
         RETRACTING,
         FINISH_RETRACTING,
-        RETRACTED,
+        IDLE,
     }
 
     public final Robot robot;
@@ -39,20 +40,21 @@ public class Intake {
     private IntakeState intakeState = IntakeState.RETRACTING;
 
     private IntakeRollerState intakeRollerState = IntakeRollerState.OFF;
+    public static double keepBlockInPower = 0.2; // TODO Replace this placeholder
     public static long unjamDuration = 500; // milliseconds
     private long unjamLastTime;
 
     public static double extensionMaxPosition = 21; // TODO Replace this placeholder value with actual limit
-    public static double extensionPositionTolerance = 0.1; // TODO Replace this placeholder
+    public static double extensionPositionTolerance = 0.25; // TODO Replace this placeholder
     public static double extendingStartFlipPosition = 3; // TODO Replace this placeholder
     public static double extendedMinPosition = 5; // TODO Replace this placeholder
-    private double extendedPosition = extendedMinPosition;
+    private double targetPositionWhenExtended = extendedMinPosition;
     private double extensionCurrentPosition = 0;
     private double extensionControlTargetPosition = 0;
     public static PID pid = new PID(0.2, 0, 0.02); // TODO Replace these placeholders
 
     public static double flipDownAngle = Math.toRadians(180);
-    public static double flipUpAngle = Math.toRadians(90);
+    public static double flipAngleToGoOverBarrier = Math.toRadians(90);
 
     /**
      * Initializes the intake. Uses motors intakeRollerMotor and intakeExtensionMotor. -- Daniel
@@ -101,39 +103,41 @@ public class Intake {
         switch (this.intakeState) {
             case START_EXTENDING:
                 this.setRollerOff();
-                this.extensionControlTargetPosition = this.extendedPosition;
+                this.extensionControlTargetPosition = this.targetPositionWhenExtended;
                 this.intakeFlipServo.setTargetAngle(0, 1.0);
                 if (this.extensionCurrentPosition > extendingStartFlipPosition) this.intakeState = IntakeState.EXTENDING;
                 else break;
             case EXTENDING:
                 this.setRollerOff();
-                this.extensionControlTargetPosition = this.extendedPosition;
-                this.intakeFlipServo.setTargetAngle(flipUpAngle, 1.0);
+                this.extensionControlTargetPosition = this.targetPositionWhenExtended;
+                this.intakeFlipServo.setTargetAngle(flipAngleToGoOverBarrier, 1.0);
                 if (this.isExtensionAtTarget()) this.intakeState = IntakeState.EXTENDED;
                 else break;
             case EXTENDED:
-                this.extensionControlTargetPosition = this.extendedPosition;
+                this.extensionControlTargetPosition = this.targetPositionWhenExtended;
                 this.intakeFlipServo.setTargetAngle(flipDownAngle, 1.0);
                 break;
             case PICK_UP:
-                this.setRollerOff();
-                this.extensionControlTargetPosition = this.extendedPosition;
+                this.setRollerKeepIn();
+                this.extensionControlTargetPosition = this.targetPositionWhenExtended;
                 this.intakeFlipServo.setTargetAngle(0, 1.0);
-                if (this.intakeFlipServo.getCurrentAngle() < flipUpAngle) this.intakeState = IntakeState.RETRACTING;
+                if (this.intakeFlipServo.getCurrentAngle() < flipAngleToGoOverBarrier) this.intakeState = IntakeState.RETRACTING;
                 else break;
             case RETRACTING:
-                this.setRollerOff();
+                this.setRollerKeepIn();
                 this.extensionControlTargetPosition = extendingStartFlipPosition;
                 this.intakeFlipServo.setTargetAngle(0, 1.0);
                 if (this.intakeFlipServo.inPosition()) this.intakeState = IntakeState.FINISH_RETRACTING;
                 else break;
             case FINISH_RETRACTING:
-                this.setRollerOff();
+                this.setRollerKeepIn();
                 this.extensionControlTargetPosition = 0;
                 this.intakeFlipServo.setTargetAngle(0, 1.0);
-                if (this.isExtensionAtTarget()) this.intakeState = IntakeState.RETRACTED;
-                else break;
-            case RETRACTED:
+                if (this.isExtensionAtTarget()) {
+                    this.intakeState = IntakeState.IDLE;
+                    this.setRollerOff();
+                } else break;
+            case IDLE:
                 this.extensionControlTargetPosition = 0;
                 this.intakeFlipServo.setTargetAngle(0, 1.0);
                 break;
@@ -147,9 +151,12 @@ public class Intake {
             case ON:
                 this.intakeRollerMotor.setTargetPower(1.0);
                 break;
+            case KEEP_IN:
+                this.intakeRollerMotor.setTargetPower(keepBlockInPower);
+                break;
             case UNJAM:
                 this.intakeRollerMotor.setTargetPower(-1.0);
-                if (currentTime > this.unjamLastTime + unjamDuration * 1e6) setRollerOn();
+                if (currentTime > this.unjamLastTime + unjamDuration * 1e6) this.setRollerOn();
                 break;
             case REVERSE:
                 this.intakeRollerMotor.setTargetPower(-1.0);
@@ -167,7 +174,7 @@ public class Intake {
 
     /**
      * Gets the roller's state. -- Daniel
-     * @return the roller's state (ON, OFF, UNJAM, REVERSE)
+     * @return the roller's state (ON, OFF, KEEP_IN, UNJAM, REVERSE)
      */
     public IntakeRollerState getIntakeRollerState() { return this.intakeRollerState; }
 
@@ -180,6 +187,11 @@ public class Intake {
      * Sets the roller to on. -- Daniel
      */
     public void setRollerOn() { this.intakeRollerState = IntakeRollerState.ON; }
+
+    /**
+     * Sets the roller to keep the block in. -- Daniel
+     */
+    public void setRollerKeepIn() { this.intakeRollerState = IntakeRollerState.KEEP_IN; }
 
     /**
      * Sets the roller to unjam. -- Daniel
@@ -201,13 +213,13 @@ public class Intake {
      * Gets the position the extension will go to when extended. -- Daniel
      * @return the extension target position, in inches
      */
-    public double getExtendedPosition() { return this.extendedPosition; }
+    public double getTargetPositionWhenExtended() { return this.targetPositionWhenExtended; }
 
     /**
      * Sets the position the extension will go to when extended. The position is automatically clamped to range. -- Daniel
-     * @param extendedPosition the new extension target position, in inches
+     * @param targetPositionWhenExtended the new extension target position, in inches
      */
-    public void setExtendedPosition(double extendedPosition) { this.extendedPosition = Utils.minMaxClip(extendedPosition, extendedMinPosition, extensionMaxPosition); }
+    public void setTargetPositionWhenExtended(double targetPositionWhenExtended) { this.targetPositionWhenExtended = Utils.minMaxClip(targetPositionWhenExtended, extendedMinPosition, extensionMaxPosition); }
 
     /**
      * Gets the intake's state. -- Daniel

@@ -4,11 +4,13 @@ import androidx.annotation.NonNull;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.utils.PID;
 import org.firstinspires.ftc.teamcode.utils.Utils;
 import org.firstinspires.ftc.teamcode.utils.priority.PriorityMotor;
+import org.firstinspires.ftc.teamcode.utils.priority.PriorityServo;
 
 @Config
 public class Intake {
@@ -16,27 +18,41 @@ public class Intake {
         ON,
         OFF,
         UNJAM,
-        REVERSE
+        REVERSE,
+    }
+
+    public enum IntakeState {
+        START_EXTENDING,
+        EXTENDING,
+        EXTENDED,
+        PICK_UP,
+        RETRACTING,
+        FINISH_RETRACTING,
+        RETRACTED,
     }
 
     public final Robot robot;
-
     public final PriorityMotor intakeRollerMotor;
+    public final PriorityMotor intakeExtensionMotor;
+    public final PriorityServo intakeFlipServo;
+
+    private IntakeState intakeState = IntakeState.RETRACTING;
 
     private IntakeRollerState intakeRollerState = IntakeRollerState.OFF;
-
     public static long unjamDuration = 500; // milliseconds
+    private long unjamLastTime;
 
-    public static long unjamLastTime;
-
-    public final PriorityMotor intakeExtensionMotor;
-
+    public static double extensionMaxPosition = 21; // TODO Replace this placeholder value with actual limit
+    public static double extensionPositionTolerance = 0.1; // TODO Replace this placeholder
+    public static double extendingStartFlipPosition = 3; // TODO Replace this placeholder
+    public static double extendedMinPosition = 5; // TODO Replace this placeholder
+    private double extendedPosition = extendedMinPosition;
     private double extensionCurrentPosition = 0;
-    private double extensionTargetPosition = 0;
+    private double extensionControlTargetPosition = 0;
+    public static PID pid = new PID(0.2, 0, 0.02); // TODO Replace these placeholders
 
-    public static double extensionMaxPosition = 21; // inches TODO Replace this placeholder value with actual limit
-
-    public static PID pid = new PID(1, 0, 0); // TODO Replace these placeholders;
+    public static double flipDownAngle = Math.toRadians(180);
+    public static double flipUpAngle = Math.toRadians(90);
 
     /**
      * Initializes the intake. Uses motors intakeRollerMotor and intakeExtensionMotor. -- Daniel
@@ -58,6 +74,20 @@ public class Intake {
                 1, 2, this.robot.sensors
         );
         this.robot.hardwareQueue.addDevice(intakeExtensionMotor);
+
+        this.intakeFlipServo = new PriorityServo(
+                this.robot.hardwareMap.get(Servo.class, "intakeFlipServo"),
+                "intakeFlipServo",
+                PriorityServo.ServoType.AXON_MINI,
+                1.0,
+                0.0,
+                1.0,
+                0.0,
+                false,
+                1.0,
+                2.0
+        );
+        this.robot.hardwareQueue.addDevice(intakeFlipServo);
     }
 
     /**
@@ -65,8 +95,52 @@ public class Intake {
      */
     public void update() {
         long currentTime = System.nanoTime();
+        this.extensionCurrentPosition = this.robot.sensors.getIntakeExtensionPosition();
 
-        switch(this.intakeRollerState){
+        // FSM
+        switch (this.intakeState) {
+            case START_EXTENDING:
+                this.setRollerOff();
+                this.extensionControlTargetPosition = this.extendedPosition;
+                this.intakeFlipServo.setTargetAngle(0, 1.0);
+                if (this.extensionCurrentPosition > extendingStartFlipPosition) this.intakeState = IntakeState.EXTENDING;
+                else break;
+            case EXTENDING:
+                this.setRollerOff();
+                this.extensionControlTargetPosition = this.extendedPosition;
+                this.intakeFlipServo.setTargetAngle(flipUpAngle, 1.0);
+                if (this.isExtensionAtTarget()) this.intakeState = IntakeState.EXTENDED;
+                else break;
+            case EXTENDED:
+                this.extensionControlTargetPosition = this.extendedPosition;
+                this.intakeFlipServo.setTargetAngle(flipDownAngle, 1.0);
+                break;
+            case PICK_UP:
+                this.setRollerOff();
+                this.extensionControlTargetPosition = this.extendedPosition;
+                this.intakeFlipServo.setTargetAngle(0, 1.0);
+                if (this.intakeFlipServo.getCurrentAngle() < flipUpAngle) this.intakeState = IntakeState.RETRACTING;
+                else break;
+            case RETRACTING:
+                this.setRollerOff();
+                this.extensionControlTargetPosition = extendingStartFlipPosition;
+                this.intakeFlipServo.setTargetAngle(0, 1.0);
+                if (this.intakeFlipServo.inPosition()) this.intakeState = IntakeState.FINISH_RETRACTING;
+                else break;
+            case FINISH_RETRACTING:
+                this.setRollerOff();
+                this.extensionControlTargetPosition = 0;
+                this.intakeFlipServo.setTargetAngle(0, 1.0);
+                if (this.isExtensionAtTarget()) this.intakeState = IntakeState.RETRACTED;
+                else break;
+            case RETRACTED:
+                this.extensionControlTargetPosition = 0;
+                this.intakeFlipServo.setTargetAngle(0, 1.0);
+                break;
+        }
+
+        // Roller control
+        switch (this.intakeRollerState) {
             case OFF:
                 this.intakeRollerMotor.setTargetPower(0.0);
                 break;
@@ -75,16 +149,20 @@ public class Intake {
                 break;
             case UNJAM:
                 this.intakeRollerMotor.setTargetPower(-1.0);
-                if (currentTime > unjamLastTime + unjamDuration * 1e6) setRollerOn();
+                if (currentTime > this.unjamLastTime + unjamDuration * 1e6) setRollerOn();
                 break;
             case REVERSE:
                 this.intakeRollerMotor.setTargetPower(-1.0);
                 break;
         }
 
-        this.extensionCurrentPosition = this.robot.sensors.getIntakeExtensionPosition();
-
-        this.intakeExtensionMotor.setTargetPower(pid.update(this.extensionTargetPosition - this.extensionCurrentPosition, -1.0, 1.0));
+        // Extension control
+        if (this.isExtensionAtTarget()) {
+            pid.resetIntegral();
+            this.intakeExtensionMotor.setTargetPower(0);
+        } else {
+            this.intakeExtensionMotor.setTargetPower(pid.update(this.extensionControlTargetPosition - this.extensionCurrentPosition, -1.0, 1.0));
+        }
     }
 
     /**
@@ -106,7 +184,7 @@ public class Intake {
     /**
      * Sets the roller to unjam. -- Daniel
      */
-    public void setRollerUnjam() { this.intakeRollerState = IntakeRollerState.UNJAM; unjamLastTime = System.nanoTime(); }
+    public void setRollerUnjam() { this.intakeRollerState = IntakeRollerState.UNJAM; this.unjamLastTime = System.nanoTime(); }
 
     /**
      * Sets the roller to reverse. -- Daniel
@@ -114,20 +192,36 @@ public class Intake {
     public void setRollerReverse() { this.intakeRollerState = IntakeRollerState.REVERSE; }
 
     /**
-     * Gets the extension current position. -- Daniel
-     * @return the extension current position, in inches
-     */
-    public double getExtensionCurrentPosition() { return this.extensionCurrentPosition; }
-
-    /**
-     * Gets the position the extension is trying to reach. -- Daniel
+     * Gets whether the extension is at its target position. -- Daniel
      * @return the extension target position, in inches
      */
-    public double getExtensionTargetPosition() { return this.extensionTargetPosition; }
+    public boolean isExtensionAtTarget() { return Math.abs(this.extensionControlTargetPosition - this.extensionCurrentPosition) < extensionPositionTolerance; }
 
     /**
-     * Sets the position the extension is trying to reach. The position is automatically clamped to range. -- Daniel
-     * @param extensionTargetPosition the new extension target position, in inches
+     * Gets the position the extension will go to when extended. -- Daniel
+     * @return the extension target position, in inches
      */
-    public void setExtensionTargetPosition(double extensionTargetPosition) { this.extensionTargetPosition = Utils.minMaxClip(extensionTargetPosition, 0, extensionMaxPosition); }
+    public double getExtendedPosition() { return this.extendedPosition; }
+
+    /**
+     * Sets the position the extension will go to when extended. The position is automatically clamped to range. -- Daniel
+     * @param extendedPosition the new extension target position, in inches
+     */
+    public void setExtendedPosition(double extendedPosition) { this.extendedPosition = Utils.minMaxClip(extendedPosition, extendedMinPosition, extensionMaxPosition); }
+
+    /**
+     * Gets the intake's state. -- Daniel
+     * @return the intake's state (START_EXTENDING, EXTENDING, EXTENDED, PICK_UP, RETRACTING, FINISH_RETRACTING, RETRACTED)
+     */
+    public IntakeState getIntakeState() { return this.intakeState; }
+
+    /**
+     * Sets the state to begin extending. -- Daniel
+     */
+    public void extend() { this.intakeState = IntakeState.START_EXTENDING; }
+
+    /**
+     * Sets the state to begin retracting. -- Daniel
+     */
+    public void retract() { this.intakeState = IntakeState.PICK_UP; }
 }

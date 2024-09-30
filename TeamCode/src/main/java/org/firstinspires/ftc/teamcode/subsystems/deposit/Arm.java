@@ -130,8 +130,9 @@ public class Arm {
         return ans;
     }
 
-    public void setDiffy(double degR, double degL){
-        diffyR.setTargetAngle(degR, 1.0);
-        diffyL.setTargetAngle(degL, 1.0);
+    public void setDiffy(double rotation, double spin){
+        diffyL.setTargetAngle(rotation+spin, 1.0);
+        diffyR.setTargetAngle(rotation-spin, 1.0);
     }
+
 }

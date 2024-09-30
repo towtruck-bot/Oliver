@@ -17,6 +17,9 @@ public class Arm {
 
     //assuming both parts of the linkage are the same length, will change if mechanical gives info
     private final double mgnArmLength = 5.90551;
+    private final double mgnArmDriving = 6.29921, mgnArmDriven = 4.48819;
+    private final double horiShift = 1.0, vertShift = 1.0;
+
     //private final double mgnArmLengthServo, mgnArmLengthCarriage;
     public Arm(Robot robot){
         Servo[] mgn = new Servo[] {hardwareMap.get(Servo.class, "mgnServoL"), hardwareMap.get(Servo.class,"mgnServoR")};
@@ -107,8 +110,24 @@ public class Arm {
         clawActuation.setTargetAngle(Math.toRadians(deg), 1.0);
     }
 
+
+    // 0 angle is when servo is facing towards intake
+    // 0 inches when close to deposit, about 10 inches when close to intake
     public void setMgnPosition(double newPos){
-        mgnLinkage.setTargetAngle(Math.acos((mgnArmLength*mgnArmLength+mgnArmLength*mgnArmLength+newPos*newPos)/(-2.0 * mgnArmLength * newPos)), 1.0);
+        if(0 < newPos && newPos < 300){
+            double d = Math.sqrt((newPos + horiShift) * (newPos + horiShift) + vertShift * vertShift);
+            double targetAngle = Math.acos(d/(mgnArmDriven + mgnArmDriving)) + Math.atan2(vertShift, newPos + horiShift);
+            mgnLinkage.setTargetAngle(targetAngle, 1.0);
+        }
+    }
+
+    public double calcMgnPosition(){
+        double angle = mgnLinkage.getCurrentAngle();
+        double a = 1.0/(mgnArmDriven + mgnArmDriving);
+        double b = (2 * horiShift/(mgnArmDriven + mgnArmDriving) - Math.cos(angle));
+        double c = (horiShift * horiShift + vertShift * vertShift)/(mgnArmDriven + mgnArmDriving) + Math.sin(angle) * vertShift - Math.cos(angle) * horiShift;
+        double ans = (-1.0 * b + Math.sqrt(b * b - 4.0 * a * c))/(2.0 * a);
+        return ans;
     }
 
     public void setDiffy(double degR, double degL){

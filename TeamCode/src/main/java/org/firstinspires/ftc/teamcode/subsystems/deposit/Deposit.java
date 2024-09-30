@@ -24,17 +24,17 @@ public class Deposit {
     // The Mgn base + rail will be the x - axis
     // 0 degrees will be in the positive direction(i.e. arm pointed straight out of the deposit along mgn rail is 0deg)
     // mgn pos will begin at 0.0 length, currently defined as the base in between the vertical slides
-    public final double initArmAngle = Math.toRadians(180.0);
-    public final double initClawAngle = Math.toRadians(180.0);
+    public final double initArmAngle = Math.toRadians(0.0);
+    public final double initClawAngle = Math.toRadians(0.0);
     public final double initRaiseHeight = 0.0;
     public final double initMGNPos = 0.0;
 
-    public final double sampleArmAngle = Math.toRadians(60.0);
-    public final double sampleClawAngle = Math.toRadians(60.0);
+    public final double sampleArmAngle = Math.toRadians(120.0);
+    public final double sampleClawAngle = Math.toRadians(300.0);
     public final double sampleRaiseHeight = 1.0;
     public final double sampleMGNPos = 0.0;
 
-    public final double specimenHoldAngle = Math.toRadians(150.0);
+    public final double specimenHoldAngle = Math.toRadians(30.0);
     public final double specimenClawAngle = Math.toRadians(0.0);
     public final double specimenRaiseHeight = 0.5;
     public final double specimenMGNPos = 0.0;

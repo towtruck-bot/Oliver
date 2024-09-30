@@ -78,7 +78,7 @@ public class Deposit {
                 if(arm.checkReady()){state = State.DEPOSITSAMPLE;}
 
             case DEPOSITSAMPLE:
-                arm.setDiffy(sample_rotation - sample_spin, sample_rotation + sample_spin);
+                arm.setDiffy(sample_rotation, sample_spin);
                 arm.setClawAngle(clawOpenAngle);
                 state = state.IDLE;
 
@@ -91,7 +91,7 @@ public class Deposit {
 
             case DEPOSITSPECIMEN:
                 slides.setTargetLength(specimenDepositHeight);
-                arm.setDiffy(specimen_rotation - specimen_spin, specimen_rotation + specimen_rotation);
+                arm.setDiffy(specimen_rotation, specimen_spin);
                 arm.setClawAngle(clawOpenAngle);
                 state = State.IDLE;
         }

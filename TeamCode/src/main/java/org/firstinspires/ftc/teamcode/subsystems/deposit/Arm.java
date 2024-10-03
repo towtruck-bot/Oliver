@@ -115,19 +115,18 @@ public class Arm {
     // 0 inches when close to deposit, about 10 inches when close to intake
     public void setMgnPosition(double newPos){
         if(0 < newPos && newPos < 300){
-            double d = Math.sqrt((newPos + horiShift) * (newPos + horiShift) + vertShift * vertShift);
-            double targetAngle = Math.acos(d/(mgnArmDriven + mgnArmDriving)) + Math.atan2(vertShift, newPos + horiShift);
+            double c = Math.sqrt(Math.pow(newPos + horiShift, 2) + Math.pow(vertShift, 2));
+            double alpha = Math.atan2(newPos + horiShift, vertShift);
+            double targetAngle = Math.acos((Math.pow(mgnArmDriving, 2) + Math.pow(c, 2) - Math.pow(mgnArmDriven, 2))/(2 * mgnArmDriving * c)) - alpha;
             mgnLinkage.setTargetAngle(targetAngle, 1.0);
         }
     }
 
     public double calcMgnPosition(){
-        double angle = mgnLinkage.getCurrentAngle();
-        double a = 1.0/(mgnArmDriven + mgnArmDriving);
-        double b = (2 * horiShift/(mgnArmDriven + mgnArmDriving) - Math.cos(angle));
-        double c = (horiShift * horiShift + vertShift * vertShift)/(mgnArmDriven + mgnArmDriving) + Math.sin(angle) * vertShift - Math.cos(angle) * horiShift;
-        double ans = (-1.0 * b + Math.sqrt(b * b - 4.0 * a * c))/(2.0 * a);
-        return ans;
+        double drivingArmX = mgnArmDriving * Math.cos(mgnLinkage.getCurrentAngle());
+        double drivenArmX = Math.sqrt(Math.pow(mgnArmDriven, 2) - (vertShift + mgnArmDriving*Math.sin(mgnLinkage.getCurrentAngle())));
+
+        return drivingArmX + drivenArmX - horiShift;
     }
 
     public void setDiffy(double rotation, double spin){

@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.sensors.Sensors;
+import org.firstinspires.ftc.teamcode.utils.Utils;
 import org.firstinspires.ftc.teamcode.utils.priority.PriorityServo;
 
 public class Arm {
@@ -114,17 +115,16 @@ public class Arm {
     // 0 angle is when servo is facing towards intake
     // 0 inches when close to deposit, about 10 inches when close to intake
     public void setMgnPosition(double newPos){
-        if(0 < newPos && newPos < 300){
-            double c = Math.sqrt(Math.pow(newPos + horiShift, 2) + Math.pow(vertShift, 2));
-            double alpha = Math.atan2(newPos + horiShift, vertShift);
-            double targetAngle = Math.acos((Math.pow(mgnArmDriving, 2) + Math.pow(c, 2) - Math.pow(mgnArmDriven, 2))/(2 * mgnArmDriving * c)) - alpha;
-            mgnLinkage.setTargetAngle(targetAngle, 1.0);
-        }
+        newPos = Utils.minMaxClip(newPos, 0.0, 11.811);
+        double c = Math.sqrt(Math.pow(newPos + horiShift, 2) + Math.pow(vertShift, 2));
+        double alpha = Math.atan2(newPos + horiShift, vertShift);
+        double targetAngle = Math.acos((Math.pow(mgnArmDriving, 2) + Math.pow(c, 2) - Math.pow(mgnArmDriven, 2))/(2 * mgnArmDriving * c)) - alpha;
+        mgnLinkage.setTargetAngle(targetAngle, 1.0);
     }
 
     public double calcMgnPosition(){
         double drivingArmX = mgnArmDriving * Math.cos(mgnLinkage.getCurrentAngle());
-        double drivenArmX = Math.sqrt(Math.pow(mgnArmDriven, 2) - (vertShift + mgnArmDriving*Math.sin(mgnLinkage.getCurrentAngle())));
+        double drivenArmX = Math.sqrt(Math.pow(mgnArmDriven, 2) - Math.pow((vertShift + mgnArmDriving*Math.sin(mgnLinkage.getCurrentAngle())), 2));
 
         return drivingArmX + drivenArmX - horiShift;
     }

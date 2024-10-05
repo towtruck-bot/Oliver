@@ -5,7 +5,9 @@ import org.firstinspires.ftc.teamcode.sensors.Sensors;
 
 public class Deposit {
     public enum State{
-        IDLE, //resting position everything in retracted state
+        IDLE,
+        TRANSFER,
+        READY,
         RAISEDSAMPLE,
         DEPOSITSAMPLE,
         RAISEDSPECIMEN,

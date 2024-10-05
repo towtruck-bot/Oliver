@@ -16,16 +16,12 @@ public class Arm {
     public final PriorityServo diffyL, diffyR;
     public final PriorityServo clawActuation;
 
-    //assuming both parts of the linkage are the same length, will change if mechanical gives info
-    private final double mgnArmLength = 5.90551;
     private final double mgnArmDriving = 6.29921, mgnArmDriven = 4.48819;
     private final double horiShift = 1.0, vertShift = 1.0;
 
-    //private final double mgnArmLengthServo, mgnArmLengthCarriage;
     public Arm(Robot robot){
-        Servo[] mgn = new Servo[] {hardwareMap.get(Servo.class, "mgnServoL"), hardwareMap.get(Servo.class,"mgnServoR")};
         mgnLinkage = new PriorityServo(
-                mgn,
+                new Servo[] {hardwareMap.get(Servo.class, "mgnServoL"), hardwareMap.get(Servo.class,"mgnServoR")},
                 "mgnLinkage",
                 PriorityServo.ServoType.SPEED,
                 1.0,
@@ -38,9 +34,8 @@ public class Arm {
                 new double[] {-1.0, 1.0}
         );
 
-        Servo[] arm = new Servo[] {hardwareMap.get(Servo.class, "armServoL"), hardwareMap.get(Servo.class, "armServoR")};
         armRotation = new PriorityServo(
-                arm,
+                new Servo[] {hardwareMap.get(Servo.class, "armServoL"), hardwareMap.get(Servo.class, "armServoR")},
                 "armRotation",
                 PriorityServo.ServoType.SPEED,
                 1.0,
@@ -81,9 +76,8 @@ public class Arm {
                 new double[] {-1.0, 1.0}
         );
 
-        Servo[] claw = new Servo[] {hardwareMap.get(Servo.class, "claw")};
         clawActuation = new PriorityServo(
-                claw,
+                new Servo[] {hardwareMap.get(Servo.class, "claw")},
                 "clawActuation",
                 PriorityServo.ServoType.SPEED,
                 1.0,

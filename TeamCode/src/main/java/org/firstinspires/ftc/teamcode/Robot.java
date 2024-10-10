@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.teamcode.sensors.Sensors;
 import org.firstinspires.ftc.teamcode.subsystems.deposit.Arm;
+import org.firstinspires.ftc.teamcode.subsystems.deposit.Deposit;
 import org.firstinspires.ftc.teamcode.subsystems.deposit.Slides;
 import org.firstinspires.ftc.teamcode.subsystems.drive.Drivetrain;
 import org.firstinspires.ftc.teamcode.subsystems.drive.Spline;
@@ -27,6 +28,8 @@ public class Robot {
     public final Arm arm;
     public final Hang hang;
 
+    public final Deposit deposit;
+
     public Robot(HardwareMap hardwareMap) {
         this(hardwareMap, null);
     }
@@ -42,6 +45,8 @@ public class Robot {
         this.slides = new Slides(this);
         this.arm = new Arm(this);
         this.hang = new Hang(hardwareMap, hardwareQueue);
+        this.deposit = new Deposit(this);
+
         TelemetryUtil.setup();
     }
 
@@ -79,6 +84,7 @@ public class Robot {
         } while (((boolean) func.call()) && System.currentTimeMillis() - start <= 10000 && drivetrain.isBusy());
     }
     public void robotFSM(){
+
 
     }
 

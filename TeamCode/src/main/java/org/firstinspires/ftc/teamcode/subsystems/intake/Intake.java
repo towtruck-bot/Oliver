@@ -44,6 +44,8 @@ public class Intake {
     public static double keepBlockInPower = 0.2; // TODO Replace this placeholder
     public static long unjamDuration = 500; // milliseconds
     private long unjamLastTime;
+    public IntakeRollerState motorState = IntakeRollerState.OFF;
+
 
     public static double extensionMaxPosition = 21; // TODO Replace this placeholder value with actual limit
     public static double extensionPositionTolerance = 0.25; // TODO Replace this placeholder

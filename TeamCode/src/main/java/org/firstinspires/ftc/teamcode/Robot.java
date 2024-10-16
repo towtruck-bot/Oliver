@@ -27,8 +27,19 @@ public class Robot {
     public final Intake intake;
     public final Arm arm;
     public final Hang hang;
+    public RobotState state;
 
     public final Deposit deposit;
+    public enum RobotState {
+        START_DEPOSIT,
+        DEPOSIT_BUCKET,
+        DEPOSIT_SPECIMEN,
+        RETRACT,
+        EXTEND,
+        INTAKE,
+        GRAB,
+        IDLE,
+    }
 
     public Robot(HardwareMap hardwareMap) {
         this(hardwareMap, null);
@@ -63,6 +74,7 @@ public class Robot {
         slides.update();
         drivetrain.update();
         hang.update();
+        deposit.update();
 
         hardwareQueue.update();
     }
@@ -84,7 +96,34 @@ public class Robot {
         } while (((boolean) func.call()) && System.currentTimeMillis() - start <= 10000 && drivetrain.isBusy());
     }
     public void robotFSM(){
+        switch(state){
+            case EXTEND:
+                //actuation?
+                double targetExtendoValue = 5.0;
+                slides.setTargetLength(targetExtendoValue); // where do i store this variable?
+            case INTAKE:
+                // actuation?
+                intake.setRollerOn();
+                if (intake.getIntakeRollerState() != Intake.IntakeRollerState.ON) { // check if intake is off
+                    state = RobotState.GRAB;
+                }
+            case GRAB:
+                // deposit function needed?
+            case START_DEPOSIT:
+                // deposit function needed?
+            case DEPOSIT_BUCKET:
+                // deposit function needed?
+            case DEPOSIT_SPECIMEN:
+                // deposit function needed?
+            case RETRACT:
+                // deposit function needed?
+            case IDLE:
+                intake.setRollerOff();
+                slides.setTargetLength(0.0);
 
+
+
+        }
 
     }
 

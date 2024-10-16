@@ -35,20 +35,29 @@ public class Deposit {
     private final double armLength = 5.0;
 
     private boolean outtake = false;
+    private boolean intakefinished = false;
+    private boolean transferStart = false;
+
+    //start sample -> sample ready(good to start R) -> sampled(start actual deposit)
+    private boolean ssample = false;
+    private boolean sampleready = false;
+    private boolean sampled = false;
+
+    //start speci -> speci ready(good to start R) -> specid(start actual deposit)
+    private boolean sspeci = false;
+    private boolean speciready = false;
+    private boolean specid = false;
+
     private final double idleArmAngle = Math.toRadians(0.0);
     private final double idleArmPos = 0.0;
     private final double idleClawAngle = Math.toRadians(0.0);
     private final double idleSlidesHeight = 0.0;
-    private boolean intakefinished = false;
 
-    private boolean transferStart = false;
     private final double transferArmAngle = Math.toRadians(-60.0);
     private final double transferArmPos = 11.811 - armLength * Math.cos(transferArmAngle);
     private final double transferClawAngle = Math.toRadians(-30.0);
     private final double transferSlidesHeight = 0.0;
 
-    private boolean ssample = false;
-    private boolean sampleready = false;
     private final double sampleReadyArmAngle = Math.toRadians(90.0);
     private final double sampleReadyArmPos = 0.0;
     private final double sampleReadyClawAngle = Math.toRadians(0.0);
@@ -59,14 +68,11 @@ public class Deposit {
     private final double sampleRClawAngle = Math.toRadians(0.0);
     private final double sampleRSlidesHeight = 46 - armLength * Math.sin(sampleRArmAngle) - robotBaseHeight;
 
-    private boolean sampled = false;
     private final double sampleDArmAngle = Math.toRadians(135.0);
     private final double sampleDArmPos = 0.0;
     private final double sampleDClawAngle = Math.toRadians(45.0);
     private final double sampleDSlidesHeight = 46 - armLength * Math.sin(sampleDArmAngle) - robotBaseHeight;
 
-    private boolean sspeci = false;
-    private boolean speciready = false;
     private final double speciReadyArmAngle = Math.toRadians(90.0);
     private final double speciReadyArmPos = 11.811;
     private final double speciReadyClawAngle = Math.toRadians(0.0);
@@ -77,7 +83,6 @@ public class Deposit {
     private final double speciRClawAngle = Math.toRadians(-30.0);
     private final double speciRSlidesHeight = 26.0 - armLength - 2.0;
 
-    private boolean specid = false;
     private final double speciDArmAngle = Math.toRadians(0.0);
     private final double speciDArmPos = 11.811;
     private final double speciDClawAngle = Math.toRadians(-30.0);
@@ -204,15 +209,13 @@ public class Deposit {
         }
     }
 
-    public void startTransfer(){
-        transferStart = true;
-    }
+    public void startTransfer(){ transferStart = true;}
 
     public void startOuttake(){outtake = true;}
 
-    public void sampleReady(){sampleready = true;}
+    public void setSampleReady(){sampleready = true;}
 
-    public void speciReady(){speciready = true;}
+    public void setSpeciReady(){speciready = true;}
 
     public void startSample(){ssample = true;}
 
@@ -221,6 +224,4 @@ public class Deposit {
     public void startSampleD(){sampled = true;}
 
     public void startSpeciD(){specid = true;}
-
-    public void intakeFinsihed(){}
 }

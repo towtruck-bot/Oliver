@@ -7,11 +7,15 @@ public class Deposit {
     public enum State{
         IDLE,
         TRANSFER,
-        READY,
-        RAISEDSAMPLE,
-        DEPOSITSAMPLE,
-        RAISEDSPECIMEN,
-        DEPOSITSPECIMEN
+        HOLD,
+        RETURN,
+        GRAB,
+        SAMPLEREADY,
+        SAMPLER,
+        SAMPLED,
+        SPECIREADY,
+        SPECIR,
+        SPECID
     };
     public State state;
 
@@ -26,22 +30,58 @@ public class Deposit {
     // The Mgn base + rail will be the x - axis
     // 0 degrees will be in the positive direction(i.e. arm pointed straight out of the deposit along mgn rail is 0deg)
     // mgn pos will begin at 0.0 length, currently defined as the base in between the vertical slides
-    public final double initArmAngle = Math.toRadians(0.0);
-    public final double initClawAngle = Math.toRadians(0.0);
-    public final double initRaiseHeight = 0.0;
-    public final double initMGNPos = 0.0;
 
-    public final double sampleArmAngle = Math.toRadians(120.0);
-    public final double sampleClawAngle = Math.toRadians(300.0);
-    public final double sampleRaiseHeight = 1.0;
-    public final double sampleMGNPos = 0.0;
+    private final double robotBaseHeight = 6.0;
+    private final double armLength = 5.0;
 
-    public final double specimenHoldAngle = Math.toRadians(30.0);
-    public final double specimenClawAngle = Math.toRadians(0.0);
-    public final double specimenRaiseHeight = 0.5;
-    public final double specimenMGNPos = 0.0;
-    public final double specimenDepositHeight = 1.0;
-    public final double clawOpenAngle = Math.toRadians(0.0);
+    private boolean outtake = false;
+    private final double idleArmAngle = Math.toRadians(0.0);
+    private final double idleArmPos = 0.0;
+    private final double idleClawAngle = Math.toRadians(0.0);
+    private final double idleSlidesHeight = 0.0;
+    private boolean intakefinished = false;
+
+    private boolean transferStart = false;
+    private final double transferArmAngle = Math.toRadians(-60.0);
+    private final double transferArmPos = 11.811 - armLength * Math.cos(transferArmAngle);
+    private final double transferClawAngle = Math.toRadians(-30.0);
+    private final double transferSlidesHeight = 0.0;
+
+    private boolean ssample = false;
+    private boolean sampleready = false;
+    private final double sampleReadyArmAngle = Math.toRadians(90.0);
+    private final double sampleReadyArmPos = 0.0;
+    private final double sampleReadyClawAngle = Math.toRadians(0.0);
+    private final double sampleReadySlidesHeight = 0.0;
+
+    private final double sampleRArmAngle = Math.toRadians(135.0);
+    private final double sampleRArmPos = 0.0;
+    private final double sampleRClawAngle = Math.toRadians(0.0);
+    private final double sampleRSlidesHeight = 46 - armLength * Math.sin(sampleRArmAngle) - robotBaseHeight;
+
+    private boolean sampled = false;
+    private final double sampleDArmAngle = Math.toRadians(135.0);
+    private final double sampleDArmPos = 0.0;
+    private final double sampleDClawAngle = Math.toRadians(45.0);
+    private final double sampleDSlidesHeight = 46 - armLength * Math.sin(sampleDArmAngle) - robotBaseHeight;
+
+    private boolean sspeci = false;
+    private boolean speciready = false;
+    private final double speciReadyArmAngle = Math.toRadians(90.0);
+    private final double speciReadyArmPos = 11.811;
+    private final double speciReadyClawAngle = Math.toRadians(0.0);
+    private final double speciReadySlidesHeight = 0.0;
+
+    private final double speciRArmAngle = Math.toRadians(90.0);
+    private final double speciRArmPos = 11.811;
+    private final double speciRClawAngle = Math.toRadians(-30.0);
+    private final double speciRSlidesHeight = 26.0 - armLength - 2.0;
+
+    private boolean specid = false;
+    private final double speciDArmAngle = Math.toRadians(0.0);
+    private final double speciDArmPos = 11.811;
+    private final double speciDClawAngle = Math.toRadians(-30.0);
+    private final double speciDSlidesHeight = 26.0 - armLength;
 
     // Diffy Servos
     // Ryan please add your definition of 0 radians here
@@ -66,36 +106,121 @@ public class Deposit {
     public void update(){
         switch(state){
             case IDLE:
-                arm.setArmAngle(initArmAngle);
-                arm.setClawAngle(initClawAngle);
-                arm.setMgnPosition(initMGNPos);
-                arm.setDiffy(initDiffyR, initDiffyL);
-                slides.setTargetLength(initRaiseHeight);
+                arm.setArmAngle(idleArmAngle);
+                arm.setMgnPosition(idleArmPos);
+                arm.setClawAngle(idleClawAngle);
+                slides.setTargetLength(idleSlidesHeight);
+                if(transferStart && arm.checkReady()){
+                    state = State.TRANSFER;
+                    transferStart = false;
+                }
+                if(outtake){
+                    state = State.HOLD;
+                    outtake = false;
+                }
+            case TRANSFER:
+                arm.setArmAngle(transferArmAngle);
+                arm.setMgnPosition(transferArmPos);
+                arm.setClawAngle(transferClawAngle);
+                slides.setTargetLength(transferSlidesHeight);
 
-            case RAISEDSAMPLE:
-                arm.setArmAngle(sampleArmAngle);
-                arm.setClawAngle(sampleClawAngle);
-                arm.setMgnPosition(sampleMGNPos);
-                slides.setTargetLength(sampleRaiseHeight);
-                if(arm.checkReady()){state = State.DEPOSITSAMPLE;}
-
-            case DEPOSITSAMPLE:
-                arm.setDiffy(sample_rotation, sample_spin);
-                arm.setClawAngle(clawOpenAngle);
-                state = state.IDLE;
-
-            case RAISEDSPECIMEN:
-                arm.setArmAngle(specimenHoldAngle);
-                arm.setClawAngle(specimenClawAngle);
-                arm.setMgnPosition(specimenMGNPos);
-                slides.setTargetLength(specimenRaiseHeight);
-                if(arm.checkReady()){state = State.DEPOSITSPECIMEN;}
-
-            case DEPOSITSPECIMEN:
-                slides.setTargetLength(specimenDepositHeight);
-                arm.setDiffy(specimen_rotation, specimen_spin);
-                arm.setClawAngle(clawOpenAngle);
-                state = State.IDLE;
+                //not sure how to work out these conditions... but seems about rith? cuz we can determine which in auto code
+                if(ssample && arm.checkReady()){
+                    state = State.SAMPLEREADY;
+                    ssample = false;
+                }
+                if(sspeci && arm.checkReady()){
+                    state = State.SPECIREADY;
+                    sspeci = false;
+                }
+            case SAMPLEREADY:
+                arm.setArmAngle(sampleReadyArmAngle);
+                arm.setMgnPosition(sampleReadyArmPos);
+                arm.setClawAngle(sampleReadyClawAngle);
+                slides.setTargetLength(sampleReadySlidesHeight);
+                if(sampleready && arm.checkReady() && slides.getLength() == sampleReadySlidesHeight){
+                    state = State.SAMPLER;
+                    sampleready = false;
+                }
+            case SAMPLER:
+                arm.setArmAngle(sampleRArmAngle);
+                arm.setMgnPosition(sampleRArmPos);
+                arm.setClawAngle(sampleRClawAngle);
+                slides.setTargetLength(sampleRSlidesHeight);
+                if(sampled && arm.checkReady() && slides.getLength() == sampleRSlidesHeight){
+                    state = State.SAMPLED;
+                    sampled = false;
+                }
+            case SAMPLED:
+                arm.setArmAngle(sampleDClawAngle);
+                arm.setMgnPosition(sampleDClawAngle);
+                arm.setClawAngle(sampleDClawAngle);
+                slides.setTargetLength(sampleDSlidesHeight);
+                if(arm.checkReady()){
+                    state = State.IDLE;
+                }
+            case HOLD:
+                arm.setArmAngle(idleArmAngle);
+                arm.setMgnPosition(idleArmPos);
+                arm.setClawAngle(idleClawAngle);
+                slides.setTargetLength(idleSlidesHeight);
+                if(intakefinished){
+                    state = State.RETURN;
+                    intakefinished = false;
+                }
+            case RETURN:
+                //would this be intake tehcnically? how would i chuck it out
+            case GRAB:
+                //insert math here to move arm certain position + claw to grab
+                if(arm.checkReady()){
+                    state = State.SPECIREADY;
+                }
+            case SPECIREADY:
+                arm.setArmAngle(speciReadyArmAngle);
+                arm.setMgnPosition(speciReadyArmPos);
+                arm.setClawAngle(speciReadyClawAngle);
+                slides.setTargetLength(speciReadySlidesHeight);
+                if(speciready && arm.checkReady() && slides.getLength() == speciReadySlidesHeight){
+                    state = State.SPECIR;
+                    speciready = false;
+                }
+            case SPECIR:
+                arm.setArmAngle(speciRArmAngle);
+                arm.setMgnPosition(speciRArmPos);
+                arm.setClawAngle(speciRClawAngle);
+                slides.setTargetLength(speciRSlidesHeight);
+                if(specid && arm.checkReady() && slides.getLength() == speciRSlidesHeight){
+                    state = State.SPECID;
+                    specid = false;
+                }
+            case SPECID:
+                arm.setArmAngle(speciDArmAngle);
+                arm.setMgnPosition(speciDArmPos);
+                arm.setClawAngle(speciDClawAngle);
+                slides.setTargetLength(speciDSlidesHeight);
+                if(arm.checkReady()){
+                    state = State.IDLE;
+                }
         }
     }
+
+    public void startTransfer(){
+        transferStart = true;
+    }
+
+    public void startOuttake(){outtake = true;}
+
+    public void sampleReady(){sampleready = true;}
+
+    public void speciReady(){speciready = true;}
+
+    public void startSample(){ssample = true;}
+
+    public void startSpeci(){sspeci = true;}
+
+    public void startSampleD(){sampled = true;}
+
+    public void startSpeciD(){specid = true;}
+
+    public void intakeFinsihed(){}
 }

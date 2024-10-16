@@ -129,7 +129,6 @@ public class Deposit {
                 arm.setClawAngle(transferClawAngle);
                 slides.setTargetLength(transferSlidesHeight);
 
-                //not sure how to work out these conditions... but seems about rith? cuz we can determine which in auto code
                 if(ssample && arm.checkReady()){
                     state = State.SAMPLEREADY;
                     ssample = false;
@@ -174,9 +173,11 @@ public class Deposit {
                     intakefinished = false;
                 }
             case RETURN:
-                //would this be intake tehcnically? how would i chuck it out
+                //would this be intake technically? considering the  mechanism used is the intake
+                //to chuck the sample out
             case GRAB:
                 //insert math here to move arm certain position + claw to grab
+                //would i need to access the distance sensor here? if so, how would i
                 if(arm.checkReady()){
                     state = State.SPECIREADY;
                 }

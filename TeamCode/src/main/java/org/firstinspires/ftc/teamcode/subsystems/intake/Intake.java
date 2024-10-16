@@ -25,6 +25,7 @@ public class Intake {
     public enum IntakeState {
         START_EXTENDING,
         EXTENDING,
+        DROP_DOWN,
         EXTENDED,
         PICK_UP,
         RETRACTING,
@@ -43,11 +44,14 @@ public class Intake {
     public static double keepBlockInPower = 0.2; // TODO Replace this placeholder
     public static long unjamDuration = 500; // milliseconds
     private long unjamLastTime;
+    public IntakeRollerState motorState = IntakeRollerState.OFF;
+
 
     public static double extensionMaxPosition = 21; // TODO Replace this placeholder value with actual limit
     public static double extensionPositionTolerance = 0.25; // TODO Replace this placeholder
     public static double extendingStartFlipPosition = 3; // TODO Replace this placeholder
     public static double extendedMinPosition = 5; // TODO Replace this placeholder
+    public static double distanceToIntake = 5; // TODO Replace this placeholder
     private double targetPositionWhenExtended = extendedMinPosition;
     private double extensionCurrentPosition = 0;
     private double extensionControlTargetPosition = 0;
@@ -103,16 +107,24 @@ public class Intake {
         switch (this.intakeState) {
             case START_EXTENDING:
                 this.setRollerOff();
-                this.extensionControlTargetPosition = this.targetPositionWhenExtended;
+                this.extensionControlTargetPosition = Math.min(this.targetPositionWhenExtended - distanceToIntake, extendedMinPosition);
                 this.intakeFlipServo.setTargetAngle(0, 1.0);
                 if (this.extensionCurrentPosition > extendingStartFlipPosition) this.intakeState = IntakeState.EXTENDING;
                 else break;
             case EXTENDING:
                 this.setRollerOff();
-                this.extensionControlTargetPosition = this.targetPositionWhenExtended;
+                this.extensionControlTargetPosition = Math.min(this.targetPositionWhenExtended - distanceToIntake, extendedMinPosition);
                 this.intakeFlipServo.setTargetAngle(flipAngleToGoOverBarrier, 1.0);
-                if (this.isExtensionAtTarget()) this.intakeState = IntakeState.EXTENDED;
+                if (this.isExtensionAtTarget()) this.intakeState = IntakeState.DROP_DOWN;
                 else break;
+            case DROP_DOWN:
+                this.setRollerOff();
+                this.extensionControlTargetPosition = Math.min(this.targetPositionWhenExtended - distanceToIntake, extendedMinPosition);
+                this.intakeFlipServo.setTargetAngle(flipDownAngle, 1.0);
+                if (this.intakeFlipServo.inPosition()) {
+                    this.intakeState = IntakeState.EXTENDED;
+                    this.setRollerOn();
+                } else break;
             case EXTENDED:
                 this.extensionControlTargetPosition = this.targetPositionWhenExtended;
                 this.intakeFlipServo.setTargetAngle(flipDownAngle, 1.0);

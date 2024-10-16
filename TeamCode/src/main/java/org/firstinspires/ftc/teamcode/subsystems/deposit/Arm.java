@@ -56,10 +56,10 @@ public class Arm {
                 0.0,
                 1.0,
                 0.0,
-                false,
+                true,
                 3.0,
                 5.0,
-                new double[] {-1.0, 1.0}
+                new double[] {1.0}
         );
 
         diffyR = new PriorityServo(
@@ -73,7 +73,7 @@ public class Arm {
                 false,
                 3.0,
                 5.0,
-                new double[] {-1.0, 1.0}
+                new double[] {1.0}
         );
 
         clawActuation = new PriorityServo(
@@ -87,7 +87,7 @@ public class Arm {
                 false,
                 3.0,
                 5.0,
-                new double[] {-1.0, 1.0}
+                new double[] {1.0}
         );
 
         this.sensors = robot.sensors;

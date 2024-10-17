@@ -121,7 +121,8 @@ public class Sensors {
         slidesEncoder = ((PriorityMotor) hardwareQueue.getDevice("rightFront")).motor[0].getCurrentPosition() * -1;
         slidesVelocity = ((PriorityMotor) hardwareQueue.getDevice("rightFront")).motor[0].getVelocity() * -1;
 
-        intakeExtensionEncoder = this.robot.intake.intakeExtensionMotor.motor[0].getCurrentPosition();
+        this.intakeExtensionEncoder = this.robot.intake.intakeExtensionMotor.motor[0].getCurrentPosition();
+        TelemetryUtil.packet.put("Extendo position", this.getIntakeExtensionPosition());
     }
 
     private void updateExpansionHub() {
@@ -155,7 +156,7 @@ public class Sensors {
      */
     public double getIntakeExtensionPosition() {
         final double inchesPerTick = 0.04132142857142857; // TODO This value is TEMPORARY (Centerstage/TeamCode/src/main/java/org/firstinspires/ftc/teamcode/subsystems/deposit/Slides.java)
-        return intakeExtensionEncoder * inchesPerTick;
+        return this.intakeExtensionEncoder * inchesPerTick;
     }
 
     public double getVoltage() { return voltage; }

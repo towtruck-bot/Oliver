@@ -31,13 +31,13 @@ public class Robot {
 
     public final Deposit deposit;
     public enum RobotState {
+        INTAKE,
+        GRAB,
+        RETRACT_INTAKE,
         START_DEPOSIT,
         DEPOSIT_BUCKET,
         DEPOSIT_SPECIMEN,
-        RETRACT,
-        EXTEND,
-        INTAKE,
-        GRAB,
+        RETRACT_DEPOSIT,
         IDLE,
     }
 
@@ -97,29 +97,34 @@ public class Robot {
     }
     public void robotFSM(){
         switch(state){
-            case EXTEND:
-                //actuation?
-                double targetExtendoValue = 5.0;
-                slides.setTargetLength(targetExtendoValue); // where do i store this variable?
             case INTAKE:
-                // actuation?
-                intake.setRollerOn();
+                intake.extend();
                 if (intake.getIntakeRollerState() != Intake.IntakeRollerState.ON) { // check if intake is off
-                    state = RobotState.GRAB;
+                    state = RobotState.RETRACT_INTAKE;
                 }
+            case RETRACT_INTAKE:
+                intake.retract();
+                this.state = RobotState.GRAB;
             case GRAB:
-                // deposit function needed?
+                deposit.startTransfer();
+                this.state = RobotState.START_DEPOSIT;
             case START_DEPOSIT:
-                // deposit function needed?
+                deposit.startOuttake();
+                this.state = RobotState.DEPOSIT_BUCKET;
             case DEPOSIT_BUCKET:
-                // deposit function needed?
+                deposit.setSampleReady();
+                deposit.startSample();
+                deposit.startSampleD();
+                this.state = RobotState.DEPOSIT_SPECIMEN;
             case DEPOSIT_SPECIMEN:
-                // deposit function needed?
-            case RETRACT:
+                deposit.setSpeciReady();
+                deposit.startSpeci();
+                deposit.startSpeciD();
+                this.state = RobotState.RETRACT_DEPOSIT;
+            case RETRACT_DEPOSIT:
                 // deposit function needed?
             case IDLE:
-                intake.setRollerOff();
-                slides.setTargetLength(0.0);
+
 
 
 

@@ -7,7 +7,9 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.Robot;
+import org.firstinspires.ftc.teamcode.utils.Globals;
 import org.firstinspires.ftc.teamcode.utils.PID;
+import org.firstinspires.ftc.teamcode.utils.RunMode;
 import org.firstinspires.ftc.teamcode.utils.Utils;
 import org.firstinspires.ftc.teamcode.utils.priority.PriorityMotor;
 import org.firstinspires.ftc.teamcode.utils.priority.PriorityServo;
@@ -100,6 +102,8 @@ public class Intake {
     public void update() {
         long currentTime = System.nanoTime();
         this.extensionCurrentPosition = this.robot.sensors.getIntakeExtensionPosition();
+
+        if (Globals.TESTING_DISABLE_CONTROL && Globals.RUNMODE == RunMode.TESTER) return;
 
         // FSM
         switch (this.intakeState) {

@@ -32,7 +32,7 @@ public class Deposit {
     private boolean tooClose = false;
 
     private final double intakeX = 10.0, intakeY = -2.0, intakeAngleMin = Math.toRadians(-90.0), intakeAngleMax = Math.toRadians(0); // TODO: Update these values
-    private final double sampleBasketX = -3.0, sampleBasketY = 46.0;
+    private final double sampleBasketX = -2.0, sampleBasketY = 46.0;
     private final double specimenBarX = 10.0, specimenBarY = 27.0;
 
     public Deposit(Robot robot){

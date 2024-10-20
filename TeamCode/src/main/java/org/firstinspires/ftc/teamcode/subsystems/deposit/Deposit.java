@@ -202,12 +202,51 @@ public class Deposit {
         }
     }
 
-    public void startSampleDeposit(){
+    public void startTransfer() {
+        // TODO Fill in method stub
         state = State.TRANSFER_START;
     }
 
-    public void stateSpecimenDeposit(){
+    public boolean isSampleReady() {
+        // TODO Fill in method stub
+        return true;
+    }
+
+    public void startSampleDeposit() {
+        // TODO Fill in method stub
+    }
+
+    public boolean isSampleDepositDone() {
+        // TODO Fill in method stub
+        return true;
+    }
+
+    public void startOuttake() {
+        // TODO Fill in method stub
+    }
+
+    public boolean isOuttakeDone() {
+        // TODO Fill in method stub
+        return true;
+    }
+
+    public void grabSpecimen() {
+        // TODO Fill in method stub
         state = State.GRAB;
+    }
+
+    public boolean isSpecimenReady() {
+        // TODO Fill in method stub
+        return true;
+    }
+
+    public void startSpecimenDeposit() {
+        // TODO Fill in method stub
+    }
+
+    public boolean isSpecimenDepositDone() {
+        // TODO Fill in method stub
+        return true;
     }
 
     public void setDepositPositions(double x, double y, double clawAngle){

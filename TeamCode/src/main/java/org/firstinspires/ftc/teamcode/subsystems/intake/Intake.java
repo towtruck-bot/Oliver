@@ -7,7 +7,10 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.Robot;
+import org.firstinspires.ftc.teamcode.utils.Globals;
 import org.firstinspires.ftc.teamcode.utils.PID;
+import org.firstinspires.ftc.teamcode.utils.REVColorSensorV3;
+import org.firstinspires.ftc.teamcode.utils.RunMode;
 import org.firstinspires.ftc.teamcode.utils.Utils;
 import org.firstinspires.ftc.teamcode.utils.priority.PriorityMotor;
 import org.firstinspires.ftc.teamcode.utils.priority.PriorityServo;
@@ -37,6 +40,7 @@ public class Intake {
     public final PriorityMotor intakeRollerMotor;
     public final PriorityMotor intakeExtensionMotor;
     public final PriorityServo intakeFlipServo;
+    public final REVColorSensorV3 intakeColorSensor;
 
     private IntakeState intakeState = IntakeState.RETRACTING;
 
@@ -44,8 +48,6 @@ public class Intake {
     public static double keepBlockInPower = 0.2; // TODO Replace this placeholder
     public static long unjamDuration = 500; // milliseconds
     private long unjamLastTime;
-    public IntakeRollerState motorState = IntakeRollerState.OFF;
-
 
     public static double extensionMaxPosition = 21; // TODO Replace this placeholder value with actual limit
     public static double extensionPositionTolerance = 0.25; // TODO Replace this placeholder
@@ -94,6 +96,13 @@ public class Intake {
                 2.0
         );
         this.robot.hardwareQueue.addDevice(intakeFlipServo);
+
+        this.intakeColorSensor = this.robot.hardwareMap.get(REVColorSensorV3.class, "intakeColorSensor");
+        REVColorSensorV3.ControlRequest req = new REVColorSensorV3.ControlRequest()
+            .enableFlag(REVColorSensorV3.ControlFlag.LIGHT_SENSOR_ENABLED)
+            .enableFlag(REVColorSensorV3.ControlFlag.RGB_ENABLED);
+        this.intakeColorSensor.sendControlRequest(req);
+        this.intakeColorSensor.configureLS(REVColorSensorV3.LSResolution.SIXTEEN, REVColorSensorV3.LSMeasureRate.m100s, REVColorSensorV3.LSGain.ONE);
     }
 
     /**
@@ -102,6 +111,8 @@ public class Intake {
     public void update() {
         long currentTime = System.nanoTime();
         this.extensionCurrentPosition = this.robot.sensors.getIntakeExtensionPosition();
+
+        if (Globals.TESTING_DISABLE_CONTROL && Globals.RUNMODE == RunMode.TESTER) return;
 
         // FSM
         switch (this.intakeState) {

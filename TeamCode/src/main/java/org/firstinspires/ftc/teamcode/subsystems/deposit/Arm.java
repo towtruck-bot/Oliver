@@ -17,7 +17,8 @@ public class Arm {
     public final PriorityServo clawActuation;
 
     private final double mgnArmDriving = 6.29921, mgnArmDriven = 4.48819;
-    private final double horiShift = 1.0, vertShift = 1.0;
+    private final double horiShift = 1.0, vertShift = 1.0; //TODO: Update these values
+    private final double armLength = 1.0; //TODO: Update these values
 
     public Arm(Robot robot){
         mgnLinkage = new PriorityServo(
@@ -97,12 +98,12 @@ public class Arm {
         return mgnLinkage.inPosition() && armRotation.inPosition() && clawActuation.inPosition();
     }
 
-    public void setArmAngle(double deg){
-        armRotation.setTargetAngle(Math.toRadians(deg), 1.0);
+    public void setArmAngle(double rad){
+        armRotation.setTargetAngle(rad, 1.0);
     }
 
-    public void setClawAngle(double deg){
-        clawActuation.setTargetAngle(Math.toRadians(deg), 1.0);
+    public void setClawAngle(double rad){
+        clawActuation.setTargetAngle(rad,  1.0);
     }
 
 
@@ -128,4 +129,7 @@ public class Arm {
         diffyR.setTargetAngle(rotation-spin, 1.0);
     }
 
+    public double getArmLength(){
+        return armLength;
+    }
 }

@@ -95,17 +95,28 @@ public class Arm {
     }
 
     public boolean checkReady(){
-        return mgnLinkage.inPosition() && armRotation.inPosition() && clawActuation.inPosition();
+        return mgnLinkage.inPosition() && armRotation.inPosition() && diffyR.inPosition() && clawActuation.inPosition();
     }
 
     public void setArmAngle(double rad){
         armRotation.setTargetAngle(rad, 1.0);
     }
 
-    public void setClawAngle(double rad){
-        clawActuation.setTargetAngle(rad,  1.0);
+    //rotation: up down
+    //spin: left right
+    public void setDiffy(double rotation, double spin){
+        diffyL.setTargetAngle(rotation+spin, 1.0);
+        diffyR.setTargetAngle(rotation-spin, 1.0);
     }
 
+    public void openClaw(){
+        clawActuation.setTargetAngle(Math.toRadians(135.0), 1.0);
+    }
+
+    //TODO: Update this value
+    public void closeClaw(){
+        clawActuation.setTargetAngle(Math.toRadians(15.0), 1.0);
+    }
 
     // 0 angle is when servo is facing towards intake
     // 0 inches when close to deposit, about 10 inches when close to intake
@@ -122,11 +133,6 @@ public class Arm {
         double drivenArmX = Math.sqrt(Math.pow(mgnArmDriven, 2) - Math.pow((vertShift + mgnArmDriving*Math.sin(mgnLinkage.getCurrentAngle())), 2));
 
         return drivingArmX + drivenArmX - horiShift;
-    }
-
-    public void setDiffy(double rotation, double spin){
-        diffyL.setTargetAngle(rotation+spin, 1.0);
-        diffyR.setTargetAngle(rotation-spin, 1.0);
     }
 
     public double getArmLength(){

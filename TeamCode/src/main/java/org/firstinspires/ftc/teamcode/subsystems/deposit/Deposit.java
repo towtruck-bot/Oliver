@@ -9,13 +9,15 @@ public class Deposit {
         IDLE,
         TRANSFER_START,
         TRANSFER_END,
-        SAMPLE_READY,
+        READY,
         SAMPLE_RAISE,
         SAMPLE_DEPOSIT,
+        GRAB_SET,
         GRAB,
-        SPECIMEN_READY,
+        GRAB_RETRACT,
         SPECIMEN_RAISE,
         SPECIMEN_DEPOSIT,
+        RELEASE,
         BUFFER,
         RETRACT
     };
@@ -26,14 +28,19 @@ public class Deposit {
     public Arm arm;
     public Sensors sensors;
 
-    private double currX, currY, currArmAngle, currClawAngle;
-    private double targetX, targetY, targetClawAngle;
+    //TODO: Servos have mechanically set 0 positions, make sure nathan xie does it so i can make him give me good zeros
+    //TODO: also for max ranges too
+    //TODO: make sure axons are in the range i want it to be in
+    //TODO: priority servo reverse might not work, very sketchy thing, be careful of that function - profe
+    private double currX, currY, currArmAngle;
+    private double targetX, targetY;
     private double moveToX, moveToY, moveToArmAngle;
     private boolean tooClose = false;
 
-    private final double intakeX = 10.0, intakeY = -2.0, intakeAngleMin = Math.toRadians(-90.0), intakeAngleMax = Math.toRadians(0); // TODO: Update these values
+    private final double intakeX = 10.0, intakeY = -2.0; // TODO: Update these values
     private final double sampleBasketX = -2.0, sampleBasketY = 46.0;
     private final double specimenBarX = 10.0, specimenBarY = 27.0;
+    private final double grabX = -5.0, grabY = -4.0;
 
     public Deposit(Robot robot){
         this.robot = robot;
@@ -42,22 +49,25 @@ public class Deposit {
 
         arm = new Arm(robot);
 
+        //TODO: Determine correct starting values
         this.currX = 0.0;
         this.currY = arm.getArmLength();
-        this.currArmAngle = Math.toRadians(90.0); //TODO: Determine correct starting values, also if claw should be relative to arm or overall angle(imo overall angle but discuss)
-        this.currClawAngle = Math.toRadians(0.0);
 
         state = State.IDLE;
     }
 
+    //TODO: V4 bar keeps everything attached parallel to the ground, i.e. when arm moves to 45 claw is still parallel don't be a monkey - james
     public void update(){
         switch(state){
             case IDLE:
                 break;
             case TRANSFER_START:
-                setDepositPositions(intakeX, intakeY, Math.toRadians(0.0));
+                setDepositPositions(intakeX, intakeY);
+                calculateMoveTo();
 
-                calculateMoveToWithRestrictions(intakeAngleMin, intakeAngleMax);
+                //TODO: prob shouldnt be actual numbers? depends on angle of approach
+                arm.setDiffy(Math.toRadians(45.0), Math.toRadians(90.0));
+                arm.openClaw();
 
                 if((targetX - currX) * (targetX - currX) + (targetY - currY) * (targetY - currY) <= arm.getArmLength() * arm.getArmLength()){
                     tooClose = true;
@@ -65,7 +75,6 @@ public class Deposit {
                     slides.setTargetLength(moveToY);
                 }else{
                     arm.setArmAngle(moveToArmAngle);
-                    arm.setClawAngle(targetClawAngle);
                 }
 
                 if(arm.checkReady()){
@@ -75,88 +84,114 @@ public class Deposit {
             case TRANSFER_END:
                 if(tooClose){
                     arm.setArmAngle(moveToArmAngle);
-                    arm.setClawAngle(targetClawAngle);
                 }else{
                     arm.setMgnPosition(moveToX);
                     slides.setTargetLength(moveToY);
                 }
 
                 if(arm.checkReady() && slides.inPosition(0.5)){
-                    state = State.SAMPLE_READY;
-                    currX = targetX;
-                    currY = targetY;
+                    state = State.READY;
+                    currX = moveToX;
+                    currY = moveToY;
                     currArmAngle = moveToArmAngle;
-                    currClawAngle = targetClawAngle;
+                    arm.closeClaw();
                 }
                 break;
-            case SAMPLE_READY:
-                //confirm grabbed, use color sensor?
-                //if grab confirmed, move to next state
+            case READY:
+                //should i add anything here in particular for hold? i just want it to be state where the sample/speci is held
+                //and waiting to be sent into a RAISE state
                 break;
             case SAMPLE_RAISE:
-                setDepositPositions(sampleBasketX, sampleBasketY + 2.0, Math.toRadians(225.0));
+                setDepositPositions(sampleBasketX, sampleBasketY + 2.0);
                 calculateMoveTo();
 
                 arm.setMgnPosition(moveToX);
                 slides.setTargetLength(moveToY);
                 arm.setArmAngle(moveToArmAngle);
-                arm.setClawAngle(targetClawAngle - moveToArmAngle);
 
                 if(arm.checkReady() && slides.inPosition(0.5)){
                     state = State.SAMPLE_DEPOSIT;
-                    currX = targetX;
-                    currY = targetY;
+                    currX = moveToX;
+                    currY = moveToY;
                     currArmAngle = moveToArmAngle;
-                    currClawAngle = targetClawAngle;
                 }
                 break;
             case SAMPLE_DEPOSIT:
-                //claw code here
-                //goes to buffer
+                arm.openClaw();
+                if(arm.checkReady()){
+                    state = State.BUFFER;
+                }
                 break;
-            case GRAB:
-                //claw code here
-                //use color sensor to determine where clipped is
-                //use claw to grab
-                //should this part drive the robot here too?
-                break;
-            case SPECIMEN_READY:
-                //check if grabbed
-                //if not go back to grab
-                //else go to raise
-                break;
-            case SPECIMEN_RAISE:
-                setDepositPositions(specimenBarX, specimenBarY - 2.0, Math.toRadians(90.0));
+            case GRAB_SET:
+                setDepositPositions(grabX, grabY);
                 calculateMoveTo();
 
                 arm.setMgnPosition(moveToX);
                 slides.setTargetLength(moveToY);
                 arm.setArmAngle(moveToArmAngle);
-                arm.setClawAngle(targetClawAngle - moveToArmAngle);
+
+                arm.setDiffy(Math.toRadians(180.0), Math.toRadians(90.0));
+                arm.openClaw();
 
                 if(arm.checkReady() && slides.inPosition(0.5)){
+                    state = State.GRAB;
+                }
+                break;
+            case GRAB:
+                arm.closeClaw();
+
+                if(arm.checkReady()){
+                    state = State.GRAB_RETRACT;
+                }
+                break;
+            case GRAB_RETRACT:
+                //TODO: Same as RETRACT State
+                setDepositPositions(0.0, arm.getArmLength());
+                calculateMoveTo();
+
+                arm.setMgnPosition(moveToX);
+                slides.setTargetLength(moveToY);
+                arm.setArmAngle(moveToArmAngle);
+
+                if(arm.checkReady()){
+                    state = State.READY;
+                }
+                break;
+            case SPECIMEN_RAISE:
+                setDepositPositions(specimenBarX, specimenBarY - 2.0);
+                calculateMoveTo();
+
+                arm.setMgnPosition(moveToX);
+                slides.setTargetLength(moveToY);
+                arm.setArmAngle(moveToArmAngle);
+                arm.setDiffy(0.0, Math.toRadians(180.0));
+                if(arm.checkReady() && slides.inPosition(0.5)){
                     state = State.SPECIMEN_DEPOSIT;
-                    currX = targetX;
-                    currY = targetY;
+                    currX = moveToX;
+                    currY = moveToY;
                     currArmAngle = moveToArmAngle;
-                    currClawAngle = targetClawAngle;
                 }
                 break;
             case SPECIMEN_DEPOSIT:
-                setDepositPositions(specimenBarX, specimenBarY, Math.toRadians(90.0));
+                setDepositPositions(specimenBarX, specimenBarY);
                 calculateMoveTo();
 
                 arm.setMgnPosition(moveToX);
                 slides.setTargetLength(moveToY);
                 arm.setArmAngle(moveToArmAngle);
-                arm.setClawAngle(targetClawAngle - moveToArmAngle);
 
                 if(arm.checkReady() && slides.inPosition(0.5)){
                     state = State.BUFFER;
-                    currX = targetX;
-                    currY = targetY;
+                    currX = moveToX;
+                    currY = moveToY;
                     currArmAngle = moveToArmAngle;
-                    currClawAngle = targetClawAngle;
+                }
+                break;
+            case RELEASE:
+                arm.openClaw();
+                arm.setDiffy(0.0, 0.0);
+                if(arm.checkReady()){
+                    state = State.BUFFER;
                 }
                 break;
             case BUFFER:
@@ -164,7 +199,6 @@ public class Deposit {
                 if(currArmAngle > Math.toRadians(90.0)){
                     setDepositPositions(currX + 1.0, currY - 1.0);
                 }else{
-                    //open claw too btw
                     setDepositPositions(currX - 1.0, currY - 1.0);
                 }
                 calculateMoveTo();
@@ -172,31 +206,29 @@ public class Deposit {
                 arm.setMgnPosition(moveToX);
                 slides.setTargetLength(moveToY);
                 arm.setArmAngle(moveToArmAngle);
-                arm.setClawAngle(targetClawAngle - moveToArmAngle);
 
                 if(arm.checkReady() && slides.inPosition(0.5)){
                     state = State.RETRACT;
-                    currX = targetX;
-                    currY = targetY;
+                    currX = moveToX;
+                    currY = moveToY;
                     currArmAngle = moveToArmAngle;
-                    currClawAngle = targetClawAngle;
                 }
                 break;
             case RETRACT:
-                setDepositPositions(0.0, arm.getArmLength(), 0.0);
+                //TODO: May need a separate reset function as setDepositPositions would put claw in this spot
+                setDepositPositions(0.0, arm.getArmLength());
                 calculateMoveTo();
 
                 arm.setMgnPosition(moveToX);
                 slides.setTargetLength(moveToY);
                 arm.setArmAngle(moveToArmAngle);
-                arm.setClawAngle(targetClawAngle - moveToArmAngle);
+                arm.openClaw();
 
                 if(arm.checkReady() && slides.inPosition(0.5)){
                     state = State.IDLE;
-                    currX = targetX;
-                    currY = targetY;
+                    currX = moveToX;
+                    currY = moveToY;
                     currArmAngle = moveToArmAngle;
-                    currClawAngle = targetClawAngle;
                 }
                 break;
         }
@@ -206,14 +238,8 @@ public class Deposit {
         state = State.TRANSFER_START;
     }
 
-    public void stateSpecimenDeposit(){
+    public void startSpecimenDeposit(){
         state = State.GRAB;
-    }
-
-    public void setDepositPositions(double x, double y, double clawAngle){
-        targetX = x;
-        targetY = y;
-        targetClawAngle = clawAngle;
     }
 
     public void setDepositPositions(double x, double y){
@@ -221,24 +247,38 @@ public class Deposit {
         targetY = y;
     }
 
-    //TODO: Update minMaxClip values
     public void calculateMoveTo(){
-        double baseX = Utils.minMaxClip(currX + arm.getArmLength() * Math.cos(currArmAngle), 0.0, 11.816);
-        double baseY = Utils.minMaxClip(currY + arm.getArmLength() * Math.sin(currArmAngle), 0.0, 50.0);
-        double slope = (targetY - baseY)/(targetX - baseX);
+        double baseX = arm.calcMgnPosition();
+        double baseY = slides.getLength();
 
-        moveToX = Math.sqrt(arm.getArmLength() * arm.getArmLength()/(slope * slope + 1)) + targetX;
-        moveToY = slope * (moveToX - targetX) + targetY;
-        moveToArmAngle = Math.atan2((targetY - baseY), (targetX - baseX));
-    }
+        //check if only horizontal movement is possible now to minimize slides usage
+        if(Math.abs(baseY - targetY) < arm.getArmLength() && targetX >= 0.0){
+            double pos1 = targetX - Math.sqrt(arm.getArmLength() * arm.getArmLength() - (baseY - targetY) * (baseY - targetY));
+            double pos2 = targetX + Math.sqrt(arm.getArmLength() * arm.getArmLength() - (baseY - targetY) * (baseY - targetY));
+            if(Math.abs(pos1 - baseX) < Math.abs(pos2 - baseX) && pos1 >= 0.0){
+                moveToX = pos1;
+            }else{
+                moveToX = pos2;
+            }
+            moveToY = baseY;
+            moveToArmAngle = Math.atan2(moveToY - targetY, moveToX - targetX);
+        }else{
+            double slope = (baseY - targetY)/(baseX - targetX);
+            double pos1x = Utils.minMaxClip(targetX - Math.sqrt(arm.getArmLength() * arm.getArmLength()/(slope * slope + 1)), 0.0, 11.816);
+            double pos1y = Utils.minMaxClip(slope * (pos1x - targetX) + targetY, 0.0, 50.0);
+            double pos2x = Utils.minMaxClip(targetX + Math.sqrt(arm.getArmLength() * arm.getArmLength()/(slope * slope + 1)), 0.0, 11.816);
+            double pos2y = Utils.minMaxClip(slope * (pos2x - targetX) + targetY, 0.0, 50.0);
 
-    public void calculateMoveToWithRestrictions(double minAngle, double maxAngle){
-        double baseX = Utils.minMaxClip(currX + arm.getArmLength() * Math.cos(currArmAngle), 0.0, 11.816);
-        double baseY = Utils.minMaxClip(currY + arm.getArmLength() * Math.sin(currArmAngle), 0.0, 50.0);
-        double slope = Utils.minMaxClip((targetY - baseY)/(targetX - baseX), minAngle, maxAngle);
+            if(Math.abs(pos1y - targetY) < Math.abs(pos2y - targetY)){
+                moveToX = pos1x;
+                moveToY = pos1y;
+            }else{
+                moveToX = pos2x;
+                moveToY = pos2y;
+            }
 
-        moveToX = Math.sqrt(arm.getArmLength() * arm.getArmLength()/(slope * slope + 1)) + targetX;
-        moveToY = slope * (moveToX - targetX) + targetY;
-        moveToArmAngle = Math.atan(slope);
+            moveToArmAngle = Math.atan2(moveToY - targetY, moveToX - targetX);
+        }
+
     }
 }

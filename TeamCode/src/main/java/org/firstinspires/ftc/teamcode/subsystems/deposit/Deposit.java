@@ -9,9 +9,13 @@ public class Deposit {
         IDLE,
         TRANSFER_START,
         TRANSFER_END,
+        TRANSFER_WAIT,
+        TRANSFER_GRAB,
         READY,
         SAMPLE_RAISE,
         SAMPLE_DEPOSIT,
+        OUTTAKE_MOVE,
+        OUTTAKE_RELEASE,
         GRAB_SET,
         GRAB,
         GRAB_RETRACT,
@@ -35,12 +39,12 @@ public class Deposit {
     private double currX, currY, currArmAngle;
     private double targetX, targetY;
     private double moveToX, moveToY, moveToArmAngle;
-    private boolean tooClose = false;
+    private boolean tooClose = false, outtaking = false;
 
-    private final double intakeX = 10.0, intakeY = -2.0; // TODO: Update these values
+    private final double intakeWaitY = -1.0, intakeX = 10.0, intakeY = -2.0; // TODO: Update these values
     private final double sampleBasketX = -2.0, sampleBasketY = 46.0;
     private final double specimenBarX = 10.0, specimenBarY = 27.0;
-    private final double grabX = -5.0, grabY = -4.0;
+    private final double outtakeX = -11.816, outtakeY = 0.0, grabX = -5.0, grabY = -4.0;
 
     public Deposit(Robot robot){
         this.robot = robot;
@@ -62,13 +66,11 @@ public class Deposit {
             case IDLE:
                 break;
             case TRANSFER_START:
-                setDepositPositions(intakeX + Utils.minMaxClip(robot.sensors.getIntakeExtensionPosition(), 0.0, 2.0), intakeY);
+                setDepositPositions(intakeX + Utils.minMaxClip(robot.sensors.getIntakeExtensionPosition(), 0.0, 2.0), intakeWaitY);
                 calculateMoveTo();
 
                 //TODO: Added dependency on current arm angle
                 //TODO: is the block coming in square face or rectangle face
-                arm.setDiffy(Math.toRadians(-90.0) - moveToArmAngle, Math.toRadians(90.0));
-                arm.openClaw();
 
                 if((targetX - currX) * (targetX - currX) + (targetY - currY) * (targetY - currY) <= arm.getArmLength() * arm.getArmLength()){
                     tooClose = true;
@@ -91,11 +93,35 @@ public class Deposit {
                 }
 
                 if(arm.checkReady() && slides.inPosition(0.5)){
-                    state = State.READY;
+                    state = State.TRANSFER_WAIT;
                     currX = moveToX;
                     currY = moveToY;
                     currArmAngle = moveToArmAngle;
                     arm.closeClaw();
+                }
+                break;
+            case TRANSFER_WAIT:
+                arm.setDiffy(Math.toRadians(-90.0) - moveToArmAngle, Math.toRadians(90.0));
+                arm.openClaw();
+                if(arm.checkReady() && robot.sensors.getIntakeExtensionPosition() == 0.0){
+                    state = State.TRANSFER_GRAB;
+                }
+                break;
+            case TRANSFER_GRAB:
+                setDepositPositions(intakeX, intakeY);
+                calculateMoveTo();
+
+                arm.setMgnPosition(moveToX);
+                arm.setArmAngle(moveToArmAngle);
+                slides.setTargetLength(moveToY);
+
+                if(arm.checkReady()){
+                    arm.closeClaw();
+                    if(arm.checkReady() && !outtaking){
+                        state = State.READY;
+                    }else if(arm.checkReady() && outtaking){
+                        state = State.OUTTAKE_MOVE;
+                    }
                 }
                 break;
             case READY:
@@ -121,6 +147,25 @@ public class Deposit {
                 arm.openClaw();
                 if(arm.checkReady()){
                     state = State.BUFFER;
+                }
+                break;
+            case OUTTAKE_MOVE:
+                setDepositPositions(outtakeX, outtakeY);
+                calculateMoveTo();
+
+                arm.setMgnPosition(moveToX);
+                slides.setTargetLength(moveToY);
+                arm.setArmAngle(moveToArmAngle);
+                arm.setDiffy(Math.toRadians(180.0), Math.toRadians(90.0));
+
+                if(arm.checkReady()){
+                    state = State.OUTTAKE_RELEASE;
+                }
+                break;
+            case OUTTAKE_RELEASE:
+                arm.openClaw();
+                if(arm.checkReady()){
+                    state = State.RETRACT;
                 }
                 break;
             case GRAB_SET:
@@ -236,6 +281,7 @@ public class Deposit {
     }
 
     public void startTransfer() {
+        outtaking = false;
         state = State.TRANSFER_START;
     }
 
@@ -252,12 +298,12 @@ public class Deposit {
     }
 
     public void startOuttake() {
-        // TODO Fill in method stub
+        outtaking = true;
+        state = State.TRANSFER_START;
     }
 
     public boolean isOuttakeDone() {
-        // TODO Fill in method stub
-        return true;
+        return state == State.IDLE;
     }
 
     public void grabSpecimen() {

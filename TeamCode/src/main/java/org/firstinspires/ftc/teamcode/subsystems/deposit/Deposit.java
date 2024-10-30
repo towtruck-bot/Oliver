@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode.subsystems.deposit;
 
 import org.firstinspires.ftc.teamcode.Robot;
-import org.firstinspires.ftc.teamcode.sensors.Sensors;
 import org.firstinspires.ftc.teamcode.utils.Utils;
 
 public class Deposit {
@@ -30,7 +29,6 @@ public class Deposit {
     public Robot robot;
     public Slides slides;
     public Arm arm;
-    public Sensors sensors;
 
     //TODO: Servos have mechanically set 0 positions, make sure nathan xie does it so i can make him give me good zeros
     //TODO: also for max ranges too
@@ -48,7 +46,6 @@ public class Deposit {
 
     public Deposit(Robot robot){
         this.robot = robot;
-        this.sensors = robot.sensors;
         this.slides = new Slides(robot);
 
         arm = new Arm(robot);

@@ -22,7 +22,6 @@ public class Robot {
     public final HardwareMap hardwareMap;
     public final HardwareQueue hardwareQueue;
     public final Sensors sensors;
-    public final Slides slides;
     public final Drivetrain drivetrain;
     public final Intake intake;
     public final Arm arm;
@@ -57,7 +56,6 @@ public class Robot {
 
         this.intake = new Intake(this);
         this.drivetrain = new Drivetrain(this);
-        this.slides = new Slides(this);
         this.arm = new Arm(this);
         this.hang = new Hang(hardwareMap, hardwareQueue);
         this.deposit = new Deposit(this);
@@ -75,7 +73,6 @@ public class Robot {
         this.sensors.update();
 
         this.intake.update();
-        this.slides.update();
         this.drivetrain.update();
         this.hang.update();
         this.deposit.update();

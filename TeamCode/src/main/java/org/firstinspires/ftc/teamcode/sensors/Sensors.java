@@ -4,6 +4,7 @@ import android.util.Log;
 
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.hardware.AnalogInput;
+import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -21,6 +22,13 @@ public class Sensors {
     private final HardwareMap hardwareMap;
     private Robot robot;
 
+    public enum BlockColor {
+        NONE,
+        RED,
+        BLUE,
+        YELLOW,
+    }
+
     //private IMU imu;
     private int[] odometry = new int[] {0,0,0};
 
@@ -28,6 +36,10 @@ public class Sensors {
     private double slidesVelocity;
 
     private int intakeExtensionEncoder;
+
+    public final DigitalChannel intakeColorSensorR;
+    public final DigitalChannel intakeColorSensorB;
+    private BlockColor intakeColor = BlockColor.NONE;
 
     private final AnalogInput[] analogEncoders = new AnalogInput[2];
     public double[] analogVoltages = new double[analogEncoders.length];
@@ -62,7 +74,10 @@ public class Sensors {
         SparkFunOTOS.Pose2D currentPosition = new SparkFunOTOS.Pose2D(0, 0, 0);
         otos.setPosition(currentPosition);
 
-
+        this.intakeColorSensorR = this.robot.hardwareMap.get(DigitalChannel.class, "intakeColorSensorR");
+        this.intakeColorSensorR.setMode(DigitalChannel.Mode.INPUT);
+        this.intakeColorSensorB = this.robot.hardwareMap.get(DigitalChannel.class, "intakeColorSensorB");
+        this.intakeColorSensorB.setMode(DigitalChannel.Mode.INPUT);
 
         initSensors(hardwareMap);
     }
@@ -122,7 +137,12 @@ public class Sensors {
         slidesVelocity = ((PriorityMotor) hardwareQueue.getDevice("rightFront")).motor[0].getVelocity() * -1;
 
         this.intakeExtensionEncoder = this.robot.intake.intakeExtensionMotor.motor[0].getCurrentPosition();
-        TelemetryUtil.packet.put("Extendo position", this.getIntakeExtensionPosition());
+
+        if (this.intakeColorSensorR.getState()) {
+            this.intakeColor = this.intakeColorSensorB.getState() ? BlockColor.YELLOW : BlockColor.RED;
+        } else {
+            this.intakeColor = this.intakeColorSensorB.getState() ? BlockColor.BLUE : BlockColor.NONE;
+        }
     }
 
     private void updateExpansionHub() {
@@ -137,6 +157,10 @@ public class Sensors {
 
     public void updateTelemetry() {
         TelemetryUtil.packet.put("voltage", voltage);
+
+        TelemetryUtil.packet.put("Extendo position", this.getIntakeExtensionPosition());
+
+        TelemetryUtil.packet.put("Intake color", this.intakeColor.toString());
     }
 
     public int[] getOdometry() {
@@ -157,6 +181,14 @@ public class Sensors {
     public double getIntakeExtensionPosition() {
         final double inchesPerTick = 0.04132142857142857; // TODO This value is TEMPORARY (Centerstage/TeamCode/src/main/java/org/firstinspires/ftc/teamcode/subsystems/deposit/Slides.java)
         return this.intakeExtensionEncoder * inchesPerTick;
+    }
+
+    /**
+     * Gets the color detected by the intake. -- Daniel
+     * @return the color detected by the intake (NONE, RED, BLUE, YELLOW)
+     */
+    public BlockColor getIntakeColor() {
+        return this.intakeColor;
     }
 
     public double getVoltage() { return voltage; }

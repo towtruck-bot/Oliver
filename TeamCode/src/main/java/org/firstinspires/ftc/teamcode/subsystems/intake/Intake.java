@@ -7,9 +7,9 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.Robot;
+import org.firstinspires.ftc.teamcode.sensors.Sensors;
 import org.firstinspires.ftc.teamcode.utils.Globals;
 import org.firstinspires.ftc.teamcode.utils.PID;
-import org.firstinspires.ftc.teamcode.utils.REVColorSensorV3;
 import org.firstinspires.ftc.teamcode.utils.RunMode;
 import org.firstinspires.ftc.teamcode.utils.Utils;
 import org.firstinspires.ftc.teamcode.utils.priority.PriorityMotor;
@@ -40,13 +40,12 @@ public class Intake {
     public final PriorityMotor intakeRollerMotor;
     public final PriorityMotor intakeExtensionMotor;
     public final PriorityServo intakeFlipServo;
-    public final REVColorSensorV3 intakeColorSensor;
 
     private IntakeState intakeState = IntakeState.RETRACTING;
 
     private IntakeRollerState intakeRollerState = IntakeRollerState.OFF;
     public static double keepBlockInPower = 0.2; // TODO Replace this placeholder
-    public static long unjamDuration = 500; // milliseconds
+    public static long unjamDuration = 500;
     private long unjamLastTime;
 
     public static double extensionMaxPosition = 21; // TODO Replace this placeholder value with actual limit
@@ -62,8 +61,12 @@ public class Intake {
     public static double flipDownAngle = Math.toRadians(180);
     public static double flipAngleToGoOverBarrier = Math.toRadians(90);
 
+    private Sensors.BlockColor sampleColor = Sensors.BlockColor.NONE;
+    private long sampleCheckTime;
+    public static long sampleConfirmDuration = 100;
+
     /**
-     * Initializes the intake. Uses motors intakeRollerMotor and intakeExtensionMotor. -- Daniel
+     * Initializes the intake. Uses motors intakeRollerMotor and intakeExtensionMotor, servo intakeFlipServo. -- Daniel
      * @param robot the robot (must have robot.sensors defined)
      */
     public Intake(@NonNull Robot robot) {
@@ -96,21 +99,15 @@ public class Intake {
                 2.0
         );
         this.robot.hardwareQueue.addDevice(intakeFlipServo);
-
-        this.intakeColorSensor = this.robot.hardwareMap.get(REVColorSensorV3.class, "intakeColorSensor");
-        REVColorSensorV3.ControlRequest req = new REVColorSensorV3.ControlRequest()
-            .enableFlag(REVColorSensorV3.ControlFlag.LIGHT_SENSOR_ENABLED)
-            .enableFlag(REVColorSensorV3.ControlFlag.RGB_ENABLED);
-        this.intakeColorSensor.sendControlRequest(req);
-        this.intakeColorSensor.configureLS(REVColorSensorV3.LSResolution.SIXTEEN, REVColorSensorV3.LSMeasureRate.m100s, REVColorSensorV3.LSGain.ONE);
     }
 
     /**
-     * Updates the motors for both roller and extension. Uses PID for extension. -- Daniel
+     * Updates the motors for both roller and extension. Uses PID with deadzone for extension. -- Daniel
      */
     public void update() {
         long currentTime = System.nanoTime();
         this.extensionCurrentPosition = this.robot.sensors.getIntakeExtensionPosition();
+        this.sampleColor = this.robot.sensors.getIntakeColor();
 
         if (Globals.TESTING_DISABLE_CONTROL && Globals.RUNMODE == RunMode.TESTER) return;
 
@@ -134,12 +131,21 @@ public class Intake {
                 this.intakeFlipServo.setTargetAngle(flipDownAngle, 1.0);
                 if (this.intakeFlipServo.inPosition()) {
                     this.intakeState = IntakeState.EXTENDED;
+                    this.sampleCheckTime = currentTime;
                     this.setRollerOn();
                 } else break;
             case EXTENDED:
                 this.extensionControlTargetPosition = this.targetPositionWhenExtended;
                 this.intakeFlipServo.setTargetAngle(flipDownAngle, 1.0);
-                break;
+                if (Globals.isRed ? this.sampleColor == Sensors.BlockColor.BLUE : this.sampleColor == Sensors.BlockColor.RED) {
+                    this.sampleCheckTime = currentTime;
+                    this.setRollerUnjam();
+                } else if (this.sampleColor == Sensors.BlockColor.NONE) {
+                    this.sampleCheckTime = currentTime;
+                } else if (currentTime > this.sampleCheckTime + sampleConfirmDuration * 1e6) {
+                    this.intakeState = IntakeState.PICK_UP;
+                }
+                if (this.intakeState != IntakeState.PICK_UP) break;
             case PICK_UP:
                 this.setRollerKeepIn();
                 this.extensionControlTargetPosition = this.targetPositionWhenExtended;
@@ -227,8 +233,8 @@ public class Intake {
     public void setRollerReverse() { this.intakeRollerState = IntakeRollerState.REVERSE; }
 
     /**
-     * Gets whether the extension is at its target position. -- Daniel
-     * @return the extension target position, in inches
+     * Checks if the extension is at its target position. -- Daniel
+     * @return whether the extension is at its target position
      */
     public boolean isExtensionAtTarget() { return Math.abs(this.extensionControlTargetPosition - this.extensionCurrentPosition) < extensionPositionTolerance; }
 
@@ -259,4 +265,16 @@ public class Intake {
      * Sets the state to begin retracting. -- Daniel
      */
     public void retract() { this.intakeState = IntakeState.PICK_UP; }
+
+    /**
+     * Checks if the intake is retracted. -- Daniel
+     * @return whether the intake is retracted
+     */
+    public boolean isRetracted() { return this.intakeState == IntakeState.IDLE; }
+
+    /**
+     * Checks if the intake has a sample in it. -- Daniel
+     * @return whether the intake has a sample in it
+     */
+    public boolean hasSample() { return this.sampleColor != Sensors.BlockColor.NONE; }
 }

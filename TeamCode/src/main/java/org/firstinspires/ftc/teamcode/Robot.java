@@ -27,19 +27,23 @@ public class Robot {
     public final Intake intake;
     public final Arm arm;
     public final Hang hang;
-    public RobotState state;
-
     public final Deposit deposit;
+
     public enum RobotState {
-        INTAKE,
-        GRAB,
-        RETRACT_INTAKE,
-        START_DEPOSIT,
-        DEPOSIT_BUCKET,
-        DEPOSIT_SPECIMEN,
-        RETRACT_DEPOSIT,
         IDLE,
+        INTAKE_SAMPLE,
+        TRANSFER,
+        SAMPLE_READY,
+        DEPOSIT_BUCKET,
+        OUTTAKE,
+        GRAB_SPECIMEN,
+        SPECIMEN_READY,
+        DEPOSIT_SPECIMEN
     }
+    private RobotState state = RobotState.IDLE;
+    private RobotState prevState = RobotState.IDLE;
+
+    private boolean outtakeAndThenGrab = false;
 
     public Robot(HardwareMap hardwareMap) {
         this(hardwareMap, null);
@@ -68,15 +72,17 @@ public class Robot {
     }
 
     private void updateSubsystems() {
-        sensors.update();
+        this.sensors.update();
 
-        intake.update();
-        slides.update();
-        drivetrain.update();
-        hang.update();
-        deposit.update();
+        this.intake.update();
+        this.slides.update();
+        this.drivetrain.update();
+        this.hang.update();
+        this.deposit.update();
 
-        hardwareQueue.update();
+        this.robotFSM();
+
+        this.hardwareQueue.update();
     }
 
     private void updateTelemetry() {
@@ -95,41 +101,61 @@ public class Robot {
             update();
         } while (((boolean) func.call()) && System.currentTimeMillis() - start <= 10000 && drivetrain.isBusy());
     }
-    public void robotFSM(){
-        switch(state){
-            case INTAKE:
-                intake.extend();
-                if (intake.getIntakeRollerState() != Intake.IntakeRollerState.ON) { // check if intake is off
-                    state = RobotState.RETRACT_INTAKE;
-                }
-            case RETRACT_INTAKE:
-                intake.retract();
-                this.state = RobotState.GRAB;
-            case GRAB:
-                deposit.startTransfer();
-                this.state = RobotState.START_DEPOSIT;
-            case START_DEPOSIT:
-                deposit.startOuttake();
-                this.state = RobotState.DEPOSIT_BUCKET;
-            case DEPOSIT_BUCKET:
-                deposit.setSampleReady();
-                deposit.startSample();
-                deposit.startSampleD();
-                this.state = RobotState.DEPOSIT_SPECIMEN;
-            case DEPOSIT_SPECIMEN:
-                deposit.setSpeciReady();
-                deposit.startSpeci();
-                deposit.startSpeciD();
-                this.state = RobotState.RETRACT_DEPOSIT;
-            case RETRACT_DEPOSIT:
-                // deposit function needed?
+    public void robotFSM() {
+/* Main robot FSM diagram:
+v------------<----------------------------------------------------<
+V            ^                                                    |
+IDLE > INTAKE_SAMPLE > TRANSFER > SAMPLE_READY > DEPOSIT_BUCKET >-^
+^  V                                     V                        |
+|  >----------------> GRAB_SPECIMEN < OUTTAKE >-------------------^
+|                           V            ^
+^-< DEPOSIT_SPECIMEN < SPECIMEN_READY >--^
+*/
+        switch (this.state) {
             case IDLE:
-
-
-
-
+                // TODO Wait to continue
+                break;
+            case INTAKE_SAMPLE:
+                if (this.prevState == RobotState.IDLE) this.intake.extend();
+                if (this.intake.isRetracted()) {
+                    if (this.intake.hasSample()) this.state = RobotState.TRANSFER;
+                    else this.state = RobotState.IDLE;
+                }
+                break;
+            case TRANSFER:
+                if (this.prevState == RobotState.INTAKE_SAMPLE) this.deposit.startTransfer();
+                if (this.deposit.isSampleReady()) this.state = RobotState.SAMPLE_READY;
+                break;
+            case SAMPLE_READY:
+                // TODO Wait to continue
+                break;
+            case DEPOSIT_BUCKET:
+                if (this.prevState == RobotState.SAMPLE_READY) this.deposit.startSampleDeposit();
+                if (this.deposit.isSampleDepositDone()) this.state = RobotState.IDLE;
+                break;
+            case OUTTAKE:
+                if (this.prevState == RobotState.SAMPLE_READY || this.prevState == RobotState.SPECIMEN_READY) this.deposit.startOuttake();
+                if (this.deposit.isOuttakeDone()) {
+                    if (this.outtakeAndThenGrab) {
+                        this.state = RobotState.GRAB_SPECIMEN;
+                    } else {
+                        this.state = RobotState.IDLE;
+                        this.outtakeAndThenGrab = true;
+                    }
+                }
+                break;
+            case GRAB_SPECIMEN:
+                if (this.prevState == RobotState.IDLE || this.prevState == RobotState.OUTTAKE) this.deposit.grabSpecimen();
+                if (this.deposit.isSpecimenReady()) this.state = RobotState.SPECIMEN_READY;
+                break;
+            case SPECIMEN_READY:
+                // TODO Wait to continue
+                break;
+            case DEPOSIT_SPECIMEN:
+                if (this.prevState == RobotState.SPECIMEN_READY) this.deposit.startSpecimenDeposit();
+                if (this.deposit.isSpecimenDepositDone()) this.state = RobotState.IDLE;
+                break;
         }
-
+        prevState = state;
     }
-
 }

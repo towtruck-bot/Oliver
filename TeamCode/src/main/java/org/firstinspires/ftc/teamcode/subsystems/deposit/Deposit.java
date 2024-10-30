@@ -62,11 +62,12 @@ public class Deposit {
             case IDLE:
                 break;
             case TRANSFER_START:
-                setDepositPositions(intakeX, intakeY);
+                setDepositPositions(intakeX + Utils.minMaxClip(robot.sensors.getIntakeExtensionPosition(), 0.0, 2.0), intakeY);
                 calculateMoveTo();
 
-                //TODO: prob shouldnt be actual numbers? depends on angle of approach
-                arm.setDiffy(Math.toRadians(45.0), Math.toRadians(90.0));
+                //TODO: Added dependency on current arm angle
+                //TODO: is the block coming in square face or rectangle face
+                arm.setDiffy(Math.toRadians(-90.0) - moveToArmAngle, Math.toRadians(90.0));
                 arm.openClaw();
 
                 if((targetX - currX) * (targetX - currX) + (targetY - currY) * (targetY - currY) <= arm.getArmLength() * arm.getArmLength()){

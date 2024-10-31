@@ -9,7 +9,6 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.ExposureControl;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.GainControl;
-import org.firstinspires.ftc.teamcode.vision.pipelines.TeamPropDetectionPipeline;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
@@ -17,7 +16,6 @@ import java.util.concurrent.TimeUnit;
 
 public class Vision {
     VisionPortal visionPortal;
-    public TeamPropDetectionPipeline teamPropDetectionPipeline;
     public AprilTagProcessor tagProcessor;
 
     int cameraWidth = 640;
@@ -55,13 +53,11 @@ public class Vision {
     }
 
     public void initTeamProp(HardwareMap hardwareMap, Telemetry telemetry, boolean isRed) {
-        teamPropDetectionPipeline = new TeamPropDetectionPipeline(telemetry, isRed);
 
         visionPortal = new VisionPortal.Builder()
                 .setCamera(hardwareMap.get(WebcamName.class, "Webcam 1")) // the camera on your robot is named "Webcam 1" by default
                 .setCameraResolution(new Size(cameraWidth, cameraHeight))
                 .setStreamFormat(VisionPortal.StreamFormat.MJPEG)
-                .addProcessor(teamPropDetectionPipeline)
                 .build();
 
         // waiting for camera to start streaming
@@ -71,7 +67,6 @@ public class Vision {
 
         setCameraSettings(1,206); // setCameraSettings(9,255);
 
-        visionPortal.setProcessorEnabled(teamPropDetectionPipeline, true);
     }
 
     public void initAprilTag(HardwareMap hardwareMap) {
@@ -108,13 +103,11 @@ public class Vision {
                 .setDrawTagOutline(true)
                 .build();
 
-        teamPropDetectionPipeline = new TeamPropDetectionPipeline(telemetry, isRed);
 
         visionPortal = new VisionPortal.Builder()
                 .setCamera(hardwareMap.get(WebcamName.class, "Webcam 1")) // the camera on your robot is named "Webcam 1" by default
                 .setCameraResolution(new Size(cameraWidth, cameraHeight))
                 .setStreamFormat(VisionPortal.StreamFormat.MJPEG)
-                .addProcessors(teamPropDetectionPipeline, tagProcessor)
                 .build();
 
         // waiting for camera to start streaming
@@ -125,7 +118,6 @@ public class Vision {
         setCameraSettings(8,145); // setCameraSettings(9,255);
 
         visionPortal.setProcessorEnabled(tagProcessor, true);
-        visionPortal.setProcessorEnabled(teamPropDetectionPipeline, true);
     }
 
     public void setCameraSettings(int exposureVal, int gainVal) {
@@ -156,11 +148,5 @@ public class Vision {
         visionPortal.setProcessorEnabled(tagProcessor, false);
     }
 
-    public void enableTeamProp () {
-        visionPortal.setProcessorEnabled(teamPropDetectionPipeline, true);
-    }
 
-    public void disableTeamProp () {
-        visionPortal.setProcessorEnabled(teamPropDetectionPipeline, false);
-    }
 }

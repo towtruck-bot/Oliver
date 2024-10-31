@@ -295,16 +295,36 @@ public class Deposit {
     }
 
     public void startOuttake() {
+        // TODO: The claw already has the block, just go to outtake directly
         outtaking = true;
         state = State.TRANSFER_START;
     }
 
     public boolean isOuttakeDone() {
+        // TODO: isOuttakeDone should check if the claw dropped the block outside
+        // The Robot FSM can call either grabSpecimen() or retract() after the RobotState.OUTTAKE
         return state == State.IDLE;
+    }
+
+    public void retract() {
+        // TODO: Go back to idle state
+    }
+
+    public void finishSampleDeposit() {
+        // TODO: Drop sample in bucket and return to idle state
+    }
+
+    public void finishSpecimenDeposit() {
+        // TODO: Hook specimen on rod and return to idle state
     }
 
     public void grabSpecimen() {
         state = State.GRAB_SET;
+    }
+
+    public void finishSpecimenGrab() {
+        // TODO: If the claw has a specimen in it, close the claw and move to specimen ready
+        // This method will be called rapidly if the driver holds the "close claw" button
     }
 
     public boolean isSpecimenReady() {

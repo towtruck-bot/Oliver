@@ -63,7 +63,7 @@ public class Intake {
 
     private Sensors.BlockColor sampleColor = Sensors.BlockColor.NONE;
     private long sampleCheckTime;
-    public static long sampleConfirmDuration = 100;
+    public static long sampleConfirmDuration = 500;
 
     /**
      * Initializes the intake. Uses motors intakeRollerMotor and intakeExtensionMotor, servo intakeFlipServo. -- Daniel

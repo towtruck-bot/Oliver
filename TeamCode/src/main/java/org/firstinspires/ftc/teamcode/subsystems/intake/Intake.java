@@ -11,6 +11,7 @@ import org.firstinspires.ftc.teamcode.sensors.Sensors;
 import org.firstinspires.ftc.teamcode.utils.Globals;
 import org.firstinspires.ftc.teamcode.utils.PID;
 import org.firstinspires.ftc.teamcode.utils.RunMode;
+import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 import org.firstinspires.ftc.teamcode.utils.Utils;
 import org.firstinspires.ftc.teamcode.utils.priority.PriorityMotor;
 import org.firstinspires.ftc.teamcode.utils.priority.PriorityServo;
@@ -34,6 +35,7 @@ public class Intake {
         RETRACTING,
         FINISH_RETRACTING,
         IDLE,
+        TRANSFER,
     }
 
     public final Robot robot;
@@ -115,19 +117,19 @@ public class Intake {
         switch (this.intakeState) {
             case START_EXTENDING:
                 this.setRollerOff();
-                this.extensionControlTargetPosition = Math.min(this.targetPositionWhenExtended - distanceToIntake, extendedMinPosition);
+                this.extensionControlTargetPosition = Math.max(this.targetPositionWhenExtended - distanceToIntake, extendedMinPosition);
                 this.intakeFlipServo.setTargetAngle(0, 1.0);
                 if (this.extensionCurrentPosition > extendingStartFlipPosition) this.intakeState = IntakeState.EXTENDING;
                 else break;
             case EXTENDING:
                 this.setRollerOff();
-                this.extensionControlTargetPosition = Math.min(this.targetPositionWhenExtended - distanceToIntake, extendedMinPosition);
+                this.extensionControlTargetPosition = Math.max(this.targetPositionWhenExtended - distanceToIntake, extendedMinPosition);
                 this.intakeFlipServo.setTargetAngle(flipAngleToGoOverBarrier, 1.0);
                 if (this.isExtensionAtTarget()) this.intakeState = IntakeState.DROP_DOWN;
                 else break;
             case DROP_DOWN:
                 this.setRollerOff();
-                this.extensionControlTargetPosition = Math.min(this.targetPositionWhenExtended - distanceToIntake, extendedMinPosition);
+                this.extensionControlTargetPosition = Math.max(this.targetPositionWhenExtended - distanceToIntake, extendedMinPosition);
                 this.intakeFlipServo.setTargetAngle(flipDownAngle, 1.0);
                 if (this.intakeFlipServo.inPosition()) {
                     this.intakeState = IntakeState.EXTENDED;
@@ -167,6 +169,12 @@ public class Intake {
                     this.setRollerOff();
                 } else break;
             case IDLE:
+                this.setRollerOff();
+                this.extensionControlTargetPosition = 0;
+                this.intakeFlipServo.setTargetAngle(0, 1.0);
+                break;
+            case TRANSFER:
+                this.setRollerReverse();
                 this.extensionControlTargetPosition = 0;
                 this.intakeFlipServo.setTargetAngle(0, 1.0);
                 break;
@@ -199,6 +207,9 @@ public class Intake {
         } else {
             this.intakeExtensionMotor.setTargetPower(pid.update(this.extensionControlTargetPosition - this.extensionCurrentPosition, -1.0, 1.0));
         }
+
+        // Telemetry
+        TelemetryUtil.packet.put("Intake.extensionControlTargetPosition", this.extensionControlTargetPosition);
     }
 
     /**
@@ -252,19 +263,34 @@ public class Intake {
 
     /**
      * Gets the intake's state. -- Daniel
-     * @return the intake's state (START_EXTENDING, EXTENDING, EXTENDED, PICK_UP, RETRACTING, FINISH_RETRACTING, RETRACTED)
+     * @return the intake's state (START_EXTENDING, EXTENDING, EXTENDED, PICK_UP, RETRACTING, FINISH_RETRACTING, RETRACTED, IDLE, TRANSFER)
      */
     public IntakeState getIntakeState() { return this.intakeState; }
 
     /**
      * Sets the state to begin extending. -- Daniel
      */
-    public void extend() { this.intakeState = IntakeState.START_EXTENDING; }
+    public void extend() {
+        if (this.intakeState == IntakeState.IDLE) this.intakeState = IntakeState.START_EXTENDING;
+        else if (this.intakeState == IntakeState.RETRACTING) this.intakeState = IntakeState.EXTENDING;
+        else if (this.intakeState == IntakeState.PICK_UP) this.intakeState = IntakeState.DROP_DOWN;
+    }
 
     /**
-     * Sets the state to begin retracting. -- Daniel
+     * Sets the state to begin retracting, or exit transfer. -- Daniel
      */
-    public void retract() { this.intakeState = IntakeState.PICK_UP; }
+    public void retract() {
+        if (this.intakeState == IntakeState.EXTENDED || this.intakeState == IntakeState.DROP_DOWN) this.intakeState = IntakeState.PICK_UP;
+        else if (this.intakeState == IntakeState.EXTENDING) this.intakeState = IntakeState.RETRACTING;
+        else if (this.intakeState == IntakeState.TRANSFER) this.intakeState = IntakeState.IDLE;
+    }
+
+    /**
+     * Sets the state to transfer. -- Daniel
+     */
+    public void transfer() {
+        if (this.intakeState == IntakeState.IDLE) this.intakeState = IntakeState.TRANSFER;
+    }
 
     /**
      * Checks if the intake is retracted. -- Daniel

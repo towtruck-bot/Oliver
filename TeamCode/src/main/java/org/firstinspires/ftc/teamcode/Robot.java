@@ -38,9 +38,15 @@ public class Robot {
         SPECIMEN_READY,
         DEPOSIT_SPECIMEN
     }
+    public enum NextState {
+        DONE,
+        INTAKE_SAMPLE,
+        DEPOSIT,
+        GRAB_SPECIMEN
+    }
     private RobotState state = RobotState.IDLE;
     private RobotState prevState = RobotState.IDLE;
-    private RobotState nextState = RobotState.IDLE;
+    private NextState nextState = NextState.DONE;
     private long lastClickTime;
     public static long bufferClickDuration = 500;
 
@@ -67,8 +73,8 @@ public class Robot {
 
     public void update() {
         START_LOOP();
-        updateSubsystems();
-        updateTelemetry();
+        this.updateSubsystems();
+        this.updateTelemetry();
     }
 
     private void updateSubsystems() {
@@ -100,31 +106,33 @@ public class Robot {
             update();
         } while (((boolean) func.call()) && System.currentTimeMillis() - start <= 10000 && drivetrain.isBusy());
     }
-    public void robotFSM() {
+
+    private void robotFSM() {
 /* Main robot FSM diagram below
 
 Single arrow: auto-advance state
-Double arrow: manual advance during teleop
-Curly braces: these states have additional teleop control (such as adjusting robot or claw position before continuing)
+Double arrow: manual advance during Teleop
+Curly braces: these states have additional Teleop control (such as adjusting robot or claw position before continuing)
 
 v--------------<--------------------------------------------------------<
 V              ^^                                                       |
 IDLE >> {INTAKE_SAMPLE} > TRANSFER > SAMPLE_READY >> {DEPOSIT_BUCKET} >-^
-^  VV                                       VV                          |
-|   >-----------------> {GRAB_SPECIMEN} < OUTTAKE >---------------------^
+^  VV                                      VV                           |
+|  >>--------------->> {GRAB_SPECIMEN} < OUTTAKE >----------------------^
 |                          VV   VV          ^^
 ^--------------------------<    VV          ^^
 |                               VV          ^^
 ^-< {DEPOSIT_SPECIMEN} << SPECIMEN_READY >>-^^
 */
         long currentTime = System.nanoTime();
-        boolean wasClicked = this.lastClickTime != -1 && currentTime - this.lastClickTime <= bufferClickDuration;
+        boolean wasClicked = this.lastClickTime != -1 && currentTime - this.lastClickTime <= bufferClickDuration * 1e6;
 
         switch (this.state) {
             case IDLE:
                 if (this.prevState == RobotState.GRAB_SPECIMEN || this.prevState == RobotState.OUTTAKE) this.deposit.retract();
-                if (wasClicked && (this.nextState == RobotState.INTAKE_SAMPLE || this.nextState == RobotState.GRAB_SPECIMEN)) {
-                    this.state = this.nextState;
+                if (wasClicked) {
+                    if (this.nextState == NextState.INTAKE_SAMPLE) this.state = RobotState.INTAKE_SAMPLE;
+                    else if (this.nextState == NextState.GRAB_SPECIMEN) this.state = RobotState.GRAB_SPECIMEN;
                     this.lastClickTime = -1;
                 }
                 break;
@@ -133,8 +141,7 @@ IDLE >> {INTAKE_SAMPLE} > TRANSFER > SAMPLE_READY >> {DEPOSIT_BUCKET} >-^
                 if (this.intake.isRetracted()) {
                     if (this.intake.hasSample()) this.state = RobotState.TRANSFER;
                     else this.state = RobotState.IDLE;
-                }
-                else if (wasClicked && this.nextState == RobotState.IDLE) {
+                } else if (wasClicked && this.nextState == NextState.DONE) {
                     this.intake.retract();
                     this.lastClickTime = -1;
                 }
@@ -144,15 +151,16 @@ IDLE >> {INTAKE_SAMPLE} > TRANSFER > SAMPLE_READY >> {DEPOSIT_BUCKET} >-^
                 if (this.deposit.isSampleReady()) this.state = RobotState.SAMPLE_READY;
                 break;
             case SAMPLE_READY:
-                if (wasClicked && (this.nextState == RobotState.OUTTAKE || this.nextState == RobotState.DEPOSIT_BUCKET)) {
-                    this.state = this.nextState;
+                if (wasClicked) {
+                    if (this.nextState == NextState.DONE) this.state = RobotState.OUTTAKE;
+                    else if (this.nextState == NextState.DEPOSIT) this.state = RobotState.DEPOSIT_BUCKET;
                     this.lastClickTime = -1;
                 }
                 break;
             case DEPOSIT_BUCKET:
                 if (this.prevState == RobotState.SAMPLE_READY) this.deposit.startSampleDeposit();
                 if (this.deposit.isSampleDepositDone()) this.state = RobotState.IDLE;
-                else if (wasClicked && this.nextState == RobotState.IDLE) {
+                else if (wasClicked && this.nextState == NextState.DONE) {
                     this.deposit.finishSampleDeposit();
                     this.lastClickTime = -1;
                 }
@@ -172,25 +180,22 @@ IDLE >> {INTAKE_SAMPLE} > TRANSFER > SAMPLE_READY >> {DEPOSIT_BUCKET} >-^
                 if (this.prevState == RobotState.IDLE || this.prevState == RobotState.OUTTAKE) this.deposit.grabSpecimen();
                 if (this.deposit.isSpecimenReady()) this.state = RobotState.SPECIMEN_READY;
                 else if (wasClicked) {
-                    if (this.nextState == RobotState.IDLE) {
-                        this.state = RobotState.IDLE;
-                        this.lastClickTime = -1;
-                    } else if (this.nextState == RobotState.SPECIMEN_READY) {
-                        this.deposit.finishSpecimenGrab();
-                        this.lastClickTime = -1;
-                    }
+                    if (this.nextState == NextState.DONE) this.state = RobotState.IDLE;
+                    else if (this.nextState == NextState.GRAB_SPECIMEN) this.deposit.finishSpecimenGrab();
+                    this.lastClickTime = -1;
                 }
                 break;
             case SPECIMEN_READY:
-                if (wasClicked && (this.nextState == RobotState.OUTTAKE || this.nextState == RobotState.DEPOSIT_SPECIMEN)) {
-                    this.state = this.nextState;
+                if (wasClicked) {
+                    if (this.nextState == NextState.DONE) this.state = RobotState.OUTTAKE;
+                    else if (this.nextState == NextState.DEPOSIT) this.state = RobotState.DEPOSIT_SPECIMEN;
                     this.lastClickTime = -1;
                 }
                 break;
             case DEPOSIT_SPECIMEN:
                 if (this.prevState == RobotState.SPECIMEN_READY) this.deposit.startSpecimenDeposit();
                 if (this.deposit.isSpecimenDepositDone()) this.state = RobotState.IDLE;
-                else if (wasClicked && this.nextState == RobotState.IDLE) {
+                else if (wasClicked && this.nextState == NextState.DONE) {
                     this.deposit.finishSpecimenDeposit();
                     this.lastClickTime = -1;
                 }
@@ -199,7 +204,65 @@ IDLE >> {INTAKE_SAMPLE} > TRANSFER > SAMPLE_READY >> {DEPOSIT_BUCKET} >-^
         prevState = state;
     }
 
-    public void setNextState(RobotState nextState) {
+    /**
+     * Sets what will happen after an OUTTAKE. This is automatically set to true after an OUTTAKE > IDLE. -- Daniel
+     * @param outtakeAndThenGrab true if the robot should go directly to GRAB_SPECIMEN, false to go to IDLE
+     */
+    public void setOuttakeAndThenGrab(boolean outtakeAndThenGrab) { this.outtakeAndThenGrab = outtakeAndThenGrab; }
+
+    /**
+     * Sets what the robot will do next. Use in Teleop. -- Daniel
+     *  <table>
+     *      <tr>
+     *          <td>Request</td>
+     *          <td>Robot state</td>
+     *          <td>Result</td>
+     *      </tr>
+     *      <tr>
+     *          <td>DONE</td>
+     *          <td>DEPOSIT BUCKET, DEPOSIT SPECIMEN</td>
+     *          <td>Finish the deposit</td>
+     *      </tr>
+     *      <tr>
+     *          <td>DONE</td>
+     *          <td>INTAKE SAMPLE, GRAB SPECIMEN</td>
+     *          <td>Cancel the intake/grab</td>
+     *      </tr>
+     *      <tr>
+     *          <td>DONE</td>
+     *          <td>SAMPLE READY, SPECIMEN READY</td>
+     *          <td>Outtake it</td>
+     *      </tr>
+     *      <tr>
+     *          <td>INTAKE SAMPLE</td>
+     *          <td>IDLE</td>
+     *          <td>Extend the intake to get a sample</td>
+     *      </tr>
+     *      <tr>
+     *          <td>DEPOSIT</td>
+     *          <td>SAMPLE READY</td>
+     *          <td>Deposit it in the bucket</td>
+     *      </tr>
+     *      <tr>
+     *          <td>DEPOSIT</td>
+     *          <td>SPECIMEN READY</td>
+     *          <td>Hang it on the rod</td>
+     *      </tr>
+     *      <tr>
+     *          <td>GRAB SPECIMEN</td>
+     *          <td>IDLE</td>
+     *          <td>Bring the claw down to grab a specimen</td>
+     *      </tr>
+     *      <tr>
+     *          <td>GRAB SPECIMEN</td>
+     *          <td>GRAB SPECIMEN</td>
+     *          <td>Close the claw if there is a specimen in it</td>
+     *      </tr>
+     *  </table>
+     * An action can be requested slightly earlier than when the robot is ready to do it (buffer-click).
+     * @param nextState what the robot will do next
+     */
+    public void setNextState(NextState nextState) {
         this.nextState = nextState;
         this.lastClickTime = System.nanoTime();
     }

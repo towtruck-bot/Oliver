@@ -323,8 +323,8 @@ public class Deposit {
     }
 
     public void finishSpecimenGrab() {
-        // TODO: If the claw has a specimen in it, close the claw and move to specimen ready
-        // This method will be called rapidly if the driver holds the "close claw" button
+        // TODO: IF the claw is down and has a specimen in it, close the claw and move to specimen ready
+        // NOTE: This method will be called rapidly if the driver holds the "grab specimen" button
     }
 
     public boolean isSpecimenReady() {

@@ -71,7 +71,7 @@ public class LimelightTest extends LinearOpMode {
                 }
             }
             else
-                telemetry.addData("result: ", "null");
+                telemetry.addData("result:  ", "null");
 
             telemetry.update();
         }

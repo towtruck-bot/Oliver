@@ -30,15 +30,14 @@ public class Deposit {
     public Slides slides;
     public Arm arm;
 
-    //TODO: Servos have mechanically set 0 positions, make sure nathan xie does it so i can make him give me good zeros
-    //TODO: also for max ranges too
-    //TODO: make sure axons are in the range i want it to be in
-    //TODO: priority servo reverse might not work, very sketchy thing, be careful of that function - profe
+    // TODO: Servos have mechanically set 0 positions; make sure mechanical sets 0's accurately and defines max ranges. be careful of priority servo reverse, may not work - profe
+
     private double currX, currY, currArmAngle;
     private double targetX, targetY;
     private double moveToX, moveToY, moveToArmAngle;
-    private boolean tooClose = false, outtaking = false;
+    private boolean tooClose = false;
 
+    private final double initX = 0.0, initY = arm.getArmLength();
     private final double intakeWaitY = -1.0, intakeX = 10.0, intakeY = -2.0; // TODO: Update these values
     private final double sampleBasketX = -2.0, sampleBasketY = 46.0;
     private final double specimenBarX = 10.0, specimenBarY = 27.0;
@@ -51,8 +50,8 @@ public class Deposit {
         arm = new Arm(robot);
 
         //TODO: Determine correct starting values
-        this.currX = 0.0;
-        this.currY = arm.getArmLength();
+        this.currX = initX;
+        this.currY = initY;
 
         state = State.IDLE;
     }
@@ -66,8 +65,7 @@ public class Deposit {
                 setDepositPositions(intakeX + Utils.minMaxClip(robot.sensors.getIntakeExtensionPosition(), 0.0, 2.0), intakeWaitY);
                 calculateMoveTo();
 
-                //TODO: Added dependency on current arm angle
-                //TODO: is the block coming in square face or rectangle face
+                //TODO: is the block coming in square face or rectangle face?
 
                 if((targetX - currX) * (targetX - currX) + (targetY - currY) * (targetY - currY) <= arm.getArmLength() * arm.getArmLength()){
                     tooClose = true;
@@ -114,11 +112,7 @@ public class Deposit {
 
                 if(arm.checkReady()){
                     arm.closeClaw();
-                    if(arm.checkReady() && !outtaking){
-                        state = State.READY;
-                    }else if(arm.checkReady() && outtaking){
-                        state = State.OUTTAKE_MOVE;
-                    }
+                    state = State.READY;
                 }
                 break;
             case READY:
@@ -224,7 +218,7 @@ public class Deposit {
                 arm.setArmAngle(moveToArmAngle);
 
                 if(arm.checkReady() && slides.inPosition(0.5)){
-                    state = State.BUFFER;
+                    state = State.RELEASE;
                     currX = moveToX;
                     currY = moveToY;
                     currArmAngle = moveToArmAngle;
@@ -259,7 +253,7 @@ public class Deposit {
                 break;
             case RETRACT:
                 //TODO: May need a separate reset function as setDepositPositions would put claw in this spot
-                setDepositPositions(0.0, arm.getArmLength());
+                setDepositPositions(initX, initY);
                 calculateMoveTo();
 
                 arm.setMgnPosition(moveToX);
@@ -278,7 +272,6 @@ public class Deposit {
     }
 
     public void startTransfer() {
-        outtaking = false;
         state = State.TRANSFER_START;
     }
 
@@ -295,9 +288,7 @@ public class Deposit {
     }
 
     public void startOuttake() {
-        // TODO: The claw already has the block, just go to outtake directly
-        outtaking = true;
-        state = State.TRANSFER_START;
+        state = State.OUTTAKE_MOVE;
     }
 
     public boolean isOuttakeDone() {
@@ -308,14 +299,17 @@ public class Deposit {
 
     public void retract() {
         // TODO: Go back to idle state
+        state = State.RETRACT;
     }
 
     public void finishSampleDeposit() {
         // TODO: Drop sample in bucket and return to idle state
+        state = State.SAMPLE_DEPOSIT;
     }
 
     public void finishSpecimenDeposit() {
         // TODO: Hook specimen on rod and return to idle state
+        state = State.SPECIMEN_DEPOSIT;
     }
 
     public void grabSpecimen() {
@@ -325,6 +319,7 @@ public class Deposit {
     public void finishSpecimenGrab() {
         // TODO: IF the claw is down and has a specimen in it, close the claw and move to specimen ready
         // NOTE: This method will be called rapidly if the driver holds the "grab specimen" button
+        state = State.GRAB;
     }
 
     public boolean isSpecimenReady() {

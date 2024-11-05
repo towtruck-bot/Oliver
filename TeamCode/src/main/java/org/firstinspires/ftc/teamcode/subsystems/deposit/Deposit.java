@@ -170,6 +170,7 @@ public class Deposit {
                 arm.setDiffy(Math.toRadians(180.0), Math.toRadians(90.0));
                 arm.openClaw();
 
+                //TODO: Require a sensors check if the block is in position?
                 if(arm.checkReady() && slides.inPosition(0.5)){
                     state = State.GRAB;
                 }
@@ -283,6 +284,11 @@ public class Deposit {
         state = State.SAMPLE_RAISE;
     }
 
+    // TODO: Drop sample in bucket and return to idle state
+    public void finishSampleDeposit() {
+        state = State.SAMPLE_DEPOSIT;
+    }
+
     public boolean isSampleDepositDone() {
         return state == State.IDLE;
     }
@@ -291,34 +297,19 @@ public class Deposit {
         state = State.OUTTAKE_MOVE;
     }
 
+    // TODO: isOuttakeDone should check if the claw dropped the block outside
+    // The Robot FSM can call either grabSpecimen() or retract() after the RobotState.OUTTAKE
     public boolean isOuttakeDone() {
-        // TODO: isOuttakeDone should check if the claw dropped the block outside
-        // The Robot FSM can call either grabSpecimen() or retract() after the RobotState.OUTTAKE
         return state == State.IDLE;
-    }
-
-    public void retract() {
-        // TODO: Go back to idle state
-        state = State.RETRACT;
-    }
-
-    public void finishSampleDeposit() {
-        // TODO: Drop sample in bucket and return to idle state
-        state = State.SAMPLE_DEPOSIT;
-    }
-
-    public void finishSpecimenDeposit() {
-        // TODO: Hook specimen on rod and return to idle state
-        state = State.SPECIMEN_DEPOSIT;
     }
 
     public void grabSpecimen() {
         state = State.GRAB_SET;
     }
 
+    // TODO: IF the claw is down and has a specimen in it, close the claw and move to specimen ready
+    // NOTE: This method will be called rapidly if the driver holds the "grab specimen" button
     public void finishSpecimenGrab() {
-        // TODO: IF the claw is down and has a specimen in it, close the claw and move to specimen ready
-        // NOTE: This method will be called rapidly if the driver holds the "grab specimen" button
         state = State.GRAB;
     }
 
@@ -330,7 +321,21 @@ public class Deposit {
         state = State.SPECIMEN_RAISE;
     }
 
+    // TODO: Hook specimen on rod and return to idle state
+    public void finishSpecimenDeposit() {
+        state = State.SPECIMEN_DEPOSIT;
+    }
+
     public boolean isSpecimenDepositDone() {
+        return state == State.IDLE;
+    }
+
+    // TODO: Go back to idle state
+    public void retract() {
+        state = State.RETRACT;
+    }
+
+    public boolean isRetractDone(){
         return state == State.IDLE;
     }
 

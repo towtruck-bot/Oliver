@@ -293,6 +293,10 @@ public class Deposit {
         }
     }
 
+    public void prepareTransfer() {
+        // TODO: Rotate claw down to be above where the intake comes back
+    }
+
     public void startTransfer() {
         state = State.TRANSFER_START;
     }

@@ -129,7 +129,7 @@ IDLE >> {INTAKE_SAMPLE} > TRANSFER > SAMPLE_READY >> {DEPOSIT_BUCKET} >-^
 
         switch (this.state) {
             case IDLE:
-                if (this.prevState == RobotState.GRAB_SPECIMEN || this.prevState == RobotState.OUTTAKE) this.deposit.retract();
+                if (this.prevState == RobotState.INTAKE_SAMPLE || this.prevState == RobotState.GRAB_SPECIMEN || this.prevState == RobotState.OUTTAKE) this.deposit.retract();
                 if (wasClicked) {
                     if (this.nextState == NextState.INTAKE_SAMPLE) this.state = RobotState.INTAKE_SAMPLE;
                     else if (this.nextState == NextState.GRAB_SPECIMEN) this.state = RobotState.GRAB_SPECIMEN;
@@ -137,7 +137,10 @@ IDLE >> {INTAKE_SAMPLE} > TRANSFER > SAMPLE_READY >> {DEPOSIT_BUCKET} >-^
                 }
                 break;
             case INTAKE_SAMPLE:
-                if (this.prevState == RobotState.IDLE) this.intake.extend();
+                if (this.prevState == RobotState.IDLE) {
+                    this.intake.extend();
+                    this.deposit.prepareTransfer();
+                }
                 if (this.intake.isRetracted()) {
                     if (this.intake.hasSample()) this.state = RobotState.TRANSFER;
                     else this.state = RobotState.IDLE;
@@ -151,6 +154,7 @@ IDLE >> {INTAKE_SAMPLE} > TRANSFER > SAMPLE_READY >> {DEPOSIT_BUCKET} >-^
                 if (this.deposit.isSampleReady()) this.state = RobotState.SAMPLE_READY;
                 break;
             case SAMPLE_READY:
+                if (this.prevState == RobotState.TRANSFER) this.intake.retract();
                 if (wasClicked) {
                     if (this.nextState == NextState.DONE) this.state = RobotState.OUTTAKE;
                     else if (this.nextState == NextState.DEPOSIT) this.state = RobotState.DEPOSIT_BUCKET;

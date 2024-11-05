@@ -59,19 +59,21 @@ public class Deposit {
     //TODO: V4 bar keeps everything attached parallel to the ground, i.e. when arm moves to 45 claw is still parallel don't be a monkey - james
     public void update(){
         switch(state){
+            //Deposit remains motionless
             case IDLE:
                 break;
+            //Begin transfer: move arm to 1 inch above transfer basket in two steps
             case TRANSFER_START:
                 setDepositPositions(intakeX + Utils.minMaxClip(robot.sensors.getIntakeExtensionPosition(), 0.0, 2.0), intakeWaitY);
                 calculateMoveTo();
 
-                //TODO: is the block coming in square face or rectangle face?
-
+                //Math used to determine if the arm is too close the transfer-wait location, take two different paths to prevent hitting parts of robot
                 if((targetX - currX) * (targetX - currX) + (targetY - currY) * (targetY - currY) <= arm.getArmLength() * arm.getArmLength()){
                     tooClose = true;
                     arm.setMgnPosition(moveToX);
                     slides.setTargetLength(moveToY);
                 }else{
+                    tooClose = false;
                     arm.setArmAngle(moveToArmAngle);
                 }
 
@@ -79,6 +81,7 @@ public class Deposit {
                     state = State.TRANSFER_END;
                 }
                 break;
+            //Transfer step 2
             case TRANSFER_END:
                 if(tooClose){
                     arm.setArmAngle(moveToArmAngle);
@@ -92,9 +95,10 @@ public class Deposit {
                     currX = moveToX;
                     currY = moveToY;
                     currArmAngle = moveToArmAngle;
-                    arm.closeClaw();
                 }
                 break;
+            //Wait above the transfer bin, orient claw correctly
+            //TODO: Determine orientation of sample in transfer basket
             case TRANSFER_WAIT:
                 arm.setDiffy(Math.toRadians(-90.0) - moveToArmAngle, Math.toRadians(90.0));
                 arm.openClaw();
@@ -102,6 +106,7 @@ public class Deposit {
                     state = State.TRANSFER_GRAB;
                 }
                 break;
+            //Actually grab the sample from basket
             case TRANSFER_GRAB:
                 setDepositPositions(intakeX, intakeY);
                 calculateMoveTo();
@@ -115,12 +120,13 @@ public class Deposit {
                     state = State.READY;
                 }
                 break;
+            //Motionless state similar to idle; used to indicate carrying a sample
             case READY:
-                //should i add anything here in particular for hold? i just want it to be state where the sample/speci is held
-                //and waiting to be sent into a RAISE state
+                //TODO: Is there a sensor of sort on the claw to confirm I've grabbed the sample?
                 break;
+            //Raise arm with sample to deposit location. Arm freezes at top so robot can be moved slightly to adjust position
             case SAMPLE_RAISE:
-                setDepositPositions(sampleBasketX, sampleBasketY + 2.0);
+                setDepositPositions(sampleBasketX, sampleBasketY);
                 calculateMoveTo();
 
                 arm.setMgnPosition(moveToX);
@@ -134,12 +140,15 @@ public class Deposit {
                     currArmAngle = moveToArmAngle;
                 }
                 break;
+            //Actually drop the sample into the target basket
             case SAMPLE_DEPOSIT:
                 arm.openClaw();
                 if(arm.checkReady()){
+                    //Goes to buffer state so moving arm + slides at the same time will not hit field
                     state = State.BUFFER;
                 }
                 break;
+            //During Teleop, start from this state to outtake the sample. Current state will move the grabbed sample to behind the robot/drop location
             case OUTTAKE_MOVE:
                 setDepositPositions(outtakeX, outtakeY);
                 calculateMoveTo();
@@ -153,12 +162,15 @@ public class Deposit {
                     state = State.OUTTAKE_RELEASE;
                 }
                 break;
+            //Actually drop the sample at assembly location
             case OUTTAKE_RELEASE:
                 arm.openClaw();
                 if(arm.checkReady()){
+                    //Go to retract so specimen cycle can resume
                     state = State.RETRACT;
                 }
                 break;
+            //Move the claw to pick up location, wait for robot/driver to make adjustments
             case GRAB_SET:
                 setDepositPositions(grabX, grabY);
                 calculateMoveTo();
@@ -170,18 +182,21 @@ public class Deposit {
                 arm.setDiffy(Math.toRadians(180.0), Math.toRadians(90.0));
                 arm.openClaw();
 
-                //TODO: Require a sensors check if the block is in position?
+                //TODO: Require a sensors check if the block is in position? Or at driver discretion
                 if(arm.checkReady() && slides.inPosition(0.5)){
                     state = State.GRAB;
                 }
                 break;
+            //Actually grab the now-specimen
             case GRAB:
                 arm.closeClaw();
 
                 if(arm.checkReady()){
+                    //Separate grab Retract that will make it easier for the the robot to move around with the specimen
                     state = State.GRAB_RETRACT;
                 }
                 break;
+            //A hold-state of sorts, retracts the claw + specimen to allow for easier transportation
             case GRAB_RETRACT:
                 //TODO: Same as RETRACT State
                 setDepositPositions(0.0, arm.getArmLength());
@@ -195,6 +210,7 @@ public class Deposit {
                     state = State.READY;
                 }
                 break;
+            //Raise claw + specimen to a height just below the deposit-bar to allow for robot/driver adjustments
             case SPECIMEN_RAISE:
                 setDepositPositions(specimenBarX, specimenBarY - 2.0);
                 calculateMoveTo();
@@ -203,6 +219,7 @@ public class Deposit {
                 slides.setTargetLength(moveToY);
                 arm.setArmAngle(moveToArmAngle);
                 arm.setDiffy(0.0, Math.toRadians(180.0));
+
                 if(arm.checkReady() && slides.inPosition(0.5)){
                     state = State.SPECIMEN_DEPOSIT;
                     currX = moveToX;
@@ -210,6 +227,7 @@ public class Deposit {
                     currArmAngle = moveToArmAngle;
                 }
                 break;
+            //Actually attach the specimen to the deposit bar
             case SPECIMEN_DEPOSIT:
                 setDepositPositions(specimenBarX, specimenBarY);
                 calculateMoveTo();
@@ -219,26 +237,27 @@ public class Deposit {
                 arm.setArmAngle(moveToArmAngle);
 
                 if(arm.checkReady() && slides.inPosition(0.5)){
+                    //Goes to RELEASE state to let go of the specimen
+                    //TODO: add a case or if statement that will determine if specimen clip actually occurred? or at least do not go directly to release
                     state = State.RELEASE;
                     currX = moveToX;
                     currY = moveToY;
                     currArmAngle = moveToArmAngle;
                 }
                 break;
+            //Actually let go of specimen
             case RELEASE:
                 arm.openClaw();
                 arm.setDiffy(0.0, 0.0);
                 if(arm.checkReady()){
+                    //Goes to buffer state so moving arm + slides at the same time will not hit field
                     state = State.BUFFER;
                 }
                 break;
+            //Depending on direction of arm(can determine where robot is depositing from that), move toward (0,0) by 1 inch in x and y so buffer distance is created as to not hit field
             case BUFFER:
-                //facing back
-                if(currArmAngle > Math.toRadians(90.0)){
-                    setDepositPositions(currX + 1.0, currY - 1.0);
-                }else{
-                    setDepositPositions(currX - 1.0, currY - 1.0);
-                }
+                //facing back/deposit side : facing front/intake side
+                setDepositPositions(currX + (currArmAngle > Math.toRadians(90.0) ? 1.0 : -1.0), currY - 1.0);
                 calculateMoveTo();
 
                 arm.setMgnPosition(moveToX);
@@ -252,6 +271,7 @@ public class Deposit {
                     currArmAngle = moveToArmAngle;
                 }
                 break;
+            //Move arm and slides to initial position, prepare for next round
             case RETRACT:
                 //TODO: May need a separate reset function as setDepositPositions would put claw in this spot
                 setDepositPositions(initX, initY);
@@ -263,6 +283,7 @@ public class Deposit {
                 arm.openClaw();
 
                 if(arm.checkReady() && slides.inPosition(0.5)){
+                    //Goes back to IDLE to wait for next command
                     state = State.IDLE;
                     currX = moveToX;
                     currY = moveToY;

@@ -14,6 +14,7 @@ public class SensorTester extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         Globals.RUNMODE = RunMode.TESTER;
+        Globals.TESTING_DISABLE_CONTROL = true;
 
         Robot robot = new Robot(hardwareMap);
         Sensors sensors = robot.sensors;
@@ -30,6 +31,8 @@ public class SensorTester extends LinearOpMode {
 
             telemetry.addData("slides encoder", sensors.getSlidesPos());
 
+            telemetry.addData("Extendo position", sensors.getIntakeExtensionPosition());
+            telemetry.addData("Intake color", sensors.getIntakeColor().toString());
 
             telemetry.update();
             TelemetryUtil.sendTelemetry();

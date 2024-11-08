@@ -47,7 +47,7 @@ public class Robot {
     private RobotState state = RobotState.IDLE;
     private RobotState prevState = RobotState.IDLE;
     private NextState nextState = NextState.DONE;
-    private long lastClickTime;
+    private long lastClickTime = -1;
     public static long bufferClickDuration = 500;
 
     private boolean outtakeAndThenGrab = false;
@@ -91,6 +91,9 @@ public class Robot {
     }
 
     private void updateTelemetry() {
+        TelemetryUtil.packet.put("Robot.state", this.state.toString());
+        TelemetryUtil.packet.put("Robot.nextState", this.nextState.toString());
+        TelemetryUtil.packet.put("Robot.outtakeAndThenGrab", this.outtakeAndThenGrab);
         TelemetryUtil.packet.put("Loop Time", GET_LOOP_TIME());
         TelemetryUtil.sendTelemetry();
     }

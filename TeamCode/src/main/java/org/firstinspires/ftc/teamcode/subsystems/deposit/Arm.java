@@ -34,6 +34,7 @@ public class Arm {
                 5.0,
                 new double[] {-1.0, 1.0}
         );
+        robot.hardwareQueue.addDevice(mgnLinkage);
 
         armRotation = new PriorityServo(
                 new Servo[] {hardwareMap.get(Servo.class, "armServoL"), hardwareMap.get(Servo.class, "armServoR")},
@@ -48,6 +49,7 @@ public class Arm {
                 5.0,
                 new double[] {-1.0, 1.0}
         );
+        robot.hardwareQueue.addDevice(armRotation);
 
         diffyL = new PriorityServo(
                 new Servo[] {hardwareMap.get(Servo.class, "diffyL")},
@@ -62,6 +64,7 @@ public class Arm {
                 5.0,
                 new double[] {1.0}
         );
+        robot.hardwareQueue.addDevice(diffyL);
 
         diffyR = new PriorityServo(
                 new Servo[] {hardwareMap.get(Servo.class, "diffyR")},
@@ -76,6 +79,7 @@ public class Arm {
                 5.0,
                 new double[] {1.0}
         );
+        robot.hardwareQueue.addDevice(diffyR);
 
         clawActuation = new PriorityServo(
                 new Servo[] {hardwareMap.get(Servo.class, "claw")},
@@ -90,6 +94,7 @@ public class Arm {
                 5.0,
                 new double[] {1.0}
         );
+        robot.hardwareQueue.addDevice(clawActuation);
 
         this.sensors = robot.sensors;
     }
@@ -137,5 +142,9 @@ public class Arm {
 
     public double getArmLength(){
         return armLength;
+    }
+
+    public double getArmAngle(){
+        return clawActuation.getCurrentAngle();
     }
 }

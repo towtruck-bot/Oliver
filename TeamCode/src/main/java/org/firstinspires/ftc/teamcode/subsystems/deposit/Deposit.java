@@ -61,6 +61,7 @@ public class Deposit {
 
     public void update(){
         if (Globals.TESTING_DISABLE_CONTROL && Globals.RUNMODE == RunMode.TESTER) return;
+        arm.update();
 
         switch(state){
             case IDLE:

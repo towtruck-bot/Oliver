@@ -99,8 +99,9 @@ public class Arm {
         this.sensors = robot.sensors;
     }
 
-    public boolean checkReady(){
-        return mgnLinkage.inPosition() && armRotation.inPosition() && diffyR.inPosition() && clawActuation.inPosition();
+    public void update(){
+        diffyL.setTargetAngle(diffyL.getCurrentAngle() - armRotation.getCurrentAngle() / 19.0, 1.0);
+        diffyR.setTargetAngle(diffyR.getCurrentAngle() - armRotation.getCurrentAngle() / 19.0, 1.0);
     }
 
     public void setArmAngle(double rad){
@@ -123,8 +124,6 @@ public class Arm {
         clawActuation.setTargetAngle(Math.toRadians(15.0), 1.0);
     }
 
-    // 0 angle is when servo is facing towards intake
-    // 0 inches when close to deposit, about 10 inches when close to intake
     public void setMgnPosition(double newPos){
         newPos = Utils.minMaxClip(newPos, 0.0, 11.811);
         double c = Math.sqrt(Math.pow(newPos + horiShift, 2) + Math.pow(vertShift, 2));
@@ -136,7 +135,6 @@ public class Arm {
     public double calcMgnPosition(){
         double drivingArmX = mgnArmDriving * Math.cos(mgnLinkage.getCurrentAngle());
         double drivenArmX = Math.sqrt(Math.pow(mgnArmDriven, 2) - Math.pow((vertShift + mgnArmDriving*Math.sin(mgnLinkage.getCurrentAngle())), 2));
-
         return drivingArmX + drivenArmX - horiShift;
     }
 
@@ -146,5 +144,9 @@ public class Arm {
 
     public double getArmAngle(){
         return clawActuation.getCurrentAngle();
+    }
+
+    public boolean checkReady(){
+        return mgnLinkage.inPosition() && armRotation.inPosition() && diffyR.inPosition() && clawActuation.inPosition();
     }
 }

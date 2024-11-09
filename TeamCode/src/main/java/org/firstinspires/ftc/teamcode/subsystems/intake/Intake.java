@@ -111,7 +111,11 @@ public class Intake {
         this.extensionCurrentPosition = this.robot.sensors.getIntakeExtensionPosition();
         this.sampleColor = this.robot.sensors.getIntakeColor();
 
-        if (Globals.TESTING_DISABLE_CONTROL && Globals.RUNMODE == RunMode.TESTER) return;
+        if (Globals.TESTING_DISABLE_CONTROL && Globals.RUNMODE == RunMode.TESTER) {
+            this.intakeExtensionMotor.setTargetPower(0.0);
+            this.intakeRollerMotor.setTargetPower(0.0);
+            return;
+        }
 
         // FSM
         switch (this.intakeState) {
@@ -203,12 +207,14 @@ public class Intake {
         // Extension control
         if (this.isExtensionAtTarget()) {
             pid.resetIntegral();
-            this.intakeExtensionMotor.setTargetPower(0);
+            this.intakeExtensionMotor.setTargetPower(0.0);
         } else {
             this.intakeExtensionMotor.setTargetPower(pid.update(this.extensionControlTargetPosition - this.extensionCurrentPosition, -1.0, 1.0));
         }
 
         // Telemetry
+        TelemetryUtil.packet.put("Intake.intakeState", this.intakeState.toString());
+        TelemetryUtil.packet.put("Intake.targetPositionWhenExtended", this.targetPositionWhenExtended);
         TelemetryUtil.packet.put("Intake.extensionControlTargetPosition", this.extensionControlTargetPosition);
     }
 

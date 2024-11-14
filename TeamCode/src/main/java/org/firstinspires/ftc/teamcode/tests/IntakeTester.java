@@ -21,6 +21,7 @@ public class IntakeTester extends LinearOpMode {
         final double triggerThreshold = 0.2;
         final double intakeAdjustmentSpeed = 0.3;
         boolean didToggleDisable = false;
+        boolean didToggleIntakeRoller = false;
 
         telemetry.addData("State", "READY TO START");
         telemetry.update();
@@ -55,9 +56,15 @@ Y on/reverse intake
             else if (gamepad1.right_bumper) robot.intake.extend();
 
             if (gamepad1.y) {
-                if (robot.intake.getIntakeRollerState() == Intake.IntakeRollerState.ON) robot.intake.setRollerReverse();
-                else robot.intake.setRollerOn();
-            } else if (gamepad1.a) robot.intake.setRollerUnjam();
+                if (!didToggleIntakeRoller) {
+                    if (robot.intake.getIntakeRollerState() == Intake.IntakeRollerState.ON) robot.intake.setRollerReverse();
+                    else robot.intake.setRollerOn();
+                    didToggleIntakeRoller = true;
+                }
+            } else {
+                didToggleIntakeRoller = false;
+            }
+            if (gamepad1.a) robot.intake.setRollerUnjam();
             if (gamepad1.dpad_left) robot.intake.setTargetPositionWhenExtended(robot.intake.getTargetPositionWhenExtended() + intakeAdjustmentSpeed);
             else if (gamepad1.dpad_right) robot.intake.setTargetPositionWhenExtended(robot.intake.getTargetPositionWhenExtended() - intakeAdjustmentSpeed);
 

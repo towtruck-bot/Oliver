@@ -22,10 +22,10 @@ public class Robot {
     public final HardwareQueue hardwareQueue;
     public final Sensors sensors;
     public final Drivetrain drivetrain;
-    public final Intake intake;
-    public final Arm arm;
-    public final Hang hang;
-    public final Deposit deposit;
+//    public final Intake intake;
+//    public final Arm arm;
+//    public final Hang hang;
+//    public final Deposit deposit;
 
     public enum RobotState {
         IDLE,
@@ -62,11 +62,11 @@ public class Robot {
 
         this.sensors = new Sensors(this);
 
-        this.intake = new Intake(this);
+//        this.intake = new Intake(this);
         this.drivetrain = new Drivetrain(this);
-        this.arm = new Arm(this);
-        this.hang = new Hang(hardwareMap, hardwareQueue);
-        this.deposit = new Deposit(this);
+//        this.arm = new Arm(this);
+//        this.hang = new Hang(hardwareMap, hardwareQueue);
+//        this.deposit = new Deposit(this);
 
         TelemetryUtil.setup();
     }
@@ -110,7 +110,7 @@ public class Robot {
         } while (((boolean) func.call()) && System.currentTimeMillis() - start <= 10000 && drivetrain.isBusy());
     }
 
-    private void robotFSM() {
+//    private void robotFSM() {
 /* Main robot FSM diagram below
 
 Single arrow: auto-advance state
@@ -127,7 +127,7 @@ IDLE >> {INTAKE_SAMPLE} > TRANSFER > SAMPLE_READY >> {DEPOSIT_BUCKET} >-^
 |                               VV          ^^
 ^-< {DEPOSIT_SPECIMEN} << SPECIMEN_READY >>-^^
 */
-        long currentTime = System.nanoTime();
+/*        long currentTime = System.nanoTime();
         boolean wasClicked = this.lastClickTime != -1 && currentTime - this.lastClickTime <= bufferClickDuration * 1e6;
 
         switch (this.state) {
@@ -210,7 +210,7 @@ IDLE >> {INTAKE_SAMPLE} > TRANSFER > SAMPLE_READY >> {DEPOSIT_BUCKET} >-^
         }
         prevState = state;
     }
-
+*/
     /**
      * Sets what will happen after an OUTTAKE. This is automatically set to true after an OUTTAKE > IDLE. -- Daniel
      * @param outtakeAndThenGrab true if the robot should go directly to GRAB_SPECIMEN, false to go to IDLE

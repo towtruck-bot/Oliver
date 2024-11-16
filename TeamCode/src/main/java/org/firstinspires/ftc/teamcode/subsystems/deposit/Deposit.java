@@ -90,7 +90,7 @@ public class Deposit {
             case TRANSFER_WAIT:
                 break;
             case TRANSFER_GRAB_1:
-                robot.intake.transfer();
+                //robot.intake.transfer();
 
                 if(robot.sensors.getIntakeColor() == Sensors.BlockColor.BLUE || robot.sensors.getIntakeColor() == Sensors.BlockColor.YELLOW){
                     state = State.TRANSFER_GRAB_2;

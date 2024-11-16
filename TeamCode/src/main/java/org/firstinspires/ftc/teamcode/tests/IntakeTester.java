@@ -42,6 +42,7 @@ Y on/reverse intake
 */
 
         while (!isStopRequested()) {
+/*
             if (gamepad1.right_trigger > triggerThreshold) {
                 if (!didToggleDisable) {
                     Globals.TESTING_DISABLE_CONTROL = !Globals.TESTING_DISABLE_CONTROL;
@@ -67,12 +68,12 @@ Y on/reverse intake
             if (gamepad1.a) robot.intake.setRollerUnjam();
             if (gamepad1.dpad_left) robot.intake.setTargetPositionWhenExtended(robot.intake.getTargetPositionWhenExtended() + intakeAdjustmentSpeed);
             else if (gamepad1.dpad_right) robot.intake.setTargetPositionWhenExtended(robot.intake.getTargetPositionWhenExtended() - intakeAdjustmentSpeed);
-
+*/
             robot.update();
 
             telemetry.addData("Globals.TESTING_DISABLE_CONTROL", Globals.TESTING_DISABLE_CONTROL);
-            telemetry.addData("Intake.intakeState", robot.intake.getIntakeState().toString());
-            telemetry.addData("Intake.targetPositionWhenExtended", robot.intake.getTargetPositionWhenExtended());
+//            telemetry.addData("Intake.intakeState", robot.intake.getIntakeState().toString());
+//            telemetry.addData("Intake.targetPositionWhenExtended", robot.intake.getTargetPositionWhenExtended());
             telemetry.addData("Extendo position", robot.sensors.getIntakeExtensionPosition());
             telemetry.addData("Intake color", robot.sensors.getIntakeColor().toString());
 

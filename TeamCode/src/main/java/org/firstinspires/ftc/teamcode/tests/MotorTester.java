@@ -66,7 +66,7 @@ public class MotorTester extends LinearOpMode {
             }
 
             motorPower = Utils.minMaxClip(motorPower, -1.0, 1.0);
-            motorIndex = Math.abs(motorIndex) % motorSize;
+            motorIndex = (motorIndex + motorSize) % motorSize;
 
             motors.get(motorIndex).setTargetPower(motorPower);
 

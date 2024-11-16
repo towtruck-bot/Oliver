@@ -17,7 +17,7 @@ import org.firstinspires.ftc.teamcode.utils.priority.PriorityMotor;
 
 
 public class Sensors {
-    private LynxModule controlHub, expansionHub;
+    private LynxModule controlHub/*, expansionHub*/;
     private final HardwareQueue hardwareQueue;
     private final HardwareMap hardwareMap;
     private Robot robot;
@@ -37,8 +37,8 @@ public class Sensors {
 
     private int intakeExtensionEncoder;
 
-    public final DigitalChannel intakeColorSensorR;
-    public final DigitalChannel intakeColorSensorB;
+//    public final DigitalChannel intakeColorSensorR;
+//    public final DigitalChannel intakeColorSensorB;
     private BlockColor intakeColor = BlockColor.NONE;
 
     private final AnalogInput[] analogEncoders = new AnalogInput[2];
@@ -46,12 +46,12 @@ public class Sensors {
 
     private double voltage;
 
-    private SparkFunOTOS otos;
+    //private SparkFunOTOS otos;
     private double otosHeading = 0;
     private long numOtosLoops = 0;
     private double otosIntegral = 0;
     private double lastOtosIntegral = 0;
-    private SparkFunOTOS.Pose2D sparkPose = new SparkFunOTOS.Pose2D();
+    //private SparkFunOTOS.Pose2D sparkPose = new SparkFunOTOS.Pose2D();
 
     private double leftFrontMotorCurrent, leftRearMotorCurrent, rightRearMotorCurrent, rightFrontMotorCurrent;
 
@@ -62,22 +62,24 @@ public class Sensors {
         this.hardwareQueue = robot.hardwareQueue;
         this.robot = robot;
 
-        otos = hardwareMap.get(SparkFunOTOS.class, "sparkfunSensor");
-        otos.setLinearUnit(SparkFunOTOS.LinearUnit.INCHES);
-        otos.setAngularUnit(SparkFunOTOS.AngularUnit.RADIANS);
-        otos.calibrateImu();
-        SparkFunOTOS.Pose2D offset = new SparkFunOTOS.Pose2D( -3.333,2.9375, 0);
-        otos.setOffset(offset);
-        otos.setLinearScalar(1.010);
-        otos.setAngularScalar(0.992);
-        otos.resetTracking();
-        SparkFunOTOS.Pose2D currentPosition = new SparkFunOTOS.Pose2D(0, 0, 0);
-        otos.setPosition(currentPosition);
+//        otos = hardwareMap.get(SparkFunOTOS.class, "sparkfunSensor");
+//        otos.setLinearUnit(SparkFunOTOS.LinearUnit.INCHES);
+//        otos.setAngularUnit(SparkFunOTOS.AngularUnit.RADIANS);
+//        otos.calibrateImu();
+//        SparkFunOTOS.Pose2D offset = new SparkFunOTOS.Pose2D( -3.333,2.9375, 0);
+//        otos.setOffset(offset);
+//        otos.setLinearScalar(1.010);
+//        otos.setAngularScalar(0.992);
+//        otos.resetTracking();
+//        SparkFunOTOS.Pose2D currentPosition = new SparkFunOTOS.Pose2D(0, 0, 0);
+//        otos.setPosition(currentPosition);
 
+/*
         this.intakeColorSensorR = this.robot.hardwareMap.get(DigitalChannel.class, "intakeColorSensorR");
         this.intakeColorSensorR.setMode(DigitalChannel.Mode.INPUT);
         this.intakeColorSensorB = this.robot.hardwareMap.get(DigitalChannel.class, "intakeColorSensorB");
         this.intakeColorSensorB.setMode(DigitalChannel.Mode.INPUT);
+ */
 
         initSensors(hardwareMap);
     }
@@ -86,20 +88,20 @@ public class Sensors {
         controlHub = hardwareMap.get(LynxModule.class, "Control Hub");
         controlHub.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
 
-        expansionHub = hardwareMap.get(LynxModule.class, "Expansion Hub");
-        expansionHub.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
+//        expansionHub = hardwareMap.get(LynxModule.class, "Expansion Hub");
+//        expansionHub.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
 
         voltage = hardwareMap.voltageSensor.iterator().next().getVoltage();
     }
 
     public void update() {
         updateControlHub();
-        updateExpansionHub();
+        //updateExpansionHub();
         updateTelemetry();
     }
 
     public void setOtosHeading(double heading) {
-        otos.setPosition(new SparkFunOTOS.Pose2D( -3.333,2.9375, heading));
+        //otos.setPosition(new SparkFunOTOS.Pose2D( -3.333,2.9375, heading));
         lastOtosIntegral = otosHeading = otosIntegral = heading;
     }
 
@@ -122,7 +124,7 @@ public class Sensors {
         long currTime = System.currentTimeMillis();
 
         double lastOtosHeading = otosHeading;
-        otosHeading = otos.getHeading() * -1;
+        //otosHeading = otos.getHeading() * -1;
         lastOtosIntegral = otosIntegral;
         otosIntegral += AngleUnit.normalizeRadians(lastOtosHeading - otosHeading) * 0.998197;
         TelemetryUtil.packet.put("OTOSHeading", Math.toDegrees(otosHeading));
@@ -136,13 +138,15 @@ public class Sensors {
         slidesEncoder = ((PriorityMotor) hardwareQueue.getDevice("rightFront")).motor[0].getCurrentPosition() * -1;
         slidesVelocity = ((PriorityMotor) hardwareQueue.getDevice("rightFront")).motor[0].getVelocity() * -1;
 
-        this.intakeExtensionEncoder = this.robot.intake.intakeExtensionMotor.motor[0].getCurrentPosition();
+//        this.intakeExtensionEncoder = this.robot.intake.intakeExtensionMotor.motor[0].getCurrentPosition();
 
+/*
         if (this.intakeColorSensorR.getState()) {
             this.intakeColor = this.intakeColorSensorB.getState() ? BlockColor.YELLOW : BlockColor.RED;
         } else {
             this.intakeColor = this.intakeColorSensorB.getState() ? BlockColor.BLUE : BlockColor.NONE;
         }
+ */
     }
 
     private void updateExpansionHub() {

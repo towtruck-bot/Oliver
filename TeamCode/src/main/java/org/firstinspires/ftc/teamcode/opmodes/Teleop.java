@@ -49,7 +49,7 @@ X outtake > grab specimen
             else if (gamepad1.right_trigger > triggerThreshold) robot.setNextState(Robot.NextState.GRAB_SPECIMEN);
             if (gamepad1.b) robot.setOuttakeAndThenGrab(false);
             else if (gamepad1.x) robot.setOuttakeAndThenGrab(true);
-
+/*
             if (gamepad1.y) {
                 if (!didToggleIntakeRoller) {
                     if (robot.intake.getIntakeRollerState() == Intake.IntakeRollerState.ON) robot.intake.setRollerReverse();
@@ -62,7 +62,7 @@ X outtake > grab specimen
             if (gamepad1.a) robot.intake.setRollerUnjam();
             if (gamepad1.dpad_left) robot.intake.setTargetPositionWhenExtended(robot.intake.getTargetPositionWhenExtended() + intakeAdjustmentSpeed);
             else if (gamepad1.dpad_right) robot.intake.setTargetPositionWhenExtended(robot.intake.getTargetPositionWhenExtended() - intakeAdjustmentSpeed);
-
+*/
             robot.drivetrain.drive(gamepad1);
 
             robot.update();

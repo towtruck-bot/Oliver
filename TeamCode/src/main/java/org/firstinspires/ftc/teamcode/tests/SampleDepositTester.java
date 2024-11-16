@@ -23,6 +23,7 @@ public class SampleDepositTester extends LinearOpMode {
         int currentStep = 0;
 
         while(!isStopRequested()){
+/*
             switch(currentStep){
                 case 0:
                     robot.deposit.retract();
@@ -50,6 +51,7 @@ public class SampleDepositTester extends LinearOpMode {
                     break;
 
             }
+ */
             robot.update();
         }
     }

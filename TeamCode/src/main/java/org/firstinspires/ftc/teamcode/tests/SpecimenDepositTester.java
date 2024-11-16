@@ -23,6 +23,7 @@ public class SpecimenDepositTester extends LinearOpMode {
         int currentStep = 0;
 
         while(!isStopRequested()){
+/*
             switch(currentStep){
                 case 0:
                     robot.deposit.retract();
@@ -61,6 +62,7 @@ public class SpecimenDepositTester extends LinearOpMode {
                     }
                     break;
             }
+ */
             robot.update();
         }
     }

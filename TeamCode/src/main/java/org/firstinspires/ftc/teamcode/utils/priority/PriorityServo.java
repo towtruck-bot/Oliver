@@ -118,7 +118,8 @@ public class PriorityServo extends PriorityDevice{
         long currentTime = System.nanoTime();
         double loopTime = ((double) currentTime - lastLoopTime)/1.0E9;
         double error = currentIntermediateTargetAngle - currentAngle;
-        double deltaAngle = loopTime * type.speed * (Math.abs(error) <= slowdownDist ? slowdownPow : power) * Math.signum(error);
+        double realError =targetAngle-currentAngle; //todo test this
+        double deltaAngle = loopTime * type.speed * (Math.abs(realError) <= slowdownDist ? slowdownPow : power) * Math.signum(error);
         //double deltaAngle = timeSinceLastUpdate * type.speed * power * Math.signum(error);
         reachedIntermediate = Math.abs(deltaAngle) > Math.abs(error);
         if (reachedIntermediate){

@@ -91,7 +91,7 @@ public class ServoTester extends LinearOpMode {
             }
 
             // if the servoIndex exceeds servoSize wrap around
-            servoIndex = Math.abs(servoIndex) % servoSize;
+            servoIndex = (servoIndex + servoSize) % servoSize;
 
             telemetry.addData("servoName", servos.get(servoIndex).name);
             telemetry.addData("servoIndex", servoIndex);

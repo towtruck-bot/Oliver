@@ -46,27 +46,28 @@ public class Drive extends LinearOpMode {
             if (armPos < 0.2) {
                 armPos = 0.2;
             }
-            boolean speedy = false;
-
-
-            speedy = gamepad1.left_trigger > 0.3;
+            boolean speedy = gamepad1.left_trigger > 0.3;
 
             if (gamepad1.a) {
                 if (speedy) {
-                    armPos += 0.003;
+                    armPos += 0.006;
                 }
                 else {
-                    armPos += 0.002;
+                    armPos += 0.003;
                 }
             }
             if (gamepad1.y) {
                 if (speedy){
-                    armPos -= 0.003;
+                    armPos -= 0.006;
                 }
                 else {
-                    armPos-= 0.002;
+                    armPos -= 0.003;
                 }
             }
+
+            if (gamepad1.dpad_up) armPos = 0.38;
+            if (gamepad1.dpad_right) armPos = 0.561;
+            if (gamepad1.dpad_left) armPos = 0.447;
 
             if (gamepad1.x)
                 rotate += 0.001;

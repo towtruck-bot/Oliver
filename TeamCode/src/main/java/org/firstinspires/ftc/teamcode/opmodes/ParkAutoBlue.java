@@ -1,12 +1,17 @@
 package org.firstinspires.ftc.teamcode.opmodes;
 
+import android.util.Log;
+
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.utils.Globals;
 import org.firstinspires.ftc.teamcode.utils.RunMode;
+import org.firstinspires.ftc.teamcode.utils.Vector2;
 import org.firstinspires.ftc.teamcode.vision.Vision;
 
+@Autonomous(name = "ParkAuto")
 public class ParkAutoBlue extends LinearOpMode {
     private Robot robot;
 
@@ -16,21 +21,18 @@ public class ParkAutoBlue extends LinearOpMode {
         doInitialization();
         waitForStart();
 
-        double startTime = System.nanoTime();
-        while(opModeIsActive()){
+        double startTime = System.currentTimeMillis();
+        Log.e("Here", "here1");
+
+        while(System.currentTimeMillis() - startTime < 3000) {
+            Log.e("Here", "IN LOOP");
             //if 10 seconds
-            if(System.nanoTime() - startTime < Math.pow(10, 10)){
-                robot.drivetrain.leftFront.setTargetPower(0.2);
-                robot.drivetrain.leftRear.setTargetPower(0.2);
-                robot.drivetrain.rightRear.setTargetPower(0.2);
-                robot.drivetrain.rightFront.setTargetPower(0.2);
-            }else{
-                robot.drivetrain.leftFront.setTargetPower(0.0);
-                robot.drivetrain.leftRear.setTargetPower(0.0);
-                robot.drivetrain.rightRear.setTargetPower(0.0);
-                robot.drivetrain.rightFront.setTargetPower(0.0);
-            }
+            robot.drivetrain.setMoveVector(new Vector2(0.2, 0), 0);
+            robot.update();
         }
+        Log.e("Here", "here2");
+        robot.drivetrain.setMoveVector(new Vector2(), 0);
+        robot.update();
     }
 
     public void doInitialization(){

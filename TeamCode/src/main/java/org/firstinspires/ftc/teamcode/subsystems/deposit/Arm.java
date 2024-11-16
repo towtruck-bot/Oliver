@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode.subsystems.deposit;
 
-import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.hardwareMap;
-
+import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.Robot;
@@ -21,8 +20,10 @@ public class Arm {
     private final double armLength = 1.0; //TODO: Update these values
 
     public Arm(Robot robot){
+
+        Servo servo = robot.hardwareMap.get(Servo.class, "mgnServoL");
         mgnLinkage = new PriorityServo(
-                new Servo[] {hardwareMap.get(Servo.class, "mgnServoL"), hardwareMap.get(Servo.class,"mgnServoR")},
+                new Servo[] {robot.hardwareMap.get(Servo.class, "mgnServoL"), robot.hardwareMap.get(Servo.class,"mgnServoR")},
                 "mgnLinkage",
                 PriorityServo.ServoType.SPEED,
                 1.0,
@@ -37,7 +38,7 @@ public class Arm {
         robot.hardwareQueue.addDevice(mgnLinkage);
 
         armRotation = new PriorityServo(
-                new Servo[] {hardwareMap.get(Servo.class, "armServoL"), hardwareMap.get(Servo.class, "armServoR")},
+                new Servo[] {robot.hardwareMap.get(Servo.class, "armServoL"), robot.hardwareMap.get(Servo.class, "armServoR")},
                 "armRotation",
                 PriorityServo.ServoType.SPEED,
                 1.0,
@@ -52,7 +53,7 @@ public class Arm {
         robot.hardwareQueue.addDevice(armRotation);
 
         diffyL = new PriorityServo(
-                new Servo[] {hardwareMap.get(Servo.class, "diffyL")},
+                new Servo[] {robot.hardwareMap.get(Servo.class, "diffyL")},
                 "diffyL",
                 PriorityServo.ServoType.SPEED,
                 1.0,
@@ -67,7 +68,7 @@ public class Arm {
         robot.hardwareQueue.addDevice(diffyL);
 
         diffyR = new PriorityServo(
-                new Servo[] {hardwareMap.get(Servo.class, "diffyR")},
+                new Servo[] {robot.hardwareMap.get(Servo.class, "diffyR")},
                 "diffyR",
                 PriorityServo.ServoType.SPEED,
                 1.0,
@@ -82,7 +83,7 @@ public class Arm {
         robot.hardwareQueue.addDevice(diffyR);
 
         clawActuation = new PriorityServo(
-                new Servo[] {hardwareMap.get(Servo.class, "claw")},
+                new Servo[] {robot.hardwareMap.get(Servo.class, "claw")},
                 "clawActuation",
                 PriorityServo.ServoType.SPEED,
                 1.0,
@@ -116,12 +117,12 @@ public class Arm {
     }
 
     public void openClaw(){
-        clawActuation.setTargetAngle(Math.toRadians(135.0), 1.0);
+        clawActuation.setTargetAngle(0.407, 1.0);
     }
 
     //TODO: Update this value
     public void closeClaw(){
-        clawActuation.setTargetAngle(Math.toRadians(15.0), 1.0);
+        clawActuation.setTargetAngle(1.412, 1.0);
     }
 
     public void setMgnPosition(double newPos){

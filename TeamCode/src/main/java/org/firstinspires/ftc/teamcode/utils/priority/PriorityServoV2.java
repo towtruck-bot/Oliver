@@ -88,21 +88,27 @@ public class PriorityServoV2 extends PriorityDevice {
         long currentTime = System.nanoTime();
         double updateTime = ((double) currentTime - lastUpdateTime) / 1.0E9;
 
+        //error = distance to end point
         double error = targetAngle - currentAngle;
+        //calculate change in angle from last update, use error to determine if power needs to be changed
         double deltaAngle = updateTime * type.speed * (Math.abs(error) <= slowDownDist ? slowDownPow : power) * Math.signum(error);
 
+        //if moved sufficient distance between last update and present, set detalAngle to error as not to overshoot
         if(Math.abs(deltaAngle) > Math.abs(error)){
             deltaAngle = error;
         }
 
         currentIntermediateTargetAngle += deltaAngle;
 
-        if(slowDownDist != 0 & Math.abs(error) > slowDownDist + Math.toRadians(15)){
+        double distToSlowDown = Math.abs(error) - convertPosToAngle(slowDownDist);
+        //check if a cap needs to be added so slowDownDist can kick in, specifically if there is less than 15 deg left
+        if(slowDownDist != 0 && (Math.signum(distToSlowDown) == 1.0 && distToSlowDown < Math.toRadians(15))){
             currentIntermediateTargetAngle = targetAngle - slowDownDist * Math.signum(error); // account for slowdown, stop right before boundary
         }else if(power == 1.0 || slowDownDist == 0){
-            currentIntermediateTargetAngle = targetAngle; // no slowdown -> all the way to end
+            currentIntermediateTargetAngle = targetAngle; // if no slowdown -> all the way to end
         }
 
+        //if forward, move to intermediate angle. if reversed, move in the negative direction from basePos
         for(int i = 0; i < servo.length; i++){
             if(directions[i] == 1){
                 servo[i].setPosition(convertAngleToPos(currentIntermediateTargetAngle));

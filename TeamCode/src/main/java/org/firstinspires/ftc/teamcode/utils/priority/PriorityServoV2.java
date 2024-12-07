@@ -148,6 +148,8 @@ public class PriorityServoV2 extends PriorityDevice {
         this.currentAngle = currentAngle;
     }
 
+    public double getCurrentAngle(){return this.currentAngle;}
+
     public boolean inPosition(){
         return Math.abs(targetAngle - currentAngle) < Math.toRadians(0.01);
     }
@@ -159,5 +161,9 @@ public class PriorityServoV2 extends PriorityDevice {
 
     public double getTargetAngle(){
         return currentIntermediateTargetAngle;
+    }
+
+    public void setTargetAngle(double target){
+        this.targetAngle = target;
     }
 }

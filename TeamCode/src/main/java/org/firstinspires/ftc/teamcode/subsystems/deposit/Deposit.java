@@ -10,10 +10,28 @@ public class Deposit {
     public enum State{
         IDLE,
         TRANSFER_PREPARE_1,
-        TRANSFER_PREAPRE_2,
+        TRANSFER_PREPARE_2,
         TRANSFER_WAIT,
         TRANSFER_GRAB_1,
-        TRANSFER_GRAB_2
+        TRANSFER_GRAB_2,
+        TRANSFER_GRAB_3,
+        TRANSFER_END,
+        READY,
+        SAMPLE_RAISE,
+        SAMPLE_WAIT,
+        SAMPLE_DEPOSIT,
+        OUTTAKE_START,
+        OUTTAKE_DROP,
+        OUTTAKE_WAIT,
+        SPECIMEN_GRAB_START,
+        SPECIMEN_GRAB_WAIT,
+        SPECIMEN_GRAB_CLOSE,
+        SPECIMEN_GRAB_RETURN,
+        SPECIMEN_RAISE,
+        SPECIMEN_WAIT,
+        SPECIMEN_DEPOSIT,
+        RELEASE,
+        RETRACT
     };
     public State state;
 
@@ -26,7 +44,7 @@ public class Deposit {
     private double targetX, targetY;
     private double moveToX, moveToY, moveToArmAngle;
 
-    private final double intakeX = 10.0, intakeY = -2.0, intakeWaitY = -1.0;
+    private final double intakeX = 10.0, intakeY = -2.0, intakePrepareY = -1.0;
     private final double outtakeX = -11.816, outtakeY = 0.0, grabX = -5.0, grabY = -4.0;
     private final double sampleBasketX = -2.0, sampleBasketY = 46.0;
     private final double specimenBarX = 10.0, specimenBarY = 27.0;
@@ -43,7 +61,33 @@ public class Deposit {
     public void update(){
         if (Globals.TESTING_DISABLE_CONTROL && Globals.RUNMODE == RunMode.TESTER) return;
 
+        switch(state){
+            case IDLE:
+                break;
+            case TRANSFER_PREPARE_1:
+                setDepositPositions(intakeX, intakePrepareY);
+                calculateMoveTo();
 
+                updatePositions();
+
+                if(arm.inPosition() && slides.inPosition(0.5)){
+                    state = State.TRANSFER_PREPARE_2;
+                }
+                break;
+            case TRANSFER_PREPARE_2:
+                arm.setClawRotation(arm.getArmRotation() - Math.PI/2, 1.0);
+
+                if(arm.inPosition()){
+                    state = State.TRANSFER_WAIT;
+                }
+                break;
+        }
+    }
+
+    public void updatePositions(){
+        arm.setHorizontalPos(moveToX, 1.0);
+        slides.setTargetLength(moveToY);
+        arm.setArmRotation(moveToArmAngle, 1.0);
     }
 
     /*

@@ -155,16 +155,21 @@ public class PriorityServoV2 extends PriorityDevice {
         return Math.abs(targetAngle - currentAngle) < Math.toRadians(0.01);
     }
 
-    //Q: Why do we not return targetAngle but return the intermediate? -- James
-    public double getTargetPosition(){
-        return convertAngleToPos(currentIntermediateTargetAngle);
+    public void setTargetAngle(double targetAngle, double power){
+        this.power = power;
+        this.targetAngle = Math.max(Math.min(targetAngle, maxAng), minAng);
     }
 
+    public void setTargetPose(double targetPose, double power){
+        setTargetAngle(convertPosToAngle(targetPose), power);
+    }
+
+    //Q: Why do we not return targetAngle but return the intermediate? -- James
     public double getTargetAngle(){
         return currentIntermediateTargetAngle;
     }
 
-    public void setTargetAngle(double target){
-        this.targetAngle = target;
+    public double getTargetPosition(){
+        return convertAngleToPos(currentIntermediateTargetAngle);
     }
 }

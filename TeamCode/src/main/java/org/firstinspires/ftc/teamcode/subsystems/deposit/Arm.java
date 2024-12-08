@@ -19,7 +19,8 @@ public class Arm {
     private final double wheelRadius = 1.0; //TODO: Get value
     private final double smallGearNum = 20.0, smallGearRad = 1.0, bigGearNum = 40.0, bigGearRad = 1.0;
     public final double armLength = 1.0; //TODO: Get value
-    private double currentHoriPos = 0.0;
+
+    private double currArmRotation = 0.0;
 
     public Arm(Robot robot){
         horizontalRail = new PriorityServoV2(
@@ -85,12 +86,12 @@ public class Arm {
         this.sensors = robot.sensors;
     }
 
-    public void setHorizontalPos(double targetRad){
+    public void setHorizontalPos(double targetRad, double pow){
         double wheelRot = targetRad/wheelRadius;
         double bigGearsTraversed = wheelRot * smallGearNum * 0.5;
         double bigGearRot = bigGearsTraversed / bigGearNum;
 
-        horizontalRail.setTargetAngle(bigGearRot);
+        horizontalRail.setTargetAngle(bigGearRot, pow);
     }
 
     public double getHorizontalPos(){
@@ -99,6 +100,19 @@ public class Arm {
         double wheelRot = smallGearsTraversed/smallGearNum;
 
         return wheelRot * 2 * Math.PI * wheelRadius;
+    }
+
+    public void setArmRotation(double rad, double pow){
+        armRotation.setTargetAngle(rad, pow);
+        currArmRotation = rad;
+    }
+
+    public double getArmRotation(){
+        return currArmRotation;
+    }
+
+    public void setClawRotation(double rad, double pow){
+        clawRotation.setTargetAngle(rad, pow);
     }
 
     public boolean inPosition(){

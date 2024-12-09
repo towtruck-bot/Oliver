@@ -17,18 +17,23 @@ public class Deposit {
         TRANSFER_GRAB_3,
         TRANSFER_END,
         READY,
-        SAMPLE_RAISE,
+        SAMPLE_RAISE_1,
+        SAMPLE_RAISE_2,
         SAMPLE_WAIT,
         SAMPLE_DEPOSIT,
         OUTTAKE_START,
         OUTTAKE_DROP,
         OUTTAKE_WAIT,
-        SPECIMEN_GRAB_START,
+        SPECIMEN_GRAB_START_1,
+        SPECIMEN_GRAB_START_2,
         SPECIMEN_GRAB_WAIT,
         SPECIMEN_GRAB_CLOSE,
         SPECIMEN_GRAB_RETURN,
-        SPECIMEN_RAISE,
-        SPECIMEN_WAIT,
+        HOLD,
+        SPECIMEN_RAISE_1,
+        SPECIMEN_RAISE_2,
+        SPECIMEN_RAISE_3,
+        SPECIMEN_RAISE_WAIT,
         SPECIMEN_DEPOSIT,
         RELEASE,
         RETRACT
@@ -44,10 +49,14 @@ public class Deposit {
     private double targetX, targetY;
     private double moveToX, moveToY, moveToArmAngle;
 
-    private final double intakeX = 10.0, intakeY = -2.0, intakePrepareY = -1.0;
-    private final double outtakeX = -11.816, outtakeY = 0.0, grabX = -5.0, grabY = -4.0;
-    private final double sampleBasketX = -2.0, sampleBasketY = 46.0;
-    private final double specimenBarX = 10.0, specimenBarY = 27.0;
+    //TODO: Verify All Values. Important!!!! LM2 robot all diff values
+    private final double intakeX = 1.0, intakeY = 1.0, intakePrepareY = 1.0;
+    private final double sampleBasketX = 1.0, sampleBasketY = 1.0;
+    private final double outtakeX = 1.0, outtakeY = 1.0, grabX = 1.0, grabY = 1.0;
+    private final double movingX = 1.0, movingY = 1.0, movingClawRad = Math.PI / 2;
+    private final double specimenBarOutsideX = 1.0, specimenBarInsideX = 1.0, specimenBarAtX = 1.0, specimenUnderBarY = 1.0, specimenAtBarY = 1.0;
+
+    private Sensors.BlockColor alliance;
 
     public Deposit(Robot robot){
         this.robot = robot;
@@ -75,19 +84,199 @@ public class Deposit {
                 }
                 break;
             case TRANSFER_PREPARE_2:
-                arm.setClawRotation(arm.getArmRotation() - Math.PI/2, 1.0);
+                arm.setClawRotation(-Math.PI/2, 1.0);
+                arm.setClawSamplePrepare();
 
                 if(arm.inPosition()){
                     state = State.TRANSFER_WAIT;
                 }
                 break;
-        }
-    }
+            case TRANSFER_WAIT:
+                break;
+            case TRANSFER_GRAB_1:
+                if(robot.sensors.getIntakeColor() == Sensors.BlockColor.YELLOW || robot.sensors.getIntakeColor() == alliance){
+                    state = State.TRANSFER_GRAB_2;
+                }
+                break;
+            case TRANSFER_GRAB_2:
+                setDepositPositions(intakeX, intakeY);
+                calculateMoveTo();
 
-    public void updatePositions(){
-        arm.setHorizontalPos(moveToX, 1.0);
-        slides.setTargetLength(moveToY);
-        arm.setArmRotation(moveToArmAngle, 1.0);
+                updatePositions();
+
+                if(arm.inPosition() && slides.inPosition(0.5)){
+                    state = State.TRANSFER_GRAB_3;
+                }
+                break;
+            case TRANSFER_GRAB_3:
+                arm.setClawSampleGrab();
+
+                if(arm.inPosition()){
+                    state = State.TRANSFER_END;
+                }
+                break;
+            case TRANSFER_END:
+                setDepositPositions(0.0, arm.armLength);
+                calculateMoveTo();
+
+                updatePositions();
+
+                if(arm.inPosition() && slides.inPosition(0.5)){
+                    state = State.READY;
+                }
+                break;
+            case READY:
+                break;
+            case SAMPLE_RAISE_1:
+                setDepositPositions(sampleBasketX, sampleBasketY);
+                calculateMoveTo();
+
+                updatePositions();
+
+                if(arm.inPosition() && slides.inPosition(0.5)){
+                    state = State.SAMPLE_RAISE_2;
+                }
+                break;
+            case SAMPLE_RAISE_2:
+                arm.setClawRotation(Math.PI * 3.0/2.0, 1.0);
+
+                if(arm.inPosition()){
+                    state = State.SAMPLE_WAIT;
+                }
+                break;
+            case SAMPLE_WAIT:
+                break;
+            case SAMPLE_DEPOSIT:
+                arm.setClawSamplePrepare();
+
+                if(arm.inPosition()){
+                    state = State.RETRACT;
+                }
+                break;
+            case OUTTAKE_START:
+                setDepositPositions(outtakeX, outtakeY);
+                calculateMoveTo();
+
+                updatePositions();
+
+                arm.setClawRotation(Math.PI, 1.0);
+
+                if(arm.inPosition() && slides.inPosition(0.5)){
+                    state = State.OUTTAKE_DROP;
+                }
+                break;
+            case OUTTAKE_DROP:
+                arm.setClawSamplePrepare();
+
+                if(arm.inPosition()){
+                    state = State.OUTTAKE_WAIT;
+                }
+                break;
+            case OUTTAKE_WAIT:
+                break;
+            case SPECIMEN_GRAB_START_1:
+                arm.setClawRotation(Math.PI, 1.0);
+                arm.setClawSpeciPrepare();
+
+                if(arm.inPosition()){
+                    state = State.SPECIMEN_GRAB_START_2;
+                }
+                break;
+            case SPECIMEN_GRAB_START_2:
+                setDepositPositions(grabX, grabY);
+                calculateMoveTo();
+
+                updatePositions();
+
+                if(arm.inPosition() && slides.inPosition(0.5)){
+                    state = State.SPECIMEN_GRAB_WAIT;
+                }
+                break;
+            case SPECIMEN_GRAB_WAIT:
+                break;
+            case SPECIMEN_GRAB_CLOSE:
+                arm.setClawSpeciGrab();
+
+                if(arm.inPosition()){
+                    state = State.SPECIMEN_GRAB_RETURN;
+                }
+                break;
+            case SPECIMEN_GRAB_RETURN:
+                setDepositPositions(movingX, movingY);
+                calculateMoveTo();
+
+                updatePositions();
+
+                arm.setClawRotation(movingClawRad, 1.0);
+
+                if(arm.inPosition() && slides.inPosition(0.5)){
+                    state = State.HOLD;
+                }
+                break;
+            case HOLD:
+                break;
+            case SPECIMEN_RAISE_1:
+                setDepositPositions(specimenBarOutsideX, specimenUnderBarY);
+                calculateMoveTo();
+
+                updatePositions();
+
+                if(arm.inPosition() && slides.inPosition(0.5)){
+                    state = State.SPECIMEN_RAISE_2;
+                }
+                break;
+            case SPECIMEN_RAISE_2:
+                //TODO: specimenBarInsideX, prob gonna be difficult to determine exactly how far in to extend. Im thinking maybe 5 inches buffer? -- James
+                setDepositPositions(specimenBarInsideX, specimenUnderBarY);
+                calculateMoveTo();
+
+                updatePositions();
+
+                if(arm.inPosition()){
+                    state = State.SPECIMEN_RAISE_3;
+                }
+                break;
+            case SPECIMEN_RAISE_3:
+                setDepositPositions(specimenBarInsideX, specimenAtBarY);
+                calculateMoveTo();
+
+                updatePositions();
+
+                if(slides.inPosition(0.5)){
+                    //state = State.SPECIMEN_RAISE_WAIT;
+                    state = State.SPECIMEN_DEPOSIT;
+                }
+                break;
+            case SPECIMEN_RAISE_WAIT:
+                break;
+            case SPECIMEN_DEPOSIT:
+                //TODO: Talked with Neil and he will move the drivetrain back instead of us moving the horizontal rail backwards because we can't accurately determine a way to know how far the bar is from the clip(yet). -- James
+//                setDepositPositions(specimenBarAtX, specimenAtBarY);
+//                calculateMoveTo();
+//
+//                updatePositions();
+//
+//                if(arm.inPosition()){
+//                    state = State.RELEASE;
+//                }
+                break;
+            case RELEASE:
+                arm.setClawSpeciPrepare();
+
+                if(arm.inPosition()){
+                    state = State.RELEASE;
+                }
+                break;
+            case RETRACT:
+                resetToStart();
+
+                updatePositions();
+
+                if(arm.inPosition() && slides.inPosition(0.5)){
+                    state = State.IDLE;
+                }
+                break;
+        }
     }
 
     /*
@@ -195,9 +384,19 @@ public class Deposit {
         }
     }
 
+    public void updatePositions(){
+        arm.setHorizontalPos(moveToX, 1.0);
+        slides.setTargetLength(moveToY);
+        arm.setArmRotation(moveToArmAngle, 1.0);
+    }
+
     public void resetToStart(){
         moveToX = 0.0;
         moveToY = 0.0;
         moveToArmAngle = Math.toRadians(60.0);
+    }
+
+    public void setAlliance(Sensors.BlockColor color){
+        this.alliance = color;
     }
 }

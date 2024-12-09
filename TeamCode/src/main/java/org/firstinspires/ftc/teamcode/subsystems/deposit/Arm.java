@@ -21,6 +21,8 @@ public class Arm {
     public final double armLength = 1.0; //TODO: Get value
 
     private double currArmRotation = 0.0;
+    //TODO: Get values below
+    private double samplePrepareRad = 1.0, sampleGrabRad = 1.0, speciPrepareRad = 1.0, speciGrabRad = 1.0;
 
     public Arm(Robot robot){
         horizontalRail = new PriorityServoV2(
@@ -113,6 +115,22 @@ public class Arm {
 
     public void setClawRotation(double rad, double pow){
         clawRotation.setTargetAngle(rad, pow);
+    }
+
+    public void setClawSamplePrepare(){
+        clawGrip.setTargetAngle(samplePrepareRad, 1.0);
+    }
+
+    public void setClawSampleGrab(){
+        clawGrip.setTargetAngle(sampleGrabRad, 1.0);
+    }
+
+    public void setClawSpeciPrepare(){
+        clawGrip.setTargetAngle(speciPrepareRad, 1.0);
+    }
+
+    public void setClawSpeciGrab(){
+        clawGrip.setTargetAngle(speciGrabRad, 1.0);
     }
 
     public boolean inPosition(){

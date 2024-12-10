@@ -94,11 +94,6 @@ public class Deposit {
             case TRANSFER_WAIT:
                 break;
             case TRANSFER_GRAB_1:
-                if(robot.sensors.getIntakeColor() == Sensors.BlockColor.YELLOW || robot.sensors.getIntakeColor() == alliance){
-                    state = State.TRANSFER_GRAB_2;
-                }
-                break;
-            case TRANSFER_GRAB_2:
                 setDepositPositions(intakeX, intakeY);
                 calculateMoveTo();
 
@@ -108,12 +103,18 @@ public class Deposit {
                     state = State.TRANSFER_GRAB_3;
                 }
                 break;
-            case TRANSFER_GRAB_3:
+            case TRANSFER_GRAB_2:
                 arm.setClawSampleGrab();
 
                 if(arm.inPosition()){
                     state = State.TRANSFER_END;
                 }
+                break;
+            case TRANSFER_GRAB_3:
+                robot.intake.transfer();
+
+                //No if - statement? because intake backspin should happen at the same time as claw moves up slightly, which is TRANSFER_END state -- James
+                state = State.TRANSFER_END;
                 break;
             case TRANSFER_END:
                 setDepositPositions(0.0, arm.armLength);
@@ -279,71 +280,69 @@ public class Deposit {
         }
     }
 
-    /*
     public void prepareTransfer() {
-
+        state = State.TRANSFER_PREPARE_1;
     }
 
     public void startTransfer() {
-
+        state = State.TRANSFER_GRAB_1;
     }
 
     public boolean isSampleReady() {
-
+        return state == State.READY;
     }
 
     public void startSampleDeposit() {
-
+        state = State.SAMPLE_RAISE_1;
     }
 
     public void finishSampleDeposit() {
-
+        state = State.SAMPLE_DEPOSIT;
     }
 
     public boolean isSampleDepositDone() {
-
+        return state == State.IDLE;
     }
 
     public void startOuttake() {
-
+        state = State.OUTTAKE_START;
     }
 
     public boolean isOuttakeDone() {
-
+        return state == State.OUTTAKE_WAIT;
     }
 
     public void grabSpecimen() {
-
+        state = State.SPECIMEN_GRAB_START_1;
     }
 
     public void finishSpecimenGrab() {
-
+        state = State.SPECIMEN_GRAB_CLOSE;
     }
 
     public boolean isSpecimenReady() {
-
+        return state == State.HOLD;
     }
 
     public void startSpecimenDeposit() {
-
+        state = State.SPECIMEN_RAISE_1;
     }
 
     public void finishSpecimenDeposit() {
-
+        state = State.SPECIMEN_DEPOSIT;
     }
 
     public boolean isSpecimenDepositDone() {
-
+        return state == State.IDLE;
     }
 
     public void retract() {
-
+        state = State.RETRACT;
     }
 
     public boolean isRetractDone(){
-
+        return state == State.IDLE;
     }
-    */
 
     public void setDepositPositions(double x, double y){
         targetX = x;

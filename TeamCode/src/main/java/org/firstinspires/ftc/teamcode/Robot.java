@@ -22,7 +22,7 @@ public class Robot {
     public final HardwareQueue hardwareQueue;
     public final Sensors sensors;
     public final Drivetrain drivetrain;
-//    public final Intake intake;
+    public final Intake intake;
     public final Arm arm;
 //    public final Hang hang;
 //    public final Deposit deposit;
@@ -62,7 +62,7 @@ public class Robot {
 
         this.sensors = new Sensors(this);
 
-//        this.intake = new Intake(this);
+        this.intake = new Intake(this);
         this.drivetrain = new Drivetrain(this);
         this.arm = new Arm(this);
 //        this.hang = new Hang(hardwareMap, hardwareQueue);

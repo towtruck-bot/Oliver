@@ -16,13 +16,13 @@ public class Arm {
     public final PriorityServoV2 clawRotation;
     public final PriorityServoV2 clawGrip;
 
-    private final double wheelRadius = 1.0; //TODO: Get value
-    private final double smallGearNum = 20.0, smallGearRad = 1.0, bigGearNum = 40.0, bigGearRad = 1.0;
-    public final double armLength = 1.0; //TODO: Get value
+    private final double wheelRadius = 1.75;
+    private final double smallGearNum = 25.0, bigGearNum = 40.0;
+    public final double armLength = 5.905314961;
 
     private double currArmRotation = 0.0;
-    //TODO: Get values below
-    private double samplePrepareRad = 1.0, sampleGrabRad = 1.0, speciPrepareRad = 1.0, speciGrabRad = 1.0;
+    //TODO: Get values below, current values are guesses
+    private double samplePrepareRad = 0.0, sampleGrabRad = Math.PI, speciPrepareRad = Math.PI, speciGrabRad = Math.PI/6;
 
     public Arm(Robot robot){
         horizontalRail = new PriorityServoV2(

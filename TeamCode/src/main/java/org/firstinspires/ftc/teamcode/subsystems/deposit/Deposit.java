@@ -50,13 +50,12 @@ public class Deposit {
     private double moveToX, moveToY, moveToArmAngle;
 
     //TODO: Verify All Values. Important!!!! LM2 robot all diff values
+    //TODO: FOR X COORDINATES, REMEMBER TO ACCOUNT FOR CLAW LENGTH
     private final double intakeX = 1.0, intakeY = 1.0, intakePrepareY = 1.0;
     private final double sampleBasketX = 1.0, sampleBasketY = 1.0;
     private final double outtakeX = 1.0, outtakeY = 1.0, grabX = 1.0, grabY = 1.0;
     private final double movingX = 1.0, movingY = 1.0, movingClawRad = Math.PI / 2;
     private final double specimenBarOutsideX = 1.0, specimenBarInsideX = 1.0, specimenBarAtX = 1.0, specimenUnderBarY = 1.0, specimenAtBarY = 1.0;
-
-    private Sensors.BlockColor alliance;
 
     public Deposit(Robot robot){
         this.robot = robot;
@@ -265,7 +264,7 @@ public class Deposit {
                 arm.setClawSpeciPrepare();
 
                 if(arm.inPosition()){
-                    state = State.RELEASE;
+                    state = State.RETRACT;
                 }
                 break;
             case RETRACT:
@@ -393,9 +392,5 @@ public class Deposit {
         moveToX = 0.0;
         moveToY = 0.0;
         moveToArmAngle = Math.toRadians(60.0);
-    }
-
-    public void setAlliance(Sensors.BlockColor color){
-        this.alliance = color;
     }
 }

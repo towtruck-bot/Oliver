@@ -50,6 +50,8 @@ public class Intake {
     public static long unjamDuration = 500;
     private long unjamLastTime;
 
+    public static boolean autoRetractIntake = false;
+
     public static double extensionMaxPosition = 21; // TODO Replace this placeholder value with actual limit
     public static double extensionPositionTolerance = 0.25; // TODO Replace this placeholder
     public static double extendingStartFlipPosition = 3; // TODO Replace this placeholder
@@ -143,13 +145,15 @@ public class Intake {
             case EXTENDED:
                 this.extensionControlTargetPosition = this.targetPositionWhenExtended;
                 this.intakeFlipServo.setTargetAngle(flipDownAngle, 1.0);
-                if (Globals.isRed ? this.sampleColor == Sensors.BlockColor.BLUE : this.sampleColor == Sensors.BlockColor.RED) {
-                    this.sampleCheckTime = currentTime;
-                    this.setRollerUnjam();
-                } else if (this.sampleColor == Sensors.BlockColor.NONE) {
-                    this.sampleCheckTime = currentTime;
-                } else if (currentTime > this.sampleCheckTime + sampleConfirmDuration * 1e6) {
-                    this.intakeState = IntakeState.PICK_UP;
+                if (autoRetractIntake) {
+                    if (Globals.isRed ? this.sampleColor == Sensors.BlockColor.BLUE : this.sampleColor == Sensors.BlockColor.RED) {
+                        this.sampleCheckTime = currentTime;
+                        this.setRollerUnjam();
+                    } else if (this.sampleColor == Sensors.BlockColor.NONE) {
+                        this.sampleCheckTime = currentTime;
+                    } else if (currentTime > this.sampleCheckTime + sampleConfirmDuration * 1e6) {
+                        this.intakeState = IntakeState.PICK_UP;
+                    }
                 }
                 if (this.intakeState != IntakeState.PICK_UP) break;
             case PICK_UP:

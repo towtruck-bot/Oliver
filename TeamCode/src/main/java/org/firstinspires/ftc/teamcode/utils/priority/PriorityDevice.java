@@ -2,7 +2,7 @@ package org.firstinspires.ftc.teamcode.utils.priority;
 
 public abstract class PriorityDevice {
     protected final double basePriority, priorityScale;
-    protected final String name;
+    public final String name;
     protected double lastUpdateTime, callLengthMillis;
     boolean isUpdated = false;
 

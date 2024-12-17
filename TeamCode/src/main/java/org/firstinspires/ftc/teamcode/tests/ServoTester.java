@@ -3,6 +3,8 @@ package org.firstinspires.ftc.teamcode.tests;
 import static org.firstinspires.ftc.teamcode.utils.Globals.GET_LOOP_TIME;
 import static org.firstinspires.ftc.teamcode.utils.Globals.START_LOOP;
 
+import android.util.Log;
+
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -47,7 +49,7 @@ public class ServoTester extends LinearOpMode {
                 servoSize++;
             }
         }
-
+        Log.e("james", String.valueOf(servoSize));
         double[] servoPos = new double[servoSize];
         for (int i = 0; i < servoSize; i ++){
             servoPos[i] = servos.get(i).basePos;

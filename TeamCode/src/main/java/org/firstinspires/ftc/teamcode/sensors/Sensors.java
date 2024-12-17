@@ -17,7 +17,7 @@ import org.firstinspires.ftc.teamcode.utils.priority.PriorityMotor;
 
 
 public class Sensors {
-    private LynxModule controlHub/*, expansionHub*/;
+    private LynxModule controlHub, expansionHub;
     private final HardwareQueue hardwareQueue;
     private final HardwareMap hardwareMap;
     private Robot robot;
@@ -37,8 +37,8 @@ public class Sensors {
 
     private int intakeExtensionEncoder;
 
-//    public final DigitalChannel intakeColorSensorR;
-//    public final DigitalChannel intakeColorSensorB;
+    public final DigitalChannel intakeColorSensorR;
+    public final DigitalChannel intakeColorSensorB;
     private BlockColor intakeColor = BlockColor.NONE;
 
     private final AnalogInput[] analogEncoders = new AnalogInput[2];
@@ -74,12 +74,12 @@ public class Sensors {
 //        SparkFunOTOS.Pose2D currentPosition = new SparkFunOTOS.Pose2D(0, 0, 0);
 //        otos.setPosition(currentPosition);
 
-/*
+
         this.intakeColorSensorR = this.robot.hardwareMap.get(DigitalChannel.class, "intakeColorSensorR");
         this.intakeColorSensorR.setMode(DigitalChannel.Mode.INPUT);
         this.intakeColorSensorB = this.robot.hardwareMap.get(DigitalChannel.class, "intakeColorSensorB");
         this.intakeColorSensorB.setMode(DigitalChannel.Mode.INPUT);
- */
+
 
         initSensors(hardwareMap);
     }
@@ -88,15 +88,15 @@ public class Sensors {
         controlHub = hardwareMap.get(LynxModule.class, "Control Hub");
         controlHub.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
 
-//        expansionHub = hardwareMap.get(LynxModule.class, "Expansion Hub");
-//        expansionHub.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
+        expansionHub = hardwareMap.get(LynxModule.class, "Expansion Hub 2");
+        expansionHub.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
 
         voltage = hardwareMap.voltageSensor.iterator().next().getVoltage();
     }
 
     public void update() {
         updateControlHub();
-        //updateExpansionHub();
+        updateExpansionHub();
         updateTelemetry();
     }
 
@@ -151,6 +151,11 @@ public class Sensors {
 
     private void updateExpansionHub() {
         try {
+            if (this.intakeColorSensorR.getState()) {
+                this.intakeColor = this.intakeColorSensorB.getState() ? BlockColor.YELLOW : BlockColor.RED;
+            } else {
+                this.intakeColor = this.intakeColorSensorB.getState() ? BlockColor.BLUE : BlockColor.NONE;
+            }
         }
         catch (Exception e) {
             Log.e("******* Error due to ", e.getClass().getName());

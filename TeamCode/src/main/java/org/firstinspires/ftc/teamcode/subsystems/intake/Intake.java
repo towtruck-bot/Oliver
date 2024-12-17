@@ -93,10 +93,10 @@ public class Intake {
                 "intakeFlipServo",
                 PriorityServo.ServoType.AXON_MINI,
                 1.0,
-                0.0,
-                1.0,
-                0.0,
-                false,
+                0.69,
+                0.2,
+                0.69,
+                true,
                 1.0,
                 2.0
         );

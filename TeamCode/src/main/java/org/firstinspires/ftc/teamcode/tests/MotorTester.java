@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.tests;
 
+import android.util.Log;
+
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -34,6 +36,7 @@ public class MotorTester extends LinearOpMode {
 
         // getting number of motors we have;
         for (PriorityDevice device : hardwareQueue.devices) {
+            Log.i("HardwareQueue devices", device.name);
             if (device instanceof PriorityMotor) {
                 motors.add((PriorityMotor) device);
                 motorSize++;

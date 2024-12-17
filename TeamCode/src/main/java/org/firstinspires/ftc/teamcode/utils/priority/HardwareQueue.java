@@ -22,7 +22,7 @@ public class HardwareQueue {
     }
 
     public void update() {
-        for (PriorityDevice device: devices) {
+        for (PriorityDevice device : devices) {
             device.resetUpdateBoolean();
         }
 

@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.utils.priority;
 
+import android.util.Log;
+
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.utils.Globals;
@@ -79,7 +81,12 @@ public class nPriorityServo extends PriorityDevice {
     }
 
     public void setTargetPos(double pos) {
+        this.setTargetPos(pos, power);
+    }
+
+    public void setTargetPos(double pos, double power) {
         this.targetAngle = convertPosToAngle(Math.max(Math.min(pos, 1), 0));
+        this.power = power;
     }
 
     public double getTargetPos() {
@@ -88,19 +95,19 @@ public class nPriorityServo extends PriorityDevice {
 
     @Override
     protected void update() {
+
         long currentTime = System.nanoTime();
         double timeSinceLastUpdate = ((double) currentTime - lastUpdateTime)/1.0E9;
 
-        double deltaAngle = timeSinceLastUpdate * type.speed;
+        double error = targetAngle - currentAngle;
+        double deltaAngle = timeSinceLastUpdate * type.speed * power * Math.signum(error);
 
         currentIntermediateTargetAngle += deltaAngle;
 
         // Clamp
-        if (currentIntermediateTargetAngle > targetAngle)
+        if (Math.abs(deltaAngle) > Math.abs(error) || power == 1)
             currentIntermediateTargetAngle = targetAngle;
-
-        if (power == 1) // Fastest we can go; send it
-            currentIntermediateTargetAngle = targetAngle;
+        Log.e("ooga", "booga");
 
         // Update servos
         for (int i = 0; i < servos.length; i++) {
@@ -130,12 +137,12 @@ public class nPriorityServo extends PriorityDevice {
         double error = currentIntermediateTargetAngle - currentAngle;
 
         // How much the servo has moved from the start of the loop to now
-        double deltaAngle = loopTime * type.speed * Math.signum(error);
+        double deltaAngle = loopTime * type.speed * Math.signum(error) * power;
 
         currentAngle += deltaAngle;
 
         // Clamp
-        if (currentAngle > targetAngle)
+        if (Math.abs(deltaAngle) > Math.abs(error))
             currentAngle = targetAngle;
 
         lastLoopTime = currentTime;
@@ -146,7 +153,10 @@ public class nPriorityServo extends PriorityDevice {
         }
 
         // Ong trust this function.
-        double priority = (((currentAngle - targetAngle) == 0) ? basePriority : 0) + Math.abs(targetAngle-currentIntermediateTargetAngle) * (System.nanoTime() - lastUpdateTime)/1000000.0 * priorityScale;
+        if (currentAngle - targetAngle == 0) {
+            Log.e("beh", "god damnit");
+        }
+        double priority = (((currentAngle - targetAngle) != 0) ? basePriority : 0) + Math.abs(targetAngle-currentIntermediateTargetAngle) * (System.nanoTime() - lastUpdateTime)/1000000.0 * priorityScale;
 
         // Yuh that means it just updated. Dont even touch that thing
         if (priority == 0) {

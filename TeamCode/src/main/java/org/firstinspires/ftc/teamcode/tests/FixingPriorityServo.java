@@ -9,6 +9,7 @@ import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.utils.Globals;
 import org.firstinspires.ftc.teamcode.utils.priority.HardwareQueue;
 import org.firstinspires.ftc.teamcode.utils.priority.PriorityServo;
+import org.firstinspires.ftc.teamcode.utils.priority.nPriorityServo;
 
 @TeleOp
 @Config
@@ -18,15 +19,16 @@ public class FixingPriorityServo extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
-        PriorityServo servo = new PriorityServo(
-                hardwareMap.get(Servo.class, "testServo"),
-                "testServo",
-                PriorityServo.ServoType.AXON_MINI,
-                1,
-                0, 1,
+        nPriorityServo servo = new nPriorityServo(
+                new Servo[] {hardwareMap.get(Servo.class, "intakeFlipServo")},
+                "intakeFlipServo",
+                nPriorityServo.ServoType.HITEC,
                 0,
-                false,
-                1, 2
+                1,
+                0,
+                new boolean[] {false},
+                1,
+                2
         );
         HardwareQueue hardwareQueue = new HardwareQueue();
         hardwareQueue.addDevice(servo);
@@ -35,7 +37,7 @@ public class FixingPriorityServo extends LinearOpMode {
 
         while (opModeIsActive()) {
             Globals.START_LOOP();
-            servo.setTargetPose(pose, power);
+            servo.setTargetPos(pose, power);
             hardwareQueue.update();
         }
     }

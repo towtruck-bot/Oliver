@@ -63,7 +63,7 @@ public class Deposit {
 
         arm = new Arm(robot);
 
-        state = State.IDLE;
+        state = Globals.hasSpecimenPreload ? State.HOLD : State.IDLE;
     }
 
     public void update(){

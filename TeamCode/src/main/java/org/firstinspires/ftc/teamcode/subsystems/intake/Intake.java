@@ -172,10 +172,8 @@ public class Intake {
                 this.setRollerKeepIn();
                 this.extensionControlTargetPosition = 0;
                 this.intakeFlipServo.setTargetAngle(0, 1.0);
-                if (this.isExtensionAtTarget()) {
-                    this.intakeState = IntakeState.IDLE;
-                    this.setRollerOff();
-                } else break;
+                if (this.isExtensionAtTarget()) this.intakeState = IntakeState.IDLE;
+                else break;
             case IDLE:
                 this.setRollerOff();
                 this.extensionControlTargetPosition = 0;

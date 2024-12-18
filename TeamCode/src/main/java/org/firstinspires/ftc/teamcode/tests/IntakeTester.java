@@ -71,7 +71,10 @@ Y on/reverse intake
             robot.update();
 
             telemetry.addData("Globals.TESTING_DISABLE_CONTROL", Globals.TESTING_DISABLE_CONTROL);
+            telemetry.addData("didToggleDisable", didToggleDisable);
+            telemetry.addData("didToggleIntakeRoller", didToggleIntakeRoller);
             telemetry.addData("Intake.intakeState", robot.intake.getIntakeState().toString());
+            telemetry.addData("Intake.intakeRollerState", robot.intake.getIntakeRollerState().toString());
             telemetry.addData("Intake.targetPositionWhenExtended", robot.intake.getTargetPositionWhenExtended());
             telemetry.addData("Extendo position", robot.sensors.getIntakeExtensionPosition());
             telemetry.addData("Intake color", robot.sensors.getIntakeColor().toString());

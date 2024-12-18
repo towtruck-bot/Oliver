@@ -35,7 +35,7 @@ public class Sensors {
     private int slidesEncoder;
     private double slidesVelocity;
 
-    private int intakeExtensionEncoder;
+    private double intakeExtensionEncoder;
 
     public final DigitalChannel intakeColorSensorR;
     public final DigitalChannel intakeColorSensorB;
@@ -138,15 +138,7 @@ public class Sensors {
         slidesEncoder = ((PriorityMotor) hardwareQueue.getDevice("rightFront")).motor[0].getCurrentPosition() * -1;
         slidesVelocity = ((PriorityMotor) hardwareQueue.getDevice("rightFront")).motor[0].getVelocity() * -1;
 
-//        this.intakeExtensionEncoder = this.robot.intake.intakeExtensionMotor.motor[0].getCurrentPosition();
-
-/*
-        if (this.intakeColorSensorR.getState()) {
-            this.intakeColor = this.intakeColorSensorB.getState() ? BlockColor.YELLOW : BlockColor.RED;
-        } else {
-            this.intakeColor = this.intakeColorSensorB.getState() ? BlockColor.BLUE : BlockColor.NONE;
-        }
- */
+        this.intakeExtensionEncoder = this.robot.drivetrain.leftFront.motor[0].getCurrentPosition();
     }
 
     private void updateExpansionHub() {
@@ -168,6 +160,7 @@ public class Sensors {
         TelemetryUtil.packet.put("voltage", voltage);
 
         TelemetryUtil.packet.put("Extendo position", this.getIntakeExtensionPosition());
+        TelemetryUtil.packet.put("Extendo encoder", this.intakeExtensionEncoder);
 
         TelemetryUtil.packet.put("Intake color", this.intakeColor.toString());
     }
@@ -188,7 +181,7 @@ public class Sensors {
      * @return the intake extension slides' position, in inches
      */
     public double getIntakeExtensionPosition() {
-        final double inchesPerTick = 0.04132142857142857; // TODO This value is TEMPORARY (Centerstage/TeamCode/src/main/java/org/firstinspires/ftc/teamcode/subsystems/deposit/Slides.java)
+        final double inchesPerTick = -0.0409;
         return this.intakeExtensionEncoder * inchesPerTick;
     }
 

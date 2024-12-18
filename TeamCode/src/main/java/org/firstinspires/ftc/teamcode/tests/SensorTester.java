@@ -9,7 +9,7 @@ import org.firstinspires.ftc.teamcode.utils.Globals;
 import org.firstinspires.ftc.teamcode.utils.RunMode;
 import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 
-@TeleOp
+@TeleOp(group = "Test")
 public class SensorTester extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {

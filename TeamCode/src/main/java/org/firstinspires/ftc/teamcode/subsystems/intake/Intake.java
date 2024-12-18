@@ -43,31 +43,33 @@ public class Intake {
     public final PriorityMotor intakeExtensionMotor;
     public final PriorityServo intakeFlipServo;
 
-    private IntakeState intakeState = IntakeState.RETRACTING;
+    private IntakeState intakeState = IntakeState.FINISH_RETRACTING;
 
     private IntakeRollerState intakeRollerState = IntakeRollerState.OFF;
-    public static double keepBlockInPower = 0.2; // TODO Replace this placeholder
-    public static long unjamDuration = 500;
+    public static double keepBlockInPower = 0.35;
+    public static long unjamDuration = 300;
     private long unjamLastTime;
+    private boolean didStopRoller = true;
 
-    public static boolean autoRetractIntake = false;
+    public static boolean autoRetractIntake = true;
+    public static boolean autoUnjamIntake = true;
 
-    public static double extensionMaxPosition = 21; // TODO Replace this placeholder value with actual limit
-    public static double extensionPositionTolerance = 0.25; // TODO Replace this placeholder
-    public static double extendingStartFlipPosition = 3; // TODO Replace this placeholder
-    public static double extendedMinPosition = 5; // TODO Replace this placeholder
-    public static double distanceToIntake = 5; // TODO Replace this placeholder
-    private double targetPositionWhenExtended = extendedMinPosition;
+    public static double extensionMaxPosition = 22;
+    public static double extensionPositionTolerance = 0.7;
+    public static double extendingStartFlipPosition = 5;
+    public static double extendedMinPosition = 6;
+    public static double distanceToIntake = 4;
+    private double targetPositionWhenExtended = 15.0;
     private double extensionCurrentPosition = 0;
     private double extensionControlTargetPosition = 0;
-    public static PID pid = new PID(0.2, 0, 0.02); // TODO Replace these placeholders
+    public static PID pid = new PID(0.06, 0.09, 0.01);
 
-    public static double flipDownAngle = Math.toRadians(180);
-    public static double flipAngleToGoOverBarrier = Math.toRadians(90);
+    public static double flipDownAngle = Math.toRadians(-140);
+    public static double flipAngleToGoOverBarrier = Math.toRadians(-95);
 
     private Sensors.BlockColor sampleColor = Sensors.BlockColor.NONE;
     private long sampleCheckTime;
-    public static long sampleConfirmDuration = 500;
+    public static long sampleConfirmDuration = 100;
 
     /**
      * Initializes the intake. Uses motors intakeRollerMotor and intakeExtensionMotor, servo intakeFlipServo. -- Daniel
@@ -79,14 +81,14 @@ public class Intake {
         this.intakeRollerMotor = new PriorityMotor(
                 this.robot.hardwareMap.get(DcMotorEx.class, "intakeRollerMotor"),
                 "intakeRollerMotor",
-                1, 2, this.robot.sensors
+                1, 3, -1.0, this.robot.sensors
         );
         this.robot.hardwareQueue.addDevice(intakeRollerMotor);
 
         this.intakeExtensionMotor = new PriorityMotor(
                 this.robot.hardwareMap.get(DcMotorEx.class, "intakeExtensionMotor"),
                 "intakeExtensionMotor",
-                1, 2, this.robot.sensors
+                1, 5, this.robot.sensors
         );
         this.robot.hardwareQueue.addDevice(intakeExtensionMotor);
 
@@ -100,9 +102,10 @@ public class Intake {
                 0.69,
                 true,
                 1.0,
-                2.0
+                5.0
         );
         this.robot.hardwareQueue.addDevice(intakeFlipServo);
+        this.intakeFlipServo.setTargetAngle(Math.toRadians(-10), 1.0);
     }
 
     /**
@@ -114,6 +117,8 @@ public class Intake {
         this.sampleColor = this.robot.sensors.getIntakeColor();
 
         if (Globals.TESTING_DISABLE_CONTROL && Globals.RUNMODE == RunMode.TESTER) {
+            pid.update(0,-1.0,1.0);
+            pid.resetIntegral();
             this.intakeExtensionMotor.setTargetPower(0.0);
             this.intakeRollerMotor.setTargetPower(0.0);
             return;
@@ -140,19 +145,28 @@ public class Intake {
                 if (this.intakeFlipServo.inPosition()) {
                     this.intakeState = IntakeState.EXTENDED;
                     this.sampleCheckTime = currentTime;
+                    this.didStopRoller = false;
                     this.setRollerOn();
                 } else break;
             case EXTENDED:
                 this.extensionControlTargetPosition = this.targetPositionWhenExtended;
                 this.intakeFlipServo.setTargetAngle(flipDownAngle, 1.0);
-                if (autoRetractIntake) {
+                if (this.sampleColor == Sensors.BlockColor.NONE) {
+                    this.didStopRoller = false;
+                    this.sampleCheckTime = currentTime;
+                } else if (currentTime > this.sampleCheckTime + sampleConfirmDuration * 1e6) {
                     if (Globals.isRed ? this.sampleColor == Sensors.BlockColor.BLUE : this.sampleColor == Sensors.BlockColor.RED) {
-                        this.sampleCheckTime = currentTime;
-                        this.setRollerUnjam();
-                    } else if (this.sampleColor == Sensors.BlockColor.NONE) {
-                        this.sampleCheckTime = currentTime;
-                    } else if (currentTime > this.sampleCheckTime + sampleConfirmDuration * 1e6) {
-                        this.intakeState = IntakeState.PICK_UP;
+                        if (autoUnjamIntake) this.setRollerUnjam();
+                        else if (!this.didStopRoller) {
+                            this.setRollerOff();
+                            this.didStopRoller = true;
+                        }
+                    } else {
+                        if (!this.didStopRoller) {
+                            this.setRollerOff();
+                            this.didStopRoller = true;
+                        }
+                        if (autoRetractIntake) this.intakeState = IntakeState.PICK_UP;
                     }
                 }
                 if (this.intakeState != IntakeState.PICK_UP) break;
@@ -160,7 +174,7 @@ public class Intake {
                 this.setRollerKeepIn();
                 this.extensionControlTargetPosition = this.targetPositionWhenExtended;
                 this.intakeFlipServo.setTargetAngle(0, 1.0);
-                if (this.intakeFlipServo.getCurrentAngle() < flipAngleToGoOverBarrier) this.intakeState = IntakeState.RETRACTING;
+                if (this.intakeFlipServo.getCurrentAngle() > flipAngleToGoOverBarrier) this.intakeState = IntakeState.RETRACTING;
                 else break;
             case RETRACTING:
                 this.setRollerKeepIn();
@@ -208,6 +222,7 @@ public class Intake {
 
         // Extension control
         if (this.isExtensionAtTarget()) {
+            pid.update(0,-1.0,1.0);
             pid.resetIntegral();
             this.intakeExtensionMotor.setTargetPower(0.0);
         } else {
@@ -255,7 +270,7 @@ public class Intake {
      * Checks if the extension is at its target position. -- Daniel
      * @return whether the extension is at its target position
      */
-    public boolean isExtensionAtTarget() { return Math.abs(this.extensionControlTargetPosition - this.extensionCurrentPosition) < extensionPositionTolerance; }
+    public boolean isExtensionAtTarget() { return Math.abs(this.extensionControlTargetPosition - this.extensionCurrentPosition) <= extensionPositionTolerance; }
 
     /**
      * Gets the position the extension will go to when extended. -- Daniel

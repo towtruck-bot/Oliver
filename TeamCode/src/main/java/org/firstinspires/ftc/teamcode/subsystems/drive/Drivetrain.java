@@ -69,11 +69,13 @@ public class Drivetrain {
         this.sensors = robot.sensors;
         this.robot = robot;
 
+        //TODO: WHY THIS WHEEL NOT WORKING, IT GO BACKWARD WHICH IS VERY MONKEY
         leftFront = new PriorityMotor(
             hardwareMap.get(DcMotorEx.class, "leftFront"),
             "leftFront",
-            3, 5, sensors
+            3, 5, -1.0, sensors
         );
+
 
         leftRear = new PriorityMotor(
             hardwareMap.get(DcMotorEx.class, "leftRear"),

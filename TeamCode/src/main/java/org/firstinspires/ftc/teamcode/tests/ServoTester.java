@@ -11,6 +11,8 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.utils.ButtonToggle;
+import org.firstinspires.ftc.teamcode.utils.Globals;
+import org.firstinspires.ftc.teamcode.utils.RunMode;
 import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 import org.firstinspires.ftc.teamcode.utils.Utils;
 import org.firstinspires.ftc.teamcode.utils.priority.HardwareQueue;
@@ -30,6 +32,9 @@ public class ServoTester extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
+        Globals.RUNMODE = RunMode.TESTER;
+        Globals.TESTING_DISABLE_CONTROL = true;
+
         Robot robot = new Robot(hardwareMap);
         HardwareQueue hardwareQueue = robot.hardwareQueue;
 
@@ -98,6 +103,7 @@ public class ServoTester extends LinearOpMode {
             telemetry.addData("servoName", servos.get(servoIndex).name);
             telemetry.addData("servoIndex", servoIndex);
             telemetry.addData("servoPos", servoPos[servoIndex]);
+            telemetry.addData("servoAngle", servos.get(servoIndex).getCurrentAngle());
             telemetry.addData("averageServoTime", totalTime/numLoops);
             //telemetry.addData("v4Encoder", v4Bar);
             telemetry.addData("angle", servos.get(servoIndex).getCurrentAngle());

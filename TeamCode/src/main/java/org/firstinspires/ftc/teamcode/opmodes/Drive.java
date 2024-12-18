@@ -11,7 +11,9 @@ import org.firstinspires.ftc.teamcode.utils.RunMode;
 public class Drive extends LinearOpMode {
     @Override
     public void runOpMode() {
-        Globals.RUNMODE = RunMode.TELEOP;
+//        Globals.RUNMODE = RunMode.TELEOP;
+        Globals.RUNMODE = RunMode.TESTER;
+        Globals.TESTING_DISABLE_CONTROL = true;
 
         Robot robot = new Robot(hardwareMap);
 

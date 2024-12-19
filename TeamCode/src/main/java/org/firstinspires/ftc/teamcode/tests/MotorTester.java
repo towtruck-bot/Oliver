@@ -27,8 +27,8 @@ public class MotorTester extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
-            Globals.RUNMODE = RunMode.TESTER;
-            Globals.TESTING_DISABLE_CONTROL = true;
+        Globals.RUNMODE = RunMode.TESTER;
+        Globals.TESTING_DISABLE_CONTROL = true;
 
         Robot robot = new Robot(hardwareMap);
         HardwareQueue hardwareQueue = robot.hardwareQueue;

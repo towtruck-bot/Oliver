@@ -36,10 +36,11 @@ RT enable/disable
 LT transfer
 LB retract
 RB extend
-A unjam roller
-Y on/reverse roller
-^ off roller
-v keep in roller
+B red/blue
+A roller unjam
+Y roller on/reverse
+^ roller off
+v roller keep in
 < intake further out
 > intake further in
 */

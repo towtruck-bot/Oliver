@@ -55,14 +55,14 @@ public class Intake {
     public static boolean autoUnjamIntake = true;
 
     public static double extensionMaxPosition = 22;
-    public static double extensionPositionTolerance = 0.7;
+    public static double extensionPositionTolerance = 0.9;
     public static double extendingStartFlipPosition = 5;
-    public static double extendedMinPosition = 6;
+    public static double extendedMinPosition = 5;
     public static double distanceToIntake = 4;
     private double targetPositionWhenExtended = 15.0;
     private double extensionCurrentPosition = 0;
     private double extensionControlTargetPosition = 0;
-    public static PID pid = new PID(0.06, 0.09, 0.01);
+    public static PID pid = new PID(0.06, 0.1, 0.02);
 
     public static double flipDownAngle = Math.toRadians(-140);
     public static double flipAngleToGoOverBarrier = Math.toRadians(-95);
@@ -128,6 +128,7 @@ public class Intake {
         switch (this.intakeState) {
             case START_EXTENDING:
                 this.setRollerOff();
+                this.targetPositionWhenExtended = extendedMinPosition + distanceToIntake;
                 this.extensionControlTargetPosition = Math.max(this.targetPositionWhenExtended - distanceToIntake, extendedMinPosition);
                 this.intakeFlipServo.setTargetAngle(0, 1.0);
                 if (this.extensionCurrentPosition > extendingStartFlipPosition) this.intakeState = IntakeState.EXTENDING;

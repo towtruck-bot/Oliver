@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.utils.priority;
 
+import android.util.Log;
+
 import com.qualcomm.robotcore.hardware.Servo;
 
 public class PriorityServo extends PriorityDevice{
@@ -127,6 +129,7 @@ public class PriorityServo extends PriorityDevice{
         }
         currentAngle += deltaAngle;
         lastLoopTime = currentTime;
+        Log.i("PriorityServo angle", name + ", currentAngle = " + currentAngle + " = " + Math.toDegrees(currentAngle) + ", targetAngle = " + targetAngle + " = " + Math.toDegrees(targetAngle));
     }
 
     public void setCurrentAngle(double currentAngle) {

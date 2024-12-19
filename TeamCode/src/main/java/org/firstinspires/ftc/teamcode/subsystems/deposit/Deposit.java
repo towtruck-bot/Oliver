@@ -71,6 +71,7 @@ public class Deposit {
 
         switch(state){
             case IDLE:
+                resetToStart();
                 break;
             case TRANSFER_PREPARE_1:
                 setDepositPositions(intakeX, intakePrepareY);
@@ -350,36 +351,48 @@ public class Deposit {
 
     public void calculateMoveTo(){
         double baseX = arm.getHorizontalPos();
-        double baseY = slides.getLength();
+        //double baseY = slides.getLength();
+        double baseY = 0.0;
 
-        //check if only horizontal movement is possible now to minimize slides usage
-        if(Math.abs(baseY - targetY) < arm.armLength && targetX >= 0.0){
-            double pos1 = targetX - Math.sqrt(arm.armLength * arm.armLength - (baseY - targetY) * (baseY - targetY));
-            double pos2 = targetX + Math.sqrt(arm.armLength * arm.armLength - (baseY - targetY) * (baseY - targetY));
-            if(Math.abs(pos1 - baseX) < Math.abs(pos2 - baseX) && pos1 >= 0.0){
-                moveToX = pos1;
-            }else{
-                moveToX = pos2;
-            }
-            moveToY = baseY;
-            moveToArmAngle = Math.atan2(moveToY - targetY, moveToX - targetX);
+        //isolate math section that assumes you cant move Y
+        double pos1 = targetX - Math.sqrt(arm.armLength * arm.armLength - (baseY - targetY) * (baseY - targetY));
+        double pos2 = targetX + Math.sqrt(arm.armLength * arm.armLength - (baseY - targetY) * (baseY - targetY));
+        if(Math.abs(pos1 - baseX) < Math.abs(pos2 - baseX) && pos1 >= 0.0){
+            moveToX = pos1;
         }else{
-            double slope = (baseY - targetY)/(baseX - targetX);
-            double pos1x = Utils.minMaxClip(targetX - Math.sqrt(arm.armLength * arm.armLength/(slope * slope + 1)), 0.0, 11.816);
-            double pos1y = Utils.minMaxClip(slope * (pos1x - targetX) + targetY, 0.0, 50.0);
-            double pos2x = Utils.minMaxClip(targetX + Math.sqrt(arm.armLength * arm.armLength/(slope * slope + 1)), 0.0, 11.816);
-            double pos2y = Utils.minMaxClip(slope * (pos2x - targetX) + targetY, 0.0, 50.0);
-
-            if(Math.abs(pos1y - targetY) < Math.abs(pos2y - targetY)){
-                moveToX = pos1x;
-                moveToY = pos1y;
-            }else{
-                moveToX = pos2x;
-                moveToY = pos2y;
-            }
-
-            moveToArmAngle = Math.atan2(moveToY - targetY, moveToX - targetX);
+            moveToX = pos2;
         }
+        moveToY = baseY;
+        moveToArmAngle = Math.atan2(moveToY - targetY, moveToX - targetX);
+
+//        //check if only horizontal movement is possible now to minimize slides usage
+//        if(Math.abs(baseY - targetY) < arm.armLength && targetX >= 0.0){
+//            double pos1 = targetX - Math.sqrt(arm.armLength * arm.armLength - (baseY - targetY) * (baseY - targetY));
+//            double pos2 = targetX + Math.sqrt(arm.armLength * arm.armLength - (baseY - targetY) * (baseY - targetY));
+//            if(Math.abs(pos1 - baseX) < Math.abs(pos2 - baseX) && pos1 >= 0.0){
+//                moveToX = pos1;
+//            }else{
+//                moveToX = pos2;
+//            }
+//            moveToY = baseY;
+//            moveToArmAngle = Math.atan2(moveToY - targetY, moveToX - targetX);
+//        }else{
+//            double slope = (baseY - targetY)/(baseX - targetX);
+//            double pos1x = Utils.minMaxClip(targetX - Math.sqrt(arm.armLength * arm.armLength/(slope * slope + 1)), 0.0, 11.816);
+//            double pos1y = Utils.minMaxClip(slope * (pos1x - targetX) + targetY, 0.0, 50.0);
+//            double pos2x = Utils.minMaxClip(targetX + Math.sqrt(arm.armLength * arm.armLength/(slope * slope + 1)), 0.0, 11.816);
+//            double pos2y = Utils.minMaxClip(slope * (pos2x - targetX) + targetY, 0.0, 50.0);
+//
+//            if(Math.abs(pos1y - targetY) < Math.abs(pos2y - targetY)){
+//                moveToX = pos1x;
+//                moveToY = pos1y;
+//            }else{
+//                moveToX = pos2x;
+//                moveToY = pos2y;
+//            }
+//
+//            moveToArmAngle = Math.atan2(moveToY - targetY, moveToX - targetX);
+//        }
     }
 
     public void updatePositions(){

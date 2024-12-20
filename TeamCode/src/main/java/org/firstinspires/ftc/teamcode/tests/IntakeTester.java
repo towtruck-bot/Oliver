@@ -9,7 +9,7 @@ import org.firstinspires.ftc.teamcode.utils.Globals;
 import org.firstinspires.ftc.teamcode.utils.RunMode;
 import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 
-@TeleOp
+@TeleOp(group = "Test")
 public class IntakeTester extends LinearOpMode {
     @Override
     public void runOpMode() {
@@ -21,6 +21,7 @@ public class IntakeTester extends LinearOpMode {
         final double triggerThreshold = 0.2;
         final double intakeAdjustmentSpeed = 0.3;
         boolean didToggleDisable = false;
+        boolean didToggleAlliance = false;
         boolean didToggleIntakeRoller = false;
 
         telemetry.addData("State", "READY TO START");
@@ -35,14 +36,16 @@ RT enable/disable
 LT transfer
 LB retract
 RB extend
-A unjam intake
-Y on/reverse intake
+B red/blue
+A roller unjam
+Y roller on/reverse
+^ roller off
+v roller keep in
 < intake further out
 > intake further in
 */
 
         while (!isStopRequested()) {
-/*
             if (gamepad1.right_trigger > triggerThreshold) {
                 if (!didToggleDisable) {
                     Globals.TESTING_DISABLE_CONTROL = !Globals.TESTING_DISABLE_CONTROL;
@@ -50,6 +53,15 @@ Y on/reverse intake
                 }
             } else {
                 didToggleDisable = false;
+            }
+
+            if (gamepad1.b) {
+                if (!didToggleAlliance) {
+                    Globals.isRed = !Globals.isRed;
+                    didToggleAlliance = true;
+                }
+            } else {
+                didToggleAlliance = false;
             }
 
             if (gamepad1.left_trigger > triggerThreshold) robot.intake.transfer();
@@ -65,15 +77,19 @@ Y on/reverse intake
             } else {
                 didToggleIntakeRoller = false;
             }
-            if (gamepad1.a) robot.intake.setRollerUnjam();
+            if (gamepad1.dpad_up) robot.intake.setRollerOff();
+            else if (gamepad1.dpad_down) robot.intake.setRollerKeepIn();
+            else if (gamepad1.a) robot.intake.setRollerUnjam();
             if (gamepad1.dpad_left) robot.intake.setTargetPositionWhenExtended(robot.intake.getTargetPositionWhenExtended() + intakeAdjustmentSpeed);
             else if (gamepad1.dpad_right) robot.intake.setTargetPositionWhenExtended(robot.intake.getTargetPositionWhenExtended() - intakeAdjustmentSpeed);
-*/
+
             robot.update();
 
             telemetry.addData("Globals.TESTING_DISABLE_CONTROL", Globals.TESTING_DISABLE_CONTROL);
-//            telemetry.addData("Intake.intakeState", robot.intake.getIntakeState().toString());
-//            telemetry.addData("Intake.targetPositionWhenExtended", robot.intake.getTargetPositionWhenExtended());
+            telemetry.addData("Globals.isRed", Globals.isRed);
+            telemetry.addData("Intake.intakeState", robot.intake.getIntakeState().toString());
+            telemetry.addData("Intake.intakeRollerState", robot.intake.getIntakeRollerState().toString());
+            telemetry.addData("Intake.targetPositionWhenExtended", robot.intake.getTargetPositionWhenExtended());
             telemetry.addData("Extendo position", robot.sensors.getIntakeExtensionPosition());
             telemetry.addData("Intake color", robot.sensors.getIntakeColor().toString());
 

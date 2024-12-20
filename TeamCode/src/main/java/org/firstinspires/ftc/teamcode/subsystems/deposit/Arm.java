@@ -11,79 +11,150 @@ import org.firstinspires.ftc.teamcode.utils.priority.PriorityServoV2;
 
 public class Arm {
     public final Sensors sensors;
-    public final PriorityServoV2 horizontalRail;
-    public final PriorityServoV2 armRotation;
-    public final PriorityServoV2 clawRotation;
-    public final PriorityServoV2 clawGrip;
 
-    private final double wheelRadius = 1.0; //TODO: Get value
-    private final double smallGearNum = 20.0, smallGearRad = 1.0, bigGearNum = 40.0, bigGearRad = 1.0;
-    public final double armLength = 1.0; //TODO: Get value
+    public final PriorityServo horizontalRail;
+    public final PriorityServo armRotation;
+    public final PriorityServo clawRotation;
+    public final PriorityServo clawGrip;
+
+//    public final PriorityServoV2 horizontalRail;
+//    public final PriorityServoV2 armRotation;
+//    public final PriorityServoV2 clawRotation;
+//    public final PriorityServoV2 clawGrip;
+
+    private final double wheelRadius = 1.75;
+    private final double smallGearNum = 25.0, bigGearNum = 40.0;
+    public final double armLength = 5.905314961;
 
     private double currArmRotation = 0.0;
-    //TODO: Get values below
-    private double samplePrepareRad = 1.0, sampleGrabRad = 1.0, speciPrepareRad = 1.0, speciGrabRad = 1.0;
+    //TODO: Get values below, current values are guesses
+    private double samplePrepareRad = 0.0, sampleGrabRad = Math.PI, speciPrepareRad = Math.PI, speciGrabRad = Math.PI/6;
 
     public Arm(Robot robot){
-        horizontalRail = new PriorityServoV2(
+//        horizontalRail = new PriorityServoV2(
+//                new Servo[] {robot.hardwareMap.get(Servo.class, "horizontalRail")},
+//                "horizontalRail",
+//                PriorityServoV2.ServoType.SPEED,
+//                1.0,
+//                new boolean[] {false},
+//                0.0,
+//                1.0,
+//                0.0,
+//                0.0,
+//                1.0,
+//                3.0,
+//                5.0
+//        );
+
+        horizontalRail = new PriorityServo(
                 new Servo[] {robot.hardwareMap.get(Servo.class, "horizontalRail")},
                 "horizontalRail",
-                PriorityServoV2.ServoType.SPEED,
-                1.0,
-                new boolean[] {false},
-                0.0,
+                PriorityServo.ServoType.SPEED,
                 1.0,
                 0.0,
+                0.542,
                 0.0,
+                true,
                 1.0,
-                3.0,
-                5.0
+                2.0,
+                new double[] {1.0}
         );
 
-        armRotation = new PriorityServoV2(
+        robot.hardwareQueue.addDevice(horizontalRail);
+
+//        armRotation = new PriorityServoV2(
+//                new Servo[] {robot.hardwareMap.get(Servo.class, "armRotationL"), robot.hardwareMap.get(Servo.class, "armRotationR")},
+//                "armRotation",
+//                PriorityServoV2.ServoType.SPEED,
+//                1.0,
+//                new boolean[] {false, true}, //TODO: Check these - James
+//                0.0,
+//                1.0,
+//                0.0,
+//                0.0,
+//                1.0,
+//                3.0,
+//                5.0
+//        );
+
+
+        armRotation = new PriorityServo(
                 new Servo[] {robot.hardwareMap.get(Servo.class, "armRotationL"), robot.hardwareMap.get(Servo.class, "armRotationR")},
                 "armRotation",
-                PriorityServoV2.ServoType.SPEED,
-                1.0,
-                new boolean[] {false, true}, //TODO: Check these - James
-                0.0,
+                PriorityServo.ServoType.SPEED,
                 1.0,
                 0.0,
-                0.0,
                 1.0,
-                3.0,
-                5.0
+                0.0,
+                false,
+                1.0,
+                2.0,
+                new double[] {1.0, -1.0}
         );
 
-        clawRotation = new PriorityServoV2(
+        robot.hardwareQueue.addDevice(armRotation);
+
+//        clawRotation = new PriorityServoV2(
+//                new Servo[] {robot.hardwareMap.get(Servo.class, "clawRotation")},
+//                "clawRotation",
+//                PriorityServoV2.ServoType.SPEED,
+//                1.0,
+//                new boolean[] {false},
+//                0.0,
+//                1.0,
+//                0.0,
+//                0.0,
+//                1.0,
+//                3.0,
+//                5.0
+//        );
+
+        clawRotation = new PriorityServo(
                 new Servo[] {robot.hardwareMap.get(Servo.class, "clawRotation")},
                 "clawRotation",
-                PriorityServoV2.ServoType.SPEED,
-                1.0,
-                new boolean[] {false},
-                0.0,
+                PriorityServo.ServoType.SPEED,
                 1.0,
                 0.0,
+                0.6,
                 0.0,
+                false,
                 1.0,
-                3.0,
-                5.0
+                2.0,
+                new double[]{1.0}
         );
 
-        clawGrip = new PriorityServoV2(
+        robot.hardwareQueue.addDevice(clawRotation);
+
+//        clawGrip = new PriorityServoV2(
+//                new Servo[] {robot.hardwareMap.get(Servo.class, "clawGrip")},
+//                "clawGrip",
+//                PriorityServoV2.ServoType.SPEED,
+//                1.0,
+//                new boolean[] {false},
+//                0.0,
+//                1.0,
+//                0.0,
+//                0.0,
+//                1.0,
+//                3.0,
+//                5.0
+//        );
+
+        clawGrip = new PriorityServo(
                 new Servo[] {robot.hardwareMap.get(Servo.class, "clawGrip")},
                 "clawGrip",
-                PriorityServoV2.ServoType.SPEED,
-                1.0,
-                new boolean[] {false},
-                0.0,
+                PriorityServo.ServoType.SPEED,
                 1.0,
                 0.0,
+                0.21,
                 0.0,
+                false,
                 1.0,
-                3.0,
-                5.0
+                2.0,
+                new double[] {1.0}
         );
+
+        robot.hardwareQueue.addDevice(clawGrip);
 
         this.sensors = robot.sensors;
     }

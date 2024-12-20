@@ -17,7 +17,7 @@ import org.firstinspires.ftc.teamcode.utils.priority.PriorityMotor;
 
 
 public class Sensors {
-    private LynxModule controlHub/*, expansionHub*/;
+    private LynxModule controlHub, expansionHub;
     private final HardwareQueue hardwareQueue;
     private final HardwareMap hardwareMap;
     private Robot robot;
@@ -35,10 +35,10 @@ public class Sensors {
     private int slidesEncoder;
     private double slidesVelocity;
 
-    private int intakeExtensionEncoder;
+    private double intakeExtensionEncoder;
 
-//    public final DigitalChannel intakeColorSensorR;
-//    public final DigitalChannel intakeColorSensorB;
+    public final DigitalChannel intakeColorSensorR;
+    public final DigitalChannel intakeColorSensorB;
     private BlockColor intakeColor = BlockColor.NONE;
 
     private final AnalogInput[] analogEncoders = new AnalogInput[2];
@@ -74,12 +74,12 @@ public class Sensors {
 //        SparkFunOTOS.Pose2D currentPosition = new SparkFunOTOS.Pose2D(0, 0, 0);
 //        otos.setPosition(currentPosition);
 
-/*
+
         this.intakeColorSensorR = this.robot.hardwareMap.get(DigitalChannel.class, "intakeColorSensorR");
         this.intakeColorSensorR.setMode(DigitalChannel.Mode.INPUT);
         this.intakeColorSensorB = this.robot.hardwareMap.get(DigitalChannel.class, "intakeColorSensorB");
         this.intakeColorSensorB.setMode(DigitalChannel.Mode.INPUT);
- */
+
 
         initSensors(hardwareMap);
     }
@@ -88,15 +88,15 @@ public class Sensors {
         controlHub = hardwareMap.get(LynxModule.class, "Control Hub");
         controlHub.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
 
-//        expansionHub = hardwareMap.get(LynxModule.class, "Expansion Hub");
-//        expansionHub.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
+        expansionHub = hardwareMap.get(LynxModule.class, "Expansion Hub 2");
+        expansionHub.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
 
         voltage = hardwareMap.voltageSensor.iterator().next().getVoltage();
     }
 
     public void update() {
         updateControlHub();
-        //updateExpansionHub();
+        updateExpansionHub();
         updateTelemetry();
     }
 
@@ -138,19 +138,16 @@ public class Sensors {
         slidesEncoder = ((PriorityMotor) hardwareQueue.getDevice("rightFront")).motor[0].getCurrentPosition() * -1;
         slidesVelocity = ((PriorityMotor) hardwareQueue.getDevice("rightFront")).motor[0].getVelocity() * -1;
 
-//        this.intakeExtensionEncoder = this.robot.intake.intakeExtensionMotor.motor[0].getCurrentPosition();
-
-/*
-        if (this.intakeColorSensorR.getState()) {
-            this.intakeColor = this.intakeColorSensorB.getState() ? BlockColor.YELLOW : BlockColor.RED;
-        } else {
-            this.intakeColor = this.intakeColorSensorB.getState() ? BlockColor.BLUE : BlockColor.NONE;
-        }
- */
+        this.intakeExtensionEncoder = this.robot.drivetrain.leftFront.motor[0].getCurrentPosition();
     }
 
     private void updateExpansionHub() {
         try {
+            if (this.intakeColorSensorR.getState()) {
+                this.intakeColor = this.intakeColorSensorB.getState() ? BlockColor.YELLOW : BlockColor.RED;
+            } else {
+                this.intakeColor = this.intakeColorSensorB.getState() ? BlockColor.BLUE : BlockColor.NONE;
+            }
         }
         catch (Exception e) {
             Log.e("******* Error due to ", e.getClass().getName());
@@ -163,6 +160,7 @@ public class Sensors {
         TelemetryUtil.packet.put("voltage", voltage);
 
         TelemetryUtil.packet.put("Extendo position", this.getIntakeExtensionPosition());
+        TelemetryUtil.packet.put("Extendo encoder", this.intakeExtensionEncoder);
 
         TelemetryUtil.packet.put("Intake color", this.intakeColor.toString());
     }
@@ -183,7 +181,7 @@ public class Sensors {
      * @return the intake extension slides' position, in inches
      */
     public double getIntakeExtensionPosition() {
-        final double inchesPerTick = 0.04132142857142857; // TODO This value is TEMPORARY (Centerstage/TeamCode/src/main/java/org/firstinspires/ftc/teamcode/subsystems/deposit/Slides.java)
+        final double inchesPerTick = -0.0409;
         return this.intakeExtensionEncoder * inchesPerTick;
     }
 

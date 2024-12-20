@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.utils.priority;
 
+import android.util.Log;
+
 import com.qualcomm.robotcore.hardware.Servo;
 
 public class PriorityServo extends PriorityDevice{
@@ -31,28 +33,29 @@ public class PriorityServo extends PriorityDevice{
     protected boolean reachedIntermediate = false;
     protected double currentIntermediateTargetAngle = 0;
     protected double[] multipliers = null;
-    protected boolean reversed = false;
     private long lastLoopTime = System.nanoTime();
     public String name;
     public double slowdownDist;
     public double slowdownPow;
 
-    //basic 1 servo constructor
+    // Defaults the motion profile
     public PriorityServo(Servo servo, String name, ServoType type, double loadMultiplier, double min, double max, double basePos, boolean reversed, double basePriority, double priorityScale) {
         this(new Servo[] {servo}, name, type, loadMultiplier, min, max, basePos, reversed, 0, 1, basePriority, priorityScale);
     }
 
-    //load multiplier multi servo constructor
+    // Defaults the motion profile
     public PriorityServo(Servo[] servo, String name, ServoType type, double loadMultiplier, double min, double max, double basePos, boolean reversed, double basePriority, double priorityScale, double[] multipliers) {
         this(servo,name,type,loadMultiplier,min,max,basePos,reversed, 0, 1, basePriority,priorityScale);
         this.multipliers = multipliers;
     }
 
+    // Takes in multipliers
     public PriorityServo(Servo servo, String name, ServoType type, double loadMultiplier, double min, double max, double basePos, boolean reversed, double slowdownDist, double slowdownPow, double basePriority, double priorityScale, double [] multipliers) {
         this(new Servo[] {servo}, name, type, loadMultiplier, min,  max,  basePos,  reversed, slowdownDist, slowdownPow,  basePriority,  priorityScale);
         this.multipliers = multipliers;
     }
 
+    // Takes in servo[] and multipliers
     public PriorityServo(Servo[] servo, String name, ServoType type, double loadMultiplier, double min, double max, double basePos, boolean reversed, double slowdownDist, double slowdownPow, double basePriority, double priorityScale, double [] multipliers) {
         this(servo, name, type, loadMultiplier, min,  max,  basePos,  reversed, slowdownDist, slowdownPow,  basePriority,  priorityScale);
         this.multipliers = multipliers;
@@ -64,7 +67,6 @@ public class PriorityServo extends PriorityDevice{
         this.type = type;
         this.type.speed *= loadMultiplier;
         this.name = name;
-        this.reversed = reversed;
         if (reversed) {
             this.type.positionPerRadian *= -1;
         }
@@ -127,6 +129,7 @@ public class PriorityServo extends PriorityDevice{
         }
         currentAngle += deltaAngle;
         lastLoopTime = currentTime;
+        Log.i("PriorityServo angle", name + ", currentAngle = " + currentAngle + " = " + Math.toDegrees(currentAngle) + ", targetAngle = " + targetAngle + " = " + Math.toDegrees(targetAngle));
     }
 
     public void setCurrentAngle(double currentAngle) {

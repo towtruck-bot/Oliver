@@ -50,13 +50,12 @@ public class Deposit {
     private double moveToX, moveToY, moveToArmAngle;
 
     //TODO: Verify All Values. Important!!!! LM2 robot all diff values
+    //TODO: FOR X COORDINATES, REMEMBER TO ACCOUNT FOR CLAW LENGTH
     private final double intakeX = 1.0, intakeY = 1.0, intakePrepareY = 1.0;
     private final double sampleBasketX = 1.0, sampleBasketY = 1.0;
     private final double outtakeX = 1.0, outtakeY = 1.0, grabX = 1.0, grabY = 1.0;
     private final double movingX = 1.0, movingY = 1.0, movingClawRad = Math.PI / 2;
     private final double specimenBarOutsideX = 1.0, specimenBarInsideX = 1.0, specimenBarAtX = 1.0, specimenUnderBarY = 1.0, specimenAtBarY = 1.0;
-
-    private Sensors.BlockColor alliance;
 
     public Deposit(Robot robot){
         this.robot = robot;
@@ -64,7 +63,7 @@ public class Deposit {
 
         arm = new Arm(robot);
 
-        state = State.IDLE;
+        state = Globals.hasSpecimenPreload ? State.HOLD : State.IDLE;
     }
 
     public void update(){
@@ -72,6 +71,7 @@ public class Deposit {
 
         switch(state){
             case IDLE:
+                resetToStart();
                 break;
             case TRANSFER_PREPARE_1:
                 setDepositPositions(intakeX, intakePrepareY);
@@ -265,7 +265,7 @@ public class Deposit {
                 arm.setClawSpeciPrepare();
 
                 if(arm.inPosition()){
-                    state = State.RELEASE;
+                    state = State.RETRACT;
                 }
                 break;
             case RETRACT:
@@ -351,36 +351,48 @@ public class Deposit {
 
     public void calculateMoveTo(){
         double baseX = arm.getHorizontalPos();
-        double baseY = slides.getLength();
+        //double baseY = slides.getLength();
+        double baseY = 0.0;
 
-        //check if only horizontal movement is possible now to minimize slides usage
-        if(Math.abs(baseY - targetY) < arm.armLength && targetX >= 0.0){
-            double pos1 = targetX - Math.sqrt(arm.armLength * arm.armLength - (baseY - targetY) * (baseY - targetY));
-            double pos2 = targetX + Math.sqrt(arm.armLength * arm.armLength - (baseY - targetY) * (baseY - targetY));
-            if(Math.abs(pos1 - baseX) < Math.abs(pos2 - baseX) && pos1 >= 0.0){
-                moveToX = pos1;
-            }else{
-                moveToX = pos2;
-            }
-            moveToY = baseY;
-            moveToArmAngle = Math.atan2(moveToY - targetY, moveToX - targetX);
+        //isolate math section that assumes you cant move Y
+        double pos1 = targetX - Math.sqrt(arm.armLength * arm.armLength - (baseY - targetY) * (baseY - targetY));
+        double pos2 = targetX + Math.sqrt(arm.armLength * arm.armLength - (baseY - targetY) * (baseY - targetY));
+        if(Math.abs(pos1 - baseX) < Math.abs(pos2 - baseX) && pos1 >= 0.0){
+            moveToX = pos1;
         }else{
-            double slope = (baseY - targetY)/(baseX - targetX);
-            double pos1x = Utils.minMaxClip(targetX - Math.sqrt(arm.armLength * arm.armLength/(slope * slope + 1)), 0.0, 11.816);
-            double pos1y = Utils.minMaxClip(slope * (pos1x - targetX) + targetY, 0.0, 50.0);
-            double pos2x = Utils.minMaxClip(targetX + Math.sqrt(arm.armLength * arm.armLength/(slope * slope + 1)), 0.0, 11.816);
-            double pos2y = Utils.minMaxClip(slope * (pos2x - targetX) + targetY, 0.0, 50.0);
-
-            if(Math.abs(pos1y - targetY) < Math.abs(pos2y - targetY)){
-                moveToX = pos1x;
-                moveToY = pos1y;
-            }else{
-                moveToX = pos2x;
-                moveToY = pos2y;
-            }
-
-            moveToArmAngle = Math.atan2(moveToY - targetY, moveToX - targetX);
+            moveToX = pos2;
         }
+        moveToY = baseY;
+        moveToArmAngle = Math.atan2(moveToY - targetY, moveToX - targetX);
+
+//        //check if only horizontal movement is possible now to minimize slides usage
+//        if(Math.abs(baseY - targetY) < arm.armLength && targetX >= 0.0){
+//            double pos1 = targetX - Math.sqrt(arm.armLength * arm.armLength - (baseY - targetY) * (baseY - targetY));
+//            double pos2 = targetX + Math.sqrt(arm.armLength * arm.armLength - (baseY - targetY) * (baseY - targetY));
+//            if(Math.abs(pos1 - baseX) < Math.abs(pos2 - baseX) && pos1 >= 0.0){
+//                moveToX = pos1;
+//            }else{
+//                moveToX = pos2;
+//            }
+//            moveToY = baseY;
+//            moveToArmAngle = Math.atan2(moveToY - targetY, moveToX - targetX);
+//        }else{
+//            double slope = (baseY - targetY)/(baseX - targetX);
+//            double pos1x = Utils.minMaxClip(targetX - Math.sqrt(arm.armLength * arm.armLength/(slope * slope + 1)), 0.0, 11.816);
+//            double pos1y = Utils.minMaxClip(slope * (pos1x - targetX) + targetY, 0.0, 50.0);
+//            double pos2x = Utils.minMaxClip(targetX + Math.sqrt(arm.armLength * arm.armLength/(slope * slope + 1)), 0.0, 11.816);
+//            double pos2y = Utils.minMaxClip(slope * (pos2x - targetX) + targetY, 0.0, 50.0);
+//
+//            if(Math.abs(pos1y - targetY) < Math.abs(pos2y - targetY)){
+//                moveToX = pos1x;
+//                moveToY = pos1y;
+//            }else{
+//                moveToX = pos2x;
+//                moveToY = pos2y;
+//            }
+//
+//            moveToArmAngle = Math.atan2(moveToY - targetY, moveToX - targetX);
+//        }
     }
 
     public void updatePositions(){
@@ -393,9 +405,5 @@ public class Deposit {
         moveToX = 0.0;
         moveToY = 0.0;
         moveToArmAngle = Math.toRadians(60.0);
-    }
-
-    public void setAlliance(Sensors.BlockColor color){
-        this.alliance = color;
     }
 }

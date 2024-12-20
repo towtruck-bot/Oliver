@@ -6,13 +6,12 @@ import static org.firstinspires.ftc.teamcode.utils.Globals.START_LOOP;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.teamcode.sensors.Sensors;
-import org.firstinspires.ftc.teamcode.subsystems.deposit.Arm;
 import org.firstinspires.ftc.teamcode.subsystems.deposit.Deposit;
 import org.firstinspires.ftc.teamcode.subsystems.drive.Drivetrain;
 import org.firstinspires.ftc.teamcode.subsystems.drive.Spline;
-import org.firstinspires.ftc.teamcode.subsystems.hang.Hang;
 import org.firstinspires.ftc.teamcode.subsystems.intake.Intake;
 import org.firstinspires.ftc.teamcode.utils.Func;
+import org.firstinspires.ftc.teamcode.utils.Globals;
 import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 import org.firstinspires.ftc.teamcode.utils.priority.HardwareQueue;
 import org.firstinspires.ftc.teamcode.vision.Vision;
@@ -23,7 +22,6 @@ public class Robot {
     public final Sensors sensors;
     public final Drivetrain drivetrain;
     public final Intake intake;
-    public final Arm arm;
     public final Deposit deposit;
 
     public enum RobotState {
@@ -59,11 +57,14 @@ public class Robot {
         this.hardwareMap = hardwareMap;
         this.hardwareQueue = new HardwareQueue();
 
+        if (Globals.hasSpecimenPreload) {
+            this.state = RobotState.SPECIMEN_READY;
+            this.prevState = RobotState.SPECIMEN_READY;
+        }
         this.sensors = new Sensors(this);
 
         this.intake = new Intake(this);
         this.drivetrain = new Drivetrain(this);
-        this.arm = new Arm(this);
         this.deposit = new Deposit(this);
 
         TelemetryUtil.setup();
@@ -78,12 +79,11 @@ public class Robot {
     private void updateSubsystems() {
         this.sensors.update();
 
-//        this.intake.update();
+        this.intake.update();
         this.drivetrain.update();
-//        this.hang.update();
-//        this.deposit.update();
+        //this.deposit.update();
 
-//        this.robotFSM();
+        //this.robotFSM();
 
         this.hardwareQueue.update();
     }
@@ -108,7 +108,7 @@ public class Robot {
         } while (((boolean) func.call()) && System.currentTimeMillis() - start <= 10000 && drivetrain.isBusy());
     }
 
-//    private void robotFSM() {
+    private void robotFSM() {
 /* Main robot FSM diagram below
 
 Single arrow: auto-advance state
@@ -125,7 +125,7 @@ IDLE >> {INTAKE_SAMPLE} > TRANSFER > SAMPLE_READY >> {DEPOSIT_BUCKET} >-^
 |                               VV          ^^
 ^-< {DEPOSIT_SPECIMEN} << SPECIMEN_READY >>-^^
 */
-/*        long currentTime = System.nanoTime();
+        long currentTime = System.nanoTime();
         boolean wasClicked = this.lastClickTime != -1 && currentTime - this.lastClickTime <= bufferClickDuration * 1e6;
 
         switch (this.state) {
@@ -208,7 +208,7 @@ IDLE >> {INTAKE_SAMPLE} > TRANSFER > SAMPLE_READY >> {DEPOSIT_BUCKET} >-^
         }
         prevState = state;
     }
-*/
+
     /**
      * Sets what will happen after an OUTTAKE. This is automatically set to true after an OUTTAKE > IDLE. -- Daniel
      * @param outtakeAndThenGrab true if the robot should go directly to GRAB_SPECIMEN, false to go to IDLE

@@ -1,11 +1,19 @@
 package org.firstinspires.ftc.teamcode.tests;
 
+import static org.firstinspires.ftc.teamcode.utils.Globals.GET_LOOP_TIME;
+import static org.firstinspires.ftc.teamcode.utils.Globals.START_LOOP;
+
+import android.util.Log;
+
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.utils.ButtonToggle;
+import org.firstinspires.ftc.teamcode.utils.Globals;
+import org.firstinspires.ftc.teamcode.utils.RunMode;
+import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 import org.firstinspires.ftc.teamcode.utils.Utils;
 import org.firstinspires.ftc.teamcode.utils.priority.HardwareQueue;
 import org.firstinspires.ftc.teamcode.utils.priority.PriorityDevice;
@@ -19,6 +27,9 @@ public class MotorTester extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
+        Globals.RUNMODE = RunMode.TESTER;
+        Globals.TESTING_DISABLE_CONTROL = true;
+
         Robot robot = new Robot(hardwareMap);
         HardwareQueue hardwareQueue = robot.hardwareQueue;
 
@@ -34,6 +45,7 @@ public class MotorTester extends LinearOpMode {
 
         // getting number of motors we have;
         for (PriorityDevice device : hardwareQueue.devices) {
+            Log.i("HardwareQueue devices", device.name);
             if (device instanceof PriorityMotor) {
                 motors.add((PriorityMotor) device);
                 motorSize++;
@@ -43,6 +55,7 @@ public class MotorTester extends LinearOpMode {
         waitForStart();
 
         while (!isStopRequested()) {
+            START_LOOP();
             robot.drivetrain.resetMinPowersToOvercomeFriction();
 
             if (buttonY.isClicked(gamepad1.y)) {
@@ -65,18 +78,27 @@ public class MotorTester extends LinearOpMode {
                 motorPower -= 0.01;
             }
 
+            if (gamepad1.right_trigger > 0.1) {
+                motorPower = 0;
+            }
+
             motorPower = Utils.minMaxClip(motorPower, -1.0, 1.0);
             motorIndex = (motorIndex + motorSize) % motorSize;
 
             motors.get(motorIndex).setTargetPower(motorPower);
 
-            robot.update();
+            //robot.update();
+            robot.sensors.update();
+            robot.hardwareQueue.update();
 
             telemetry.addData("motor index", motorIndex);
             telemetry.addData("motor name", motors.get(motorIndex).name);
             telemetry.addData("motor power", motorPower);
             telemetry.addData("motor velocity", motors.get(motorIndex).getVelocity());
             telemetry.update();
+
+            TelemetryUtil.packet.put("Loop Time", GET_LOOP_TIME());
+            TelemetryUtil.sendTelemetry();
         }
     }
 }

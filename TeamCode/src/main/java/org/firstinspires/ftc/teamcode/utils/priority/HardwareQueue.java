@@ -2,11 +2,14 @@ package org.firstinspires.ftc.teamcode.utils.priority;
 
 import static org.firstinspires.ftc.teamcode.utils.Globals.GET_LOOP_TIME;
 
+import android.util.Log;
+
 import java.util.ArrayList;
 
 public class HardwareQueue {
     public ArrayList<PriorityDevice> devices = new ArrayList<>();
-    public double targetLoopLength = 0.008; // sets the target loop time in seconds
+    public double targetLoopLength = 0.016; // sets the target loop time in seconds
+    //profe^ prob keep around 0.012
 
     public PriorityDevice getDevice(String name){
         for (PriorityDevice device : devices){
@@ -22,7 +25,7 @@ public class HardwareQueue {
     }
 
     public void update() {
-        for (PriorityDevice device: devices) {
+        for (PriorityDevice device : devices) {
             device.resetUpdateBoolean();
         }
 
@@ -32,10 +35,12 @@ public class HardwareQueue {
         do { // updates the motors while still time remaining in the loop
             int bestIndex = 0;
             bestDevice = devices.get(0).getPriority(targetLoopLength - loopTime);
+            Log.i("HardwareQueue priority", devices.get(0).name + ": " + bestDevice);
 
             // finds motor that needs updating the most
             for (int i = 1; i < devices.size(); i++) { //finding the motor that is most in need of being updated;
                 double currentMotor = devices.get(i).getPriority(targetLoopLength - loopTime);
+                Log.i("HardwareQueue priority", devices.get(i).name + ": " + currentMotor);
                 if (currentMotor > bestDevice) {
                     bestIndex = i;
                     bestDevice = currentMotor;
@@ -47,6 +52,6 @@ public class HardwareQueue {
             }
             loopTime = GET_LOOP_TIME();
         } while (bestDevice > 0 && loopTime <= targetLoopLength);
-        // Log.i("numUpdates", numUpdates + "");
+            Log.i("numUpdates", numUpdates + "");
     }
 }

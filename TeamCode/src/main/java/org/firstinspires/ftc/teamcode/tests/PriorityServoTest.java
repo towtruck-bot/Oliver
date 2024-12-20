@@ -10,12 +10,11 @@ import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.utils.Globals;
 import org.firstinspires.ftc.teamcode.utils.priority.PriorityServo;
 
-@Disabled
-@TeleOp
+@TeleOp(group = "test")
 @Config
 public class PriorityServoTest extends LinearOpMode {
-    public static double angle = 0;
-    public static double speed = 1;
+    public static double angle = Math.PI;
+    public static double speed = 0.5;
 
     @Override
     public void runOpMode() throws InterruptedException {

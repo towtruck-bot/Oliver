@@ -51,7 +51,7 @@ public class Deposit {
 
     //TODO: Verify All Values. Important!!!! LM2 robot all diff values
     //TODO: FOR X COORDINATES, REMEMBER TO ACCOUNT FOR CLAW LENGTH
-    private final double intakeX = 5.9053, intakeY = 0.0, intakePrepareX = 5.2603, intakePrepareY = 2.6937;
+    private final double transferPrepareX = 5.2603, transferPrepareY = 2.6937, transferX = 5.9053, transferY = 0.0, transferRad = 1.0499;
     private final double sampleBasketX = 1.0, sampleBasketY = 1.0;
     private final double outtakeX = 1.0, outtakeY = 1.0, grabX = 1.0, grabY = 1.0;
     private final double movingX = 1.0, movingY = 1.0, movingClawRad = Math.PI / 2;
@@ -72,9 +72,11 @@ public class Deposit {
         switch(state){
             case IDLE:
                 resetToStart();
+                updatePositions();
+
                 break;
             case TRANSFER_PREPARE_1:
-                setDepositPositions(intakePrepareX, intakePrepareY);
+                setDepositPositions(transferPrepareX, transferPrepareY);
                 calculateMoveTo();
 
                 updatePositions();
@@ -84,7 +86,7 @@ public class Deposit {
                 }
                 break;
             case TRANSFER_PREPARE_2:
-                arm.setClawRotation(1.0499, 1.0);
+                arm.setClawRotation(transferRad, 1.0);
                 arm.setClawSamplePrepare();
 
                 if(arm.inPosition()){
@@ -94,7 +96,7 @@ public class Deposit {
             case TRANSFER_WAIT:
                 break;
             case TRANSFER_GRAB_1:
-                setDepositPositions(intakeX, intakeY);
+                setDepositPositions(transferX, transferY);
                 calculateMoveTo();
 
                 updatePositions();
@@ -215,6 +217,10 @@ public class Deposit {
                 }
                 break;
             case HOLD:
+                setDepositPositions(movingX, movingY);
+                calculateMoveTo();
+
+                updatePositions();
                 break;
             case SPECIMEN_RAISE_1:
                 setDepositPositions(specimenBarOutsideX, specimenUnderBarY);

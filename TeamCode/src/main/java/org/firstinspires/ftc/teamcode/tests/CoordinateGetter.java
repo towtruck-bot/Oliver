@@ -1,23 +1,20 @@
 package org.firstinspires.ftc.teamcode.tests;
 
-import static org.firstinspires.ftc.teamcode.utils.Globals.GET_LOOP_TIME;
 import static org.firstinspires.ftc.teamcode.utils.Globals.START_LOOP;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.utils.ButtonToggle;
 import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 import org.firstinspires.ftc.teamcode.utils.Utils;
 import org.firstinspires.ftc.teamcode.utils.priority.PriorityServo;
-import org.firstinspires.ftc.teamcode.utils.priority.PriorityServoAxonEnc;
 
 import java.util.ArrayList;
 
 @TeleOp
-public class coordinateGetter extends LinearOpMode {
+public class CoordinateGetter extends LinearOpMode {
     public void runOpMode(){
         Robot robot = new Robot(hardwareMap);
 
@@ -25,7 +22,6 @@ public class coordinateGetter extends LinearOpMode {
 
         ButtonToggle buttonY = new ButtonToggle();
         ButtonToggle buttonA = new ButtonToggle();
-        ButtonToggle left_bumper = new ButtonToggle();
 
         servos.add(robot.deposit.arm.horizontalRail);
         servos.add(robot.deposit.arm.armRotation);
@@ -40,8 +36,6 @@ public class coordinateGetter extends LinearOpMode {
         TelemetryUtil.setup();
 
         waitForStart();
-
-
 
         while (!isStopRequested()) {
             START_LOOP();

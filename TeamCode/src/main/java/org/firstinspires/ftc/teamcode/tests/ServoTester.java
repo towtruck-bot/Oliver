@@ -54,7 +54,7 @@ public class ServoTester extends LinearOpMode {
                 servoSize++;
             }
         }
-        Log.e("james", String.valueOf(servoSize));
+
         double[] servoPos = new double[servoSize];
         for (int i = 0; i < servoSize; i ++){
             servoPos[i] = servos.get(i).basePos;
@@ -80,6 +80,8 @@ public class ServoTester extends LinearOpMode {
             if (gamepad1.b){
                 servoPos[servoIndex] -= 0.001;
             }
+
+            //TODO: Should the min-max clip not correspond to the Servo's own min max? - James
             servoPos[servoIndex] = Utils.minMaxClip(servoPos[servoIndex], 0.0, 1.0);
 
             // figuring out time to set servo pos
@@ -108,7 +110,6 @@ public class ServoTester extends LinearOpMode {
             //telemetry.addData("v4Encoder", v4Bar);
             telemetry.addData("angle", servos.get(servoIndex).getCurrentAngle());
             telemetry.addData("targetAngle", servos.get(servoIndex).getTargetAngle());
-
             if (servos.get(servoIndex) instanceof PriorityServoAxonEnc) {
                 telemetry.addData("voltage", " " + ((PriorityServoAxonEnc) servos.get(servoIndex)).getEncoderVoltage());
                 telemetry.addData("angle", " " + ((PriorityServoAxonEnc) servos.get(servoIndex)).getEncoderAngle());

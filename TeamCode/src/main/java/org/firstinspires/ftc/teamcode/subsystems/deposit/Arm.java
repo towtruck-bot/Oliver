@@ -26,9 +26,7 @@ public class Arm {
     private final double smallGearNum = 25.0, bigGearNum = 40.0;
     public final double armLength = 5.905314961;
 
-    private double currArmRotation = 0.0;
-    //TODO: Get values below, current values are guesses
-    private double samplePrepareRad = 0.0, sampleGrabRad = Math.PI, speciPrepareRad = Math.PI, speciGrabRad = Math.PI/6;
+    private double samplePrepareRad = 0.0, sampleGrabRad = 0.5356, speciPrepareRad = 0.7724, speciGrabRad = 0;
 
     public Arm(Robot robot){
 //        horizontalRail = new PriorityServoV2(
@@ -52,8 +50,8 @@ public class Arm {
                 PriorityServo.ServoType.SPEED,
                 1.0,
                 0.0,
-                0.542,
-                0.0,
+                0.543,
+                0.543,
                 true,
                 1.0,
                 2.0,
@@ -84,7 +82,7 @@ public class Arm {
                 PriorityServo.ServoType.SPEED,
                 1.0,
                 0.0,
-                1.0,
+                0.964,
                 0.0,
                 false,
                 1.0,
@@ -115,8 +113,8 @@ public class Arm {
                 PriorityServo.ServoType.SPEED,
                 1.0,
                 0.0,
-                0.6,
-                0.0,
+                0.753,
+                0.288,
                 false,
                 1.0,
                 2.0,
@@ -168,7 +166,7 @@ public class Arm {
     }
 
     public double getHorizontalPos(){
-        double currRad = horizontalRail.getCurrentAngle();
+        double currRad = -1 * horizontalRail.getCurrentAngle();
         double smallGearsTraversed = currRad/(Math.PI * 2) * bigGearNum * 2;
         double wheelRot = smallGearsTraversed/smallGearNum;
 
@@ -177,11 +175,10 @@ public class Arm {
 
     public void setArmRotation(double rad, double pow){
         armRotation.setTargetAngle(rad, pow);
-        currArmRotation = rad;
     }
 
     public double getArmRotation(){
-        return currArmRotation;
+        return armRotation.getCurrentAngle();
     }
 
     public void setClawRotation(double rad, double pow){

@@ -12,6 +12,7 @@ import org.firstinspires.ftc.teamcode.utils.RunMode;
 public class BlueBucketAuto extends LinearOpMode {
     private Robot robot;
 
+
     public void runOpMode(){
         Globals.isRed = false;
 

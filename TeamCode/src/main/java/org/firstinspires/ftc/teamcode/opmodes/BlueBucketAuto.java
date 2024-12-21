@@ -40,6 +40,7 @@ public class BlueBucketAuto extends LinearOpMode {
         robot.drivetrain.goToPoint(new Pose2d(48, -48, 315), true, true, 1.0); // go to basket
         // score basket
 
+
     }
     public void score3Preloads() {
 

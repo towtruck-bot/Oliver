@@ -35,12 +35,12 @@ public class HardwareQueue {
         do { // updates the motors while still time remaining in the loop
             int bestIndex = 0;
             bestDevice = devices.get(0).getPriority(targetLoopLength - loopTime);
-            Log.i("HardwareQueue priority", devices.get(0).name + ": " + bestDevice);
+            //Log.i("HardwareQueue priority", devices.get(0).name + ": " + bestDevice);
 
             // finds motor that needs updating the most
             for (int i = 1; i < devices.size(); i++) { //finding the motor that is most in need of being updated;
                 double currentMotor = devices.get(i).getPriority(targetLoopLength - loopTime);
-                Log.i("HardwareQueue priority", devices.get(i).name + ": " + currentMotor);
+                //Log.i("HardwareQueue priority", devices.get(i).name + ": " + currentMotor);
                 if (currentMotor > bestDevice) {
                     bestIndex = i;
                     bestDevice = currentMotor;
@@ -52,6 +52,6 @@ public class HardwareQueue {
             }
             loopTime = GET_LOOP_TIME();
         } while (bestDevice > 0 && loopTime <= targetLoopLength);
-            Log.i("numUpdates", numUpdates + "");
+        Log.i("numUpdates", numUpdates + "");
     }
 }

@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.subsystems.intake;
 
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 
 import com.acmerobotics.dashboard.config.Config;
@@ -15,6 +17,7 @@ import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 import org.firstinspires.ftc.teamcode.utils.Utils;
 import org.firstinspires.ftc.teamcode.utils.priority.PriorityMotor;
 import org.firstinspires.ftc.teamcode.utils.priority.PriorityServo;
+import org.firstinspires.ftc.teamcode.utils.priority.nPriorityServo;
 
 @Config
 public class Intake {
@@ -41,7 +44,7 @@ public class Intake {
     public final Robot robot;
     public final PriorityMotor intakeRollerMotor;
     public final PriorityMotor intakeExtensionMotor;
-    public final PriorityServo intakeFlipServo;
+    public final nPriorityServo intakeFlipServo;
 
     private IntakeState intakeState = IntakeState.FINISH_RETRACTING;
 
@@ -57,14 +60,14 @@ public class Intake {
     public static double extensionMaxPosition = 22;
     public static double extensionPositionTolerance = 0.9;
     public static double extendingStartFlipPosition = 5;
-    public static double extendedMinPosition = 5;
-    public static double distanceToIntake = 4;
+    public static double extendedMinPosition = 6;
+    public static double distanceToIntake = 3;
     private double targetPositionWhenExtended = 15.0;
     private double extensionCurrentPosition = 0;
     private double extensionControlTargetPosition = 0;
-    public static PID pid = new PID(0.06, 0.1, 0.02);
+    public static PID pid = new PID(0.05, 0.1, 0.05);
 
-    public static double flipDownAngle = Math.toRadians(-140);
+    public static double flipDownAngle = Math.toRadians(-135);
     public static double flipAngleToGoOverBarrier = Math.toRadians(-95);
 
     private Sensors.BlockColor sampleColor = Sensors.BlockColor.NONE;
@@ -92,19 +95,17 @@ public class Intake {
         );
         this.robot.hardwareQueue.addDevice(intakeExtensionMotor);
 
-        this.intakeFlipServo = new PriorityServo(
-                this.robot.hardwareMap.get(Servo.class, "intakeFlipServo"),
+        this.intakeFlipServo = new nPriorityServo(
+                new Servo[]{this.robot.hardwareMap.get(Servo.class, "intakeFlipServo")},
                 "intakeFlipServo",
-                PriorityServo.ServoType.AXON_MINI,
-                1.0,
-                0.69,
-                0.2,
-                0.69,
-                true,
-                1.0,
-                5.0
+                nPriorityServo.ServoType.HITEC,
+                0.19, 0.7,
+                0.7,
+                new boolean[] {false},
+                1.0, 5.0
         );
         this.robot.hardwareQueue.addDevice(intakeFlipServo);
+
         this.intakeFlipServo.setTargetAngle(Math.toRadians(-10), 1.0);
     }
 
@@ -131,7 +132,7 @@ public class Intake {
                 this.targetPositionWhenExtended = extendedMinPosition + distanceToIntake;
                 this.extensionControlTargetPosition = Math.max(this.targetPositionWhenExtended - distanceToIntake, extendedMinPosition);
                 this.intakeFlipServo.setTargetAngle(0, 1.0);
-                if (this.extensionCurrentPosition > extendingStartFlipPosition) this.intakeState = IntakeState.EXTENDING;
+                if (this.extensionCurrentPosition >= extendingStartFlipPosition) this.intakeState = IntakeState.EXTENDING;
                 else break;
             case EXTENDING:
                 this.setRollerOff();

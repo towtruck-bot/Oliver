@@ -123,7 +123,7 @@ public class PriorityServo extends PriorityDevice{
         double realError =targetAngle-currentAngle; //todo test this
         double deltaAngle = loopTime * type.speed * (Math.abs(realError) <= slowdownDist ? slowdownPow : power) * Math.signum(error);
         //double deltaAngle = timeSinceLastUpdate * type.speed * power * Math.signum(error);
-        reachedIntermediate = Math.abs(deltaAngle) > Math.abs(error);
+        reachedIntermediate = Math.abs(deltaAngle) >= Math.abs(error);
         if (reachedIntermediate){
             deltaAngle = error;
         }

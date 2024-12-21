@@ -5,6 +5,7 @@ import android.util.Log;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.utils.Globals;
+import org.firstinspires.ftc.teamcode.utils.Utils;
 
 public class nPriorityServo extends PriorityDevice {
     public enum ServoType {
@@ -31,8 +32,9 @@ public class nPriorityServo extends PriorityDevice {
 
     private final Servo[] servos;
     private final ServoType type;
-    private final double minPos, maxPos;
-    private final double basePos;
+    public final double minPos;
+    public final double maxPos;
+    public final double basePos;
     private double currentAngle = 0, targetAngle = 0, power = 0, currentIntermediateTargetAngle = 0;
     protected final boolean[] reversed;
     private long lastLoopTime = Globals.LOOP_START;
@@ -72,8 +74,17 @@ public class nPriorityServo extends PriorityDevice {
         return ang;
     }
 
+    public boolean inPosition(){
+        return Math.abs(targetAngle-currentAngle) < Math.toRadians(0.01);
+    }
+
     public void setTargetAngle(double angle) {
-        this.targetAngle = angle;
+        this.targetAngle = Utils.minMaxClip(angle, convertPosToAngle(minPos), convertPosToAngle(maxPos));
+    }
+
+    public void setTargetAngle(double angle, double power) {
+        this.targetAngle = Utils.minMaxClip(angle, convertPosToAngle(minPos), convertPosToAngle(maxPos));
+        this.power = power;
     }
 
     public double getTargetAngle() {
@@ -81,16 +92,20 @@ public class nPriorityServo extends PriorityDevice {
     }
 
     public void setTargetPos(double pos) {
-        this.setTargetPos(pos, power);
+        this.setTargetPos(Utils.minMaxClip(pos, minPos, maxPos), power);
     }
 
     public void setTargetPos(double pos, double power) {
-        this.targetAngle = convertPosToAngle(Math.max(Math.min(pos, 1), 0));
+        this.targetAngle = convertPosToAngle(Math.max(Math.min(pos, maxPos), minPos));
         this.power = power;
     }
 
     public double getTargetPos() {
         return convertAngleToPos(targetAngle);
+    }
+
+    public double getCurrentAngle() {
+        return currentAngle;
     }
 
     @Override

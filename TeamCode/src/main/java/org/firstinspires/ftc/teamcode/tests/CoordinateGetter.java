@@ -10,6 +10,7 @@ import org.firstinspires.ftc.teamcode.utils.ButtonToggle;
 import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 import org.firstinspires.ftc.teamcode.utils.Utils;
 import org.firstinspires.ftc.teamcode.utils.priority.PriorityServo;
+import org.firstinspires.ftc.teamcode.utils.priority.nPriorityServo;
 
 import java.util.ArrayList;
 
@@ -18,7 +19,7 @@ public class CoordinateGetter extends LinearOpMode {
     public void runOpMode(){
         Robot robot = new Robot(hardwareMap);
 
-        ArrayList<PriorityServo> servos = new ArrayList<>();
+        ArrayList<nPriorityServo> servos = new ArrayList<>();
 
         ButtonToggle buttonY = new ButtonToggle();
         ButtonToggle buttonA = new ButtonToggle();
@@ -56,7 +57,7 @@ public class CoordinateGetter extends LinearOpMode {
             servoPos[servoIndex] = Utils.minMaxClip(servoPos[servoIndex], servos.get(servoIndex).minPos, servos.get(servoIndex).maxPos);
 
 
-            servos.get(servoIndex).setTargetPose(servoPos[servoIndex], 1.0);
+            servos.get(servoIndex).setTargetPos(servoPos[servoIndex], 1.0);
 
             // incrementing / decrementing servoIndex
             if (buttonY.isClicked(gamepad1.y)) {

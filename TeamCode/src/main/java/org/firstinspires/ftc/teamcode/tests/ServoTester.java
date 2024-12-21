@@ -19,6 +19,7 @@ import org.firstinspires.ftc.teamcode.utils.priority.HardwareQueue;
 import org.firstinspires.ftc.teamcode.utils.priority.PriorityDevice;
 import org.firstinspires.ftc.teamcode.utils.priority.PriorityServo;
 import org.firstinspires.ftc.teamcode.utils.priority.PriorityServoAxonEnc;
+import org.firstinspires.ftc.teamcode.utils.priority.nPriorityServo;
 
 import java.util.ArrayList;
 
@@ -38,7 +39,7 @@ public class ServoTester extends LinearOpMode {
         Robot robot = new Robot(hardwareMap);
         HardwareQueue hardwareQueue = robot.hardwareQueue;
 
-        ArrayList<PriorityServo> servos = new ArrayList<>();
+        ArrayList<nPriorityServo> servos = new ArrayList<>();
 
         ButtonToggle buttonY = new ButtonToggle();
         ButtonToggle buttonA = new ButtonToggle();
@@ -49,8 +50,8 @@ public class ServoTester extends LinearOpMode {
 
         // getting number of servos we have;
         for (PriorityDevice device : hardwareQueue.devices) {
-            if (device instanceof PriorityServo) {
-                servos.add((PriorityServo) device);
+            if (device instanceof nPriorityServo) {
+                servos.add((nPriorityServo) device);
                 servoSize++;
             }
         }
@@ -86,7 +87,7 @@ public class ServoTester extends LinearOpMode {
 
             // figuring out time to set servo pos
             long start = System.nanoTime();
-            servos.get(servoIndex).setTargetPose(usePosition ? position : servoPos[servoIndex], 1.0);
+            servos.get(servoIndex).setTargetPos(usePosition ? position : servoPos[servoIndex], 1.0);
             double elapsedTime = (System.nanoTime()-start)/1000000000.0;
             totalTime += elapsedTime;
 
@@ -110,10 +111,10 @@ public class ServoTester extends LinearOpMode {
             //telemetry.addData("v4Encoder", v4Bar);
             telemetry.addData("angle", servos.get(servoIndex).getCurrentAngle());
             telemetry.addData("targetAngle", servos.get(servoIndex).getTargetAngle());
-            if (servos.get(servoIndex) instanceof PriorityServoAxonEnc) {
+            /*if (servos.get(servoIndex) instanceof PriorityServoAxonEnc) {
                 telemetry.addData("voltage", " " + ((PriorityServoAxonEnc) servos.get(servoIndex)).getEncoderVoltage());
                 telemetry.addData("angle", " " + ((PriorityServoAxonEnc) servos.get(servoIndex)).getEncoderAngle());
-            }
+            }*/
 
             TelemetryUtil.packet.put("Loop Time", GET_LOOP_TIME());
             TelemetryUtil.sendTelemetry();

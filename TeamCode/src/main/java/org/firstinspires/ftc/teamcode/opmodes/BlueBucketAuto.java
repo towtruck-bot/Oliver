@@ -18,8 +18,8 @@ public class BlueBucketAuto extends LinearOpMode {
 
         doInitialization();
         waitForStart();
-
-
+        score1stPreload();
+        score3Preloads();
 
     }
 
@@ -35,10 +35,15 @@ public class BlueBucketAuto extends LinearOpMode {
             robot.update();
         }
     }
-    public void scorePreloads() {
-        // extend slides
+    public void score1stPreload(){
+        // scoring the first sample
+        robot.drivetrain.goToPoint(new Pose2d(48, -48, 315), true, true, 1.0); // go to basket
+        // score basket
 
-        robot.drivetrain.goToPoint(new Pose2d(48, -36, 210), true, true, 1.0); // go to preload
+    }
+    public void score3Preloads() {
+
+        robot.drivetrain.goToPoint(new Pose2d(48, -48, 180), true, true, 1.0); // turn to preload
         // intake preload #1
         robot.drivetrain.goToPoint(new Pose2d(48, -48, 315), true, true, 1.0); // go to basket
         // score basket
@@ -52,9 +57,6 @@ public class BlueBucketAuto extends LinearOpMode {
         // intake preload #3
         robot.drivetrain.goToPoint(new Pose2d(48, -48, 315), true, true, 1.0); // rotate to basket
         // score basket
-
-
-
     }
 
 }

@@ -35,5 +35,26 @@ public class BlueBucketAuto extends LinearOpMode {
             robot.update();
         }
     }
+    public void scorePreloads() {
+        // extend slides
+
+        robot.drivetrain.goToPoint(new Pose2d(48, -36, 210), true, true, 1.0); // go to preload
+        // intake preload #1
+        robot.drivetrain.goToPoint(new Pose2d(48, -48, 315), true, true, 1.0); // go to basket
+        // score basket
+
+        robot.drivetrain.goToPoint(new Pose2d(48, -48, 210), true, true, 1.0); // rotate to preload #2
+        // intake preload #2
+        robot.drivetrain.goToPoint(new Pose2d(48, -48, 315), true, true, 1.0); // rotate to basket
+        // score basket
+
+        robot.drivetrain.goToPoint(new Pose2d(48, -48, 225), true, true, 1.0); // rotate to preload #3 todo: maybe for preload #3 it's hard to intake since it's close to the wall
+        // intake preload #3
+        robot.drivetrain.goToPoint(new Pose2d(48, -48, 315), true, true, 1.0); // rotate to basket
+        // score basket
+
+
+
+    }
 
 }

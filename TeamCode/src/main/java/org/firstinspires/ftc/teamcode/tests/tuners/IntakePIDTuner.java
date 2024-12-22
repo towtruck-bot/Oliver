@@ -23,10 +23,10 @@ public class IntakePIDTuner extends LinearOpMode {
         waitForStart();
 
         while (opModeIsActive()) {
-            robot.intake.extensionTargetLen = targetExtension;
+            robot.intake.extTargetLen = targetExtension;
 
             // Logging for PID graphs
-            TelemetryUtil.packet.put("Intake Target", robot.intake.extensionTargetLen);
+            TelemetryUtil.packet.put("Intake Target", robot.intake.extTargetLen);
             TelemetryUtil.packet.put("Intake Current Position", robot.intake.extCurrentLen);
 
             robot.update();

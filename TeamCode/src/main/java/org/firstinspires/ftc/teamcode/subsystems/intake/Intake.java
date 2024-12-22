@@ -58,7 +58,7 @@ public class Intake {
     public static double extTolerance = 0.9;
     public static double extFlipThresh = 5;
     public double extCurrentLen = 0;
-    private double extTargetLen = 0;
+    public double extTargetLen = 0;
     private double setExtTargetLen = 0;
     public static PID pid = new PID(0.185, 0, 0.008);
 

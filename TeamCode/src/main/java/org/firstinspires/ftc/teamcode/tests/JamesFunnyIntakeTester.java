@@ -32,7 +32,7 @@ public class JamesFunnyIntakeTester extends LinearOpMode {
                 set = !set;
             }
 
-            robot.intake.extensionTargetLen = targetLength;
+            robot.intake.extTargetLen = targetLength;
 
             robot.intake.intakeRollerState = stateRollerDashboard;
 

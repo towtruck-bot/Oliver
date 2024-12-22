@@ -125,7 +125,7 @@ public class Intake {
                 setRollerOff();
                 extTargetLen = Math.max(setExtTargetLen, extFlipThresh);
                 intakeFlipServo.setTargetAngle(0, 1.0);
-                if (extCurrentLen - extFlipThresh <= extTolerance)
+                if (extFlipThresh - extCurrentLen <= extTolerance)
                     intakeState = IntakeState.EXTENDING;
                 break;
             case EXTENDING:
@@ -315,7 +315,7 @@ public class Intake {
     public boolean hasSample() { return sampleColor != Sensors.BlockColor.NONE; }
 
     public void setExtTargetLength(double length) {
-        setExtTargetLen = Math.min(length, extMaxLen);
+        setExtTargetLen = Math.max(Math.min(length, extMaxLen),0);
     }
 
     public double getExtTargetLen() {

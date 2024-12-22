@@ -82,8 +82,8 @@ v roller keep in
             if (gamepad1.dpad_up) robot.intake.setRollerOff();
             else if (gamepad1.dpad_down) robot.intake.setRollerKeepIn();
             else if (gamepad1.a) robot.intake.setRollerUnjam();
-            if (gamepad1.dpad_left) robot.intake.setTargetPositionWhenExtended(robot.intake.getTargetPositionWhenExtended() + intakeAdjustmentSpeed);
-            else if (gamepad1.dpad_right) robot.intake.setTargetPositionWhenExtended(robot.intake.getTargetPositionWhenExtended() - intakeAdjustmentSpeed);
+//            if (gamepad1.dpad_left) robot.intake.setTargetPositionWhenExtended(robot.intake.getTargetPositionWhenExtended() + intakeAdjustmentSpeed);
+//            else if (gamepad1.dpad_right) robot.intake.setTargetPositionWhenExtended(robot.intake.getTargetPositionWhenExtended() - intakeAdjustmentSpeed);
 
             robot.update();
 
@@ -91,7 +91,7 @@ v roller keep in
             telemetry.addData("Globals.isRed", Globals.isRed);
             telemetry.addData("Intake.intakeState", robot.intake.getIntakeState().toString());
             telemetry.addData("Intake.intakeRollerState", robot.intake.getIntakeRollerState().toString());
-            telemetry.addData("Intake.targetPositionWhenExtended", robot.intake.getTargetPositionWhenExtended());
+//            telemetry.addData("Intake.targetPositionWhenExtended", robot.intake.getTargetPositionWhenExtended());
             telemetry.addData("Extendo position", robot.sensors.getIntakeExtensionPosition());
             telemetry.addData("Intake color", robot.sensors.getIntakeColor().toString());
 

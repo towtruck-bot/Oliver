@@ -27,16 +27,16 @@ public class Arm {
     private final double smallGearNum = 25.0, bigGearNum = 40.0;
     public final double armLength = 5.905314961;
 
-    private double samplePrepareRad = 0.0, sampleGrabRad = 0.5356, speciPrepareRad = 0.7724, speciGrabRad = 0;
+    private double samplePrepareRad = 0.0, sampleGrabRad = 0.2544, speciPrepareRad = 0.7123, speciGrabRad = 0;
 
     public Arm(Robot robot){
         horizontalRail = new nPriorityServo(
                 new Servo[] {robot.hardwareMap.get(Servo.class, "horizontalRail")},
                 "horizontalRail",
                 nPriorityServo.ServoType.SPEED,
-                1.0,
                 0.0,
-                0.543,
+                0.545,
+                0.540,
                 new boolean[] {false},
                 1.0,
                 2.0
@@ -64,7 +64,7 @@ public class Arm {
                 nPriorityServo.ServoType.SPEED,
                 0.0,
                 1.0,
-                0.0,
+                0.272,
                 new boolean[] {false},
                 1.0,
                 2.0
@@ -77,7 +77,7 @@ public class Arm {
                 "clawGrip",
                 nPriorityServo.ServoType.SPEED,
                 0.0,
-                0.21,
+                0.219,
                 0.0,
                 new boolean[] {false},
                 1.0,

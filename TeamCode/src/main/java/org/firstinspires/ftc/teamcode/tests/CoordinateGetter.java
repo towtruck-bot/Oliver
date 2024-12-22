@@ -26,6 +26,8 @@ public class CoordinateGetter extends LinearOpMode {
 
         servos.add(robot.deposit.arm.horizontalRail);
         servos.add(robot.deposit.arm.armRotation);
+        servos.add(robot.deposit.arm.clawRotation);
+        servos.add(robot.deposit.arm.clawGrip);
 
         int servoIndex = 0;
         int servoSize = servos.size();
@@ -51,10 +53,10 @@ public class CoordinateGetter extends LinearOpMode {
             }
 
             if(gamepad1.left_bumper){
-                robot.deposit.arm.clawRotation.setTargetAngle(1.0499, 1.0);
+                robot.deposit.arm.clawRotation.setTargetAngle(1.406, 1.0);
             }
 
-            servoPos[servoIndex] = Utils.minMaxClip(servoPos[servoIndex], servos.get(servoIndex).minPos, servos.get(servoIndex).maxPos);
+            servoPos[servoIndex] = Utils.minMaxClip(servoPos[servoIndex], 0.0, 1.0);
 
 
             servos.get(servoIndex).setTargetPos(servoPos[servoIndex], 1.0);

@@ -60,6 +60,7 @@ public class nPriorityServo extends PriorityDevice {
         this.maxPos = maxPos;
         this.basePos = basePos;
         this.reversed = reversed;
+        this.currentAngle = convertPosToAngle(basePos);
     }
 
     private double convertPosToAngle(double pos) {

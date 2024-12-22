@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.tests;
 
 import com.acmerobotics.dashboard.config.Config;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -10,6 +11,7 @@ import org.firstinspires.ftc.teamcode.utils.Globals;
 import org.firstinspires.ftc.teamcode.utils.RunMode;
 import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 
+@Disabled
 @TeleOp
 @Config
 public class JamesFunnyIntakeTester extends LinearOpMode {
@@ -24,7 +26,7 @@ public class JamesFunnyIntakeTester extends LinearOpMode {
         Globals.RUNMODE = RunMode.TELEOP;
 
         waitForStart();
-
+/*
         while(!isStopRequested()){
             if(set){
 //                robot.intake.extensionControlTargetPosition = extensionControlTargetPositionDash;
@@ -40,5 +42,6 @@ public class JamesFunnyIntakeTester extends LinearOpMode {
 
             robot.update();
         }
+ */
     }
 }

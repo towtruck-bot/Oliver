@@ -52,6 +52,14 @@ public class CoordinateGetter extends LinearOpMode {
                 servoPos[servoIndex] -= 0.001;
             }
 
+            if(gamepad1.dpad_up){
+                robot.deposit.slides.setTargetLength(robot.deposit.slides.getLength() + 0.1);
+            }
+
+            if(gamepad1.dpad_down){
+                robot.deposit.slides.setTargetLength(robot.deposit.slides.getLength() - 0.1);
+            }
+
             if(gamepad1.left_bumper){
                 robot.deposit.arm.clawRotation.setTargetAngle(1.406, 1.0);
             }
@@ -74,7 +82,7 @@ public class CoordinateGetter extends LinearOpMode {
             servoIndex = (servoIndex + servoSize) % servoSize;
 
             double horizontalPosition = robot.deposit.arm.getHorizontalPos() + Math.cos(robot.deposit.arm.getArmRotation()) * robot.deposit.arm.armLength;
-            double verticalPosition = Math.sin(robot.deposit.arm.getArmRotation()) * robot.deposit.arm.armLength;
+            double verticalPosition = robot.deposit.slides.getLength() + Math.sin(robot.deposit.arm.getArmRotation()) * robot.deposit.arm.armLength;
 
             telemetry.addData("servoName", servos.get(servoIndex).name);
             telemetry.addData("servoPos", servoPos[servoIndex]);
@@ -83,6 +91,9 @@ public class CoordinateGetter extends LinearOpMode {
             telemetry.addData("horizontalRail pos", robot.deposit.arm.getHorizontalPos());
             telemetry.addData("horizontal arm component", Math.cos(robot.deposit.arm.getArmRotation()) * robot.deposit.arm.armLength);
             telemetry.addData("verticalPosition: ", verticalPosition);
+            telemetry.addData("slides height", robot.deposit.slides.getLength());
+            telemetry.addData("vertical arm component", Math.sin(robot.deposit.arm.getArmRotation()) * robot.deposit.arm.armLength);
+
 
             TelemetryUtil.sendTelemetry();
             telemetry.update();

@@ -8,6 +8,7 @@ import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.subsystems.deposit.Deposit;
 import org.firstinspires.ftc.teamcode.utils.Globals;
 import org.firstinspires.ftc.teamcode.utils.RunMode;
+import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 
 @TeleOp(group = "Test")
 @Config
@@ -23,9 +24,12 @@ public class DepositTester extends LinearOpMode {
         while(!isStopRequested()){
             if(set){
                 robot.deposit.state = stateDashboard;
-                robot.update();
                 set = !set;
             }
+
+            TelemetryUtil.packet.put("current state", robot.deposit.state);
+
+            robot.update();
         }
     }
 }

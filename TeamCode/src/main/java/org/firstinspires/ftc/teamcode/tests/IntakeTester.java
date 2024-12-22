@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode.tests;
 
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -11,20 +10,21 @@ import org.firstinspires.ftc.teamcode.utils.RunMode;
 import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 
 @TeleOp(group = "Test")
-@Disabled
 public class IntakeTester extends LinearOpMode {
     @Override
     public void runOpMode() {
         Globals.RUNMODE = RunMode.TESTER;
-        Globals.TESTING_DISABLE_CONTROL = true;
+        Globals.TESTING_DISABLE_CONTROL = false;
 
         Robot robot = new Robot(hardwareMap);
 
         final double triggerThreshold = 0.2;
         final double intakeAdjustmentSpeed = 0.3;
+        final double intakeHeightStep = 5;
         boolean didToggleDisable = false;
         boolean didToggleAlliance = false;
         boolean didToggleIntakeRoller = false;
+        boolean didToggleIntakeHeight = false;
 
         telemetry.addData("State", "READY TO START");
         telemetry.update();
@@ -34,21 +34,27 @@ public class IntakeTester extends LinearOpMode {
         }
 
 /*
-RT enable/disable
-LT transfer
-LB retract
+P1 ==== A
+LT retract
+LB transfer
 RB extend
-B red/blue
+X roller off
 A roller unjam
-Y roller on/reverse
-^ roller off
-v roller keep in
-< intake further out
-> intake further in
+B roller on/reverse
+< roller slow reverse
+> roller keep in
+^ intake further out
+v intake further in
+P2 ==== B
+RT enable/disable
+RSY intake slides
+X red/blue
+A intake down
+Y intake up
 */
 
         while (!isStopRequested()) {
-            if (gamepad1.right_trigger > triggerThreshold) {
+            if (gamepad2.right_trigger > triggerThreshold) {
                 if (!didToggleDisable) {
                     Globals.TESTING_DISABLE_CONTROL = !Globals.TESTING_DISABLE_CONTROL;
                     didToggleDisable = true;
@@ -57,7 +63,7 @@ v roller keep in
                 didToggleDisable = false;
             }
 
-            if (gamepad1.b) {
+            if (gamepad2.x) {
                 if (!didToggleAlliance) {
                     Globals.isRed = !Globals.isRed;
                     didToggleAlliance = true;
@@ -66,11 +72,11 @@ v roller keep in
                 didToggleAlliance = false;
             }
 
-            if (gamepad1.left_trigger > triggerThreshold) robot.intake.transfer();
-            else if (gamepad1.left_bumper) robot.intake.retract();
+            if (gamepad1.left_trigger > triggerThreshold) robot.intake.retract();
+            else if (gamepad1.left_bumper) robot.intake.transfer();
             else if (gamepad1.right_bumper) robot.intake.extend();
 
-            if (gamepad1.y) {
+            if (gamepad1.b) {
                 if (!didToggleIntakeRoller) {
                     if (robot.intake.getIntakeRollerState() == Intake.IntakeRollerState.ON) robot.intake.setRollerReverse();
                     else robot.intake.setRollerOn();
@@ -79,11 +85,30 @@ v roller keep in
             } else {
                 didToggleIntakeRoller = false;
             }
-            if (gamepad1.dpad_up) robot.intake.setRollerOff();
-            else if (gamepad1.dpad_down) robot.intake.setRollerKeepIn();
+            if (gamepad1.x) robot.intake.setRollerOff();
             else if (gamepad1.a) robot.intake.setRollerUnjam();
-//            if (gamepad1.dpad_left) robot.intake.setTargetPositionWhenExtended(robot.intake.getTargetPositionWhenExtended() + intakeAdjustmentSpeed);
-//            else if (gamepad1.dpad_right) robot.intake.setTargetPositionWhenExtended(robot.intake.getTargetPositionWhenExtended() - intakeAdjustmentSpeed);
+            else if (gamepad1.dpad_left) robot.intake.setRollerSlowReverse();
+            else if (gamepad1.dpad_right) robot.intake.setRollerKeepIn();
+
+            if (gamepad1.dpad_up) robot.intake.setTargetPositionWhenExtended(robot.intake.getTargetPositionWhenExtended() + intakeAdjustmentSpeed);
+            else if (gamepad1.dpad_down) robot.intake.setTargetPositionWhenExtended(robot.intake.getTargetPositionWhenExtended() - intakeAdjustmentSpeed);
+            robot.intake.setTargetPositionWhenExtended(robot.intake.getTargetPositionWhenExtended() + intakeAdjustmentSpeed * -gamepad2.right_stick_y);
+
+            if (gamepad2.a) {
+                if (!didToggleIntakeHeight) {
+                    robot.intake.setFlipDownAngle(robot.intake.getFlipDownAngle() + intakeHeightStep);
+                    didToggleIntakeHeight = true;
+                }
+            } else if (gamepad2.y) {
+                if (!didToggleIntakeHeight) {
+                    robot.intake.setFlipDownAngle(robot.intake.getFlipDownAngle() - intakeHeightStep);
+                    didToggleIntakeHeight = true;
+                }
+            } else {
+                didToggleIntakeHeight = false;
+            }
+
+            robot.drivetrain.drive(gamepad1);
 
             robot.update();
 
@@ -91,7 +116,8 @@ v roller keep in
             telemetry.addData("Globals.isRed", Globals.isRed);
             telemetry.addData("Intake.intakeState", robot.intake.getIntakeState().toString());
             telemetry.addData("Intake.intakeRollerState", robot.intake.getIntakeRollerState().toString());
-//            telemetry.addData("Intake.targetPositionWhenExtended", robot.intake.getTargetPositionWhenExtended());
+            telemetry.addData("Intake.targetPositionWhenExtended", robot.intake.getTargetPositionWhenExtended());
+            telemetry.addData("Intake.flipDownAngle", robot.intake.getFlipDownAngle());
             telemetry.addData("Extendo position", robot.sensors.getIntakeExtensionPosition());
             telemetry.addData("Intake color", robot.sensors.getIntakeColor().toString());
 
@@ -99,3 +125,4 @@ v roller keep in
         }
     }
 }
+

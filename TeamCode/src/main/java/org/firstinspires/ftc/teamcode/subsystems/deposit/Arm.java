@@ -35,8 +35,8 @@ public class Arm {
                 "horizontalRail",
                 nPriorityServo.ServoType.SPEED,
                 0.0,
-                0.545,
-                0.540,
+                1.0,
+                0.0,
                 new boolean[] {false},
                 1.0,
                 2.0

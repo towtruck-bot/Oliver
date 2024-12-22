@@ -89,9 +89,9 @@ public class Robot {
     }
 
     private void updateTelemetry() {
-        TelemetryUtil.packet.put("Robot.state", this.state.toString());
-        TelemetryUtil.packet.put("Robot.nextState", this.nextState.toString());
-        TelemetryUtil.packet.put("Robot.outtakeAndThenGrab", this.outtakeAndThenGrab);
+        TelemetryUtil.packet.put("Robot state", this.state.toString());
+        TelemetryUtil.packet.put("Robot nextState", this.nextState.toString());
+        TelemetryUtil.packet.put("Robot outtakeAndThenGrab", this.outtakeAndThenGrab);
         TelemetryUtil.packet.put("Loop Time", GET_LOOP_TIME());
         TelemetryUtil.sendTelemetry();
     }
@@ -186,7 +186,7 @@ IDLE >> {INTAKE_SAMPLE} > TRANSFER > SAMPLE_READY >> {DEPOSIT_BUCKET} >-^
                 if (this.deposit.isSpecimenReady()) this.state = RobotState.SPECIMEN_READY;
                 else if (wasClicked) {
                     if (this.nextState == NextState.DONE) this.state = RobotState.IDLE;
-                    else if (this.nextState == NextState.GRAB_SPECIMEN) this.deposit.finishSpecimenGrab();
+                    else if (this.nextState == NextState.DEPOSIT) this.deposit.finishSpecimenGrab();
                     this.lastClickTime = -1;
                 }
                 break;
@@ -259,9 +259,9 @@ IDLE >> {INTAKE_SAMPLE} > TRANSFER > SAMPLE_READY >> {DEPOSIT_BUCKET} >-^
      *          <td>Bring the claw down to grab a specimen</td>
      *      </tr>
      *      <tr>
+     *          <td>DEPOSIT</td>
      *          <td>GRAB SPECIMEN</td>
-     *          <td>GRAB SPECIMEN</td>
-     *          <td>Close the claw if there is a specimen in it</td>
+     *          <td>Close the claw</td>
      *      </tr>
      *  </table>
      * An action can be requested slightly earlier than when the robot is ready to do it (buffer-click).

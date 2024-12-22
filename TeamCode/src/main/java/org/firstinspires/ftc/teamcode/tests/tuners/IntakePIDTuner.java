@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.tests.tuners;
 
 import com.acmerobotics.dashboard.config.Config;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -8,6 +9,7 @@ import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.subsystems.intake.Intake;
 import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 
+@Disabled
 @TeleOp
 @Config
 public class IntakePIDTuner extends LinearOpMode {
@@ -16,7 +18,7 @@ public class IntakePIDTuner extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         Robot robot = new Robot(hardwareMap);
-
+/*
         robot.intake.intakeState = Intake.IntakeState.TESTER;
         robot.intake.setRollerOff();
 
@@ -31,5 +33,7 @@ public class IntakePIDTuner extends LinearOpMode {
 
             robot.update();
         }
+
+ */
     }
 }

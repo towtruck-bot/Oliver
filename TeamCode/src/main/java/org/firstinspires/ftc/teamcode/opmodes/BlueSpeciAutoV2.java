@@ -8,8 +8,8 @@ import org.firstinspires.ftc.teamcode.utils.Globals;
 import org.firstinspires.ftc.teamcode.utils.Pose2d;
 import org.firstinspires.ftc.teamcode.utils.RunMode;
 
-@Autonomous(name = "BlueSpeciAuto")
-public class BlueSpeciAuto extends LinearOpMode {
+@Autonomous(name = "BlueSpeciAutoV2")
+public class BlueSpeciAutoV2 extends LinearOpMode {
     private Robot robot;
 
     public void runOpMode(){
@@ -46,18 +46,6 @@ public class BlueSpeciAuto extends LinearOpMode {
         // three cycles to move 3 game element to human player
 
         robot.drivetrain.goToPoint(new Pose2d(48, 24, 135), true, true, 1.0); // go towards preload #1 todo: there is probably a more effective way to rotate the bot via code
-        // extendo intake
-        robot.drivetrain.goToPoint(new Pose2d(48, 24, 60), true, true, 1.0); // turn towards human player area
-        // extendo outtake
 
-        robot.drivetrain.goToPoint(new Pose2d(48, 24, 120), true, true, 1.0); // go towards preload #2
-        // extendo intake
-        robot.drivetrain.goToPoint(new Pose2d(48, 24, 60), true, true, 1.0); // turn towards human player area
-        // extendo outtake
-
-        robot.drivetrain.goToPoint(new Pose2d(48, 24, 120), true, true, 1.0); // go towards preload #3 todo: extendo not long enough?
-        // extendo intake
-        robot.drivetrain.goToPoint(new Pose2d(48, 24, 60), true, true, 1.0); // turn towards human player area
-        // extendo outtake
     }
 }

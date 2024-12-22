@@ -5,6 +5,7 @@ import android.util.Log;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.utils.Globals;
+import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 import org.firstinspires.ftc.teamcode.utils.Utils;
 
 public class nPriorityServo extends PriorityDevice {
@@ -93,7 +94,7 @@ public class nPriorityServo extends PriorityDevice {
     }
 
     public void setTargetPos(double pos) {
-        this.setTargetPos(Utils.minMaxClip(pos, minPos, maxPos), power);
+        this.setTargetPos(Utils.minMaxClip(pos, minPos, maxPos), 1);
     }
 
     public void setTargetPos(double pos, double power) {
@@ -131,7 +132,7 @@ public class nPriorityServo extends PriorityDevice {
             if (!reversed[i]) {
                 pos = convertAngleToPos(currentIntermediateTargetAngle);
             } else {
-                pos = (1 - basePos) - convertAngleToPos(currentIntermediateTargetAngle);
+                pos = 1 - convertAngleToPos(currentIntermediateTargetAngle);
             }
             servos[i].setPosition(pos);
         }

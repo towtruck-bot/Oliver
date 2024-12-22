@@ -86,6 +86,10 @@ Y intake up
             else if (gamepad1.dpad_down) robot.intake.setTargetPositionWhenExtended(robot.intake.getTargetPositionWhenExtended() - intakeAdjustmentSpeed);
             robot.intake.setTargetPositionWhenExtended(robot.intake.getTargetPositionWhenExtended() + intakeAdjustmentSpeed * -gamepad2.right_stick_y);
 
+            if(gamepad2.left_bumper){
+                robot.intake.intakeState = Intake.IntakeState.RETRACTING;
+            }
+
             if (gamepad2.a) {
                 if (!didToggleIntakeHeight) {
                     robot.intake.setFlipDownAngle(robot.intake.getFlipDownAngle() + intakeHeightStep);

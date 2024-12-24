@@ -46,7 +46,7 @@ public class Deposit {
 
     // TODO: Servos have mechanically set 0 positions; make sure mechanical sets 0's accurately and defines max ranges. be careful of priority servo reverse, may not work - profe
 
-    private double targetX, targetY;
+    public double targetX, targetY;
     private double moveToX, moveToY, moveToArmAngle;
 
     //TODO: Verify All Values. Important!!!! LM2 robot all diff values
@@ -71,8 +71,8 @@ public class Deposit {
 
         switch(state){
             case IDLE:
-                resetToStart();
-                updatePositions();
+//                resetToStart();
+//                updatePositions();
 
                 break;
             case TRANSFER_PREPARE_1:

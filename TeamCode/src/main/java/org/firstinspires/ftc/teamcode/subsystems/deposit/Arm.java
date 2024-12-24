@@ -24,8 +24,9 @@ public class Arm {
     public final nPriorityServo clawGrip;
 
     private final double wheelRadius = 1.75;
-    private final double smallGearNum = 25.0, bigGearNum = 40.0;
+    private final double smallGearNum = 40.0, bigGearNum = 25.0;
     public final double armLength = 5.905314961;
+    public static final double armLengthT = 5.905314961;
 
     private double samplePrepareRad = 0.0, sampleGrabRad = 0.2544, speciPrepareRad = 0.7123, speciGrabRad = 0;
 

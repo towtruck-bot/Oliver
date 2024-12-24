@@ -20,8 +20,6 @@ public class BlueSpeciAuto extends LinearOpMode {
 
         firstSpecimen();
         clipsToHP();
-
-
     }
 
     public void doInitialization(){

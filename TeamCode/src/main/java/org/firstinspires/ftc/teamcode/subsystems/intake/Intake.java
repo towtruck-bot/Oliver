@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.subsystems.intake;
 
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 
 import com.acmerobotics.dashboard.config.Config;
@@ -44,7 +46,7 @@ public class Intake {
     public final PriorityMotor intakeExtensionMotor;
     public final nPriorityServo intakeFlipServo;
 
-    private IntakeState intakeState = IntakeState.FINISH_RETRACTING;
+    public IntakeState intakeState = IntakeState.FINISH_RETRACTING;
 
     private IntakeRollerState intakeRollerState = IntakeRollerState.OFF;
     public static double keepBlockInPower = 0.35;
@@ -336,7 +338,11 @@ public class Intake {
      * Sets the state to begin retracting, or exit transfer. -- Daniel
      */
     public void retract() {
-        if (this.intakeState == IntakeState.EXTENDED || this.intakeState == IntakeState.DROP_DOWN) this.intakeState = IntakeState.PICK_UP;
+        Log.e("supposed to retract", "e");
+        if (this.intakeState == IntakeState.EXTENDED || this.intakeState == IntakeState.DROP_DOWN)
+        {
+            Log.e("james", "it happened"); this.intakeState = IntakeState.PICK_UP;
+        }
         else if (this.intakeState == IntakeState.EXTENDING) this.intakeState = IntakeState.RETRACTING;
         else if (this.intakeState == IntakeState.TRANSFER) this.intakeState = IntakeState.IDLE;
     }

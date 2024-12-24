@@ -109,7 +109,7 @@ public class Robot {
     }
 
     private void robotFSM() {
-/* Main robot FSM diagram below
+/* Main Robot FSM diagram below
 
 Single arrow: auto-advance state
 Double arrow: manual advance during Teleop
@@ -208,6 +208,12 @@ IDLE >> {INTAKE_SAMPLE} > TRANSFER > SAMPLE_READY >> {DEPOSIT_BUCKET} >-^
         }
         prevState = state;
     }
+
+    /**
+     * Gets the Robot FSM's state. -- Daniel
+     * @return the Robot FSM's state
+     */
+    public RobotState getState() { return this.state; }
 
     /**
      * Sets what will happen after an OUTTAKE. This is automatically set to true after an OUTTAKE > IDLE. -- Daniel

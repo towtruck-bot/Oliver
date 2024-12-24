@@ -51,7 +51,7 @@ public class Deposit {
 
     //TODO: Verify All Values. Important!!!! LM2 robot all diff values
     //TODO: FOR X COORDINATES, REMEMBER TO ACCOUNT FOR CLAW LENGTH
-    private final double transferPrepareX = 7.0677, transferPrepareY = 3.0653, transferX = 7.9256, transferY = 0.0, transferRad = 1.406;
+    private final double transferPrepareX = 5.6848, transferPrepareY = 4.465, transferX = 7.3612, transferY = 2.0417, transferRad = 1.7987;
     private final double sampleBasketX = 1.0, sampleBasketY = 1.0;
     private final double outtakeX = 1.0, outtakeY = 1.0, grabX = 1.0, grabY = 1.0;
     private final double movingX = 1.0, movingY = 1.0, movingClawRad = Math.PI / 2;
@@ -404,7 +404,7 @@ public class Deposit {
     public void updatePositions(){
         arm.setHorizontalPos(moveToX, 1.0);
         slides.setTargetLength(moveToY);
-        arm.setArmRotation(moveToArmAngle, 1.0);
+        arm.setArmRotation(moveToArmAngle, 0.3);
     }
 
     public void resetToStart(){

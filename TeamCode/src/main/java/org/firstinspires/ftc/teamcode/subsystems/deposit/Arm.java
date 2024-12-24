@@ -33,10 +33,10 @@ public class Arm {
         horizontalRail = new nPriorityServo(
                 new Servo[] {robot.hardwareMap.get(Servo.class, "horizontalRail")},
                 "horizontalRail",
-                nPriorityServo.ServoType.SPEED,
+                nPriorityServo.ServoType.AXON_MINI,
                 0.0,
-                1.0,
-                0.0,
+                0.535,
+                0.533,
                 new boolean[] {false},
                 1.0,
                 2.0
@@ -47,11 +47,11 @@ public class Arm {
         armRotation = new nPriorityServo(
                 new Servo[] {robot.hardwareMap.get(Servo.class, "armRotationL"), robot.hardwareMap.get(Servo.class, "armRotationR")},
                 "armRotation",
-                nPriorityServo.ServoType.SPEED,
+                nPriorityServo.ServoType.AXON_MINI,
                 0.0,
-                0.964,
+                1.0,
                 0.0,
-                new boolean[] {false, true},
+                new boolean[] {true, false},
                 1.0,
                 2.0
         );
@@ -61,7 +61,7 @@ public class Arm {
         clawRotation = new nPriorityServo(
                 new Servo[] {robot.hardwareMap.get(Servo.class, "clawRotation")},
                 "clawRotation",
-                nPriorityServo.ServoType.SPEED,
+                nPriorityServo.ServoType.AXON_MINI,
                 0.0,
                 1.0,
                 0.272,
@@ -75,7 +75,7 @@ public class Arm {
         clawGrip = new nPriorityServo(
                 new Servo[] {robot.hardwareMap.get(Servo.class, "clawGrip")},
                 "clawGrip",
-                nPriorityServo.ServoType.SPEED,
+                nPriorityServo.ServoType.AXON_MINI,
                 0.0,
                 0.219,
                 0.0,

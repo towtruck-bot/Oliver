@@ -9,6 +9,7 @@ import org.firstinspires.ftc.teamcode.subsystems.intake.Intake;
 import org.firstinspires.ftc.teamcode.utils.Globals;
 import org.firstinspires.ftc.teamcode.utils.RunMode;
 
+@Disabled
 @TeleOp
 public class Teleop extends LinearOpMode {
     @Override

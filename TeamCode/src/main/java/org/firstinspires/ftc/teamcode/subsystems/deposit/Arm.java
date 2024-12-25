@@ -1,13 +1,9 @@
 package org.firstinspires.ftc.teamcode.subsystems.deposit;
 
-import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.sensors.Sensors;
-import org.firstinspires.ftc.teamcode.utils.Utils;
-import org.firstinspires.ftc.teamcode.utils.priority.PriorityServo;
-import org.firstinspires.ftc.teamcode.utils.priority.PriorityServoV2;
 import org.firstinspires.ftc.teamcode.utils.priority.nPriorityServo;
 
 public class Arm {
@@ -24,11 +20,11 @@ public class Arm {
     public final nPriorityServo clawGrip;
 
     private final double wheelRadius = 1.75;
-    private final double smallGearNum = 40.0, bigGearNum = 25.0;
+    private final double horiSmallGearTeeth = 20.0, horiBigGearTeeth = 25.0, armSmallGearTeeth = 25.0, armBigGearTeeth = 40.0;
     public final double armLength = 5.905314961;
     public static final double armLengthT = 5.905314961;
 
-    private double samplePrepareRad = 0.0, sampleGrabRad = 0.2544, speciPrepareRad = 0.7123, speciGrabRad = 0;
+    private double samplePrepareRad = 0.0, sampleGrabRad = 0.2544, speciPrepareRad = 1, speciGrabRad = 0.0728;
 
     public Arm(Robot robot){
         horizontalRail = new nPriorityServo(
@@ -92,26 +88,28 @@ public class Arm {
 
     public void setHorizontalPos(double targetRad, double pow){
         double wheelRot = targetRad/wheelRadius;
-        double bigGearsTraversed = wheelRot * smallGearNum * 0.5;
-        double bigGearRot = bigGearsTraversed / bigGearNum;
+        double bigGearsTraversed = wheelRot * horiBigGearTeeth * 0.5;
+        double bigGearRot = bigGearsTraversed / horiSmallGearTeeth;
 
         horizontalRail.setTargetAngle(bigGearRot, pow);
     }
 
     public double getHorizontalPos(){
         double currRad = -1 * horizontalRail.getCurrentAngle();
-        double smallGearsTraversed = currRad/(Math.PI * 2) * bigGearNum * 2;
-        double wheelRot = smallGearsTraversed/smallGearNum;
+        double smallGearsTraversed = currRad/(Math.PI * 2) * horiSmallGearTeeth * 2;
+        double wheelRot = smallGearsTraversed/ horiBigGearTeeth;
 
         return wheelRot * 2 * Math.PI * wheelRadius;
     }
 
-    public void setArmRotation(double rad, double pow){
-        armRotation.setTargetAngle(rad, pow);
+    public void setArmRotation(double targetRad, double pow){
+        //targetRad = actualRad * smallGearTeeth/bigGearTeeth
+        double actualRad = targetRad * armBigGearTeeth/armSmallGearTeeth;
+        armRotation.setTargetAngle(actualRad, pow);
     }
 
     public double getArmRotation(){
-        return armRotation.getCurrentAngle();
+        return armRotation.getCurrentAngle() * armSmallGearTeeth / armBigGearTeeth;
     }
 
     public void setClawRotation(double rad, double pow){

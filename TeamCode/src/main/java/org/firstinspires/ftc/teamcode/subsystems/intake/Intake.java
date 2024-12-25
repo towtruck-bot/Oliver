@@ -59,21 +59,21 @@ public class Intake {
     public static boolean autoUnjamIntake = false;
 
     private long lastRetractTime = -1;
-    public static long retractMaxDuration = 3000;
+    public static long retractMaxDuration = 1000;
     public static double slidesBasePos = 0;
     public static double slidesMaxPos = 22;
-    public static double slidesTolerance = 0.8;
+    public static double slidesTolerance = 1.0;
     public static double startFlipThresh = 6;
     public static double extendedMinPos = 3;
     private double targetPositionWhenExtended = 15.0;
     private double slidesCurrentPos = 0;
     private double slidesControlTargetPos = 0;
-    public static PID pid = new PID(0.185, 0.001, 0.008);
+    public static PID pid = new PID(0.185, 0.002, 0.008);
 
     public static double flipGearRatio = -24.0 / 40.0;
-    private double flipDownAngle = 160;
-    public static double flipDownAngleMin = 130;
-    public static double flipDownAngleMax = 170;
+    private double flipDownAngle = 165;
+    public static double flipDownAngleMin = 125;
+    public static double flipDownAngleMax = 185;
     public static double flipAngleToGoOverBarrier = 100;
 
     private Sensors.BlockColor sampleColor = Sensors.BlockColor.NONE;
@@ -105,13 +105,13 @@ public class Intake {
                 new Servo[] {this.robot.hardwareMap.get(Servo.class, "intakeFlipServo")},
                 "intakeFlipServo",
                 nPriorityServo.ServoType.HITEC,
-                0.21, 0.7, 0.7,
+                0.15, 0.7, 0.7,
                 new boolean[] {false},
                 1.0, 5.0
         );
         this.robot.hardwareQueue.addDevice(intakeFlipServo);
 
-        this.intakeFlipServo.setTargetAngle(Math.toRadians(-1), 1.0);
+        this.intakeFlipServo.setTargetAngle(Math.toRadians(5 * flipGearRatio), 1.0);
     }
 
     /**
@@ -338,11 +338,7 @@ public class Intake {
      * Sets the state to begin retracting, or exit transfer. -- Daniel
      */
     public void retract() {
-        Log.e("supposed to retract", "e");
-        if (this.intakeState == IntakeState.EXTENDED || this.intakeState == IntakeState.DROP_DOWN)
-        {
-            Log.e("james", "it happened"); this.intakeState = IntakeState.PICK_UP;
-        }
+        if (this.intakeState == IntakeState.EXTENDED || this.intakeState == IntakeState.DROP_DOWN) this.intakeState = IntakeState.PICK_UP;
         else if (this.intakeState == IntakeState.EXTENDING) this.intakeState = IntakeState.RETRACTING;
         else if (this.intakeState == IntakeState.TRANSFER) this.intakeState = IntakeState.IDLE;
     }
@@ -355,10 +351,17 @@ public class Intake {
     }
 
     /**
-     * Resets the slides zero position. -- Daniel
+     * Sets the slides zero position. -- Daniel
      */
     public void setSlidesZero() {
-        slidesBasePos = this.robot.sensors.getIntakeExtensionPosition();
+        slidesBasePos = this.robot.sensors.getIntakeExtensionPosition() - slidesTolerance;
+    }
+
+    /**
+     * Resets the slides zero position to the original value. -- Daniel
+     */
+    public void unsetSlidesZero() {
+        slidesBasePos = 0;
     }
 
     /**

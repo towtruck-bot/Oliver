@@ -86,13 +86,18 @@ public class CoordinateGetter extends LinearOpMode {
 
             telemetry.addData("servoName", servos.get(servoIndex).name);
             telemetry.addData("servoPos", servoPos[servoIndex]);
-            telemetry.addData("servoAngle", servos.get(servoIndex).getCurrentAngle());
+            telemetry.addData("servoAngle(radians)", servos.get(servoIndex).getCurrentAngle());
+            telemetry.addData("servoAngle(degrees)", servos.get(servoIndex).getCurrentAngle() * 180.0/Math.PI);
+            telemetry.addData("armAngleCalculated(radians)", robot.deposit.arm.getArmRotation());
+            telemetry.addData("armAngleCalculated(degrees)", robot.deposit.arm.getArmRotation() * 180.0/Math.PI);
+            telemetry.addData("", "");
             telemetry.addData("horizontalPosition: ", horizontalPosition);
             telemetry.addData("horizontalRail pos", robot.deposit.arm.getHorizontalPos());
             telemetry.addData("horizontal arm component", Math.cos(robot.deposit.arm.getArmRotation()) * robot.deposit.arm.armLength);
             telemetry.addData("verticalPosition: ", verticalPosition);
             telemetry.addData("slides height", robot.deposit.slides.getLength());
             telemetry.addData("vertical arm component", Math.sin(robot.deposit.arm.getArmRotation()) * robot.deposit.arm.armLength);
+
 
 
             TelemetryUtil.sendTelemetry();

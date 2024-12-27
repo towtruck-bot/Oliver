@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.I2cDeviceSynchSimple;
 
-@Disabled
+//@Disabled
 @TeleOp
 public class ConfigureColorRangefinder extends LinearOpMode {
     @Override
@@ -22,11 +22,13 @@ public class ConfigureColorRangefinder extends LinearOpMode {
         neither   --> no object
          */
         crf.setPin0Digital(ColorRangefinder.DigitalMode.HSV, 180 / 360.0 * 255, 250 / 360.0 * 255); // blue
-        crf.setPin0Digital(ColorRangefinder.DigitalMode.HSV, 55 / 360.0 * 255, 75 / 360.0 * 255); // yellow
+        //lb: 55, hb: 75
+        crf.setPin0Digital(ColorRangefinder.DigitalMode.HSV, 40 / 360.0 * 255, 90 / 360.0 * 255); // yellow
         crf.setPin0DigitalMaxDistance(ColorRangefinder.DigitalMode.HSV, 20); // 20mm or closer requirement
 
         crf.setPin1Digital(ColorRangefinder.DigitalMode.HSV, 140 / 360.0 * 255, 210 / 360.0 * 255); // inverted red
-        crf.setPin1Digital(ColorRangefinder.DigitalMode.HSV, 235 / 360.0 * 255, 255 / 360.0 * 255); // inverted yellow
+        //lb: 235, hb: 255
+        crf.setPin1Digital(ColorRangefinder.DigitalMode.HSV, 220 / 360.0 * 255, 270/ 360.0 * 255); // inverted yellow
         crf.setPin1DigitalMaxDistance(ColorRangefinder.DigitalMode.HSV, 20); // 20mm or closer requirement
         crf.setPin1InvertHue(); // invert hue values
 

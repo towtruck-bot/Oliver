@@ -57,6 +57,10 @@ public class Sensors {
 
     public static double voltageK = 0.3;
 
+    public static double blueAlpha  = 0.125, redAlpha = 0.125, yellowAlpha = 0.125;
+    public double blueConfidence, yellowConfidence, redConfidence;
+    public static double blueThreshold = 0.8, redThreshold = 0.8, yellowThreshold = 0.8;
+
     public Sensors(Robot robot) {
         this.hardwareMap = robot.hardwareMap;
         this.hardwareQueue = robot.hardwareQueue;
@@ -80,6 +84,9 @@ public class Sensors {
         this.intakeColorSensorB = this.robot.hardwareMap.get(DigitalChannel.class, "intakeColorSensorB");
         this.intakeColorSensorB.setMode(DigitalChannel.Mode.INPUT);
 
+        this.blueConfidence = 0.0;
+        this.yellowConfidence = 0.0;
+        this.redConfidence = 0.0;
 
         initSensors(hardwareMap);
     }
@@ -143,11 +150,9 @@ public class Sensors {
 
     private void updateExpansionHub() {
         try {
-            if (this.intakeColorSensorR.getState()) {
-                this.intakeColor = this.intakeColorSensorB.getState() ? BlockColor.YELLOW : BlockColor.RED;
-            } else {
-                this.intakeColor = this.intakeColorSensorB.getState() ? BlockColor.BLUE : BlockColor.NONE;
-            }
+           boolean colorSensor1 = intakeColorSensorR.getState();
+           boolean colorSensor0 = intakeColorSensorB.getState();
+           calculateConfidence(colorSensor1, colorSensor0);
         }
         catch (Exception e) {
             Log.e("******* Error due to ", e.getClass().getName());
@@ -222,6 +227,45 @@ public class Sensors {
             numRotations += Math.signum(previousAngle);
         }
         previousAngle = angle;
+    }
+
+    public void calculateConfidence(boolean colorSensor1, boolean colorSensor0){
+        //1 -> R, 0 -> B
+        //yellow = 3, red = 2, blue = 1, none = 0
+        int colorState = (colorSensor1?2:0) + (colorSensor0?1:0);
+        blueConfidence *= (1 - blueAlpha);
+        redConfidence *= (1 - redAlpha);
+        yellowConfidence *= (1 - yellowAlpha);
+
+        switch (colorState) {
+            case 0: break;
+            case 1:
+                blueConfidence += blueAlpha;
+                break;
+            case 2:
+                redConfidence += redAlpha;
+                //Due to sometimes yellow flags as red
+                yellowConfidence += 0.5 * yellowAlpha;
+                break;
+            case 3:
+                yellowConfidence += yellowAlpha;
+                break;
+        }
+
+        if(blueConfidence > blueThreshold){
+            intakeColor = BlockColor.BLUE;
+        }else if(redConfidence > redThreshold){
+            intakeColor = BlockColor.RED;
+        }else if(yellowConfidence > yellowThreshold){
+            intakeColor = BlockColor.YELLOW;
+        }else{
+            intakeColor = BlockColor.NONE;
+        }
+
+        TelemetryUtil.packet.put("Blue Confidence", blueConfidence);
+        TelemetryUtil.packet.put("Red Confidence", redConfidence);
+        TelemetryUtil.packet.put("Yellow Confidence", yellowConfidence);
+        TelemetryUtil.packet.put("Detected Color", intakeColor.toString());
     }
 }
 

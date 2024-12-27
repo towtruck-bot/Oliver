@@ -9,11 +9,6 @@ import org.firstinspires.ftc.teamcode.utils.priority.nPriorityServo;
 public class Arm {
     public final Sensors sensors;
 
-//    public final PriorityServo horizontalRail;
-//    public final PriorityServo armRotation;
-//    public final PriorityServo clawRotation;
-//    public final PriorityServo clawGrip;
-
     public final nPriorityServo horizontalRail;
     public final nPriorityServo armRotation;
     public final nPriorityServo clawRotation;

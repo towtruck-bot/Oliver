@@ -87,21 +87,21 @@ public class Intake {
     public Intake(@NonNull Robot robot) {
         this.robot = robot;
 
-        this.intakeRollerMotor = new PriorityMotor(
+        intakeRollerMotor = new PriorityMotor(
                 this.robot.hardwareMap.get(DcMotorEx.class, "intakeRollerMotor"),
                 "intakeRollerMotor",
                 1, 3, -1.0, this.robot.sensors
         );
-        this.robot.hardwareQueue.addDevice(intakeRollerMotor);
+        robot.hardwareQueue.addDevice(intakeRollerMotor);
 
-        this.intakeExtensionMotor = new PriorityMotor(
+        intakeExtensionMotor = new PriorityMotor(
                 this.robot.hardwareMap.get(DcMotorEx.class, "intakeExtensionMotor"),
                 "intakeExtensionMotor",
                 1, 5, this.robot.sensors
         );
-        this.robot.hardwareQueue.addDevice(intakeExtensionMotor);
+        robot.hardwareQueue.addDevice(intakeExtensionMotor);
 
-        this.intakeFlipServo = new nPriorityServo(
+        intakeFlipServo = new nPriorityServo(
                 new Servo[] {this.robot.hardwareMap.get(Servo.class, "intakeFlipServo")},
                 "intakeFlipServo",
                 nPriorityServo.ServoType.HITEC,
@@ -109,9 +109,9 @@ public class Intake {
                 new boolean[] {false},
                 1.0, 5.0
         );
-        this.robot.hardwareQueue.addDevice(intakeFlipServo);
+        robot.hardwareQueue.addDevice(intakeFlipServo);
 
-        this.intakeFlipServo.setTargetAngle(Math.toRadians(5 * flipGearRatio), 1.0);
+        intakeFlipServo.setTargetAngle(Math.toRadians(5 * flipGearRatio), 1.0);
     }
 
     /**
@@ -119,137 +119,137 @@ public class Intake {
      */
     public void update() {
         long currentTime = System.nanoTime();
-        this.slidesCurrentPos = this.robot.sensors.getIntakeExtensionPosition() - slidesBasePos;
-        this.sampleColor = this.robot.sensors.getIntakeColor();
+        slidesCurrentPos = this.robot.sensors.getIntakeExtensionPosition() - slidesBasePos;
+        sampleColor = this.robot.sensors.getIntakeColor();
 
         if (Globals.TESTING_DISABLE_CONTROL && Globals.RUNMODE == RunMode.TESTER) {
             pid.update(0,-1.0,1.0);
             pid.resetIntegral();
-            this.intakeExtensionMotor.setTargetPower(0.0);
-            this.intakeRollerMotor.setTargetPower(0.0);
-            this.updateTelemetry();
+            intakeExtensionMotor.setTargetPower(0.0);
+            intakeRollerMotor.setTargetPower(0.0);
+            updateTelemetry();
             return;
         }
 
         // FSM
         switch (this.intakeState) {
             case START_EXTENDING:
-                this.setRollerOff();
-                this.slidesControlTargetPos = Math.max(this.targetPositionWhenExtended, Math.max(extendedMinPos, startFlipThresh));
-                this.intakeFlipServo.setTargetAngle(0, 1.0);
+                setRollerOff();
+                slidesControlTargetPos = Math.max(targetPositionWhenExtended, Math.max(extendedMinPos, startFlipThresh));
+                intakeFlipServo.setTargetAngle(0, 1.0);
                 if (this.slidesCurrentPos >= startFlipThresh - slidesTolerance) this.intakeState = IntakeState.EXTENDING;
                 else break;
             case EXTENDING:
-                this.setRollerOff();
-                this.slidesControlTargetPos = Math.max(this.targetPositionWhenExtended, Math.max(extendedMinPos, startFlipThresh));
-                this.intakeFlipServo.setTargetAngle(Math.toRadians(flipAngleToGoOverBarrier * flipGearRatio), 1.0);
+                setRollerOff();
+                slidesControlTargetPos = Math.max(targetPositionWhenExtended, Math.max(extendedMinPos, startFlipThresh));
+                intakeFlipServo.setTargetAngle(Math.toRadians(flipAngleToGoOverBarrier * flipGearRatio), 1.0);
                 if (this.isExtensionAtTarget()) this.intakeState = IntakeState.DROP_DOWN;
                 else break;
             case DROP_DOWN:
-                this.setRollerOff();
-                this.slidesControlTargetPos = Math.max(this.targetPositionWhenExtended, Math.max(extendedMinPos, startFlipThresh));
-                this.intakeFlipServo.setTargetAngle(Math.toRadians(flipDownAngle * flipGearRatio), 1.0);
-                if (this.intakeFlipServo.inPosition()) {
-                    this.intakeState = IntakeState.EXTENDED;
-                    this.sampleCheckTime = currentTime;
-                    this.didStopRoller = false;
-                    this.setRollerOn();
+                setRollerOff();
+                slidesControlTargetPos = Math.max(targetPositionWhenExtended, Math.max(extendedMinPos, startFlipThresh));
+                intakeFlipServo.setTargetAngle(Math.toRadians(flipDownAngle * flipGearRatio), 1.0);
+                if (intakeFlipServo.inPosition()) {
+                    intakeState = IntakeState.EXTENDED;
+                    sampleCheckTime = currentTime;
+                    didStopRoller = false;
+                    setRollerOn();
                 } else break;
             case EXTENDED:
-                this.slidesControlTargetPos = this.targetPositionWhenExtended;
-                this.intakeFlipServo.setTargetAngle(Math.toRadians(flipDownAngle * flipGearRatio), 1.0);
-                if (this.sampleColor == Sensors.BlockColor.NONE) {
-                    this.didStopRoller = false;
-                    this.sampleCheckTime = currentTime;
-                } else if (currentTime > this.sampleCheckTime + sampleConfirmDuration * 1e6) {
-                    if (Globals.isRed ? this.sampleColor == Sensors.BlockColor.BLUE : this.sampleColor == Sensors.BlockColor.RED) {
-                        if (autoUnjamIntake) this.setRollerUnjam();
-                        else if (!this.didStopRoller) {
-                            this.setRollerOff();
-                            this.didStopRoller = true;
+                slidesControlTargetPos = targetPositionWhenExtended;
+                intakeFlipServo.setTargetAngle(Math.toRadians(flipDownAngle * flipGearRatio), 1.0);
+                if (sampleColor == Sensors.BlockColor.NONE) {
+                    didStopRoller = false;
+                    sampleCheckTime = currentTime;
+                } else if (currentTime > sampleCheckTime + sampleConfirmDuration * 1e6) {
+                    if (Globals.isRed ? sampleColor == Sensors.BlockColor.BLUE : this.sampleColor == Sensors.BlockColor.RED) {
+                        if (autoUnjamIntake) setRollerUnjam();
+                        else if (!didStopRoller) {
+                            setRollerOff();
+                            didStopRoller = true;
                         }
                     } else {
-                        if (!this.didStopRoller) {
-                            this.setRollerOff();
-                            this.didStopRoller = true;
+                        if (!didStopRoller) {
+                            setRollerOff();
+                            didStopRoller = true;
                         }
-                        if (autoRetractIntake) this.intakeState = IntakeState.PICK_UP;
+                        if (autoRetractIntake) intakeState = IntakeState.PICK_UP;
                     }
                 }
-                if (this.intakeState != IntakeState.PICK_UP) break;
+                if (intakeState != IntakeState.PICK_UP) break;
             case PICK_UP:
-                this.setRollerKeepIn();
-                this.slidesControlTargetPos = this.targetPositionWhenExtended;
-                this.intakeFlipServo.setTargetAngle(0, 1.0);
-                if (Math.toDegrees(this.intakeFlipServo.getCurrentAngle()) / flipGearRatio <= flipAngleToGoOverBarrier) this.intakeState = IntakeState.RETRACTING;
+                setRollerKeepIn();
+                slidesControlTargetPos = this.targetPositionWhenExtended;
+                intakeFlipServo.setTargetAngle(0, 1.0);
+                if (Math.toDegrees(intakeFlipServo.getCurrentAngle()) / flipGearRatio <= flipAngleToGoOverBarrier) intakeState = IntakeState.RETRACTING;
                 else break;
             case RETRACTING:
-                this.setRollerKeepIn();
-                this.slidesControlTargetPos = startFlipThresh;
-                this.intakeFlipServo.setTargetAngle(0, 1.0);
-                if (this.intakeFlipServo.inPosition()) {
-                    this.intakeState = IntakeState.FINISH_RETRACTING;
-                    this.lastRetractTime = currentTime;
+                setRollerKeepIn();
+                slidesControlTargetPos = startFlipThresh;
+                intakeFlipServo.setTargetAngle(0, 1.0);
+                if (intakeFlipServo.inPosition()) {
+                    intakeState = IntakeState.FINISH_RETRACTING;
+                    lastRetractTime = currentTime;
                 } else break;
             case FINISH_RETRACTING:
-                this.setRollerKeepIn();
-                this.slidesControlTargetPos = 0;
-                this.intakeFlipServo.setTargetAngle(0, 1.0);
-                if (this.isExtensionAtTarget()) this.intakeState = IntakeState.IDLE;
-                else if (currentTime > this.lastRetractTime + retractMaxDuration * 1e6) this.setSlidesZero();
+                setRollerKeepIn();
+                slidesControlTargetPos = 0;
+                intakeFlipServo.setTargetAngle(0, 1.0);
+                if (isExtensionAtTarget()) intakeState = IntakeState.IDLE;
+                else if (currentTime > lastRetractTime + retractMaxDuration * 1e6) setSlidesZero();
                 else break;
             case IDLE:
-                this.setRollerOff();
-                this.slidesControlTargetPos = 0;
-                this.intakeFlipServo.setTargetAngle(0, 1.0);
+                setRollerOff();
+                slidesControlTargetPos = 0;
+                intakeFlipServo.setTargetAngle(0, 1.0);
                 break;
             case TRANSFER:
-                this.setRollerSlowReverse();
-                this.slidesControlTargetPos = 0;
-                this.intakeFlipServo.setTargetAngle(0, 1.0);
+                setRollerSlowReverse();
+                slidesControlTargetPos = 0;
+                intakeFlipServo.setTargetAngle(0, 1.0);
                 break;
         }
 
         // Roller control
         switch (this.intakeRollerState) {
             case OFF:
-                this.intakeRollerMotor.setTargetPower(0.0);
+                intakeRollerMotor.setTargetPower(0.0);
                 break;
             case ON:
-                this.intakeRollerMotor.setTargetPower(1.0);
+                intakeRollerMotor.setTargetPower(1.0);
                 break;
             case KEEP_IN:
-                this.intakeRollerMotor.setTargetPower(keepBlockInPower);
+                intakeRollerMotor.setTargetPower(keepBlockInPower);
                 break;
             case UNJAM:
-                this.intakeRollerMotor.setTargetPower(-1.0);
-                if (currentTime > this.unjamLastTime + unjamDuration * 1e6) this.setRollerOn();
+                intakeRollerMotor.setTargetPower(-1.0);
+                if (currentTime > this.unjamLastTime + unjamDuration * 1e6) setRollerOn();
                 break;
             case REVERSE:
-                this.intakeRollerMotor.setTargetPower(-1.0);
+                intakeRollerMotor.setTargetPower(-1.0);
                 break;
             case SLOW_REVERSE:
-                this.intakeRollerMotor.setTargetPower(-slowReversePower);
+                intakeRollerMotor.setTargetPower(-slowReversePower);
                 break;
         }
 
         // Extension control
-        if (this.isExtensionAtTarget()) {
+        if (isExtensionAtTarget()) {
             pid.update(0,-1.0,1.0);
             pid.resetIntegral();
-            this.intakeExtensionMotor.setTargetPower(0.0);
+            intakeExtensionMotor.setTargetPower(0.0);
         } else {
-            this.intakeExtensionMotor.setTargetPower(pid.update(this.slidesControlTargetPos - this.slidesCurrentPos, -1.0, 1.0));
+            intakeExtensionMotor.setTargetPower(pid.update(slidesControlTargetPos - slidesCurrentPos, -1.0, 1.0));
         }
 
         this.updateTelemetry();
     }
 
     private void updateTelemetry() {
-        TelemetryUtil.packet.put("Intake.intakeState", this.intakeState.toString());
-        TelemetryUtil.packet.put("Intake.targetPositionWhenExtended", this.targetPositionWhenExtended);
-        TelemetryUtil.packet.put("Intake.slidesControlTargetPos", this.slidesControlTargetPos);
-        TelemetryUtil.packet.put("Intake.slidesCurrentPos", this.slidesCurrentPos);
+        TelemetryUtil.packet.put("Intake.intakeState", intakeState.toString());
+        TelemetryUtil.packet.put("Intake.targetPositionWhenExtended", targetPositionWhenExtended);
+        TelemetryUtil.packet.put("Intake.slidesControlTargetPos", slidesControlTargetPos);
+        TelemetryUtil.packet.put("Intake.slidesCurrentPos", slidesCurrentPos);
         TelemetryUtil.packet.put("Intake::slidesBasePos", slidesBasePos);
     }
 
@@ -257,49 +257,49 @@ public class Intake {
      * Gets the roller's state. -- Daniel
      * @return the roller's state (ON, OFF, KEEP_IN, UNJAM, REVERSE)
      */
-    public IntakeRollerState getIntakeRollerState() { return this.intakeRollerState; }
+    public IntakeRollerState getIntakeRollerState() { return intakeRollerState; }
 
     /**
      * Sets the roller to off. -- Daniel
      */
-    public void setRollerOff() { this.intakeRollerState = IntakeRollerState.OFF; }
+    public void setRollerOff() { intakeRollerState = IntakeRollerState.OFF; }
 
     /**
      * Sets the roller to on. -- Daniel
      */
-    public void setRollerOn() { this.intakeRollerState = IntakeRollerState.ON; }
+    public void setRollerOn() { intakeRollerState = IntakeRollerState.ON; }
 
     /**
      * Sets the roller to keep the block in. -- Daniel
      */
-    public void setRollerKeepIn() { this.intakeRollerState = IntakeRollerState.KEEP_IN; }
+    public void setRollerKeepIn() { intakeRollerState = IntakeRollerState.KEEP_IN; }
 
     /**
      * Sets the roller to unjam. -- Daniel
      */
-    public void setRollerUnjam() { this.intakeRollerState = IntakeRollerState.UNJAM; this.unjamLastTime = System.nanoTime(); }
+    public void setRollerUnjam() { intakeRollerState = IntakeRollerState.UNJAM; unjamLastTime = System.nanoTime(); }
 
     /**
      * Sets the roller to reverse. -- Daniel
      */
-    public void setRollerReverse() { this.intakeRollerState = IntakeRollerState.REVERSE; }
+    public void setRollerReverse() { intakeRollerState = IntakeRollerState.REVERSE; }
 
     /**
      * Sets the roller to slowly outtake the block. -- Daniel
      */
-    public void setRollerSlowReverse() { this.intakeRollerState = IntakeRollerState.SLOW_REVERSE; }
+    public void setRollerSlowReverse() { intakeRollerState = IntakeRollerState.SLOW_REVERSE; }
 
     /**
      * Checks if the extension is at its target position. -- Daniel
      * @return whether the extension is at its target position
      */
-    public boolean isExtensionAtTarget() { return Math.abs(this.slidesControlTargetPos - this.slidesCurrentPos) <= slidesTolerance; }
+    public boolean isExtensionAtTarget() { return Math.abs(slidesControlTargetPos - slidesCurrentPos) <= slidesTolerance; }
 
     /**
      * Gets the position the extension will go to when extended. -- Daniel
      * @return the extension target position, in inches
      */
-    public double getTargetPositionWhenExtended() { return this.targetPositionWhenExtended; }
+    public double getTargetPositionWhenExtended() { return targetPositionWhenExtended; }
 
     /**
      * Sets the position the extension will go to when extended. The position is automatically clamped to range. -- Daniel
@@ -311,7 +311,7 @@ public class Intake {
      * Gets the angle the actuation will go down to. -- Daniel
      * @return the actuation angle, in degrees
      */
-    public double getFlipDownAngle() { return this.flipDownAngle; }
+    public double getFlipDownAngle() { return flipDownAngle; }
 
     /**
      * Sets the angle the actuation will go down to. The position is automatically clamped to range. -- Daniel
@@ -323,38 +323,38 @@ public class Intake {
      * Gets the intake's state. -- Daniel
      * @return the intake's state (START_EXTENDING, EXTENDING, EXTENDED, PICK_UP, RETRACTING, FINISH_RETRACTING, RETRACTED, IDLE, TRANSFER)
      */
-    public IntakeState getIntakeState() { return this.intakeState; }
+    public IntakeState getIntakeState() { return intakeState; }
 
     /**
      * Sets the state to begin extending. -- Daniel
      */
     public void extend() {
-        if (this.intakeState == IntakeState.IDLE) this.intakeState = IntakeState.START_EXTENDING;
-        else if (this.intakeState == IntakeState.RETRACTING) this.intakeState = IntakeState.EXTENDING;
-        else if (this.intakeState == IntakeState.PICK_UP) this.intakeState = IntakeState.DROP_DOWN;
+        if (intakeState == IntakeState.IDLE) intakeState = IntakeState.START_EXTENDING;
+        else if (intakeState == IntakeState.RETRACTING) intakeState = IntakeState.EXTENDING;
+        else if (intakeState == IntakeState.PICK_UP) intakeState = IntakeState.DROP_DOWN;
     }
 
     /**
      * Sets the state to begin retracting, or exit transfer. -- Daniel
      */
     public void retract() {
-        if (this.intakeState == IntakeState.EXTENDED || this.intakeState == IntakeState.DROP_DOWN) this.intakeState = IntakeState.PICK_UP;
-        else if (this.intakeState == IntakeState.EXTENDING) this.intakeState = IntakeState.RETRACTING;
-        else if (this.intakeState == IntakeState.TRANSFER) this.intakeState = IntakeState.IDLE;
+        if (intakeState == IntakeState.EXTENDED || intakeState == IntakeState.DROP_DOWN) intakeState = IntakeState.PICK_UP;
+        else if (intakeState == IntakeState.EXTENDING) intakeState = IntakeState.RETRACTING;
+        else if (intakeState == IntakeState.TRANSFER) intakeState = IntakeState.IDLE;
     }
 
     /**
      * Sets the state to transfer. -- Daniel
      */
     public void transfer() {
-        if (this.intakeState == IntakeState.IDLE) this.intakeState = IntakeState.TRANSFER;
+        if (this.intakeState == IntakeState.IDLE) intakeState = IntakeState.TRANSFER;
     }
 
     /**
      * Sets the slides zero position. -- Daniel
      */
     public void setSlidesZero() {
-        slidesBasePos = this.robot.sensors.getIntakeExtensionPosition() - slidesTolerance;
+        slidesBasePos = robot.sensors.getIntakeExtensionPosition() - slidesTolerance;
     }
 
     /**
@@ -368,7 +368,7 @@ public class Intake {
      * Checks if the intake is retracted. -- Daniel
      * @return whether the intake is retracted
      */
-    public boolean isRetracted() { return this.intakeState == IntakeState.IDLE; }
+    public boolean isRetracted() { return intakeState == IntakeState.IDLE; }
 
     /**
      * Checks if the intake has a sample in it. -- Daniel

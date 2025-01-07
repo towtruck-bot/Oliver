@@ -34,7 +34,10 @@ public class nDeposit {
     // x values are measured from the base of the arm
     // y values are measured from the ground
     // intake is positive x direction
-    private final double baseHeight = 10.75; //Get more accurate measurement
+
+    //TODO: Retune servos
+
+    private final double baseHeight = 10.75; //TODO: Get more accurate measurement
     private final double intakeWaitX = arm.armLength * Math.cos(Math.PI / 12), intakeWaitY = baseHeight * Math.sin(Math.PI / 12), intakeX = arm.armLength, intakeY = baseHeight; //TODO: Get more accurate intake locations
     private final double holdX = arm.armLength, holdY = 0.0;
     private final double sampleX = -1.3, sampleLY = 26.0, sampleHY = 44.6;

@@ -9,6 +9,7 @@ import org.firstinspires.ftc.teamcode.sensors.Sensors;
 import org.firstinspires.ftc.teamcode.subsystems.deposit.Deposit;
 import org.firstinspires.ftc.teamcode.subsystems.drive.Drivetrain;
 import org.firstinspires.ftc.teamcode.subsystems.drive.Spline;
+import org.firstinspires.ftc.teamcode.subsystems.intake.ClawIntake;
 import org.firstinspires.ftc.teamcode.subsystems.intake.Intake;
 import org.firstinspires.ftc.teamcode.utils.Func;
 import org.firstinspires.ftc.teamcode.utils.Globals;
@@ -22,6 +23,7 @@ public class Robot {
     public final Sensors sensors;
     public final Drivetrain drivetrain;
     public final Intake intake;
+    public final ClawIntake clawIntake;
     public final Deposit deposit;
 
     public enum RobotState {
@@ -64,6 +66,7 @@ public class Robot {
         this.sensors = new Sensors(this);
 
         this.intake = new Intake(this);
+        this.clawIntake = new ClawIntake(this);
         this.drivetrain = new Drivetrain(this);
         this.deposit = new Deposit(this);
 
@@ -77,15 +80,15 @@ public class Robot {
     }
 
     private void updateSubsystems() {
-        this.sensors.update();
-
-        this.intake.update();
-        this.drivetrain.update();
-        //this.deposit.update();
-
-        //this.robotFSM();
-
-        this.hardwareQueue.update();
+//        this.sensors.update();
+//
+//         this.intake.update();
+//        this.drivetrain.update();
+//        this.deposit.update();
+//
+//        this.robotFSM();
+//
+//        this.hardwareQueue.update();
     }
 
     private void updateTelemetry() {
@@ -108,111 +111,112 @@ public class Robot {
         } while (((boolean) func.call()) && System.currentTimeMillis() - start <= 10000 && drivetrain.isBusy());
     }
 
-    private void robotFSM() {
 /* Main Robot FSM diagram below
 
-Single arrow: auto-advance state
-Double arrow: manual advance during Teleop
-Curly braces: these states have additional Teleop control (such as adjusting robot or claw position before continuing)
+    Single arrow: auto-advance state
+    Double arrow: manual advance during Teleop
+    Curly braces: these states have additional Teleop control (such as adjusting robot or claw position before continuing)
 
-v--------------<--------------------------------------------------------<
-V              ^^                                                       |
-IDLE >> {INTAKE_SAMPLE} > TRANSFER > SAMPLE_READY >> {DEPOSIT_BUCKET} >-^
-^  VV                                      VV                           |
-|  >>--------------->> {GRAB_SPECIMEN} < OUTTAKE >----------------------^
-|                          VV   VV          ^^
-^--------------------------<    VV          ^^
-|                               VV          ^^
-^-< {DEPOSIT_SPECIMEN} << SPECIMEN_READY >>-^^
+    v--------------<--------------------------------------------------------<
+    V              ^^                                                       |
+    IDLE >> {INTAKE_SAMPLE} > TRANSFER > SAMPLE_READY >> {DEPOSIT_BUCKET} >-^
+    ^  VV                                      VV                           |
+    |  >>--------------->> {GRAB_SPECIMEN} < OUTTAKE >----------------------^
+    |                          VV   VV          ^^
+    ^--------------------------<    VV          ^^
+    |                               VV          ^^
+    ^-< {DEPOSIT_SPECIMEN} << SPECIMEN_READY >>-^^
 */
-        long currentTime = System.nanoTime();
-        boolean wasClicked = this.lastClickTime != -1 && currentTime - this.lastClickTime <= bufferClickDuration * 1e6;
 
-        switch (this.state) {
-            case IDLE:
-                if (this.prevState == RobotState.INTAKE_SAMPLE || this.prevState == RobotState.GRAB_SPECIMEN || this.prevState == RobotState.OUTTAKE) this.deposit.retract();
-                if (wasClicked) {
-                    if (this.nextState == NextState.INTAKE_SAMPLE) this.state = RobotState.INTAKE_SAMPLE;
-                    else if (this.nextState == NextState.GRAB_SPECIMEN) this.state = RobotState.GRAB_SPECIMEN;
-                    this.lastClickTime = -1;
-                }
-                break;
-            case INTAKE_SAMPLE:
-                if (this.prevState == RobotState.IDLE) {
-                    this.intake.extend();
-                    this.deposit.prepareTransfer();
-                }
-                if (this.intake.isRetracted()) {
-                    if (this.intake.hasSample()) this.state = RobotState.TRANSFER;
-                    else this.state = RobotState.IDLE;
-                } else if (wasClicked && this.nextState == NextState.DONE) {
-                    this.intake.retract();
-                    this.lastClickTime = -1;
-                }
-                break;
-            case TRANSFER:
-                if (this.prevState == RobotState.INTAKE_SAMPLE) this.deposit.startTransfer();
-                if (this.deposit.isSampleReady()) this.state = RobotState.SAMPLE_READY;
-                break;
-            case SAMPLE_READY:
-                if (this.prevState == RobotState.TRANSFER) this.intake.retract();
-                if (wasClicked) {
-                    if (this.nextState == NextState.DONE) this.state = RobotState.OUTTAKE;
-                    else if (this.nextState == NextState.DEPOSIT) this.state = RobotState.DEPOSIT_BUCKET;
-                    this.lastClickTime = -1;
-                }
-                break;
-            case DEPOSIT_BUCKET:
-                if (this.prevState == RobotState.SAMPLE_READY) this.deposit.startSampleDeposit();
-                if (this.deposit.isSampleDepositDone()) this.state = RobotState.IDLE;
-                else if (wasClicked && this.nextState == NextState.DONE) {
-                    this.deposit.finishSampleDeposit();
-                    this.lastClickTime = -1;
-                }
-                break;
-            case OUTTAKE:
-                if (this.prevState == RobotState.SAMPLE_READY || this.prevState == RobotState.SPECIMEN_READY) this.deposit.startOuttake();
-                if (this.deposit.isOuttakeDone()) {
-                    if (this.outtakeAndThenGrab) {
-                        this.state = RobotState.GRAB_SPECIMEN;
-                    } else {
-                        this.state = RobotState.IDLE;
-                        this.outtakeAndThenGrab = true;
-                    }
-                }
-                break;
-            case GRAB_SPECIMEN:
-                if (this.prevState == RobotState.IDLE || this.prevState == RobotState.OUTTAKE) this.deposit.grabSpecimen();
-                if (this.deposit.isSpecimenReady()) this.state = RobotState.SPECIMEN_READY;
-                else if (wasClicked) {
-                    if (this.nextState == NextState.DONE) this.state = RobotState.IDLE;
-                    else if (this.nextState == NextState.DEPOSIT) this.deposit.finishSpecimenGrab();
-                    this.lastClickTime = -1;
-                }
-                break;
-            case SPECIMEN_READY:
-                if (wasClicked) {
-                    if (this.nextState == NextState.DONE) this.state = RobotState.OUTTAKE;
-                    else if (this.nextState == NextState.DEPOSIT) this.state = RobotState.DEPOSIT_SPECIMEN;
-                    this.lastClickTime = -1;
-                }
-                break;
-            case DEPOSIT_SPECIMEN:
-                if (this.prevState == RobotState.SPECIMEN_READY) this.deposit.startSpecimenDeposit();
-                if (this.deposit.isSpecimenDepositDone()) this.state = RobotState.IDLE;
-                else if (wasClicked && this.nextState == NextState.DONE) {
-                    this.deposit.finishSpecimenDeposit();
-                    this.lastClickTime = -1;
-                }
-                break;
-        }
-        prevState = state;
-    }
+    //    private void robotFSM() {
+    //        long currentTime = System.nanoTime();
+    //        boolean wasClicked = this.lastClickTime != -1 && currentTime - this.lastClickTime <= bufferClickDuration * 1e6;
+    //
+    //        switch (this.state) {
+    //            case IDLE:
+    //                if (this.prevState == RobotState.INTAKE_SAMPLE || this.prevState == RobotState.GRAB_SPECIMEN || this.prevState == RobotState.OUTTAKE) this.deposit.retract();
+    //                if (wasClicked) {
+    //                    if (this.nextState == NextState.INTAKE_SAMPLE) this.state = RobotState.INTAKE_SAMPLE;
+    //                    else if (this.nextState == NextState.GRAB_SPECIMEN) this.state = RobotState.GRAB_SPECIMEN;
+    //                    this.lastClickTime = -1;
+    //                }
+    //                break;
+    //            case INTAKE_SAMPLE:
+    //                if (this.prevState == RobotState.IDLE) {
+    //                    // this.intake.extend();
+    //                    this.deposit.prepareTransfer();
+    //                }
+    //                if (this.intake.isRetracted()) {
+    //                    if (this.intake.hasSample()) this.state = RobotState.TRANSFER;
+    //                    else this.state = RobotState.IDLE;
+    //                } else if (wasClicked && this.nextState == NextState.DONE) {
+    //                    this.intake.retract();
+    //                    this.lastClickTime = -1;
+    //                }
+    //                break;
+    //            case TRANSFER:
+    //                if (this.prevState == RobotState.INTAKE_SAMPLE) this.deposit.startTransfer();
+    //                if (this.deposit.isSampleReady()) this.state = RobotState.SAMPLE_READY;
+    //                break;
+    //            case SAMPLE_READY:
+    //                //if (this.prevState == RobotState.TRANSFER) this.intake.retract();
+    //                if (wasClicked) {
+    //                    if (this.nextState == NextState.DONE) this.state = RobotState.OUTTAKE;
+    //                    else if (this.nextState == NextState.DEPOSIT) this.state = RobotState.DEPOSIT_BUCKET;
+    //                    this.lastClickTime = -1;
+    //                }
+    //                break;
+    //            case DEPOSIT_BUCKET:
+    //                if (this.prevState == RobotState.SAMPLE_READY) this.deposit.startSampleDeposit();
+    //                if (this.deposit.isSampleDepositDone()) this.state = RobotState.IDLE;
+    //                else if (wasClicked && this.nextState == NextState.DONE) {
+    //                    this.deposit.finishSampleDeposit();
+    //                    this.lastClickTime = -1;
+    //                }
+    //                break;
+    //            case OUTTAKE:
+    //                if (this.prevState == RobotState.SAMPLE_READY || this.prevState == RobotState.SPECIMEN_READY) this.deposit.startOuttake();
+    //                if (this.deposit.isOuttakeDone()) {
+    //                    if (this.outtakeAndThenGrab) {
+    //                        this.state = RobotState.GRAB_SPECIMEN;
+    //                    } else {
+    //                        this.state = RobotState.IDLE;
+    //                        this.outtakeAndThenGrab = true;
+    //                    }
+    //                }
+    //                break;
+    //            case GRAB_SPECIMEN:
+    //                if (this.prevState == RobotState.IDLE || this.prevState == RobotState.OUTTAKE) this.deposit.grabSpecimen();
+    //                if (this.deposit.isSpecimenReady()) this.state = RobotState.SPECIMEN_READY;
+    //                else if (wasClicked) {
+    //                    if (this.nextState == NextState.DONE) this.state = RobotState.IDLE;
+    //                    else if (this.nextState == NextState.DEPOSIT) this.deposit.finishSpecimenGrab();
+    //                    this.lastClickTime = -1;
+    //                }
+    //                break;
+    //            case SPECIMEN_READY:
+    //                if (wasClicked) {
+    //                    if (this.nextState == NextState.DONE) this.state = RobotState.OUTTAKE;
+    //                    else if (this.nextState == NextState.DEPOSIT) this.state = RobotState.DEPOSIT_SPECIMEN;
+    //                    this.lastClickTime = -1;
+    //                }
+    //                break;
+    //            case DEPOSIT_SPECIMEN:
+    //                if (this.prevState == RobotState.SPECIMEN_READY) this.deposit.startSpecimenDeposit();
+    //                if (this.deposit.isSpecimenDepositDone()) this.state = RobotState.IDLE;
+    //                else if (wasClicked && this.nextState == NextState.DONE) {
+    //                    this.deposit.finishSpecimenDeposit();
+    //                    this.lastClickTime = -1;
+    //                }
+    //                break;
+    //        }
+    //        prevState = state;
+    //    }
 
-    /**
-     * Gets the Robot FSM's state. -- Daniel
-     * @return the Robot FSM's state
-     */
+        /**
+         * Gets the Robot FSM's state. -- Daniel
+         * @return the Robot FSM's state
+         */
     public RobotState getState() { return this.state; }
 
     /**

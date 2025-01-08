@@ -42,7 +42,7 @@ public class Intake {
     }
 
     public final Robot robot;
-    public final PriorityMotor intakeRollerMotor;
+//    public final PriorityMotor intakeRollerMotor;
     public final PriorityMotor intakeExtensionMotor;
     public final nPriorityServo intakeFlipServo;
 
@@ -87,12 +87,12 @@ public class Intake {
     public Intake(@NonNull Robot robot) {
         this.robot = robot;
 
-        intakeRollerMotor = new PriorityMotor(
-                this.robot.hardwareMap.get(DcMotorEx.class, "intakeRollerMotor"),
-                "intakeRollerMotor",
-                1, 3, -1.0, this.robot.sensors
-        );
-        robot.hardwareQueue.addDevice(intakeRollerMotor);
+//        intakeRollerMotor = new PriorityMotor(
+//                this.robot.hardwareMap.get(DcMotorEx.class, "intakeRollerMotor"),
+//                "intakeRollerMotor",
+//                1, 3, -1.0, this.robot.sensors
+//        );
+//        robot.hardwareQueue.addDevice(intakeRollerMotor);
 
         intakeExtensionMotor = new PriorityMotor(
                 this.robot.hardwareMap.get(DcMotorEx.class, "intakeExtensionMotor"),
@@ -126,7 +126,7 @@ public class Intake {
             pid.update(0,-1.0,1.0);
             pid.resetIntegral();
             intakeExtensionMotor.setTargetPower(0.0);
-            intakeRollerMotor.setTargetPower(0.0);
+//            intakeRollerMotor.setTargetPower(0.0);
             updateTelemetry();
             return;
         }
@@ -211,27 +211,27 @@ public class Intake {
         }
 
         // Roller control
-        switch (this.intakeRollerState) {
-            case OFF:
-                intakeRollerMotor.setTargetPower(0.0);
-                break;
-            case ON:
-                intakeRollerMotor.setTargetPower(1.0);
-                break;
-            case KEEP_IN:
-                intakeRollerMotor.setTargetPower(keepBlockInPower);
-                break;
-            case UNJAM:
-                intakeRollerMotor.setTargetPower(-1.0);
-                if (currentTime > this.unjamLastTime + unjamDuration * 1e6) setRollerOn();
-                break;
-            case REVERSE:
-                intakeRollerMotor.setTargetPower(-1.0);
-                break;
-            case SLOW_REVERSE:
-                intakeRollerMotor.setTargetPower(-slowReversePower);
-                break;
-        }
+//        switch (this.intakeRollerState) {
+//            case OFF:
+//                intakeRollerMotor.setTargetPower(0.0);
+//                break;
+//            case ON:
+//                intakeRollerMotor.setTargetPower(1.0);
+//                break;
+//            case KEEP_IN:
+//                intakeRollerMotor.setTargetPower(keepBlockInPower);
+//                break;
+//            case UNJAM:
+//                intakeRollerMotor.setTargetPower(-1.0);
+//                if (currentTime > this.unjamLastTime + unjamDuration * 1e6) setRollerOn();
+//                break;
+//            case REVERSE:
+//                intakeRollerMotor.setTargetPower(-1.0);
+//                break;
+//            case SLOW_REVERSE:
+//                intakeRollerMotor.setTargetPower(-slowReversePower);
+//                break;
+//        }
 
         // Extension control
         if (isExtensionAtTarget()) {

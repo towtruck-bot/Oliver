@@ -51,6 +51,7 @@ public class ClawIntake {
         );
         robot.hardwareQueue.addDevice(intakeExtensionMotor);
 
+
         intakeFlipServo = new nPriorityServo(
                 new Servo[] {robot.hardwareMap.get(Servo.class, "intakeFlipServo")},
                 "intakeFlipServo",
@@ -65,7 +66,7 @@ public class ClawIntake {
                 new Servo[] {robot.hardwareMap.get(Servo.class, "intakeClaw")},
                 "intakeClaw",
                 nPriorityServo.ServoType.AXON_MINI,
-                0, 1, 0,
+                0.474, 0.749, 0.47,
                 new boolean[] {false},
                 1.0, 5
         );
@@ -75,7 +76,7 @@ public class ClawIntake {
                 new Servo[] {robot.hardwareMap.get(Servo.class, "intakeClawRotation")},
                 "intakeClawRotation",
                 nPriorityServo.ServoType.AXON_MINI,
-                0,1,0,
+                0.343,0.894,0.621,
                 new boolean[] {false},
                 1, 5
         );

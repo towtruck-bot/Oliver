@@ -43,10 +43,10 @@ public class Deposit {
     //TODO: Retune servos
 
     private final double baseHeight = 10.75; //TODO: Get more accurate measurement
-    private final double intakeWaitX = 5.905314961 * Math.cos(Math.PI / 12), intakeWaitY = baseHeight + 5.905314961 * Math.sin(Math.PI / 12), intakeX = 5.905314961, intakeY = 10.75; //TODO: Get more accurate intake locations
+    private final double intakeWaitX = 5.905314961 * Math.cos(Math.PI / 12), intakeWaitY = baseHeight + 5.905314961 * Math.sin(Math.PI / 12), intakeX = 5.905314961, intakeY = baseHeight; //TODO: Get more accurate intake locations
     private final double holdX = 5.905314961, holdY = 0.0;
     private final double sampleX = -1.3, sampleLY = 26.0, sampleHY = 44.6;
-    private final double outtakeX = 5.905314961, outtakeY = 10.75;
+    private final double outtakeX = 5.905314961, outtakeY = baseHeight;
     private final double speciX = -5.9, speciLSY = 13.5, speciLEY = 15.4, speciHSY = 27.6, speciHEY = 29.6;
 
     public Deposit(Robot robot){
@@ -64,14 +64,14 @@ public class Deposit {
                 break;
             case TRANSFER_WAIT_ARM:
                 moveTo(intakeWaitX, intakeWaitY);
+                arm.sampleOpen();
 
                 if(arm.inPosition() && slides.inPosition(0.5)){
                     state = State.TRANSFER_WAIT_CLAW;
                 }
                 break;
             case TRANSFER_WAIT_CLAW:
-                arm.setClawRotation(-Math.PI / 2.0, 1.0); //TODO: Fine tune this
-                arm.sampleOpen();
+                arm.setClawRotation(arm.armRotation.getCurrentAngle() - Math.PI / 2.0, 1.0); //TODO: Fine tune this
 
                 if(arm.inPosition() && arm.clawFinished()){
                     state = State.TRANSFER_WAIT;

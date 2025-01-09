@@ -25,8 +25,8 @@ public class Arm {
                 nPriorityServo.ServoType.AXON_MINI,
                 0,
                 1,
-                1.0,
-                new boolean[] {false, true},
+                0.5,
+                new boolean[] {true, false},
                 1.0,
                 2.0
         );

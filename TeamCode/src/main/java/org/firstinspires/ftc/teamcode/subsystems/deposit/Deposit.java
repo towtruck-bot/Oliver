@@ -42,7 +42,7 @@ public class Deposit {
 
     //TODO: Retune servos
 
-    private final double baseHeight = 10.75; //TODO: Get more accurate measurement
+    private final double baseHeight = 10.75, offsetRad = Math.PI / 12; //TODO: Get more accurate measurement
     private final double intakeWaitX = 5.905314961 * Math.cos(Math.PI / 12), intakeWaitY = baseHeight + 5.905314961 * Math.sin(Math.PI / 12), intakeX = 5.905314961, intakeY = baseHeight; //TODO: Get more accurate intake locations
     private final double holdX = 5.905314961, holdY = 0.0;
     private final double sampleX = -1.3, sampleLY = 26.0, sampleHY = 44.6;
@@ -71,7 +71,7 @@ public class Deposit {
                 }
                 break;
             case TRANSFER_WAIT_CLAW:
-                arm.setClawRotation(arm.armRotation.getCurrentAngle() - Math.PI / 2.0, 1.0); //TODO: Fine tune this
+                arm.setClawRotation(arm.armRotation.getCurrentAngle() - Math.PI / 2.0 + offsetRad, 1.0); //TODO: Fine tune this
 
                 if(arm.inPosition() && arm.clawFinished()){
                     state = State.TRANSFER_WAIT;
@@ -110,7 +110,7 @@ public class Deposit {
                 }
                 break;
             case SAMPLE_CLAW:
-                arm.setClawRotation(Math.PI - arm.armRotation.getCurrentAngle(), 1.0);
+                arm.setClawRotation(Math.PI - arm.armRotation.getCurrentAngle() + offsetRad, 1.0);
 
                 if(arm.inPosition()){
                     state = State.SAMPLE_WAIT;
@@ -166,7 +166,7 @@ public class Deposit {
                 break;
             case SPECI_RAISE:
                 moveTo(speciX, speciHSY);
-                arm.setClawRotation(Math.PI - arm.armRotation.getCurrentAngle(), 1.0);
+                arm.setClawRotation(Math.PI - arm.armRotation.getCurrentAngle() + offsetRad, 1.0);
 
                 if(arm.inPosition() && slides.inPosition(0.5)){
                     state = State.SPECI_WAIT;

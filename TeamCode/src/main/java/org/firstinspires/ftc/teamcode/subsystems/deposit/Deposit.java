@@ -201,10 +201,18 @@ public class Deposit {
     //TODO: Presumes intake direction parallel to ground is 0 radians, need to figure out how deal with negative angle. offsets?
     public void moveTo(double targetX, double targetY){
         double armTargetRad = Math.acos(targetX/arm.armLength);
-        double slidesTargetLength = Math.max(targetY - baseHeight - arm.armLength * Math.sin(armTargetRad), 0.0);
+        double slidesTargetLength = Math.max(targetY - baseHeight - arm.armLength * Math.sin(armTargetRad - offsetRad), 0.0);
 
-        arm.setArmRotation(armTargetRad, 1.0);
+        arm.setArmRotation(armTargetRad + offsetRad, 1.0);
         slides.setTargetLength(slidesTargetLength);
+    }
+
+    public double getCurrentX(){
+        return Math.cos(arm.armRotation.getCurrentAngle() - offsetRad) * arm.armLength;
+    }
+
+    public double getCurrentY(){
+        return Math.sin(arm.armRotation.getCurrentAngle() - offsetRad) * arm.armLength + slides.getLength() + baseHeight;
     }
 
     public void moveToStart(){

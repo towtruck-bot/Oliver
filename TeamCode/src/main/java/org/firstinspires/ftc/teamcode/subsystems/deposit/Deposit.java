@@ -42,8 +42,8 @@ public class Deposit {
 
     //TODO: Retune servos
 
-    private final double baseHeight = 10.75, offsetRad = Math.PI / 12; //TODO: Get more accurate measurement
-    private final double intakeWaitX = 5.905314961 * Math.cos(Math.PI / 12), intakeWaitY = baseHeight + 5.905314961 * Math.sin(Math.PI / 12), intakeX = 5.905314961, intakeY = baseHeight; //TODO: Get more accurate intake locations
+    private final double baseHeight = 10.75, offsetRadArm = Math.PI / 12, offsetRadClaw = Math.PI / 2; //TODO: Get more accurate measurement
+    private final double intakeWaitX = 5.905314961 * Math.cos(Math.PI / 24), intakeWaitY = baseHeight + 5.905314961 * Math.sin(Math.PI / 24), intakeX = 5.905314961 * Math.cos(Math.PI / 12), intakeY = baseHeight + 5.905314961 * Math.sin(Math.PI / 12); //TODO: Get more accurate intake locations
     private final double holdX = 5.905314961, holdY = 0.0;
     private final double sampleX = -1.3, sampleLY = 26.0, sampleHY = 44.6;
     private final double outtakeX = 5.905314961, outtakeY = baseHeight;
@@ -71,7 +71,9 @@ public class Deposit {
                 }
                 break;
             case TRANSFER_WAIT_CLAW:
-                arm.setClawRotation(arm.armRotation.getCurrentAngle() - Math.PI / 2.0 + offsetRad, 1.0); //TODO: Fine tune this
+                //trying to point the claw straight down(this value will need to be re-tuned), but offsetRadClaw is pointing straight down, and then offsetRadArm is adjusting
+                //for the arm's mechanical lower limit
+                arm.setClawRotation(offsetRadClaw - offsetRadArm, 1.0); //TODO: Fine tune this
 
                 if(arm.inPosition() && arm.clawFinished()){
                     state = State.TRANSFER_WAIT;
@@ -110,7 +112,7 @@ public class Deposit {
                 }
                 break;
             case SAMPLE_CLAW:
-                arm.setClawRotation(Math.PI - arm.armRotation.getCurrentAngle() + offsetRad, 1.0);
+                arm.setClawRotation(Math.PI - (arm.armRotation.getCurrentAngle() - offsetRadArm) + offsetRadClaw, 1.0);
 
                 if(arm.inPosition()){
                     state = State.SAMPLE_WAIT;
@@ -141,7 +143,7 @@ public class Deposit {
                 break;
             case GRAB_MOVE:
                 moveTo(outtakeX, outtakeY);
-                arm.setClawRotation(0, 1.0);
+                arm.setClawRotation(arm.armRotation.getCurrentAngle() - offsetRadArm + offsetRadClaw, 1.0);
                 arm.speciOpen();
 
                 if(arm.inPosition() && slides.inPosition(0.5) && arm.clawFinished()){
@@ -166,7 +168,7 @@ public class Deposit {
                 break;
             case SPECI_RAISE:
                 moveTo(speciX, speciHSY);
-                arm.setClawRotation(Math.PI - arm.armRotation.getCurrentAngle() + offsetRad, 1.0);
+                arm.setClawRotation(Math.PI - (arm.armRotation.getCurrentAngle() - offsetRadArm) + offsetRadClaw, 1.0);
 
                 if(arm.inPosition() && slides.inPosition(0.5)){
                     state = State.SPECI_WAIT;
@@ -198,21 +200,20 @@ public class Deposit {
         }
     }
 
-    //TODO: Presumes intake direction parallel to ground is 0 radians, need to figure out how deal with negative angle. offsets?
     public void moveTo(double targetX, double targetY){
-        double armTargetRad = Math.acos(targetX/arm.armLength);
-        double slidesTargetLength = Math.max(targetY - baseHeight - arm.armLength * Math.sin(armTargetRad - offsetRad), 0.0);
+        double armTargetRad = Math.acos(targetX/arm.armLength) * (targetY >= baseHeight ? 1 : -1);
+        double slidesTargetLength = Math.max(targetY - (baseHeight + arm.armLength * Math.sin(armTargetRad)), 0.0);
 
-        arm.setArmRotation(armTargetRad + offsetRad, 1.0);
+        arm.setArmRotation(armTargetRad + offsetRadArm, 1.0);
         slides.setTargetLength(slidesTargetLength);
     }
 
     public double getCurrentX(){
-        return Math.cos(arm.armRotation.getCurrentAngle() - offsetRad) * arm.armLength;
+        return Math.cos(arm.armRotation.getCurrentAngle() - offsetRadArm) * arm.armLength;
     }
 
     public double getCurrentY(){
-        return Math.sin(arm.armRotation.getCurrentAngle() - offsetRad) * arm.armLength + slides.getLength() + baseHeight;
+        return Math.sin(arm.armRotation.getCurrentAngle() - offsetRadArm) * arm.armLength + slides.getLength() + baseHeight;
     }
 
     public void moveToStart(){

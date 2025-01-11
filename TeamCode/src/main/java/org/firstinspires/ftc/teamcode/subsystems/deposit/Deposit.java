@@ -58,7 +58,7 @@ public class Deposit {
 
         arm = new Arm(robot);
 
-        state = Globals.hasSpecimenPreload ? State.HOLD : State.IDLE;
+        state = Globals.hasSpecimenPreload ? State.HOLD : State.RETRACT;
     }
 
     public void update(){
@@ -201,6 +201,8 @@ public class Deposit {
                 }
                 break;
         }
+
+        slides.update();
     }
 
     public void moveTo(double targetX, double targetY){

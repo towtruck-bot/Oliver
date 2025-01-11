@@ -13,7 +13,7 @@ import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 @TeleOp(group = "Test")
 @Config
 public class DepositTester extends LinearOpMode {
-    public static Deposit.State stateDashboard = Deposit.State.IDLE;
+    public static Deposit.State stateDashboard = Deposit.State.RETRACT;
     public static boolean set = true;
 
     public void runOpMode(){

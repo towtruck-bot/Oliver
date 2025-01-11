@@ -26,12 +26,13 @@ public class ClawIntake {
     public static PID extendoPID = new PID(0.185, 0.002, 0.008);
     public static double slidesTolerance = 1;
 
-    private double intakeFlipDownAngle = 0.0;
+    private double intakeFlipAlignAngle = 0.0;
     private double intakeFlipUpAngle = 0.0;
     private double intakeFlipGrabAngle = 0.0;
+    private double intakeFlipMiddleAngle = 0.0;
 
     private double clawRotationDefaultAngle = 0.0;
-    private double clawRotationAdjustAngle = 0.0;
+    private double clawRotationAlignAngle = 0.0;
 
     private double clawOpenAngle = 0.0;
     private double clawCloseAngle = 0.0;
@@ -43,7 +44,9 @@ public class ClawIntake {
     enum ClawIntakeState {
         START_EXTEND, //ideally this is where limelight is gonna be reading in auto
         FINISH_EXTEND, //flips down while continuing to extend, continuing to read
-        EXTENDED, //this is where limelight is gonna read for teleop, move to next on buttom press
+        ALIGN, //this is where limelight is gonna read for teleop, move to next on buttom press
+        GRAB,
+        CONFIRM,
         RETRACT, //flip up + retract
         READY //ungrip
     }
@@ -106,24 +109,38 @@ public class ClawIntake {
     public void update() {
         switch (clawIntakeState) {
             case START_EXTEND: // clawRotation goes up
-                intakeFlipServo.setTargetAngle(intakeFlipDownAngle * flipGearRatio);
+                intakeFlipServo.setTargetAngle(intakeFlipMiddleAngle);
                 if (clawRotation.getCurrentAngle() < -Math.toRadians(60)) { // TODO: modify angle to min angle claw rotation needs to go out before we can start extendo
                     clawIntakeState = ClawIntakeState.FINISH_EXTEND;
+                    setExtendoTargetPos(10);
                 }
                 break;
             case FINISH_EXTEND:
-                setExtendoTargetPos(10);
                 if (isExtensionAtTarget()) {
-                    clawIntakeState = ClawIntakeState.EXTENDED;
+                    clawIntakeState = ClawIntakeState.ALIGN;
                 }
                 break;
-            case EXTENDED:
-                clawRotation.setTargetAngle(clawRotationAdjustAngle);
-                intakeFlipServo.setTargetAngle(intakeFlipGrabAngle); //grabbing is done through method
-
+            case ALIGN:
+                clawRotation.setTargetAngle(clawRotationAlignAngle);
+                intakeFlipServo.setTargetAngle(intakeFlipAlignAngle); //grabbing is done through method
+                if (grab) {
+                    clawIntakeState = ClawIntakeState.GRAB;
+                }
+                break;
+            case GRAB:
+                intakeFlipServo.setTargetAngle(intakeFlipGrabAngle);
+                clawRotation.setTargetAngle(clawRotationAlignAngle);
+                break;
+            case CONFIRM:
+                intakeFlipServo.setTargetAngle(intakeFlipAlignAngle);
+                clawRotation.setTargetAngle(clawRotationDefaultAngle);
                 if (retract) {
                     retract = false;
                     clawIntakeState = ClawIntakeState.RETRACT;
+                }
+                if (grab) {
+                    clawIntakeState = ClawIntakeState.GRAB;
+                    grab = false;
                 }
                 break;
             case RETRACT:
@@ -140,8 +157,8 @@ public class ClawIntake {
         updateExtendo();
     }
 
-    public void updateClawRotationAdjustAngle(double clawRotationAdjustAngle) {
-        this.clawRotationAdjustAngle = clawRotationAdjustAngle;
+    public void updateClawRotationAdjustAngle(double clawRotationAlignAngle) {
+        this.clawRotationAlignAngle = clawRotationAlignAngle;
     }
 
     boolean retract = false;
@@ -149,15 +166,11 @@ public class ClawIntake {
         retract = true;
     }
 
+    boolean grab = false;
     public void grab() {
+        grab = true;
         claw.setTargetAngle(clawCloseAngle);
     }
-
-    public void ungrab() {
-        claw.setTargetAngle(clawOpenAngle);
-    }
-
-
 
     //update the slides alone, to be run every loop
     private void updateExtendo() {

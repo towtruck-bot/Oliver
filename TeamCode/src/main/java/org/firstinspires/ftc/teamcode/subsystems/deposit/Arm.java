@@ -39,7 +39,7 @@ public class Arm {
                 0.37,
                 1.0,
                 0.693,
-                new boolean[] {false},
+                new boolean[] {true},
                 1.0,
                 2.0
         );

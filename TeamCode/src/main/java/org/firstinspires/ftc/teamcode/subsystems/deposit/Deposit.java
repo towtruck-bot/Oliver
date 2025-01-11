@@ -32,17 +32,20 @@ public class Deposit {
 
     public State state;
 
-    private Robot robot;
-    private Slides slides;
-    private Arm arm;
+    private final Robot robot;
+    private final Slides slides;
+    private final Arm arm;
 
     // x values are measured from the base of the arm
     // y values are measured from the ground
     // intake is positive x direction
 
-    //TODO: Retune servos
+    // TODO: Re-tune servos
+    // arm 0 position is transfer grab position(i.e. at position 0 is the exact location to grab the sample)
+    // claw 0 position is perpendicular downwards to that of the arm(i.e. when arm is perfectly horizontal, claw will be facing the ground)
 
     private final double baseHeight = 10.75, offsetRadArm = Math.PI / 12, offsetRadClaw = Math.PI / 2; //TODO: Get more accurate measurement
+
     private final double intakeWaitX = 5.905314961 * Math.cos(Math.PI / 24), intakeWaitY = baseHeight + 5.905314961 * Math.sin(Math.PI / 24), intakeX = 5.905314961 * Math.cos(Math.PI / 12), intakeY = baseHeight + 5.905314961 * Math.sin(Math.PI / 12); //TODO: Get more accurate intake locations
     private final double holdX = 5.905314961, holdY = 0.0;
     private final double sampleX = -1.3, sampleLY = 26.0, sampleHY = 44.6;
@@ -51,7 +54,7 @@ public class Deposit {
 
     public Deposit(Robot robot){
         this.robot = robot;
-        this.slides = new Slides(robot);
+        this.slides = new Slides(this.robot);
 
         arm = new Arm(robot);
 

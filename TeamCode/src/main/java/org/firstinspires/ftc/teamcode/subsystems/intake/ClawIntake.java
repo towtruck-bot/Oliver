@@ -20,24 +20,35 @@ public class ClawIntake {
     nPriorityServo claw;
     nPriorityServo clawRotation;
 
-    private double slidesTargetPos;
-    private double slidesCurrentPos;
+    private double extendoTargetPos;
+    private double extendoCurrentPos;
 
     public static PID extendoPID = new PID(0.185, 0.002, 0.008);
     public static double slidesTolerance = 1;
 
+    private double intakeFlipDownAngle = 0.0;
+    private double intakeFlipUpAngle = 0.0;
+    private double intakeFlipGrabAngle = 0.0;
+
+    private double clawRotationDefaultAngle = 0.0;
+    private double clawRotationAdjustAngle = 0.0;
+
+    private double clawOpenAngle = 0.0;
+    private double clawCloseAngle = 0.0;
+
     public static double intakeClawClose = 0;
     public static double intakeClawOpen = 1; //todo get these values
+    public static double flipGearRatio = -24.0 / 40.0;
 
-    enum clawIntakeState {
+    enum ClawIntakeState {
         START_EXTEND, //ideally this is where limelight is gonna be reading in auto
         FINISH_EXTEND, //flips down while continuing to extend, continuing to read
         EXTENDED, //this is where limelight is gonna read for teleop, move to next on buttom press
-        ADJUST, //where limelight adjustments iimplemented
-        GRAB, //yoink and immediate retract upon button,
         RETRACT, //flip up + retract
         READY //ungrip
     }
+
+    private ClawIntakeState clawIntakeState = ClawIntakeState.READY;
 
     public ClawIntake(Robot robot) {
         this.robot = robot;
@@ -83,29 +94,81 @@ public class ClawIntake {
         robot.hardwareQueue.addDevice(clawRotation);
     }
     //set slide position
-    public void setSlidesTargetPos(double targetPos) {
-        this.slidesTargetPos = targetPos;
+    public void setExtendoTargetPos(double targetPos) {
+        this.extendoTargetPos = targetPos;
     }
     //get slide position
     public double getExtendoPos() {
-        return slidesCurrentPos;
+        return extendoCurrentPos;
     }
 
     //general update for entire class
     public void update() {
-        updateSlides();
+        switch (clawIntakeState) {
+            case START_EXTEND: // clawRotation goes up
+                intakeFlipServo.setTargetAngle(intakeFlipDownAngle * flipGearRatio);
+                if (clawRotation.getCurrentAngle() < -Math.toRadians(60)) { // TODO: modify angle to min angle claw rotation needs to go out before we can start extendo
+                    clawIntakeState = ClawIntakeState.FINISH_EXTEND;
+                }
+                break;
+            case FINISH_EXTEND:
+                setExtendoTargetPos(10);
+                if (isExtensionAtTarget()) {
+                    clawIntakeState = ClawIntakeState.EXTENDED;
+                }
+                break;
+            case EXTENDED:
+                clawRotation.setTargetAngle(clawRotationAdjustAngle);
+                intakeFlipServo.setTargetAngle(intakeFlipGrabAngle); //grabbing is done through method
+
+                if (retract) {
+                    retract = false;
+                    clawIntakeState = ClawIntakeState.RETRACT;
+                }
+                break;
+            case RETRACT:
+                intakeFlipServo.setTargetAngle(intakeFlipUpAngle);
+                setExtendoTargetPos(0);
+                break;
+            case READY:
+                clawRotation.setTargetAngle(clawRotationDefaultAngle);
+                intakeFlipServo.setTargetAngle(intakeFlipUpAngle);
+                claw.setTargetAngle(clawOpenAngle);
+                break;
+        }
+
+        updateExtendo();
     }
+
+    public void updateClawRotationAdjustAngle(double clawRotationAdjustAngle) {
+        this.clawRotationAdjustAngle = clawRotationAdjustAngle;
+    }
+
+    boolean retract = false;
+    public void retract() {
+        retract = true;
+    }
+
+    public void grab() {
+        claw.setTargetAngle(clawCloseAngle);
+    }
+
+    public void ungrab() {
+        claw.setTargetAngle(clawOpenAngle);
+    }
+
+
+
     //update the slides alone, to be run every loop
-    private void updateSlides() {
+    private void updateExtendo() {
         if (isExtensionAtTarget()) {
             extendoPID.update(0,-1.0,1.0);
             extendoPID.resetIntegral();
             intakeExtensionMotor.setTargetPower(0.0);
         } else {
-            intakeExtensionMotor.setTargetPower(extendoPID.update(slidesTargetPos - slidesCurrentPos, -1.0, 1.0));
+            intakeExtensionMotor.setTargetPower(extendoPID.update(extendoTargetPos - extendoCurrentPos, -1.0, 1.0));
         }
     }
 
-
-    public boolean isExtensionAtTarget() { return Math.abs(slidesTargetPos - slidesCurrentPos) <= slidesTolerance; }
+    public boolean isExtensionAtTarget() { return Math.abs(extendoTargetPos - extendoCurrentPos) <= slidesTolerance; }
 }

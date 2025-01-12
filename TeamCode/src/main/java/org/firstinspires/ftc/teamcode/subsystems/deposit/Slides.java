@@ -15,25 +15,26 @@ import org.firstinspires.ftc.teamcode.utils.priority.PriorityMotor;
 
 @Config
 public class Slides {
-    private final PriorityMotor slidesMotors;
-    private final Robot robot;
-    public double length;
-    public double vel;
-    public static double ticksToInches = 0.04132142857142857;
-    public static double maxSlidesHeight = 27.891;
-    private double targetLength = 0;
     public static double maxVel = 1.6528571428571428;
     public static double kP = 0.15; // used to be 0.11
     public static double kA = 3;
     public static double kStatic = 0.15;
     public static double minPower = 0.2850000000000002;
     public static double minPowerThresh = 0.8;
-    public double downPower = -0.1;
     public static double forceDownPower = -0.5;
+    public static double ticksToInches = 0.04132142857142857;
+    public static double maxSlidesHeight = 27.891;
 
+    private final PriorityMotor slidesMotors;
+    private final Robot robot;
+
+    public double length;
+    public double vel;
+    public double downPower = -0.1;
+
+    private double targetLength = 0;
     private DcMotorEx m1;
     private DcMotorEx m2;
-
     private Drivetrain drivetrain;
 
     public Slides(Robot robot) {

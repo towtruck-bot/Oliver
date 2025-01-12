@@ -172,6 +172,10 @@ public class ClawIntake {
         claw.setTargetAngle(clawCloseAngle);
     }
 
+    public void release(){
+        clawIntakeState = ClawIntakeState.READY;
+    }
+
     //update the slides alone, to be run every loop
     private void updateExtendo() {
         if (isExtensionAtTarget()) {

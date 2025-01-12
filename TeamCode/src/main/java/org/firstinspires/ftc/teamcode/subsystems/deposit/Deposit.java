@@ -96,6 +96,7 @@ public class Deposit {
 
                 if(arm.clawFinished()){
                     state = State.TRANSFER_FINISH;
+                    robot.clawIntake.release();
                 }
                 break;
             case TRANSFER_FINISH:

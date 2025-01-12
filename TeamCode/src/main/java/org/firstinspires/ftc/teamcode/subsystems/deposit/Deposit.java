@@ -109,6 +109,7 @@ public class Deposit {
             case HOLD:
                 break;
             case SAMPLE_RAISE:
+                //extending vertical slides
                 moveTo(sampleX, sampleHY);
 
                 if(arm.inPosition() && slides.inPosition(0.5)){

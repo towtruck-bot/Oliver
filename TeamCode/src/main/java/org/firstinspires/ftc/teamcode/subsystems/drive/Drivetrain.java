@@ -73,14 +73,14 @@ public class Drivetrain {
         leftFront = new PriorityMotor(
             hardwareMap.get(DcMotorEx.class, "leftFront"),
             "leftFront",
-            3, 5, -1.0, sensors
+            3, 5, 1.0, sensors
         );
 
 
         leftRear = new PriorityMotor(
             hardwareMap.get(DcMotorEx.class, "leftRear"),
             "leftRear",
-            3, 5, sensors
+            3, 5, -1.0, sensors
         );
         rightRear = new PriorityMotor(
             hardwareMap.get(DcMotorEx.class, "rightRear"),

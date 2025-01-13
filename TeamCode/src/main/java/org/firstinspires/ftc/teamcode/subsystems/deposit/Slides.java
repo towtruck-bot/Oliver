@@ -98,6 +98,7 @@ public class Slides {
     }
 
     public boolean manualMode = false;
+
     public void update() {
         length = (double) this.robot.sensors.getSlidesPos() * ticksToInches;
         vel = this.robot.sensors.getSlidesVelocity() * ticksToInches;
@@ -107,12 +108,11 @@ public class Slides {
             slidesMotors.setTargetPower(Math.max(Math.min(feedforward(), 1), -1));
 //            }
         }
-
-
     }
 
     public void setTargetLength(double length) {
         targetLength = Math.max(Math.min(length, maxSlidesHeight),0);
+        Log.e("jamesS", String.valueOf(targetLength));
     }
 
     public void setTargetPowerFORCED(double power) {

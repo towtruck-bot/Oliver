@@ -25,7 +25,7 @@ public class MoveToTester extends LinearOpMode {
             }
 
             TelemetryUtil.packet.put("Current X", robot.deposit.getCurrentX());
-            TelemetryUtil.packet.put("Current Y", robot.deposit.getCurrentY());
+            // TelemetryUtil.packet.put("Current Y", robot.deposit.getCurrentY());
 
             robot.update();
         }

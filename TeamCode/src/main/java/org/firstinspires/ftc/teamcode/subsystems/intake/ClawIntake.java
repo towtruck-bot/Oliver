@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.sensors.Sensors;
 import org.firstinspires.ftc.teamcode.utils.PID;
+import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 import org.firstinspires.ftc.teamcode.utils.priority.HardwareQueue;
 import org.firstinspires.ftc.teamcode.utils.priority.PriorityMotor;
 import org.firstinspires.ftc.teamcode.utils.priority.nPriorityServo;
@@ -107,6 +108,8 @@ public class ClawIntake {
 
     //general update for entire class
     public void update() {
+        extendoCurrentPos = this.robot.sensors.getIntakeExtensionPosition();
+
         switch (clawIntakeState) {
             case START_EXTEND: // clawRotation goes up
                 intakeFlipServo.setTargetAngle(intakeFlipMiddleAngle);
@@ -185,6 +188,8 @@ public class ClawIntake {
         } else {
             intakeExtensionMotor.setTargetPower(extendoPID.update(extendoTargetPos - extendoCurrentPos, -1.0, 1.0));
         }
+
+        TelemetryUtil.packet.put("ClawIntake.extendoCurrentPos", extendoCurrentPos);
     }
 
     public boolean isExtensionAtTarget() { return Math.abs(extendoTargetPos - extendoCurrentPos) <= slidesTolerance; }

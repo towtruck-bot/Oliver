@@ -3,6 +3,8 @@ package org.firstinspires.ftc.teamcode.tests;
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.subsystems.deposit.Slides;
@@ -15,6 +17,9 @@ public class SlidesTuner extends LinearOpMode {
 
     public void runOpMode(){
         Robot robot = new Robot(hardwareMap);
+        DcMotorEx motor = hardwareMap.get(DcMotorEx.class, "slidesMotor0");
+
+        DcMotorEx motor1 = hardwareMap.get(DcMotorEx.class, "slidesMotor1");
 
         Slides slides = new Slides(robot);
 
@@ -26,6 +31,9 @@ public class SlidesTuner extends LinearOpMode {
             TelemetryUtil.packet.put("Slides: Error", targetSlidesHeight - slides.getLength());
             TelemetryUtil.packet.put("Slides: Position", slides.getLength());
             TelemetryUtil.packet.put("Slides: Target Position", targetSlidesHeight);
+            TelemetryUtil.packet.put("motor check0", motor.getCurrentPosition());
+            TelemetryUtil.packet.put("motor check1", motor1.getCurrentPosition());
+
 
             slides.update();
             robot.update();

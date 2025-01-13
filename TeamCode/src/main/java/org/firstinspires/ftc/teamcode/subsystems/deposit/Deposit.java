@@ -56,7 +56,7 @@ public class Deposit {
         this.robot = robot;
         this.slides = new Slides(this.robot);
 
-        arm = new Arm(robot);
+        arm = new Arm(this.robot);
 
         state = Globals.hasSpecimenPreload ? State.HOLD : State.RETRACT;
     }

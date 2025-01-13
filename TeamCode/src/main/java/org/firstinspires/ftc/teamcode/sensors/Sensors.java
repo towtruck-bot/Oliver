@@ -142,17 +142,18 @@ public class Sensors {
             lastVoltageUpdatedTime = currTime;
         }
 
-        slidesEncoder = ((PriorityMotor) hardwareQueue.getDevice("rightFront")).motor[0].getCurrentPosition() * -1;
-        slidesVelocity = ((PriorityMotor) hardwareQueue.getDevice("rightFront")).motor[0].getVelocity() * -1;
-
         this.intakeExtensionEncoder = this.robot.drivetrain.leftFront.motor[0].getCurrentPosition();
     }
 
     private void updateExpansionHub() {
         try {
-           boolean colorSensor1 = intakeColorSensorR.getState();
-           boolean colorSensor0 = intakeColorSensorB.getState();
-           calculateConfidence(colorSensor1, colorSensor0);
+            slidesEncoder = ((PriorityMotor) hardwareQueue.getDevice("slidesMotor")).motor[0].getCurrentPosition() * -1;
+            Log.e("james", String.valueOf(slidesEncoder));
+            slidesVelocity = ((PriorityMotor) hardwareQueue.getDevice("slidesMotor")).motor[0].getVelocity() * -1;
+
+            boolean colorSensor1 = intakeColorSensorR.getState();
+            boolean colorSensor0 = intakeColorSensorB.getState();
+            calculateConfidence(colorSensor1, colorSensor0);
         }
         catch (Exception e) {
             Log.e("******* Error due to ", e.getClass().getName());
@@ -177,6 +178,7 @@ public class Sensors {
     public int getSlidesPos() {
         return slidesEncoder;
     }
+
     public double getSlidesVelocity() {
         return slidesVelocity;
     }

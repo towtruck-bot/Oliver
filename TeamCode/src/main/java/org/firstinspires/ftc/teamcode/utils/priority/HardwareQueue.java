@@ -27,10 +27,6 @@ public class HardwareQueue {
     public void update() {
         for (PriorityDevice device : devices) {
             device.resetUpdateBoolean();
-
-            if(device.name.equals("slidesMotor")){
-                Log.e("james", "exists");
-            }
         }
 
         double bestDevice;

@@ -143,7 +143,7 @@ public class Robot {
                     break;
                 case INTAKE_SAMPLE:
                     if (this.prevState == RobotState.IDLE) {
-                        // this.intake.extend();
+                        this.intake.extend();
                         this.deposit.prepareTransfer();
                     }
                     if (this.intake.isRetracted()) {
@@ -159,7 +159,7 @@ public class Robot {
                     if (this.deposit.isSampleReady()) this.state = RobotState.SAMPLE_READY;
                     break;
                 case SAMPLE_READY:
-                    //if (this.prevState == RobotState.TRANSFER) this.intake.retract();
+                    if (this.prevState == RobotState.TRANSFER) this.intake.retract();
                     if (wasClicked) {
                         if (this.nextState == NextState.DONE) this.state = RobotState.OUTTAKE;
                         else if (this.nextState == NextState.DEPOSIT) this.state = RobotState.DEPOSIT_BUCKET;

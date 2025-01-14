@@ -34,6 +34,7 @@ public class Sensors {
 
     private int slidesEncoder;
     private double slidesVelocity;
+    public static final double slidesInchesPerTick = 0.01773835920177383;
 
     private double intakeExtensionEncoder;
 
@@ -147,9 +148,9 @@ public class Sensors {
 
     private void updateExpansionHub() {
         try {
-            slidesEncoder = ((PriorityMotor) hardwareQueue.getDevice("slidesMotor")).motor[0].getCurrentPosition() * -1;
+            slidesEncoder = ((PriorityMotor) hardwareQueue.getDevice("slidesMotor")).motor[0].getCurrentPosition();
             Log.e("james", String.valueOf(slidesEncoder));
-            slidesVelocity = ((PriorityMotor) hardwareQueue.getDevice("slidesMotor")).motor[0].getVelocity() * -1;
+            slidesVelocity = ((PriorityMotor) hardwareQueue.getDevice("slidesMotor")).motor[0].getVelocity();
 
             boolean colorSensor1 = intakeColorSensorR.getState();
             boolean colorSensor0 = intakeColorSensorB.getState();
@@ -168,6 +169,9 @@ public class Sensors {
         TelemetryUtil.packet.put("Extendo position", this.getIntakeExtensionPosition());
         TelemetryUtil.packet.put("Extendo encoder", this.intakeExtensionEncoder);
 
+        TelemetryUtil.packet.put("Slides position", this.getSlidesPosition());
+        TelemetryUtil.packet.put("Slides encoder", this.slidesEncoder);
+
         TelemetryUtil.packet.put("Intake color", this.intakeColor.toString());
     }
 
@@ -175,12 +179,16 @@ public class Sensors {
         return odometry;
     }
 
-    public int getSlidesPos() {
-        return slidesEncoder;
+    public double getSlidesVelocity() {
+        return slidesVelocity * slidesInchesPerTick;
     }
 
-    public double getSlidesVelocity() {
-        return slidesVelocity;
+    /**
+     * Gets the vertical slides' position. -- Daniel
+     * @return the vertical slides' position, in inches
+     */
+    public double getSlidesPosition() {
+        return this.slidesEncoder * slidesInchesPerTick;
     }
 
     /**

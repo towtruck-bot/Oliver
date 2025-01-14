@@ -29,7 +29,7 @@ public class SensorTester extends LinearOpMode {
             telemetry.addData("rightOdo", sensors.getOdometry()[1]);
             telemetry.addData("backOdo", sensors.getOdometry()[2]);
 
-            telemetry.addData("slides encoder", sensors.getSlidesPos());
+            telemetry.addData("Slides position", sensors.getSlidesPosition());
 
             telemetry.addData("Extendo position", sensors.getIntakeExtensionPosition());
             telemetry.addData("Intake color", sensors.getIntakeColor().toString());

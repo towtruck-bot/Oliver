@@ -11,21 +11,23 @@ import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.subsystems.drive.Drivetrain;
 import org.firstinspires.ftc.teamcode.utils.Globals;
 import org.firstinspires.ftc.teamcode.utils.RunMode;
+import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 import org.firstinspires.ftc.teamcode.utils.priority.PriorityMotor;
 
 @Config
 public class Slides {
     public static double maxVel = 1.6528571428571428;
-    public static double kP = 0.15; // used to be 0.11
+
+    //kStatic -> 0.05, kP -> 0.11
+    public static double kP = 0.11; // used to be 0.11
     public static double kA = 3;
-    public static double kStatic = 0.15;
+    public static double kStatic = 0.05;
     public static double minPower = 0.2850000000000002;
     public static double minPowerThresh = 0.8;
     public static double forceDownPower = -0.5;
-    public static double ticksToInches = 0.04132142857142857;
-    public static double maxSlidesHeight = 27.891;
+    public static double maxSlidesHeight = 34.0;
 
-    private final PriorityMotor slidesMotors;
+    public final PriorityMotor slidesMotors;
     private final Robot robot;
 
     public double length;
@@ -44,13 +46,13 @@ public class Slides {
         m1 = robot.hardwareMap.get(DcMotorEx.class, "slidesMotor0");
         m2 = robot.hardwareMap.get(DcMotorEx.class, "slidesMotor1");
 
-        m2.setDirection(DcMotorSimple.Direction.REVERSE);
+        m1.setDirection(DcMotorSimple.Direction.REVERSE);
 
         if (Globals.RUNMODE != RunMode.TELEOP) {
             resetSlidesEncoders();
         }
 
-        slidesMotors = new PriorityMotor(new DcMotorEx[] {m1, m2}, "slidesMotor", 2, 5, new double[] {-1, -1}, robot.sensors);
+        slidesMotors = new PriorityMotor(new DcMotorEx[] {m1, m2}, "slidesMotor", 2, 5, new double[] {1, 1}, robot.sensors);
         robot.hardwareQueue.addDevice(slidesMotors);
     }
 
@@ -88,6 +90,7 @@ public class Slides {
      */
     private double feedforward() {
         double error = targetLength - length;
+        Log.i("james", String.valueOf(error));
 
         if (targetLength <= 0.6) {
             error = -4;
@@ -100,19 +103,20 @@ public class Slides {
     public boolean manualMode = false;
 
     public void update() {
-        length = (double) this.robot.sensors.getSlidesPos() * ticksToInches;
-        vel = this.robot.sensors.getSlidesVelocity() * ticksToInches;
+        length = this.robot.sensors.getSlidesPosition();
+        vel = this.robot.sensors.getSlidesVelocity();
 
         if (!manualMode) {
 //            if (!(Globals.RUNMODE == RunMode.TESTER)) {
-            slidesMotors.setTargetPower(Math.max(Math.min(feedforward(), 1), -1));
+            double pow = feedforward();
+            TelemetryUtil.packet.put("Slides: Power", pow);
+            slidesMotors.setTargetPower(Math.max(Math.min(pow, 1), -1));
 //            }
         }
     }
 
     public void setTargetLength(double length) {
         targetLength = Math.max(Math.min(length, maxSlidesHeight),0);
-        Log.e("jamesS", String.valueOf(targetLength));
     }
 
     public void setTargetPowerFORCED(double power) {

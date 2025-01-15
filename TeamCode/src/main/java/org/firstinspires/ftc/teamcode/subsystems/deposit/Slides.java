@@ -19,11 +19,11 @@ public class Slides {
     public static double maxVel = 1.6528571428571428;
 
     //kStatic -> 0.05, kP -> 0.11
-    public static double kP = 0.11; // used to be 0.11
-    public static double kA = 3;
+    public static double kP = 0.5; // used to be 0.11
+    public static double kA = 20;
     public static double kStatic = 0.05;
-    public static double minPower = 0.2850000000000002;
-    public static double minPowerThresh = 0.8;
+    public static double minPower = 0.1850000000000002;
+    public static double minPowerThresh = 0.5;
     public static double forceDownPower = -0.5;
     public static double maxSlidesHeight = 34.0;
 

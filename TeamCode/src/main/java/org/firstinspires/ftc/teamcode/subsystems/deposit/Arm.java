@@ -13,7 +13,7 @@ public class Arm {
     public final nPriorityServo clawRotation;
     public final nPriorityServo clawGrip;
 
-    public final double sampleOpenRad = 0.0, sampleCloseRad = 0.0, speciOpenRad = 0.0, speciCloseRad = 0.0;
+    public final double sampleOpenRad = 0.9, sampleCloseRad = 0.55, speciOpenRad = 0.5, speciCloseRad = 0.02;
     public final double armLength = 5.905314961;
 
     public Arm(Robot robot){
@@ -36,7 +36,7 @@ public class Arm {
                 new Servo[] {robot.hardwareMap.get(Servo.class, "clawRotation")},
                 "clawRotation",
                 nPriorityServo.ServoType.AXON_MINI,
-                0.37,
+                0.0,
                 1.0,
                 0.693,
                 new boolean[] {true},

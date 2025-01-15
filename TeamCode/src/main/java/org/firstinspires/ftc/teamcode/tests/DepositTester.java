@@ -15,6 +15,7 @@ import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 public class DepositTester extends LinearOpMode {
     public static Deposit.State stateDashboard = Deposit.State.RETRACT;
     public static boolean set = true;
+    public static boolean intakeDone = false;
 
     public void runOpMode(){
         Robot robot = new Robot(hardwareMap);
@@ -25,6 +26,11 @@ public class DepositTester extends LinearOpMode {
             if(set){
                 robot.deposit.state = stateDashboard;
                 set = !set;
+            }
+
+            if(intakeDone){
+                robot.deposit.intakeDone();
+                intakeDone = false;
             }
 
             TelemetryUtil.packet.put("current state", robot.deposit.state);

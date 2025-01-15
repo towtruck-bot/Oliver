@@ -92,11 +92,9 @@ public class Slides {
         double error = targetLength - length;
         Log.i("james", String.valueOf(error));
 
-        if (targetLength <= 0.6) {
+        if (targetLength <= 0.6 && length < 2) {
             error = -4;
         }
-        if (length <= Globals.slidesV4Thresh+2 && targetLength <= 0.6)
-            return (length <= 0.25? 0 : forceDownPower) + downPower * (12/this.robot.sensors.getVoltage());
         return (error * (maxVel / kA)) * kP + kStatic + ((Math.abs(error) > minPowerThresh) ? minPower * Math.signum(error) : 0);
     }
 
@@ -133,6 +131,7 @@ public class Slides {
     }
 
     public boolean inPosition(double threshold) {
+        TelemetryUtil.packet.put("Deposit:: Slides error", Math.abs(targetLength - length));
         return Math.abs(targetLength - length) <= threshold;
     }
 

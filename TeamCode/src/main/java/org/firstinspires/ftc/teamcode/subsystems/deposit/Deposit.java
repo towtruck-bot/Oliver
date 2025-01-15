@@ -2,19 +2,18 @@ package org.firstinspires.ftc.teamcode.subsystems.deposit;
 
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.utils.Globals;
+import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 
 public class Deposit {
     public enum State{
         IDLE,
-        TRANSFER_WAIT_ARM,
-        TRANSFER_WAIT_CLAW,
+        TRANSFER_PREPARE,
         TRANSFER_WAIT,
         TRANSFER_GRAB,
         TRANSFER_CLOSE,
         TRANSFER_FINISH,
         HOLD,
         SAMPLE_RAISE,
-        SAMPLE_CLAW,
         SAMPLE_WAIT,
         SAMPLE_DEPOSIT,
         OUTTAKE_MOVE,
@@ -23,6 +22,7 @@ public class Deposit {
         GRAB_WAIT,
         GRAB,
         GRAB_RETRACT,
+        GRAB_HOLD,
         SPECI_RAISE,
         SPECI_WAIT,
         SPECI_DEPOSIT,
@@ -40,17 +40,16 @@ public class Deposit {
     // y values are measured from the ground
     // intake is positive x direction
 
-    // TODO: Re-tune servos
-    // arm 0 position is transfer grab position(i.e. at position 0 is the exact location to grab the sample)
-    // claw 0 position is perpendicular downwards to that of the arm(i.e. when arm is perfectly horizontal, claw will be facing the ground)
+    private final double baseHeight = 10.75;
 
-    private final double baseHeight = 10.75, offsetRadArm = 0.0, offsetRadClaw = Math.PI / 12; //TODO: Get more accurate measurement
-
-    private final double intakeWaitX = 5.905314961 * Math.cos(Math.PI / 12), intakeWaitY = baseHeight + 5.905314961 * Math.sin(Math.PI / 12), intakeX = 5.905314961, intakeY = baseHeight; //TODO: Get more accurate intake locations
-    private final double holdX = 5.905314961, holdY = baseHeight;
-    private final double sampleX = -1.3, sampleLY = 26.0, sampleHY = 44.6;
-    private final double outtakeX = 5.905314961, outtakeY = baseHeight;
-    private final double speciX = -5.9, speciLSY = 13.5, speciLEY = 15.4, speciHSY = 27.6, speciHEY = 29.6;
+    private final double intakeWaitRad = Math.PI / 12, intakeWaitY = 0.0, intakeRad = 0.0, intakeY = 0.0, intakeClawRad = -2.3;
+    private final double holdRad = 0.0, holdY = 0.0, holdClawRad = 2.0, holdGrabRad = -0.3;
+    private final double sampleHY = 33.85, sampleRad = Math.atan2(sampleHY, -1.3);
+    // sampleLY = 15.25,
+    private final double outtakeRad = Math.PI, outtakeY = 0.0, outtakeReleaseRad = 0.0, grabRad = 2.0;
+    private final double  speciHRad = 1.8, speciHClawRad = 0.7, speciHSY = 15.0, speciHEY = 18.0;
+    // speciLRad = 2.75, speciLClawRad = 0.0, speciLSY = 0.0, speciLEY = 0.0,
+    private double targetY = 0.0;
 
     public Deposit(Robot robot){
         this.robot = robot;
@@ -65,67 +64,58 @@ public class Deposit {
         switch(state){
             case IDLE:
                 break;
-            case TRANSFER_WAIT_ARM:
-                moveTo(intakeWaitX, intakeWaitY);
+            case TRANSFER_PREPARE:
+                moveToWithRad(intakeWaitRad, intakeWaitY);
+                arm.setClawRotation(intakeClawRad, 1.0);
                 arm.sampleOpen();
 
-                if(arm.inPosition() && slides.inPosition(0.5)){
-                    state = State.TRANSFER_WAIT_CLAW;
-                }
-                break;
-            case TRANSFER_WAIT_CLAW:
-                //trying to point the claw straight down(this value will need to be re-tuned), but offsetRadClaw is pointing straight down, and then offsetRadArm is adjusting
-                //for the arm's mechanical lower limit
-                arm.setClawRotation(offsetRadClaw - offsetRadArm, 1.0); //TODO: Fine tune this
-
-                if(arm.inPosition() && arm.clawFinished()){
+                if(arm.inPosition() && slides.inPosition(0.8) && arm.clawFinished()){
                     state = State.TRANSFER_WAIT;
                 }
                 break;
             case TRANSFER_WAIT:
+                moveToWithRad(intakeWaitRad, intakeWaitY);
                 break;
             case TRANSFER_GRAB:
-                moveTo(intakeX, intakeY);
+                moveToWithRad(intakeRad, intakeY);
 
-                if(arm.inPosition() && slides.inPosition(0.5)){
+                if(arm.inPosition() && slides.inPosition(0.8)){
                     state = State.TRANSFER_CLOSE;
                 }
                 break;
             case TRANSFER_CLOSE:
+                moveToWithRad(intakeRad, intakeY);
                 arm.sampleClose();
 
-                if(arm.clawFinished()){
+                if(arm.clawFinished() && intakeDone){
+                    intakeDone = false;
                     state = State.TRANSFER_FINISH;
-                    robot.clawIntake.release();
                 }
                 break;
             case TRANSFER_FINISH:
-                moveTo(holdX, holdY);
+                moveToWithRad(holdRad, holdY);
+                arm.clawRotation.setTargetAngle(holdClawRad, 1.0);
 
                 if(arm.inPosition()){
                     state = State.HOLD;
                 }
                 break;
             case HOLD:
+                moveToWithRad(holdRad, holdY);
                 break;
             case SAMPLE_RAISE:
-                //extending vertical slides
-                moveTo(sampleX, sampleHY);
+                moveToWithRad(sampleRad, sampleHY);
+//                arm.setClawRotation(Math.PI - (arm.armRotation.getCurrentAngle() - offsetRadArm) + offsetRadClaw, 1.0);
 
-                if(arm.inPosition() && slides.inPosition(0.5)){
-                    state = State.SAMPLE_CLAW;
-                }
-                break;
-            case SAMPLE_CLAW:
-                arm.setClawRotation(Math.PI - (arm.armRotation.getCurrentAngle() - offsetRadArm) + offsetRadClaw, 1.0);
-
-                if(arm.inPosition()){
+                if(arm.inPosition() && slides.inPosition(0.8)){
                     state = State.SAMPLE_WAIT;
                 }
                 break;
             case SAMPLE_WAIT:
+                moveToWithRad(sampleRad, sampleHY);
                 break;
             case SAMPLE_DEPOSIT:
+                moveToWithRad(sampleRad, sampleHY);
                 arm.sampleOpen();
 
                 if(arm.clawFinished()){
@@ -133,31 +123,35 @@ public class Deposit {
                 }
                 break;
             case OUTTAKE_MOVE:
-                moveTo(outtakeX, outtakeY);
+                moveToWithRad(outtakeRad, outtakeY);
+                arm.clawRotation.setTargetAngle(outtakeReleaseRad, 1.0);
 
-                if(arm.inPosition() && slides.inPosition(0.5)){
+                if(arm.inPosition() && slides.inPosition(0.8)){
                     state = State.OUTTAKE_RELEASE;
                 }
                 break;
             case OUTTAKE_RELEASE:
+                moveToWithRad(outtakeRad, outtakeY);
                 arm.sampleOpen();
 
                 if(arm.clawFinished()){
-                    state = State.HOLD;
+                    state = State.RETRACT;
                 }
                 break;
             case GRAB_MOVE:
-                moveTo(outtakeX, outtakeY);
-                arm.setClawRotation(arm.armRotation.getCurrentAngle() - offsetRadArm + offsetRadClaw, 1.0);
+                moveToWithCoord(holdRad, holdY);
+                arm.setClawRotation(holdGrabRad, 1.0);
                 arm.speciOpen();
 
-                if(arm.inPosition() && slides.inPosition(0.5) && arm.clawFinished()){
-                    state = State.GRAB;
+                if(arm.inPosition() && slides.inPosition(0.8) && arm.clawFinished()){
+                    state = State.GRAB_WAIT;
                 }
                 break;
             case GRAB_WAIT:
+                moveToWithCoord(holdRad, holdY);
                 break;
             case GRAB:
+                moveToWithCoord(holdRad, holdY);
                 arm.speciClose();
 
                 if(arm.clawFinished()){
@@ -165,30 +159,36 @@ public class Deposit {
                 }
                 break;
             case GRAB_RETRACT:
-                moveTo(holdX, holdY);
+                moveToWithRad(grabRad, holdY);
+                arm.setClawRotation(speciHClawRad, 1.0);
 
                 if(arm.inPosition()){
-                    state = State.HOLD;
+                    state = State.GRAB_HOLD;
                 }
                 break;
+            case GRAB_HOLD:
+                moveToWithRad(grabRad, holdY);
+                arm.setClawRotation(speciHClawRad, 1.0);
+                break;
             case SPECI_RAISE:
-                moveTo(speciX, speciHSY);
-                arm.setClawRotation(Math.PI - (arm.armRotation.getCurrentAngle() - offsetRadArm) + offsetRadClaw, 1.0);
+                moveToWithRad(speciHRad, targetY);
 
-                if(arm.inPosition() && slides.inPosition(0.5)){
+                if(arm.inPosition() && slides.inPosition(0.8)){
                     state = State.SPECI_WAIT;
                 }
                 break;
             case SPECI_WAIT:
+                moveToWithRad(speciHRad, targetY);
                 break;
             case SPECI_DEPOSIT:
-                moveTo(speciX, speciHEY);
+                moveToWithRad(speciHRad, targetY);
 
-                if(arm.inPosition() && slides.inPosition(0.5)){
+                if(arm.inPosition() && slides.inPosition(0.8)){
                     state = State.RELEASE;
                 }
                 break;
             case RELEASE:
+                moveToWithRad(speciHRad, slides.getLength());
                 arm.speciOpen();
 
                 if(arm.clawFinished()){
@@ -198,29 +198,45 @@ public class Deposit {
             case RETRACT:
                 moveToStart();
 
-                if(arm.inPosition() && slides.inPosition(0.5)){
+                if(arm.inPosition() && slides.inPosition(0.8)){
                     state = State.IDLE;
                 }
                 break;
         }
 
         slides.update();
+
+        TelemetryUtil.packet.put("Deposit:: Current State", state);
+        TelemetryUtil.packet.put("Deposit:: Arm inPosition()", arm.inPosition());
+        TelemetryUtil.packet.put("Deposit:: Slides inPosition()", slides.inPosition(0.5));
+        TelemetryUtil.packet.put("Deposit:: Claw inPosition()", arm.clawFinished());
     }
 
-    public void moveTo(double targetX, double targetY){
+    public void moveToWithCoord(double targetX, double targetY){
         double armTargetRad = Math.acos(targetX/arm.armLength) * (targetY >= baseHeight ? 1 : -1);
         double slidesTargetLength = Math.max(targetY - (baseHeight + arm.armLength * Math.sin(armTargetRad)), 0.0);
 
-        arm.setArmRotation(armTargetRad + offsetRadArm, 1.0);
+        arm.setArmRotation(armTargetRad, 1.0);
         slides.setTargetLength(slidesTargetLength);
     }
 
-    public double getCurrentX(){
-        return Math.cos(arm.armRotation.getCurrentAngle() - offsetRadArm) * arm.armLength;
+    public void moveToWithRad(double armTargetRad, double targetY){
+        arm.setArmRotation(armTargetRad, 1.0);
+        slides.setTargetLength(targetY);
+
+        TelemetryUtil.packet.put("Deposit:: Actual Height", targetY + Math.sin(arm.armRotation.getCurrentAngle()) * arm.armLength + baseHeight);
+        TelemetryUtil.packet.put("Deposit:: Slides Height", targetY);
+        TelemetryUtil.packet.put("Deposit:: Arm Height", Math.sin(arm.armRotation.getCurrentAngle()) * arm.armLength);
+        TelemetryUtil.packet.put("Deposit:: Arm Angle", armTargetRad);
     }
 
-    public double getCurrentY(){
-        return Math.sin(arm.armRotation.getCurrentAngle() - offsetRadArm) * arm.armLength + slides.getLength() + baseHeight;
+    private boolean intakeDone = false;
+    public void intakeDone() {
+        intakeDone = true;
+    }
+
+    public void setDepositHeight(double targetY){
+        this.targetY = targetY;
     }
 
     public void moveToStart(){
@@ -229,7 +245,7 @@ public class Deposit {
     }
 
     public void prepareTransfer() {
-        state = State.TRANSFER_WAIT_ARM;
+        state = State.TRANSFER_PREPARE;
     }
 
     public void startTransfer() {

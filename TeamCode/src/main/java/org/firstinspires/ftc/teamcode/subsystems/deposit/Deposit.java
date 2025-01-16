@@ -44,12 +44,11 @@ public class Deposit {
 
     private final double intakeWaitRad = Math.PI / 12, intakeWaitY = 0.0, intakeRad = 0.0, intakeY = 0.0, intakeClawRad = -2.3;
     private final double holdRad = 0.0, holdY = 0.0, holdClawRad = 2.0, holdGrabRad = -0.3;
-    private final double sampleHY = 33.85, sampleRad = Math.atan2(sampleHY, -1.3);
+    private final double sampleHY = 33.85, sampleRad = 2.0, sampleClawRad = 1.14;
     // sampleLY = 15.25,
     private final double outtakeRad = Math.PI, outtakeY = 0.0, outtakeReleaseRad = 0.0, grabRad = 2.0;
     private final double  speciHRad = 1.8, speciHClawRad = 0.7, speciHSY = 15.0, speciHEY = 18.0;
     // speciLRad = 2.75, speciLClawRad = 0.0, speciLSY = 0.0, speciLEY = 0.0,
-    private double targetY = 0.0;
 
     public Deposit(Robot robot){
         this.robot = robot;
@@ -105,7 +104,7 @@ public class Deposit {
                 break;
             case SAMPLE_RAISE:
                 moveToWithRad(sampleRad, sampleHY);
-//                arm.setClawRotation(Math.PI - (arm.armRotation.getCurrentAngle() - offsetRadArm) + offsetRadClaw, 1.0);
+                arm.setClawRotation(sampleClawRad, 1.0);
 
                 if(arm.inPosition() && slides.inPosition(0.8)){
                     state = State.SAMPLE_WAIT;
@@ -223,11 +222,6 @@ public class Deposit {
     public void moveToWithRad(double armTargetRad, double targetY){
         arm.setArmRotation(armTargetRad, 1.0);
         slides.setTargetLength(targetY);
-
-        TelemetryUtil.packet.put("Deposit:: Actual Height", targetY + Math.sin(arm.armRotation.getCurrentAngle()) * arm.armLength + baseHeight);
-        TelemetryUtil.packet.put("Deposit:: Slides Height", targetY);
-        TelemetryUtil.packet.put("Deposit:: Arm Height", Math.sin(arm.armRotation.getCurrentAngle()) * arm.armLength);
-        TelemetryUtil.packet.put("Deposit:: Arm Angle", armTargetRad);
     }
 
     private boolean intakeDone = false;
@@ -235,6 +229,7 @@ public class Deposit {
         intakeDone = true;
     }
 
+    private double targetY = 0.0;
     public void setDepositHeight(double targetY){
         this.targetY = targetY;
     }

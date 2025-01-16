@@ -42,13 +42,20 @@ public class Deposit {
 
     private final double baseHeight = 10.75;
 
-    private final double intakeWaitRad = Math.PI / 12, intakeWaitY = 0.0, intakeRad = 0.0, intakeY = 0.0, intakeClawRad = -2.3;
-    private final double holdRad = 0.0, holdY = 0.0, holdClawRad = 2.0, holdGrabRad = -0.3;
-    private final double sampleHY = 33.85, sampleRad = 2.0, sampleClawRad = 1.14;
-    // sampleLY = 15.25,
-    private final double outtakeRad = Math.PI, outtakeY = 0.0, outtakeReleaseRad = 0.0, grabRad = 2.0;
-    private final double  speciHRad = 1.8, speciHClawRad = 0.7, speciHSY = 15.0, speciHEY = 18.0;
-    // speciLRad = 2.75, speciLClawRad = 0.0, speciLSY = 0.0, speciLEY = 0.0,
+    // prepare for transfer positions
+    private final double intakeWaitRad = Math.PI / 12, intakeWaitY = 0.0;
+    // transfer positions, move in to grab
+    private final double intakeRad = 0.0, intakeY = 0.0, intakeClawRad = -2.3;
+    // moving positions with a sample
+    private final double holdRad = 0.0, holdY = 0.0, holdClawRad = 2.0;
+    // sample basket positions
+    private final double sampleHY = 33.85, sampleRad = 2.0, sampleClawRad = 1.14; // sampleLY = 15.25,
+    // outtake positions, drop behind robot
+    private final double outtakeRad = Math.PI, outtakeY = 0.0, outtakeReleaseRad = 0.0;
+    // grabbing positions, holdGrab -> off the wall, grabRetract --> moving with a specimen
+    private final double holdGrabRad = -0.3, grabRetractRad = 2.0;
+    // specimen chamber positions
+    private final double  speciHRad = 1.8, speciHClawRad = 0.7, speciHSY = 15.0, speciHEY = 18.0; // speciLRad = 2.75, speciLClawRad = 0.0, speciLSY = 0.0, speciLEY = 0.0,
 
     public Deposit(Robot robot){
         this.robot = robot;
@@ -138,7 +145,7 @@ public class Deposit {
                 }
                 break;
             case GRAB_MOVE:
-                moveToWithCoord(holdRad, holdY);
+                moveToWithRad(holdRad, holdY);
                 arm.setClawRotation(holdGrabRad, 1.0);
                 arm.speciOpen();
 
@@ -147,10 +154,10 @@ public class Deposit {
                 }
                 break;
             case GRAB_WAIT:
-                moveToWithCoord(holdRad, holdY);
+                moveToWithRad(holdRad, holdY);
                 break;
             case GRAB:
-                moveToWithCoord(holdRad, holdY);
+                moveToWithRad(holdRad, holdY);
                 arm.speciClose();
 
                 if(arm.clawFinished()){
@@ -158,7 +165,7 @@ public class Deposit {
                 }
                 break;
             case GRAB_RETRACT:
-                moveToWithRad(grabRad, holdY);
+                moveToWithRad(grabRetractRad, holdY);
                 arm.setClawRotation(speciHClawRad, 1.0);
 
                 if(arm.inPosition()){
@@ -166,7 +173,7 @@ public class Deposit {
                 }
                 break;
             case GRAB_HOLD:
-                moveToWithRad(grabRad, holdY);
+                moveToWithRad(grabRetractRad, holdY);
                 arm.setClawRotation(speciHClawRad, 1.0);
                 break;
             case SPECI_RAISE:
@@ -211,14 +218,6 @@ public class Deposit {
         TelemetryUtil.packet.put("Deposit:: Claw inPosition()", arm.clawFinished());
     }
 
-    public void moveToWithCoord(double targetX, double targetY){
-        double armTargetRad = Math.acos(targetX/arm.armLength) * (targetY >= baseHeight ? 1 : -1);
-        double slidesTargetLength = Math.max(targetY - (baseHeight + arm.armLength * Math.sin(armTargetRad)), 0.0);
-
-        arm.setArmRotation(armTargetRad, 1.0);
-        slides.setTargetLength(slidesTargetLength);
-    }
-
     public void moveToWithRad(double armTargetRad, double targetY){
         arm.setArmRotation(armTargetRad, 1.0);
         slides.setTargetLength(targetY);
@@ -232,6 +231,10 @@ public class Deposit {
     private double targetY = 0.0;
     public void setDepositHeight(double targetY){
         this.targetY = targetY;
+    }
+
+    public double getDepositHeight(){
+        return targetY;
     }
 
     public void moveToStart(){

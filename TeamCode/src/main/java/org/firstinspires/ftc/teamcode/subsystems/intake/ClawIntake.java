@@ -2,6 +2,8 @@ package org.firstinspires.ftc.teamcode.subsystems.intake;
 
 import static org.firstinspires.ftc.teamcode.utils.Globals.GET_LOOP_TIME;
 
+import android.util.Log;
+
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 
@@ -154,8 +156,10 @@ public class ClawIntake {
                 break;
             case READY:
                 //clawRotation.setTargetAngle(clawRotationDefaultAngle);
-                intakeFlipServo.setTargetPos(intakeFlipMiddleAngle);
+                //intakeFlipServo.setTargetAngle(intakeFlipMiddleAngle);
+                //Log.i("SLCI", "" + intakeFlipServo.getTargetAngle());
                 //claw.setTargetAngle(clawOpenAngle);
+                intakeFlipServo.servos[0].setPosition(0.177);
                 break;
         }
         f += 0.01;

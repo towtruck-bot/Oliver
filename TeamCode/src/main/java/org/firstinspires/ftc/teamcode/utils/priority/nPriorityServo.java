@@ -31,7 +31,7 @@ public class nPriorityServo extends PriorityDevice {
         }
     }
 
-    private final Servo[] servos;
+    public final Servo[] servos;
     private final ServoType type;
     public final double minPos;
     public final double maxPos;
@@ -112,6 +112,7 @@ public class nPriorityServo extends PriorityDevice {
 
     @Override
     protected void update() {
+        Log.i("SLCI", "Updated " + name);
 
         long currentTime = System.nanoTime();
         double timeSinceLastUpdate = ((double) currentTime - lastUpdateTime)/1.0E9;
@@ -135,6 +136,7 @@ public class nPriorityServo extends PriorityDevice {
                 pos = 1 - convertAngleToPos(currentIntermediateTargetAngle);
             }
             servos[i].setPosition(pos);
+            Log.i("SLCI", "Set position of " + name + " to " + pos);
         }
 
         isUpdated = true;

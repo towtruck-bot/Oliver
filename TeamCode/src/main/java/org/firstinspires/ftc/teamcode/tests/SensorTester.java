@@ -6,8 +6,11 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.sensors.Sensors;
 import org.firstinspires.ftc.teamcode.utils.Globals;
+import org.firstinspires.ftc.teamcode.utils.Pose2d;
 import org.firstinspires.ftc.teamcode.utils.RunMode;
 import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
+
+import java.util.Locale;
 
 @TeleOp(group = "Test")
 public class SensorTester extends LinearOpMode {
@@ -28,6 +31,10 @@ public class SensorTester extends LinearOpMode {
             telemetry.addData("leftOdo", sensors.getOdometry()[0]);
             telemetry.addData("rightOdo", sensors.getOdometry()[1]);
             telemetry.addData("backOdo", sensors.getOdometry()[2]);
+
+            Pose2d pos = sensors.getPosition();
+            String data = String.format(Locale.US, "{X: %.3f, Y: %.3f, H: %.3f}", pos.getX(), pos.getY(), pos.getHeading());
+            telemetry.addData("Position", data);
 
             telemetry.addData("Slides position", sensors.getSlidesPosition());
 

@@ -10,6 +10,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.teamcode.Robot;
+import org.firstinspires.ftc.teamcode.utils.Pose2d;
 import org.firstinspires.ftc.teamcode.utils.SparkFunOTOS;
 import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 import org.firstinspires.ftc.teamcode.utils.priority.HardwareQueue;
@@ -31,6 +32,7 @@ public class Sensors {
 
     //private IMU imu;
     private int[] odometry = new int[] {0,0,0};
+    private GoBildaPinpointDriver odo;
 
     private int slidesEncoder;
     private double slidesVelocity;
@@ -67,18 +69,13 @@ public class Sensors {
         this.hardwareQueue = robot.hardwareQueue;
         this.robot = robot;
 
-//        otos = hardwareMap.get(SparkFunOTOS.class, "sparkfunSensor");
-//        otos.setLinearUnit(SparkFunOTOS.LinearUnit.INCHES);
-//        otos.setAngularUnit(SparkFunOTOS.AngularUnit.RADIANS);
-//        otos.calibrateImu();
-//        SparkFunOTOS.Pose2D offset = new SparkFunOTOS.Pose2D( -3.333,2.9375, 0);
-//        otos.setOffset(offset);
-//        otos.setLinearScalar(1.010);
-//        otos.setAngularScalar(0.992);
-//        otos.resetTracking();
-//        SparkFunOTOS.Pose2D currentPosition = new SparkFunOTOS.Pose2D(0, 0, 0);
-//        otos.setPosition(currentPosition);
-
+        this.odo = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
+        //TODO: Tune offsets
+        odo.setOffsets(-84.0, -63); //these are tuned for 3110-0002-0001 Product Insight #1
+        odo.setPosition(new Pose2d(0.0, 0.0, 0.0));
+        odo.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_SWINGARM_POD);
+        odo.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.FORWARD);
+        odo.resetPosAndIMU();
 
         this.intakeColorSensorR = this.robot.hardwareMap.get(DigitalChannel.class, "intakeColorSensorR");
         this.intakeColorSensorR.setMode(DigitalChannel.Mode.INPUT);
@@ -129,6 +126,8 @@ public class Sensors {
         odometry[1] = ((PriorityMotor) hardwareQueue.getDevice("rightRear")).motor[0].getCurrentPosition(); // right (3)
         odometry[2] = ((PriorityMotor) hardwareQueue.getDevice("leftRear")).motor[0].getCurrentPosition(); // back (1)
 
+        odo.update();
+
         long currTime = System.currentTimeMillis();
 
         double lastOtosHeading = otosHeading;
@@ -178,6 +177,8 @@ public class Sensors {
     public int[] getOdometry() {
         return odometry;
     }
+
+    public Pose2d getPosition(){return odo.getPosition();}
 
     public double getSlidesVelocity() {
         return slidesVelocity * slidesInchesPerTick;

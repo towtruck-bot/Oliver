@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.subsystems.intake;
 
+import static org.firstinspires.ftc.teamcode.utils.Globals.GET_LOOP_TIME;
+
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 
@@ -27,16 +29,17 @@ public class ClawIntake {
     public static PID extendoPID = new PID(0.185, 0.002, 0.008);
     public static double slidesTolerance = 1;
 
-    private double intakeFlipAlignAngle = 0.0;
-    private double intakeFlipUpAngle = 0.0;
+    private double intakeFlipUpAngle = -1.7966;
     private double intakeFlipGrabAngle = 0.0;
-    private double intakeFlipMiddleAngle = 0.0;
+    private double intakeFlipMiddleAngle = -1.5169;
 
     private double clawRotationDefaultAngle = 0.0;
     private double clawRotationAlignAngle = 0.0;
 
     private double clawOpenAngle = 0.0;
     private double clawCloseAngle = 0.0;
+
+    private boolean isRetracted = true;
 
     public static double intakeClawClose = 0;
     public static double intakeClawOpen = 1; //todo get these values
@@ -66,13 +69,12 @@ public class ClawIntake {
         );
         robot.hardwareQueue.addDevice(intakeExtensionMotor);
 
-
         intakeFlipServo = new nPriorityServo(
                 new Servo[] {robot.hardwareMap.get(Servo.class, "intakeFlipServo")},
                 "intakeFlipServo",
                 nPriorityServo.ServoType.HITEC,
-                0.15, 0.7, 0.7,
-                new boolean[] {false},
+                0.0, 1.0, 0.823,
+                new boolean[] {true},
                 1.0, 5.0
         );
         robot.hardwareQueue.addDevice(intakeFlipServo);
@@ -106,6 +108,7 @@ public class ClawIntake {
         return extendoCurrentPos;
     }
 
+    double f = 0;
     //general update for entire class
     public void update() {
         extendoCurrentPos = this.robot.sensors.getIntakeExtensionPosition();
@@ -113,7 +116,7 @@ public class ClawIntake {
         switch (clawIntakeState) {
             case START_EXTEND: // clawRotation goes up
                 intakeFlipServo.setTargetAngle(intakeFlipMiddleAngle);
-                if (clawRotation.getCurrentAngle() < -Math.toRadians(60)) { // TODO: modify angle to min angle claw rotation needs to go out before we can start extendo
+                if (clawRotation.getCurrentAngle() > -1) { // TODO: modify angle to min angle claw rotation needs to go out before we can start extendo
                     clawIntakeState = ClawIntakeState.FINISH_EXTEND;
                     setExtendoTargetPos(10);
                 }
@@ -125,7 +128,6 @@ public class ClawIntake {
                 break;
             case ALIGN:
                 clawRotation.setTargetAngle(clawRotationAlignAngle);
-                intakeFlipServo.setTargetAngle(intakeFlipAlignAngle); //grabbing is done through method
                 if (grab) {
                     clawIntakeState = ClawIntakeState.GRAB;
                 }
@@ -135,7 +137,6 @@ public class ClawIntake {
                 clawRotation.setTargetAngle(clawRotationAlignAngle);
                 break;
             case CONFIRM:
-                intakeFlipServo.setTargetAngle(intakeFlipAlignAngle);
                 clawRotation.setTargetAngle(clawRotationDefaultAngle);
                 if (retract) {
                     retract = false;
@@ -149,13 +150,15 @@ public class ClawIntake {
             case RETRACT:
                 intakeFlipServo.setTargetAngle(intakeFlipUpAngle);
                 setExtendoTargetPos(0);
+                isRetracted = true;
                 break;
             case READY:
-                clawRotation.setTargetAngle(clawRotationDefaultAngle);
-                intakeFlipServo.setTargetAngle(intakeFlipUpAngle);
-                claw.setTargetAngle(clawOpenAngle);
+                //clawRotation.setTargetAngle(clawRotationDefaultAngle);
+                intakeFlipServo.setTargetPos(intakeFlipMiddleAngle);
+                //claw.setTargetAngle(clawOpenAngle);
                 break;
         }
+        f += 0.01;
 
         updateExtendo();
     }
@@ -175,8 +178,12 @@ public class ClawIntake {
         claw.setTargetAngle(clawCloseAngle);
     }
 
-    public void release(){
-        clawIntakeState = ClawIntakeState.READY;
+    public void extend(){
+        clawIntakeState = ClawIntakeState.START_EXTEND;
+    }
+
+    public boolean isRetracted() {
+        return  isRetracted;
     }
 
     //update the slides alone, to be run every loop
@@ -190,6 +197,8 @@ public class ClawIntake {
         }
 
         TelemetryUtil.packet.put("ClawIntake.extendoCurrentPos", extendoCurrentPos);
+        TelemetryUtil.packet.put("Claw Intake State", clawIntakeState);
+        TelemetryUtil.sendTelemetry();
     }
 
     public boolean isExtensionAtTarget() { return Math.abs(extendoTargetPos - extendoCurrentPos) <= slidesTolerance; }

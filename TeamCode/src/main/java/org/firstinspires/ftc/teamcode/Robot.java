@@ -22,7 +22,6 @@ public class Robot {
     public final HardwareQueue hardwareQueue;
     public final Sensors sensors;
     public final Drivetrain drivetrain;
-    public final Intake intake;
     public final ClawIntake clawIntake;
     public final Deposit deposit;
 
@@ -64,8 +63,6 @@ public class Robot {
             this.prevState = RobotState.SPECIMEN_READY;
         }
         this.sensors = new Sensors(this);
-
-        this.intake = new Intake(this);
         this.clawIntake = new ClawIntake(this);
         this.drivetrain = new Drivetrain(this);
         this.deposit = new Deposit(this);
@@ -82,7 +79,7 @@ public class Robot {
     private void updateSubsystems() {
         this.sensors.update();
 
-        this.intake.update();
+        this.clawIntake.update();
         this.drivetrain.update();
         this.deposit.update();
 
@@ -143,14 +140,14 @@ public class Robot {
                     break;
                 case INTAKE_SAMPLE:
                     if (this.prevState == RobotState.IDLE) {
-                        this.intake.extend();
+                        this.clawIntake.extend();
                         this.deposit.prepareTransfer();
                     }
-                    if (this.intake.isRetracted()) {
-                        if (this.intake.hasSample()) this.state = RobotState.TRANSFER;
+                    if (this.clawIntake.isRetracted()) {
+                        if (this.clawIntake.isRetracted()) this.state = RobotState.TRANSFER;
                         else this.state = RobotState.IDLE;
                     } else if (wasClicked && this.nextState == NextState.DONE) {
-                        this.intake.retract();
+                        this.clawIntake.retract();
                         this.lastClickTime = -1;
                     }
                     break;
@@ -159,7 +156,7 @@ public class Robot {
                     if (this.deposit.isSampleReady()) this.state = RobotState.SAMPLE_READY;
                     break;
                 case SAMPLE_READY:
-                    if (this.prevState == RobotState.TRANSFER) this.intake.retract();
+                    if (this.prevState == RobotState.TRANSFER) this.clawIntake.retract();
                     if (wasClicked) {
                         if (this.nextState == NextState.DONE) this.state = RobotState.OUTTAKE;
                         else if (this.nextState == NextState.DEPOSIT) this.state = RobotState.DEPOSIT_BUCKET;

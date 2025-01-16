@@ -274,7 +274,7 @@ public class Deposit {
         return state == State.HOLD;
     }
 
-    public void grabSpecimen() {
+    public void startSpecimenGrab() {
         state = State.GRAB_MOVE;
     }
 

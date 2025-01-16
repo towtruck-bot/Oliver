@@ -41,8 +41,6 @@ public class ClawIntake {
     private double clawOpenAngle = 0.0;
     private double clawCloseAngle = 0.0;
 
-    private boolean isRetracted = true;
-
     public static double intakeClawClose = 0;
     public static double intakeClawOpen = 1; //todo get these values
     public static double flipGearRatio = -24.0 / 40.0;
@@ -151,7 +149,6 @@ public class ClawIntake {
             case RETRACT:
                 intakeFlipServo.setTargetAngle(intakeFlipUpAngle);
                 setExtendoTargetPos(0);
-                isRetracted = true;
                 break;
             case READY:
                 clawRotation.setTargetAngle(clawRotationDefaultAngle);
@@ -184,7 +181,7 @@ public class ClawIntake {
     }
 
     public boolean isRetracted() {
-        return  isRetracted;
+        return this.clawIntakeState == ClawIntakeState.RETRACT && isExtensionAtTarget();
     }
 
     //update the slides alone, to be run every loop

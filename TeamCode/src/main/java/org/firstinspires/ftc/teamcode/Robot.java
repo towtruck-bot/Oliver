@@ -46,7 +46,7 @@ public class Robot {
     private RobotState prevState = RobotState.IDLE;
     private NextState nextState = NextState.DONE;
     private long lastClickTime = -1;
-    public static long bufferClickDuration = 500;
+    public static long bufferClickDuration = 250;
 
     private boolean outtakeAndThenGrab = false;
 
@@ -89,9 +89,9 @@ public class Robot {
     }
 
     private void updateTelemetry() {
-        TelemetryUtil.packet.put("Robot state", this.state.toString());
-        TelemetryUtil.packet.put("Robot nextState", this.nextState.toString());
-        TelemetryUtil.packet.put("Robot outtakeAndThenGrab", this.outtakeAndThenGrab);
+        TelemetryUtil.packet.put("Robot::state", this.state.toString());
+        TelemetryUtil.packet.put("Robot::nextState", this.nextState.toString());
+        TelemetryUtil.packet.put("Robot::outtakeAndThenGrab", this.outtakeAndThenGrab);
         TelemetryUtil.packet.put("Loop Time", GET_LOOP_TIME());
         TelemetryUtil.sendTelemetry();
     }
@@ -114,11 +114,11 @@ public class Robot {
     Double arrow: manual advance during Teleop
     Curly braces: these states have additional Teleop control (such as adjusting robot or claw position before continuing)
 
-    v--------------<--------------------------------------------------------<
-    V              ^^                                                       |
-    IDLE >> {INTAKE_SAMPLE} > TRANSFER > SAMPLE_READY >> {DEPOSIT_BUCKET} >-^
-    ^  VV                                      VV                           |
-    |  >>--------------->> {GRAB_SPECIMEN} < OUTTAKE >----------------------^
+    v--------------<---------------------------------------------------------<
+    V              ^^                                                        |
+    IDLE >> {INTAKE_SAMPLE} >> TRANSFER > SAMPLE_READY >> {DEPOSIT_BUCKET} >-^
+    ^  VV                                      VV                            |
+    |  >>--------------->> {GRAB_SPECIMEN} < OUTTAKE >-----------------------^
     |                          VV   VV          ^^
     ^--------------------------<    VV          ^^
     |                               VV          ^^
@@ -156,7 +156,7 @@ public class Robot {
                     if (this.deposit.isSampleReady()) this.state = RobotState.SAMPLE_READY;
                     break;
                 case SAMPLE_READY:
-                    if (this.prevState == RobotState.TRANSFER) this.clawIntake.retract();
+                    //if (this.prevState == RobotState.TRANSFER) this.clawIntake.retract();
                     if (wasClicked) {
                         if (this.nextState == NextState.DONE) this.state = RobotState.OUTTAKE;
                         else if (this.nextState == NextState.DEPOSIT) this.state = RobotState.DEPOSIT_BUCKET;
@@ -178,12 +178,12 @@ public class Robot {
                             this.state = RobotState.GRAB_SPECIMEN;
                         } else {
                             this.state = RobotState.IDLE;
-                            this.outtakeAndThenGrab = true;
+                            //this.outtakeAndThenGrab = true;
                         }
                     }
                     break;
                 case GRAB_SPECIMEN:
-                    if (this.prevState == RobotState.IDLE || this.prevState == RobotState.OUTTAKE) this.deposit.grabSpecimen();
+                    if (this.prevState == RobotState.IDLE || this.prevState == RobotState.OUTTAKE) this.deposit.startSpecimenGrab();
                     if (this.deposit.isSpecimenReady()) this.state = RobotState.SPECIMEN_READY;
                     else if (wasClicked) {
                         if (this.nextState == NextState.DONE) this.state = RobotState.IDLE;

@@ -73,7 +73,7 @@ public class ClawIntake {
                 new Servo[] {robot.hardwareMap.get(Servo.class, "intakeFlipServo")},
                 "intakeFlipServo",
                 nPriorityServo.ServoType.HITEC,
-                0.0, 1.0, 0.823,
+                0.229, 0.692, 0.69,
                 new boolean[] {false},
                 1.0, 5.0
         );

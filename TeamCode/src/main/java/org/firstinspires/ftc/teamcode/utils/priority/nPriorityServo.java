@@ -136,7 +136,7 @@ public class nPriorityServo extends PriorityDevice {
                 pos = 1 - convertAngleToPos(currentIntermediateTargetAngle);
             }
             servos[i].setPosition(pos);
-            Log.i("SLCI", "Set position of " + name + " to " + pos);
+            Log.i("SLCI", "Set position of " + name + " to position " + pos);
         }
 
         isUpdated = true;
@@ -157,6 +157,15 @@ public class nPriorityServo extends PriorityDevice {
 
         // How much the servo has moved from the start of the loop to now
         double deltaAngle = loopTime * type.speed * Math.signum(error) * power;
+
+//        Log.e("adding " + this.name + "deltaAngle" , deltaAngle + "");
+//        Log.e(this.name + "'s current angle" , currentAngle + "");
+        Log.e(this.name + "_loopTime" , loopTime + "");
+        Log.e(this.name + "_type.speed" , type.speed + "");
+        Log.e(this.name + "_error" , error + "");
+        Log.e(this.name + "_power" , power + "");
+        Log.e(this.name + "_currentAngle" , currentAngle + "");
+        Log.e(this.name + "_currentIntermediateTargetAngle" , currentIntermediateTargetAngle + "");
 
         currentAngle += deltaAngle;
 

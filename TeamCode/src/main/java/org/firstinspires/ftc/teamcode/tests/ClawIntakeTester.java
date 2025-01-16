@@ -24,9 +24,9 @@ public class ClawIntakeTester extends LinearOpMode {
         waitForStart();
 
         while (opModeIsActive()) {
-            /*if (button_a.isClicked(gamepad1.a)) {
+            if (button_a.isClicked(gamepad1.a)) {
                 clawIntake.extend();
-            }*/
+            }
             robot.update();
         }
     }

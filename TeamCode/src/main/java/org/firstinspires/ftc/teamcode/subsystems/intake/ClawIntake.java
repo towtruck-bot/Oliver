@@ -115,7 +115,8 @@ public class ClawIntake {
         switch (clawIntakeState) {
             case START_EXTEND: // clawRotation goes up
                 intakeFlipServo.setTargetAngle(intakeFlipMiddleAngle);
-                if (clawRotation.getCurrentAngle() > -1) { // TODO: modify angle to min angle claw rotation needs to go out before we can start extendo
+                Log.e("in START_EXTEND, intakeFlipServo angle", intakeFlipServo.getCurrentAngle() + "");
+                if (intakeFlipServo.getCurrentAngle() > 1) { // TODO: modify angle to min angle claw rotation needs to go out before we can start extendo
                     clawIntakeState = ClawIntakeState.FINISH_EXTEND;
                     setExtendoTargetPos(10);
                 }
@@ -153,8 +154,9 @@ public class ClawIntake {
             case READY:
                 clawRotation.setTargetAngle(clawRotationDefaultAngle);
                 intakeFlipServo.setTargetAngle(intakeFlipUpAngle);
-                Log.i("SLCI", "" + intakeFlipServo.getTargetAngle());
+                Log.i("ready state", "" + intakeFlipServo.getTargetAngle());
                 claw.setTargetAngle(clawOpenAngle);
+                setExtendoTargetPos(0);
                 break;
         }
 

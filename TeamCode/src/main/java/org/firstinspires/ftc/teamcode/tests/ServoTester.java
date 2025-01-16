@@ -114,7 +114,7 @@ public class ServoTester extends LinearOpMode {
 
             // if the servoIndex exceeds servoSize wrap around
             servoIndex = (servoIndex + servoSize) % servoSize;
-
+            telemetry.addData("if the servo is reversed, the pos will be reversed too", "lol");
             telemetry.addData("servoName", servos.get(servoIndex).name);
             telemetry.addData("servoIndex", servoIndex);
             telemetry.addData("servoPos", servoPos[servoIndex]);

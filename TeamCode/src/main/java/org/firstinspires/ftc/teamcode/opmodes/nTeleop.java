@@ -13,6 +13,7 @@ public class nTeleop extends LinearOpMode {
 
         final double triggerThresh = 0.2;
         boolean toggledAlliance = false;
+        boolean speciToggled = false;
 
         boolean inDeposit = false;
         boolean speciMode = true;
@@ -36,6 +37,10 @@ public class nTeleop extends LinearOpMode {
 
             if(gamepad1.a){
                 robot.deposit.setDepositHeight(robot.deposit.getDepositHeight() - 3);
+            }
+
+            if(gamepad1.x){
+                speciMode = !speciMode;
             }
         }
     }

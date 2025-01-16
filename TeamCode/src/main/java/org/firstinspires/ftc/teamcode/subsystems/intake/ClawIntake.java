@@ -31,7 +31,7 @@ public class ClawIntake {
     public static PID extendoPID = new PID(0.185, 0.002, 0.008);
     public static double slidesTolerance = 1;
 
-    private double intakeFlipUpAngle = -1.7966;
+    private double intakeFlipUpAngle = -0.4416;
     private double intakeFlipGrabAngle = 0.0;
     private double intakeFlipMiddleAngle = -1.5169;
 
@@ -76,7 +76,7 @@ public class ClawIntake {
                 "intakeFlipServo",
                 nPriorityServo.ServoType.HITEC,
                 0.0, 1.0, 0.823,
-                new boolean[] {true},
+                new boolean[] {false},
                 1.0, 5.0
         );
         robot.hardwareQueue.addDevice(intakeFlipServo);
@@ -110,7 +110,6 @@ public class ClawIntake {
         return extendoCurrentPos;
     }
 
-    double f = 0;
     //general update for entire class
     public void update() {
         extendoCurrentPos = this.robot.sensors.getIntakeExtensionPosition();
@@ -155,14 +154,12 @@ public class ClawIntake {
                 isRetracted = true;
                 break;
             case READY:
-                //clawRotation.setTargetAngle(clawRotationDefaultAngle);
-                //intakeFlipServo.setTargetAngle(intakeFlipMiddleAngle);
-                //Log.i("SLCI", "" + intakeFlipServo.getTargetAngle());
-                //claw.setTargetAngle(clawOpenAngle);
-                intakeFlipServo.servos[0].setPosition(0.177);
+                clawRotation.setTargetAngle(clawRotationDefaultAngle);
+                intakeFlipServo.setTargetAngle(intakeFlipUpAngle);
+                Log.i("SLCI", "" + intakeFlipServo.getTargetAngle());
+                claw.setTargetAngle(clawOpenAngle);
                 break;
         }
-        f += 0.01;
 
         updateExtendo();
     }

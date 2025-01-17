@@ -158,6 +158,10 @@ public class Robot {
             case TRANSFER:
                 if (this.prevState == RobotState.INTAKE_SAMPLE)
                     this.deposit.startTransfer();
+                if (clawIntake.intakeTransferReady())
+                    deposit.intakeTransferDone();
+                if (deposit.state == Deposit.State.TRANSFER_FINISH)
+                    clawIntake.depositTransferDone();
                 if (this.deposit.isSampleReady())
                     this.state = RobotState.SAMPLE_READY;
                 break;

@@ -161,6 +161,7 @@ public class ClawIntake {
                 break;
             case RETRACT:
                 intakeFlipServo.setTargetAngle(intakeFlipUpAngle);
+                claw.setTargetAngle(clawCloseAngle);
                 setExtendoTargetPos(0);
                 break;
             case READY:
@@ -215,6 +216,16 @@ public class ClawIntake {
         TelemetryUtil.packet.put("ClawIntake.extendoCurrentPos", extendoCurrentPos);
         TelemetryUtil.packet.put("Claw Intake State", clawIntakeState);
         TelemetryUtil.sendTelemetry();
+    }
+
+    public boolean intakeTransferReady() {
+        return clawIntakeState == ClawIntakeState.RETRACT;
+    }
+
+    public void depositTransferDone() {
+        if (clawIntakeState == ClawIntakeState.RETRACT) {
+            clawIntakeState = ClawIntakeState.READY;
+        }
     }
 
     public boolean isExtensionAtTarget() { return Math.abs(extendoTargetPos - extendoCurrentPos) <= slidesTolerance; }

@@ -6,8 +6,6 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.subsystems.deposit.Deposit;
-import org.firstinspires.ftc.teamcode.utils.Globals;
-import org.firstinspires.ftc.teamcode.utils.RunMode;
 import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 
 @TeleOp(group = "Test")
@@ -29,7 +27,7 @@ public class DepositTester extends LinearOpMode {
             }
 
             if(intakeDone){
-                robot.deposit.intakeDone();
+                robot.deposit.intakeTransferDone();
                 intakeDone = false;
             }
 

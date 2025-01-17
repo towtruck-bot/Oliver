@@ -230,7 +230,7 @@ public class Deposit {
     }
 
     private boolean intakeDone = false;
-    public void intakeDone() {
+    public void intakeTransferDone() {
         intakeDone = true;
     }
 

@@ -90,7 +90,6 @@ public class Slides {
      */
     private double feedforward() {
         double error = targetLength - length;
-        Log.i("james", String.valueOf(error));
 
         if (targetLength <= 0.6 && length < 2) {
             error = -0.5;

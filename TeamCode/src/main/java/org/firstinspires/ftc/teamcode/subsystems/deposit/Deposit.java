@@ -86,7 +86,7 @@ public class Deposit {
             case TRANSFER_GRAB:
                 moveToWithRad(intakeRad, intakeY);
 
-                if(arm.inPosition() && slides.inPosition(0.8)){
+                if(arm.inPosition() && slides.inPosition(1)){ // Need to figure out this threshold better
                     state = State.TRANSFER_CLOSE;
                 }
                 break;
@@ -94,8 +94,7 @@ public class Deposit {
                 moveToWithRad(intakeRad, intakeY);
                 arm.sampleClose();
 
-                if(arm.clawFinished() && intakeDone){
-                    intakeDone = false;
+                if(arm.clawFinished()){
                     robot.clawIntake.release();
                     state = State.TRANSFER_FINISH;
                 }
@@ -229,11 +228,6 @@ public class Deposit {
         arm.setArmRotation(0.0, 1.0);
         arm.setClawRotation(0.0, 1.0);
         slides.setTargetLength(0.0);
-    }
-
-    private boolean intakeDone = false;
-    public void intakeTransferDone() {
-        intakeDone = true;
     }
 
     private double targetY = speciHSY;

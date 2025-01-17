@@ -20,12 +20,22 @@ public class ClawIntakeTester extends LinearOpMode {
         ClawIntake clawIntake = robot.clawIntake;
 
         ButtonToggle button_a = new ButtonToggle();
+        ButtonToggle button_b = new ButtonToggle();
+        ButtonToggle button_y = new ButtonToggle();
 
         waitForStart();
 
         while (opModeIsActive()) {
             if (button_a.isClicked(gamepad1.a)) {
                 clawIntake.extend();
+            }
+
+            if (button_b.isClicked(gamepad1.b)) {
+                clawIntake.grab();
+            }
+
+            if (button_y.isClicked(gamepad1.y)) {
+                clawIntake.retract();
             }
             robot.update();
         }

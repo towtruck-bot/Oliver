@@ -36,7 +36,7 @@ public class nPriorityServo extends PriorityDevice {
     public final double minPos;
     public final double maxPos;
     public final double basePos;
-    private double currentAngle = 0, targetAngle = 0, power = 0, currentIntermediateTargetAngle = 0;
+    private double currentAngle = 0, targetAngle = 0, power = 1.0, currentIntermediateTargetAngle = 0;
     protected final boolean[] reversed;
     private long lastLoopTime = Globals.LOOP_START;
 
@@ -160,12 +160,13 @@ public class nPriorityServo extends PriorityDevice {
 
 //        Log.e("adding " + this.name + "deltaAngle" , deltaAngle + "");
 //        Log.e(this.name + "'s current angle" , currentAngle + "");
-        Log.e(this.name + "_loopTime" , loopTime + "");
-        Log.e(this.name + "_type.speed" , type.speed + "");
-        Log.e(this.name + "_error" , error + "");
-        Log.e(this.name + "_power" , power + "");
-        Log.e(this.name + "_currentAngle" , currentAngle + "");
-        Log.e(this.name + "_currentIntermediateTargetAngle" , currentIntermediateTargetAngle + "");
+//        Log.e(this.name + "_loopTime" , loopTime + "");
+//        Log.e(this.name + "_type.speed" , type.speed + "");
+//        Log.e(this.name + "_error" , error + "");
+//        Log.e(this.name + "_power" , power + "");
+//        Log.e(this.name + "_targetAngle" , targetAngle + "");
+//        Log.e(this.name + "_currentAngle" , currentAngle + "");
+//        Log.e(this.name + "_currentIntermediateTargetAngle" , currentIntermediateTargetAngle + "");
 
         currentAngle += deltaAngle;
 

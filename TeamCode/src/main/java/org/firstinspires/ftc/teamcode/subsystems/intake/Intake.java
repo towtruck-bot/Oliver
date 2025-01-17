@@ -1,7 +1,5 @@
 package org.firstinspires.ftc.teamcode.subsystems.intake;
 
-import android.util.Log;
-
 import androidx.annotation.NonNull;
 
 import com.acmerobotics.dashboard.config.Config;
@@ -119,7 +117,7 @@ public class Intake {
      */
     public void update() {
         long currentTime = System.nanoTime();
-        slidesCurrentPos = this.robot.sensors.getIntakeExtensionPosition() - slidesBasePos;
+        slidesCurrentPos = this.robot.sensors.getExtendoPosition() - slidesBasePos;
         sampleColor = this.robot.sensors.getIntakeColor();
 
         if (Globals.TESTING_DISABLE_CONTROL && Globals.RUNMODE == RunMode.TESTER) {
@@ -354,7 +352,7 @@ public class Intake {
      * Sets the slides zero position. -- Daniel
      */
     public void setSlidesZero() {
-        slidesBasePos = robot.sensors.getIntakeExtensionPosition() - slidesTolerance;
+        slidesBasePos = robot.sensors.getExtendoPosition() - slidesTolerance;
     }
 
     /**

@@ -49,13 +49,14 @@ public class Deposit {
     // moving positions with a sample
     private final double holdRad = 0.0, holdY = 0.0, holdClawRad = 2.0;
     // sample basket positions
-    private final double sampleHY = 33.85, sampleRad = 2.0, sampleClawRad = 1.14; // sampleLY = 15.25,
+    private final double sampleLY = 15.25, sampleHY = 33.85, sampleRad = 2.0, sampleClawRad = 1.14;
     // outtake positions, drop behind robot
     private final double outtakeRad = Math.PI, outtakeY = 0.0, outtakeReleaseRad = 0.0;
     // grabbing positions, holdGrab -> off the wall, grabRetract --> moving with a specimen
     private final double holdGrabRad = -0.3, grabRetractRad = 2.0;
     // specimen chamber positions
-    private final double  speciHRad = 1.8, speciHClawRad = 0.7, speciHSY = 15.0, speciHEY = 18.0; // speciLRad = 2.75, speciLClawRad = 0.0, speciLSY = 0.0, speciLEY = 0.0,
+    private final double speciLRad = 2.75, speciLClawRad = 0.0, speciLSY = 0.0, speciLEY = 0.0;
+    private final double  speciHRad = 1.8, speciHClawRad = 0.7, speciHSY = 15.0, speciHEY = 18.0;
 
     public Deposit(Robot robot){
         this.robot = robot;
@@ -110,7 +111,7 @@ public class Deposit {
                 moveToWithRad(holdRad, holdY);
                 break;
             case SAMPLE_RAISE:
-                moveToWithRad(sampleRad, sampleHY);
+                moveToWithRad(sampleRad, targetY);
                 arm.setClawRotation(sampleClawRad, 1.0);
 
                 if(arm.inPosition() && slides.inPosition(0.8)){
@@ -118,10 +119,10 @@ public class Deposit {
                 }
                 break;
             case SAMPLE_WAIT:
-                moveToWithRad(sampleRad, sampleHY);
+                moveToWithRad(sampleRad, targetY);
                 break;
             case SAMPLE_DEPOSIT:
-                moveToWithRad(sampleRad, sampleHY);
+                moveToWithRad(sampleRad, targetY);
                 arm.sampleOpen();
 
                 if(arm.clawFinished()){
@@ -223,23 +224,47 @@ public class Deposit {
         slides.setTargetLength(targetY);
     }
 
+    public void moveToStart(){
+        arm.setArmRotation(0.0, 1.0);
+        slides.setTargetLength(0.0);
+    }
+
     private boolean intakeDone = false;
     public void intakeDone() {
         intakeDone = true;
     }
 
-    private double targetY = 0.0;
+    private double targetY = speciHSY;
     public void setDepositHeight(double targetY){
         this.targetY = targetY;
     }
 
-    public double getDepositHeight(){
-        return targetY;
+    public void setDepositHeightLowSample(){
+        targetY = sampleLY;
     }
 
-    public void moveToStart(){
-        arm.setArmRotation(0.0, 1.0);
-        slides.setTargetLength(0.0);
+    public void setDepositHeightHighSample(){
+        targetY = sampleHY;
+    }
+
+    public void setDepositLowSpeci(){
+        targetY = speciLSY;
+    }
+
+    public void setDepositHighSpeci(){
+        targetY = speciHSY;
+    }
+
+    public void setDepositLowSpeciEnd(){
+        targetY = speciLEY;
+    }
+
+    public void setDepositHighSpeciEnd(){
+        targetY = speciHEY;
+    }
+
+    public double getDepositHeight(){
+        return targetY;
     }
 
     public void prepareTransfer() {

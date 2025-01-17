@@ -76,7 +76,6 @@ public class Drivetrain {
             3, 5, 1.0, sensors
         );
 
-
         leftRear = new PriorityMotor(
             hardwareMap.get(DcMotorEx.class, "leftRear"),
             "leftRear",

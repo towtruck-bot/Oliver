@@ -200,4 +200,12 @@ public class ClawIntake {
     }
 
     public boolean isExtensionAtTarget() { return Math.abs(extendoTargetPos - extendoCurrentPos) <= slidesTolerance; }
+
+    public void rotateClaw(double target){
+        clawRotation.setTargetAngle(target);
+    }
+
+    public double getClawRotation(){
+        return clawRotation.getCurrentAngle();
+    }
 }

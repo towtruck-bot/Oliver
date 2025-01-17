@@ -146,7 +146,7 @@ public class Robot {
                     this.deposit.prepareTransfer();
                 }
                 if (this.clawIntake.isRetracted()) {
-                    if (this.clawIntake.isRetracted())
+                    if (this.clawIntake.isRetracted()) //TODO: (from Teleop) i think the go back should be here but the logic is wrong
                         this.state = RobotState.TRANSFER;
                     else
                         this.state = RobotState.IDLE;
@@ -157,7 +157,7 @@ public class Robot {
                 break;
             case TRANSFER:
                 if (this.prevState == RobotState.INTAKE_SAMPLE)
-                    this.deposit.startTransfer();
+                    this.deposit.prepareTransfer();
                 if (clawIntake.intakeTransferReady())
                     deposit.intakeTransferDone();
                 if (deposit.state == Deposit.State.TRANSFER_FINISH)
@@ -189,7 +189,7 @@ public class Robot {
                 if (this.prevState == RobotState.SAMPLE_READY || this.prevState == RobotState.SPECIMEN_READY)
                     this.deposit.startOuttake();
                 if (this.deposit.isOuttakeDone()) {
-                    if (this.outtakeAndThenGrab) {
+                    if (this.outtakeAndThenGrab) { //TODO: i don tthink teleop ever set this my bad? unless robot does and i missed it
                         this.state = RobotState.GRAB_SPECIMEN;
                     } else {
                         this.state = RobotState.IDLE;
@@ -214,7 +214,7 @@ public class Robot {
                 if (wasClicked) {
                     if (this.nextState == NextState.DONE)
                         this.state = RobotState.OUTTAKE;
-                    else if (this.nextState == NextState.DEPOSIT)
+                    else if (this.nextState == NextState.DEPOSIT) // TODO: i think this is missing in teleop somehwere
                         this.state = RobotState.DEPOSIT_SPECIMEN;
                     this.lastClickTime = -1;
                 }

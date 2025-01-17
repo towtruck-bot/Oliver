@@ -288,7 +288,7 @@ public class Deposit {
     }
 
     public boolean isSampleDepositDone() {
-        return state == State.IDLE;
+        return state == State.HOLD;
     }
 
     public void startOuttake() {
@@ -296,7 +296,7 @@ public class Deposit {
     }
 
     public boolean isOuttakeDone() {
-        return state == State.HOLD;
+        return state == State.IDLE;
     }
 
     public void startSpecimenGrab() {

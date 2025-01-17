@@ -68,7 +68,8 @@ public class nTeleop extends LinearOpMode {
                 robot.grabSample();
 
                 if (lb_1.isClicked(gamepad1.left_bumper)) {
-                    robot.retractIntake();
+                    // TODO: Retry is unfinished, not sure how to use robot FSM to reset. dont think thers an option? DONE says it should retry/cancel intake but all it does is send it into TRANSFER(see robot comment)
+                    robot.setNextState(Robot.NextState.INTAKE_SAMPLE);
                 }
             } else {
                 if (rb_1.isReleased(gamepad1.right_bumper)) {
@@ -76,12 +77,14 @@ public class nTeleop extends LinearOpMode {
                 }
             }
 
+            //todo: this is just sketchy i dont think it actually starts deposit corectly
             if (rb_1.isClicked(gamepad1.right_bumper) && speciMode) {
                 robot.setNextState(Robot.NextState.DEPOSIT);//TODO: check this
             }
 
+            //actually deposit
             if (lb_1.isClicked(gamepad1.left_bumper) && robot.getState() != Robot.RobotState.INTAKE_SAMPLE) {
-                robot.setNextState(Robot.NextState.DEPOSIT);
+                robot.setNextState(Robot.NextState.DONE);
             }
 //
 //            if (lb_1.isClicked(gamepad1.left_bumper)) {
@@ -101,7 +104,7 @@ public class nTeleop extends LinearOpMode {
                 robot.setIntakeClawAngle(robot.clawIntake.getClawRotAngle() + intakeClawRotationInc);
             } else if (gamepad1.right_trigger > triggerThresh) {
                 if (speciMode) {
-                    robot.setNextState(Robot.NextState.GRAB_SPECIMEN);
+                    robot.setNextState(Robot.NextState.DEPOSIT);
                 } else {
                     robot.setIntakeClawAngle(robot.clawIntake.getClawRotAngle() - intakeClawRotationInc);
                 }

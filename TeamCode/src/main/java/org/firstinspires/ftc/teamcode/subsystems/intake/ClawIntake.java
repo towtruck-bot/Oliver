@@ -35,9 +35,10 @@ public class ClawIntake {
     public static PID extendoPID = new PID(0.135, 0.002, 0.005);
     public static double slidesTolerance = 0.5;
 
-    public static double intakeFlipUpAngle = -0.4416;
-    public static double intakeFlipGrabAngle = 0.0;
-    public static double intakeFlipMiddleAngle = -1.5169;
+    public static double intakeHoverUpAngle = -1.38;
+    public static double intakeFlipUpAngle = -1;
+    public static double intakeFlipGrabAngle = -1.6;
+    public static double intakeFlipBackAngle = -0.4;
 
     public static double clawRotationDefaultAngle = 0.0;
     public static double clawRotationAlignAngle = 0.0;
@@ -52,6 +53,7 @@ public class ClawIntake {
         FINISH_EXTEND, //flips down while continuing to extend, continuing to read
         ALIGN, //this is where limelight is gonna read for teleop, move to next on buttom press
         GRAB_MOVE,
+        GRAB_CLOSE,
         CONFIRM,
         RETRACT, //flip up + retract
         HOLD,
@@ -79,7 +81,7 @@ public class ClawIntake {
                 new Servo[] {robot.hardwareMap.get(Servo.class, "intakeFlipServo")},
                 "intakeFlipServo",
                 nPriorityServo.ServoType.HITEC,
-                0.229, 0.692, 0.69,
+                0, 1, 0.69,
                 new boolean[] {false},
                 1.0, 5.0
         );
@@ -114,7 +116,7 @@ public class ClawIntake {
     public void update() {
         switch (clawIntakeState) {
             case START_EXTEND: // clawRotation goes up
-                this.intakeFlipServo.setTargetAngle(intakeFlipMiddleAngle);
+                this.intakeFlipServo.setTargetAngle(intakeFlipUpAngle);
                 this.clawRotation.setTargetAngle(clawRotationDefaultAngle);
                 this.claw.setTargetAngle(clawOpenAngle);
                 this.extendoTargetPos = 0;
@@ -123,7 +125,7 @@ public class ClawIntake {
                 // TODO: modify angle to min angle claw rotation needs to go out before we can start extendo
                 break;
             case FINISH_EXTEND:
-                this.intakeFlipServo.setTargetAngle(intakeFlipMiddleAngle);
+                this.intakeFlipServo.setTargetAngle(intakeHoverUpAngle);
                 this.clawRotation.setTargetAngle(clawRotationDefaultAngle);
                 this.claw.setTargetAngle(clawOpenAngle);
                 this.extendoTargetPos = this.intakeSetTargetPos;
@@ -133,7 +135,7 @@ public class ClawIntake {
                 }
                 break;
             case ALIGN:
-                this.intakeFlipServo.setTargetAngle(intakeFlipUpAngle);
+                this.intakeFlipServo.setTargetAngle(intakeHoverUpAngle);
                 this.clawRotation.setTargetAngle(clawRotationAlignAngle);
                 this.claw.setTargetAngle(clawOpenAngle);
                 this.extendoTargetPos = this.intakeSetTargetPos;
@@ -144,10 +146,18 @@ public class ClawIntake {
                 this.clawRotation.setTargetAngle(clawRotationAlignAngle);
                 this.claw.setTargetAngle(clawOpenAngle);
                 this.extendoTargetPos = this.intakeSetTargetPos;
-                if (this.intakeFlipServo.inPosition()) this.clawIntakeState = ClawIntakeState.CONFIRM;
+                if (this.intakeFlipServo.inPosition())
+                    this.clawIntakeState = ClawIntakeState.GRAB_CLOSE;
+                break;
+            case GRAB_CLOSE:
+                this.intakeFlipServo.setTargetAngle(intakeFlipGrabAngle);
+                this.clawRotation.setTargetAngle(clawRotationAlignAngle);
+                this.claw.setTargetAngle(clawCloseAngle);
+                this.extendoTargetPos = this.intakeSetTargetPos;
+                if (this.claw.inPosition()) this.clawIntakeState = ClawIntakeState.CONFIRM;
                 break;
             case CONFIRM:
-                this.intakeFlipServo.setTargetAngle(intakeFlipGrabAngle);
+                this.intakeFlipServo.setTargetAngle(intakeFlipUpAngle);
                 this.clawRotation.setTargetAngle(clawRotationAlignAngle);
                 this.claw.setTargetAngle(clawCloseAngle);
                 this.extendoTargetPos = this.intakeSetTargetPos;
@@ -156,18 +166,18 @@ public class ClawIntake {
             case RETRACT:
                 this.intakeFlipServo.setTargetAngle(intakeFlipUpAngle);
                 this.clawRotation.setTargetAngle(clawRotationDefaultAngle);
-                this.claw.setTargetAngle(clawCloseAngle);
+                this.claw.setTargetAngle(this.grab ? clawCloseAngle : clawOpenAngle);
                 this.extendoTargetPos = 0;
-                if (this.isExtensionAtTarget()) this.clawIntakeState = ClawIntakeState.HOLD;
+                if (this.isExtensionAtTarget()) this.clawIntakeState = this.grab ? ClawIntakeState.HOLD : ClawIntakeState.READY;
                 break;
             case HOLD:
-                this.intakeFlipServo.setTargetAngle(intakeFlipMiddleAngle);
+                this.intakeFlipServo.setTargetAngle(intakeFlipBackAngle);
                 this.clawRotation.setTargetAngle(clawRotationDefaultAngle);
                 this.claw.setTargetAngle(clawCloseAngle);
                 this.extendoTargetPos = 0;
                 break;
             case READY:
-                this.intakeFlipServo.setTargetAngle(intakeFlipMiddleAngle);
+                this.intakeFlipServo.setTargetAngle(intakeFlipBackAngle);
                 this.clawRotation.setTargetAngle(clawRotationDefaultAngle);
                 this.claw.setTargetAngle(clawOpenAngle);
                 this.extendoTargetPos = 0;
@@ -175,6 +185,10 @@ public class ClawIntake {
         }
 
         updateExtendo();
+
+        TelemetryUtil.packet.put("ClawIntake.clawRotationAlignAngle", clawRotationAlignAngle);
+        TelemetryUtil.packet.put("ClawIntake intakeFlipServo", intakeFlipServo.getCurrentAngle());
+        TelemetryUtil.packet.put("ClawIntake clawRotation", clawRotation.getCurrentAngle());
     }
 
     public void setClawRotation(double angle) {
@@ -193,15 +207,22 @@ public class ClawIntake {
     }
 
     public void extend() {
-        clawIntakeState = ClawIntakeState.START_EXTEND;
+        if (clawIntakeState == ClawIntakeState.READY || clawIntakeState == ClawIntakeState.HOLD)
+            clawIntakeState = ClawIntakeState.START_EXTEND;
     }
 
     public void release() {
-        clawIntakeState = ClawIntakeState.READY;
+        if (clawIntakeState == ClawIntakeState.HOLD)
+            clawIntakeState = ClawIntakeState.READY;
     }
 
     public boolean isRetracted() {
-        return this.clawIntakeState == ClawIntakeState.HOLD;
+        return this.clawIntakeState == ClawIntakeState.HOLD || clawIntakeState == ClawIntakeState.READY;
+    }
+
+    public boolean isExtended() {
+        return this.clawIntakeState == ClawIntakeState.ALIGN || clawIntakeState == ClawIntakeState.GRAB_MOVE
+            || clawIntakeState == ClawIntakeState.GRAB_CLOSE || clawIntakeState == ClawIntakeState.CONFIRM;
     }
 
     public boolean hasSample() { return this.grab; }

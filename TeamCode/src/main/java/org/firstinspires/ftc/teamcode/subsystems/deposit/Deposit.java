@@ -226,6 +226,7 @@ public class Deposit {
 
     public void moveToStart(){
         arm.setArmRotation(0.0, 1.0);
+        arm.setClawRotation(0.0, 1.0);
         slides.setTargetLength(0.0);
     }
 
@@ -308,7 +309,7 @@ public class Deposit {
     }
 
     public boolean isSpecimenReady() {
-        return state == State.HOLD;
+        return state == State.GRAB_HOLD;
     }
 
     public void startSpecimenDeposit() {

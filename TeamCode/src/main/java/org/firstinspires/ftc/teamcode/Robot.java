@@ -42,7 +42,8 @@ public class Robot {
         GRAB_SPECIMEN
     }
     private RobotState state = RobotState.IDLE;
-    private RobotState prevState = RobotState.IDLE;
+    private RobotState prevState = RobotState.OUTTAKE;
+    private RobotState prevState1 = RobotState.IDLE;
     private NextState nextState = NextState.DONE;
     private long lastClickTime = -1;
     public static long bufferClickDuration = 250;
@@ -146,7 +147,7 @@ public class Robot {
                     this.deposit.prepareTransfer();
                 }
                 if (this.clawIntake.isRetracted()) {
-                    if (this.clawIntake.hasSample()) //TODO: (from Teleop) i think the go back should be here but the logic is wrong
+                    if (this.clawIntake.hasSample())
                         this.state = RobotState.TRANSFER;
                     else
                         this.state = RobotState.IDLE;
@@ -157,28 +158,28 @@ public class Robot {
                 break;
             case TRANSFER:
                 if (this.prevState == RobotState.INTAKE_SAMPLE)
-                    this.deposit.prepareTransfer();
+                    this.deposit.startTransfer();
                 if (this.deposit.isSampleReady())
                     this.state = RobotState.SAMPLE_READY;
                 break;
             case SAMPLE_READY:
                 //if (this.prevState == RobotState.TRANSFER) this.clawIntake.retract();
                 if (wasClicked) {
-                    if (this.nextState == NextState.DONE)
-                        this.state = RobotState.OUTTAKE;
-                    else if (this.nextState == NextState.DEPOSIT)
-                        this.state = RobotState.DEPOSIT_BUCKET;
-                    this.lastClickTime = -1;
+                    if (nextState == NextState.DONE)
+                        state = RobotState.OUTTAKE;
+                    else if (nextState == NextState.DEPOSIT)
+                        state = RobotState.DEPOSIT_BUCKET;
+                    lastClickTime = -1;
                 }
                 break;
             case DEPOSIT_BUCKET:
-                if (this.prevState == RobotState.SAMPLE_READY)
-                    this.deposit.startSampleDeposit();
-                if (this.deposit.isSampleDepositDone())
-                    this.state = RobotState.IDLE;
-                else if (wasClicked && this.nextState == NextState.DONE) {
-                    this.deposit.finishSampleDeposit();
-                    this.lastClickTime = -1;
+                if (prevState == RobotState.SAMPLE_READY)
+                    deposit.startSampleDeposit();
+                if (deposit.isSampleDepositDone())
+                    state = RobotState.IDLE;
+                else if (wasClicked && nextState == NextState.DONE) {
+                    deposit.finishSampleDeposit();
+                    lastClickTime = -1;
                 }
                 break;
             case OUTTAKE:
@@ -226,7 +227,8 @@ public class Robot {
                 }
                 break;
         }
-        prevState = state;
+        prevState = prevState1;
+        prevState1 = state;
     }
 
         /**

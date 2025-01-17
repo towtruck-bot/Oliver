@@ -11,7 +11,7 @@ import org.firstinspires.ftc.teamcode.utils.RunMode;
 
 @Config
 @TeleOp(group = "Test")
-public class ClawIntakeTester extends LinearOpMode {
+public class RobotTester extends LinearOpMode {
 
     @Override
     public void runOpMode() {
@@ -31,10 +31,12 @@ public class ClawIntakeTester extends LinearOpMode {
         waitForStart();
 
         while (opModeIsActive()) {
-            if (button_a.isClicked(gamepad1.a)) robot.clawIntake.extend();
-            if (button_b.isClicked(gamepad1.b)) robot.clawIntake.grab(!robot.clawIntake.hasSample());
-            if (button_y.isClicked(gamepad1.y)) robot.clawIntake.retract();
-            if (button_x.isClicked(gamepad1.x)) robot.clawIntake.release();
+            if (button_a.isClicked(gamepad1.a)) robot.setNextState(Robot.NextState.DEPOSIT);
+            if (button_b.isClicked(gamepad1.b)) robot.setNextState(Robot.NextState.GRAB_SPECIMEN);
+            if (button_y.isClicked(gamepad1.y)) robot.setNextState(Robot.NextState.INTAKE_SAMPLE);
+            if (button_x.isClicked(gamepad1.x)) robot.setNextState(Robot.NextState.DONE);
+
+            if (robot.clawIntake.isExtended()) robot.clawIntake.grab(gamepad1.right_bumper);
 
             if (gamepad1.dpad_up)
                 robot.clawIntake.setIntakeTargetPos(robot.clawIntake.getIntakeTargetPos() + extendoInc);
@@ -45,6 +47,10 @@ public class ClawIntakeTester extends LinearOpMode {
             if (gamepad1.right_trigger > triggerThresh) robot.clawIntake.setClawRotation(robot.clawIntake.getClawRotAngle() - intakeClawRotationInc);
 
             robot.update();
+
+            telemetry.addData("robot state", robot.getState());
+            telemetry.addData("intake target pos", robot.clawIntake.getIntakeTargetPos());
+            telemetry.update();
         }
     }
 }

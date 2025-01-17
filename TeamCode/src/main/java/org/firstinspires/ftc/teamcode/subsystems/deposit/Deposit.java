@@ -96,6 +96,7 @@ public class Deposit {
 
                 if(arm.clawFinished() && intakeDone){
                     intakeDone = false;
+                    robot.clawIntake.release();
                     state = State.TRANSFER_FINISH;
                 }
                 break;
@@ -289,7 +290,7 @@ public class Deposit {
     }
 
     public boolean isSampleDepositDone() {
-        return state == State.HOLD;
+        return state == State.IDLE;
     }
 
     public void startOuttake() {

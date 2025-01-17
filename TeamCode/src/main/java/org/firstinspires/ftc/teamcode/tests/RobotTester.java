@@ -31,10 +31,14 @@ public class RobotTester extends LinearOpMode {
         waitForStart();
 
         while (opModeIsActive()) {
-            if (button_a.isClicked(gamepad1.a)) robot.setNextState(Robot.NextState.DEPOSIT);
-            if (button_b.isClicked(gamepad1.b)) robot.setNextState(Robot.NextState.GRAB_SPECIMEN);
-            if (button_y.isClicked(gamepad1.y)) robot.setNextState(Robot.NextState.INTAKE_SAMPLE);
-            if (button_x.isClicked(gamepad1.x)) robot.setNextState(Robot.NextState.DONE);
+            if (button_a.isClicked(gamepad1.a))
+                robot.setNextState(Robot.NextState.DEPOSIT);
+            if (button_b.isClicked(gamepad1.b))
+                robot.setNextState(Robot.NextState.GRAB_SPECIMEN);
+            if (button_y.isClicked(gamepad1.y))
+                robot.setNextState(Robot.NextState.INTAKE_SAMPLE);
+            if (button_x.isClicked(gamepad1.x))
+                robot.setNextState(Robot.NextState.DONE);
 
             if (robot.clawIntake.isExtended()) robot.clawIntake.grab(gamepad1.right_bumper);
 

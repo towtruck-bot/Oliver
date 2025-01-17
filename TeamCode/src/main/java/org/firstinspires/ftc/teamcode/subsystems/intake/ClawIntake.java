@@ -177,6 +177,10 @@ public class ClawIntake {
         this.clawRotationAlignAngle = clawRotationAlignAngle;
     }
 
+    public double getClawRotAngle(){
+        return this.clawRotationAlignAngle;
+    }
+
     boolean retract = false;
     public void retract() {
         retract = true;

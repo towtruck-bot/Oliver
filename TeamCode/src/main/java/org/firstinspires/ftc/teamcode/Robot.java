@@ -235,6 +235,15 @@ public class Robot {
          */
     public RobotState getState() { return this.state; }
 
+    public void forceRetractToSampleReady(){
+        state = RobotState.SAMPLE_READY;
+        prevState = RobotState.TRANSFER;
+    }
+
+    public void forceRetractToSpeciReady(){
+        state = RobotState.SPECIMEN_READY;
+        prevState = RobotState.GRAB_SPECIMEN;
+    }
     /**
      * Sets what will happen after an OUTTAKE. This is automatically set to true after an OUTTAKE > IDLE. -- Daniel
      * @param outtakeAndThenGrab true if the robot should go directly to GRAB_SPECIMEN, false to go to IDLE

@@ -39,6 +39,8 @@ public class nTeleop extends LinearOpMode {
         }
 
         while(!isStopRequested()){
+            robot.update();
+
             // DRIVER 1
 
             // Toggle Specimen/Sample Deposit Mode
@@ -101,12 +103,12 @@ public class nTeleop extends LinearOpMode {
             // lt --> rotate left, rt --> rotate right(if in not specimen mode), rt --> grab specimen(if in specimen mode)
            // TODO: Check if left/right is plus/minus or vice versa
             if(gamepad1.left_trigger > triggerThresh){
-                robot.clawIntake.rotateClaw(robot.clawIntake.getClawRotation() + intakeClawRotationInc);
+                robot.clawIntake.updateClawRotationAdjustAngle(robot.clawIntake.getClawRotAngle() + intakeClawRotationInc);
             }else if(gamepad1.right_trigger > triggerThresh){
                 if(speciMode){
                     robot.setNextState(Robot.NextState.GRAB_SPECIMEN);
                 }else{
-                    robot.clawIntake.rotateClaw(robot.clawIntake.getClawRotation() - intakeClawRotationInc);
+                    robot.clawIntake.updateClawRotationAdjustAngle(robot.clawIntake.getClawRotAngle() - intakeClawRotationInc);
                 }
             }
 
@@ -148,7 +150,7 @@ public class nTeleop extends LinearOpMode {
             // Force Deposit Slides Retract
             // TODO: UNFINISHED
             if(b_2.isClicked(gamepad2.b)){
-                robot.setNextState(Robot.NextState.DONE);
+                robot.deposit.setDepositHeight(0.0);
             }
 
             // Increment/Decrement Intake Slides

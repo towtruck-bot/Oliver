@@ -5,7 +5,6 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.Robot;
-import org.firstinspires.ftc.teamcode.subsystems.intake.ClawIntake;
 import org.firstinspires.ftc.teamcode.utils.ButtonToggle;
 import org.firstinspires.ftc.teamcode.utils.Globals;
 import org.firstinspires.ftc.teamcode.utils.RunMode;
@@ -20,26 +19,30 @@ public class ClawIntakeTester extends LinearOpMode {
         Globals.TESTING_DISABLE_CONTROL = true;
 
         Robot robot = new Robot(hardwareMap);
-        ClawIntake clawIntake = robot.clawIntake;
+
+        final double triggerThresh = 0.2;
+        final double extendoInc = 0.3;
+        final double intakeClawRotationInc = 0.5;
 
         ButtonToggle button_a = new ButtonToggle();
         ButtonToggle button_b = new ButtonToggle();
         ButtonToggle button_y = new ButtonToggle();
+        ButtonToggle button_x = new ButtonToggle();
 
         waitForStart();
 
         while (opModeIsActive()) {
-            if (button_a.isClicked(gamepad1.a)) {
-                clawIntake.extend();
-            }
+            if (button_a.isClicked(gamepad1.a)) robot.clawIntake.extend();
+            if (button_b.isClicked(gamepad1.b)) robot.clawIntake.grab(!robot.clawIntake.hasSample());
+            if (button_y.isClicked(gamepad1.y)) robot.clawIntake.retract();
+            if (button_x.isClicked(gamepad1.x)) robot.clawIntake.release();
 
-            if (button_b.isClicked(gamepad1.b)) {
-                clawIntake.grab();
-            }
+            if (gamepad1.dpad_up) robot.clawIntake.setIntakeTargetPos(robot.clawIntake.getIntakeTargetPos() + extendoInc);
+            if (gamepad1.dpad_down) robot.clawIntake.setIntakeTargetPos(robot.clawIntake.getIntakeTargetPos() - extendoInc);
 
-            if (button_y.isClicked(gamepad1.y)) {
-                clawIntake.retract();
-            }
+            if (gamepad1.left_trigger > triggerThresh) robot.clawIntake.setClawRotation(robot.clawIntake.getClawRotAngle() + intakeClawRotationInc);
+            if (gamepad1.right_trigger > triggerThresh) robot.clawIntake.setClawRotation(robot.clawIntake.getClawRotAngle() - intakeClawRotationInc);
+
             robot.update();
         }
     }

@@ -56,16 +56,16 @@ public class nTeleop extends LinearOpMode {
 
             // Increment / Decrement Slides Height
             if (y_1.isHeld(gamepad1.y, 5)) {
-                robot.setDepositHeight(robot.deposit.getDepositHeight() + slidesInc);
+                robot.deposit.setDepositHeight(robot.deposit.getDepositHeight() + slidesInc);
             } else if (a_1.isHeld(gamepad1.a, 5)) {
-                robot.setDepositHeight(robot.deposit.getDepositHeight() - slidesInc);
+                robot.deposit.setDepositHeight(robot.deposit.getDepositHeight() - slidesInc);
             }
 
             // Transition Between Intake or Deposit FSMs through Robot
             // lb --> Deposit sample/specimen(i.e. let go of) AND intake grab/retract
             // rb(held) --> lower claw and grab motion, rb(unheld) --> claw returns to wait-grab angle
             if (rb_1.isHeld(gamepad1.right_bumper, 50) && !speciMode) {
-                robot.grabSample();
+                robot.clawIntake.grab(true);
 
                 if (lb_1.isClicked(gamepad1.left_bumper)) {
                     // TODO: Retry is unfinished, not sure how to use robot FSM to reset. dont think thers an option? DONE says it should retry/cancel intake but all it does is send it into TRANSFER(see robot comment)
@@ -101,12 +101,12 @@ public class nTeleop extends LinearOpMode {
             // lt --> rotate left, rt --> rotate right(if in not specimen mode), rt --> grab specimen(if in specimen mode)
             // TODO: Check if left/right is plus/minus or vice versa
             if (gamepad1.left_trigger > triggerThresh) {
-                robot.setIntakeClawAngle(robot.clawIntake.getClawRotAngle() + intakeClawRotationInc);
+                robot.clawIntake.setClawRotation(robot.clawIntake.getClawRotAngle() + intakeClawRotationInc);
             } else if (gamepad1.right_trigger > triggerThresh) {
                 if (speciMode) {
                     robot.setNextState(Robot.NextState.DEPOSIT);
                 } else {
-                    robot.setIntakeClawAngle(robot.clawIntake.getClawRotAngle() - intakeClawRotationInc);
+                    robot.clawIntake.setClawRotation(robot.clawIntake.getClawRotAngle() - intakeClawRotationInc);
                 }
             }
 
@@ -114,7 +114,7 @@ public class nTeleop extends LinearOpMode {
             // Right joystick down --> retract, right joystick up --> extend
             double intakeControl1 = robot.drivetrain.smoothControls(gamepad1.right_stick_y);
             if (Math.abs(intakeControl1) > 0.2) {
-                robot.setIntakeLength(robot.clawIntake.getExtendoPos() + extendoInc * Math.signum(intakeControl1));
+                robot.clawIntake.setIntakeTargetPos(robot.clawIntake.getIntakeTargetPos() + extendoInc * Math.signum(intakeControl1));
             }
 
             // Driving
@@ -135,21 +135,21 @@ public class nTeleop extends LinearOpMode {
 
             // Force Deposit Slides Retract
             if (b_2.isClicked(gamepad2.b)) {
-                robot.setDepositHeight(0.0);
+                robot.deposit.setDepositHeight(0.0);
             }
 
             // Increment/Decrement Intake Slides
             // Up --> increase, Down --> decrease on right joystick
             double intakeControl2 = robot.drivetrain.smoothControls(gamepad2.right_stick_y);
             if (Math.abs(intakeControl2) > 0.2) {
-                robot.setIntakeLength(robot.clawIntake.getExtendoPos() + extendoInc * Math.signum(intakeControl2));
+                robot.clawIntake.setIntakeTargetPos(robot.clawIntake.getIntakeTargetPos() + extendoInc * Math.signum(intakeControl2));
             }
 
             // Increment/Decrement Deposit Slides
             // Up --> increase, Down --> decrease on left joystick
             double slidesControl2 = robot.drivetrain.smoothControls(gamepad2.left_stick_y);
             if (Math.abs(slidesControl2) > 0.2) {
-                robot.setDepositHeight(robot.deposit.getDepositHeight() + Math.signum(slidesControl2) * slidesInc);
+                robot.deposit.setDepositHeight(robot.deposit.getDepositHeight() + Math.signum(slidesControl2) * slidesInc);
             }
 
             telemetry.addData("isRed", Globals.isRed);

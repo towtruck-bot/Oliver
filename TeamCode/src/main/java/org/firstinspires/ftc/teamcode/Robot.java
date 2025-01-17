@@ -146,7 +146,7 @@ public class Robot {
                     this.deposit.prepareTransfer();
                 }
                 if (this.clawIntake.isRetracted()) {
-                    if (this.clawIntake.isRetracted()) //TODO: (from Teleop) i think the go back should be here but the logic is wrong
+                    if (this.clawIntake.hasSample()) //TODO: (from Teleop) i think the go back should be here but the logic is wrong
                         this.state = RobotState.TRANSFER;
                     else
                         this.state = RobotState.IDLE;
@@ -158,10 +158,6 @@ public class Robot {
             case TRANSFER:
                 if (this.prevState == RobotState.INTAKE_SAMPLE)
                     this.deposit.prepareTransfer();
-                if (clawIntake.intakeTransferReady())
-                    deposit.intakeTransferDone();
-                if (deposit.state == Deposit.State.TRANSFER_FINISH)
-                    clawIntake.depositTransferDone();
                 if (this.deposit.isSampleReady())
                     this.state = RobotState.SAMPLE_READY;
                 break;
@@ -325,25 +321,5 @@ public class Robot {
                 this.deposit.setDepositHeightLowSample();
             }
         }
-    }
-
-    public void setDepositHeight(double target){
-        this.deposit.setDepositHeight(target);
-    }
-
-    public void setIntakeLength(double target){
-        this.clawIntake.setExtendoTargetPos(target);
-    }
-
-    public void setIntakeClawAngle(double target){
-        this.clawIntake.updateClawRotationAdjustAngle(target);
-    }
-
-    public void retractIntake(){
-        this.clawIntake.retract();
-    }
-
-    public void grabSample(){
-        this.clawIntake.grab();
     }
 }

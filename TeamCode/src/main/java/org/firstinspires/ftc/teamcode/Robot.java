@@ -338,4 +338,8 @@ public class Robot {
     public void retractIntake(){
         this.clawIntake.retract();
     }
+
+    public void grabSample(){
+        this.clawIntake.grab();
+    }
 }

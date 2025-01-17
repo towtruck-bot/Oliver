@@ -64,15 +64,24 @@ public class nTeleop extends LinearOpMode {
             // Transition Between Intake or Deposit FSMs through Robot
             // lb --> Deposit sample/specimen(i.e. let go of) AND intake grab/retract
             // rb(held) --> lower claw and grab motion, rb(unheld) --> claw returns to wait-grab angle
-            if(rb_1.isHeld(gamepad1.right_bumper, 50)){
+            if(rb_1.isHeld(gamepad1.right_bumper, 50) && !speciMode){
+                robot.grabSample();
+
+                if(lb_1.isClicked(gamepad1.left_bumper)){
+                    robot.retractIntake();
+                }
+            }else{
                 if(rb_1.isReleased(gamepad1.right_bumper)){
                     robot.setNextState(Robot.NextState.DONE);
-                }else if(lb_1.isClicked(gamepad1.left_bumper)){
-                    robot.retractIntake();
-                    //retract intake automatically sends robot into next state, no setNextState so outtake doesnt instantly start once robot retracts
-                }else{
-                   robot.setNextState(Robot.NextState.INTAKE_SAMPLE);
                 }
+            }
+
+            if(rb_1.isClicked(gamepad1.right_bumper) && speciMode){
+                robot.setNextState(Robot.NextState.DEPOSIT);//TODO: check this
+            }
+
+            if(lb_1.isClicked(gamepad1.left_bumper) && robot.getState() != Robot.RobotState.INTAKE_SAMPLE){
+                robot.setNextState(Robot.NextState.DEPOSIT);
             }
 //
 //            if (lb_1.isClicked(gamepad1.left_bumper)) {
@@ -140,11 +149,6 @@ public class nTeleop extends LinearOpMode {
                 robot.setDepositHeight(robot.deposit.getDepositHeight() + Math.signum(slidesControl2) * slidesInc);
             }
 
-            updateTelemetry(robot, speciMode);
-        }
-    }
-
-    public void updateTelemetry(Robot robot, boolean speciMode){
         telemetry.addData("isRed", Globals.isRed);
         telemetry.addData("speciMode", speciMode);
         telemetry.addData("robot state", robot.getState());

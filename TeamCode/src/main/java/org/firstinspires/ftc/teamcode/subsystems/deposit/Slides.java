@@ -93,7 +93,7 @@ public class Slides {
         Log.i("james", String.valueOf(error));
 
         if (targetLength <= 0.6 && length < 2) {
-            error = -4;
+            error = -0.5;
         }
         return (error * (maxVel / kA)) * kP + kStatic + ((Math.abs(error) > minPowerThresh) ? minPower * Math.signum(error) : 0);
     }

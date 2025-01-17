@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.subsystems.intake;
 
 import android.util.Log;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -17,6 +18,7 @@ import org.firstinspires.ftc.teamcode.utils.priority.HardwareQueue;
 import org.firstinspires.ftc.teamcode.utils.priority.PriorityMotor;
 import org.firstinspires.ftc.teamcode.utils.priority.nPriorityServo;
 
+@Config
 public class ClawIntake {
     Robot robot;
     Sensors sensors;
@@ -30,7 +32,7 @@ public class ClawIntake {
     private double extendoTargetPos;
     private double extendoCurrentPos;
 
-    public static PID extendoPID = new PID(0.185, 0.002, 0.008);
+    public static PID extendoPID = new PID(0.135, 0.002, 0.005);
     public static double slidesTolerance = 0.5;
 
     private double intakeFlipUpAngle = -0.4416;
@@ -40,12 +42,9 @@ public class ClawIntake {
     private double clawRotationDefaultAngle = 0.0;
     private double clawRotationAlignAngle = 0.0;
 
-    private double clawOpenAngle = 0.0;
-    private double clawCloseAngle = 0.0;
+    private double clawOpenAngle = 0.2634;
+    private double clawCloseAngle = 0.9918;
 
-    public static double intakeClawClose = 0;
-    public static double intakeClawOpen = 1; //todo get these values
-    public static double flipGearRatio = -24.0 / 40.0;
 
     enum ClawIntakeState {
         START_EXTEND, //ideally this is where limelight is gonna be reading in auto
@@ -98,7 +97,7 @@ public class ClawIntake {
                 new Servo[] {robot.hardwareMap.get(Servo.class, "intakeClawRotation")},
                 "intakeClawRotation",
                 nPriorityServo.ServoType.AXON_MINI,
-                0.343,0.894,0.621,
+                0.343,0.894,0.629,
                 new boolean[] {false},
                 1, 5
         );
@@ -123,7 +122,7 @@ public class ClawIntake {
             case START_EXTEND: // clawRotation goes up
                 intakeFlipServo.setTargetAngle(intakeFlipMiddleAngle);
                 Log.e("in START_EXTEND, intakeFlipServo angle", intakeFlipServo.getCurrentAngle() + "");
-                if (intakeFlipServo.getCurrentAngle() > -1.5) { // TODO: modify angle to min angle claw rotation needs to go out before we can start extendo
+                if (intakeFlipServo.inPosition()) { // TODO: modify angle to min angle claw rotation needs to go out before we can start extendo
                     clawIntakeState = ClawIntakeState.FINISH_EXTEND;
                     setExtendoTargetPos(15);
                 }
@@ -132,8 +131,10 @@ public class ClawIntake {
                 if (isExtensionAtTarget()) {
                     clawIntakeState = ClawIntakeState.ALIGN;
                 }
+                setExtendoTargetPos(15);
                 break;
             case ALIGN:
+                //extendo target is updated externally
                 clawRotation.setTargetAngle(clawRotationAlignAngle);
                 if (grab) {
                     clawIntakeState = ClawIntakeState.GRAB;
@@ -142,7 +143,8 @@ public class ClawIntake {
             case GRAB:
                 intakeFlipServo.setTargetAngle(intakeFlipGrabAngle);
                 clawRotation.setTargetAngle(clawRotationAlignAngle);
-                if (intakeFlipServo.inPosition() && clawRotation.inPosition()) {
+                claw.setTargetAngle(clawCloseAngle);
+                if (intakeFlipServo.inPosition() && clawRotation.inPosition() && claw.inPosition()) {
                     clawIntakeState = ClawIntakeState.CONFIRM;
                 }
                 break;
@@ -203,8 +205,11 @@ public class ClawIntake {
     //update the slides alone, to be run every loop
     private void updateExtendo() {
         extendoCurrentPos = this.robot.sensors.getExtendoPosition();
+        double pow = extendoPID.update(extendoTargetPos - extendoCurrentPos, -1.0, 1.0);
 
-        intakeExtensionMotor.setTargetPower(extendoPID.update(extendoTargetPos - extendoCurrentPos, -1.0, 1.0));
+        intakeExtensionMotor.setTargetPower(pow);
+
+        TelemetryUtil.packet.put("ClawIntake.power", pow);
 
         TelemetryUtil.packet.put("ClawIntake.extendoTargetPos", extendoTargetPos);
         TelemetryUtil.packet.put("ClawIntake.extendoCurrentPos", extendoCurrentPos);

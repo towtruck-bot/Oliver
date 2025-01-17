@@ -133,8 +133,6 @@ public class Sensors {
         //otosHeading = otos.getHeading() * -1;
         lastOtosIntegral = otosIntegral;
         otosIntegral += AngleUnit.normalizeRadians(lastOtosHeading - otosHeading) * 0.998197;
-        TelemetryUtil.packet.put("OTOSHeading", Math.toDegrees(otosHeading));
-        TelemetryUtil.packet.put("OTOSIntegral", Math.toDegrees(otosIntegral));
 
         if (currTime - lastVoltageUpdatedTime > voltageUpdateTime) {
             voltage = hardwareMap.voltageSensor.iterator().next().getVoltage();
@@ -193,8 +191,9 @@ public class Sensors {
      * Gets the intake extension slides' position. -- Daniel
      * @return the intake extension slides' position, in inches
      */
+
+    final double inchesPerTick = 0.0409*1.0497667; //0.0409
     public double getExtendoPosition() {
-        final double inchesPerTick = 0.0409;
         return this.extendoEncoder * inchesPerTick;
     }
 
@@ -221,11 +220,6 @@ public class Sensors {
         leftRearMotorCurrent = robot.drivetrain.leftRear.motor[0].getCurrent(CurrentUnit.MILLIAMPS);
         rightRearMotorCurrent = robot.drivetrain.rightRear.motor[0].getCurrent(CurrentUnit.MILLIAMPS);
         rightFrontMotorCurrent = robot.drivetrain.rightFront.motor[0].getCurrent(CurrentUnit.MILLIAMPS);
-
-        TelemetryUtil.packet.put("leftFrontMotorCurrent", leftFrontMotorCurrent);
-        TelemetryUtil.packet.put("leftRearMotorCurrent", leftRearMotorCurrent);
-        TelemetryUtil.packet.put("rightRearMotorCurrent", rightRearMotorCurrent);
-        TelemetryUtil.packet.put("rightFrontMotorCurrent", rightFrontMotorCurrent);
     }
 
     private double previousAngle = 0.0;

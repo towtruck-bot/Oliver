@@ -35,7 +35,7 @@ public class HardwareQueue {
         do { // updates the motors while still time remaining in the loop
             int bestIndex = 0;
             bestDevice = devices.get(0).getPriority(targetLoopLength - loopTime);
-            //Log.i("HardwareQueue priority", devices.get(0).name + ": " + bestDevice);
+            Log.i("HardwareQueue priority", devices.get(0).name + ": " + bestDevice);
 
             // finds motor that needs updating the most
             for (int i = 1; i < devices.size(); i++) { //finding the motor that is most in need of being updated;

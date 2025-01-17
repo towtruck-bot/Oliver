@@ -11,7 +11,6 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.utils.Pose2d;
-import org.firstinspires.ftc.teamcode.utils.SparkFunOTOS;
 import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 import org.firstinspires.ftc.teamcode.utils.priority.HardwareQueue;
 import org.firstinspires.ftc.teamcode.utils.priority.PriorityMotor;
@@ -38,7 +37,7 @@ public class Sensors {
     private double slidesVelocity;
     public static final double slidesInchesPerTick = 0.01773835920177383;
 
-    private double intakeExtensionEncoder;
+    private double extendoEncoder;
 
     public final DigitalChannel intakeColorSensorR;
     public final DigitalChannel intakeColorSensorB;
@@ -141,15 +140,13 @@ public class Sensors {
             voltage = hardwareMap.voltageSensor.iterator().next().getVoltage();
             lastVoltageUpdatedTime = currTime;
         }
-
-        this.intakeExtensionEncoder = this.robot.drivetrain.leftFront.motor[0].getCurrentPosition();
     }
 
     private void updateExpansionHub() {
         try {
             slidesEncoder = ((PriorityMotor) hardwareQueue.getDevice("slidesMotor")).motor[0].getCurrentPosition();
-            Log.e("james", String.valueOf(slidesEncoder));
             slidesVelocity = ((PriorityMotor) hardwareQueue.getDevice("slidesMotor")).motor[0].getVelocity();
+            extendoEncoder = ((PriorityMotor) hardwareQueue.getDevice("intakeExtensionMotor")).motor[0].getCurrentPosition();
 
             boolean colorSensor1 = intakeColorSensorR.getState();
             boolean colorSensor0 = intakeColorSensorB.getState();
@@ -165,8 +162,8 @@ public class Sensors {
     public void updateTelemetry() {
         TelemetryUtil.packet.put("voltage", voltage);
 
-        TelemetryUtil.packet.put("Extendo position", this.getIntakeExtensionPosition());
-        TelemetryUtil.packet.put("Extendo encoder", this.intakeExtensionEncoder);
+        TelemetryUtil.packet.put("Extendo position", this.getExtendoPosition());
+        TelemetryUtil.packet.put("Extendo encoder", this.extendoEncoder);
 
         TelemetryUtil.packet.put("Slides position", this.getSlidesPosition());
         TelemetryUtil.packet.put("Slides encoder", this.slidesEncoder);
@@ -196,9 +193,9 @@ public class Sensors {
      * Gets the intake extension slides' position. -- Daniel
      * @return the intake extension slides' position, in inches
      */
-    public double getIntakeExtensionPosition() {
-        final double inchesPerTick = -0.0409;
-        return this.intakeExtensionEncoder * inchesPerTick;
+    public double getExtendoPosition() {
+        final double inchesPerTick = 0.0409;
+        return this.extendoEncoder * inchesPerTick;
     }
 
     /**

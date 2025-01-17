@@ -44,7 +44,7 @@ public class nTeleop extends LinearOpMode {
             // DRIVER 1
 
             // Toggle Specimen/Sample Deposit Mode
-            if (x_1.isToggled(gamepad1.x)) {
+            if (x_1.isClicked(gamepad1.x)) {
                 speciMode = !speciMode;
                 if(speciMode){
                     if(high){
@@ -62,7 +62,7 @@ public class nTeleop extends LinearOpMode {
             }
 
             // Toggle High/Low Deposit
-            if(b_1.isToggled(gamepad1.b)){
+            if(b_1.isClicked(gamepad1.b)){
                 high = !high;
                 if(speciMode){
                     if(high){
@@ -88,7 +88,7 @@ public class nTeleop extends LinearOpMode {
 
             // Transition Between Intake or Deposit FSMs through Robot
             // lb --> Deposit sample/specimen(i.e. let go of) AND intake grab/retract
-            // rb -->
+            // rb(held) --> lower claw and grab motion, rb(unheld) --> claw returns to wait-grab angle
             if (lb_1.isClicked(gamepad1.left_bumper)) {
                 if (robot.getState() == Robot.RobotState.IDLE) {
                     robot.setNextState(speciMode ? Robot.NextState.GRAB_SPECIMEN : Robot.NextState.INTAKE_SAMPLE);
@@ -125,12 +125,12 @@ public class nTeleop extends LinearOpMode {
             // Driver 2
 
             // Toggle Alliance
-            if (x_2.isToggled(gamepad2.x)) {
+            if (x_2.isClicked(gamepad2.x)) {
                 Globals.isRed = !Globals.isRed;
             }
 
             // Specimen/Sample Toggle
-            if(a_2.isToggled(gamepad2.a)){
+            if(a_2.isClicked(gamepad2.a)){
                 speciMode = !speciMode;
                 if(speciMode){
                     if(high){
@@ -148,7 +148,6 @@ public class nTeleop extends LinearOpMode {
             }
 
             // Force Deposit Slides Retract
-            // TODO: UNFINISHED
             if(b_2.isClicked(gamepad2.b)){
                 robot.deposit.setDepositHeight(0.0);
             }

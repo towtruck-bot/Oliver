@@ -9,7 +9,7 @@ import org.firstinspires.ftc.teamcode.utils.Globals;
 
 @TeleOp
 public class nTeleop extends LinearOpMode {
-    public void runOpMode(){
+    public void runOpMode() {
         Robot robot = new Robot(hardwareMap);
 
         // Gamepad 1
@@ -33,11 +33,11 @@ public class nTeleop extends LinearOpMode {
         boolean speciMode = true;
         boolean high = true;
 
-        while(opModeInInit()){
+        while (opModeInInit()) {
             robot.update();
         }
 
-        while(!isStopRequested()){
+        while (!isStopRequested()) {
             robot.update();
 
             // DRIVER 1
@@ -49,7 +49,7 @@ public class nTeleop extends LinearOpMode {
             }
 
             // Toggle High/Low Deposit
-            if(b_1.isClicked(gamepad1.b)){
+            if (b_1.isClicked(gamepad1.b)) {
                 high = !high;
                 robot.updateDepositHeights(speciMode, high);
             }
@@ -64,23 +64,23 @@ public class nTeleop extends LinearOpMode {
             // Transition Between Intake or Deposit FSMs through Robot
             // lb --> Deposit sample/specimen(i.e. let go of) AND intake grab/retract
             // rb(held) --> lower claw and grab motion, rb(unheld) --> claw returns to wait-grab angle
-            if(rb_1.isHeld(gamepad1.right_bumper, 50) && !speciMode){
+            if (rb_1.isHeld(gamepad1.right_bumper, 50) && !speciMode) {
                 robot.grabSample();
 
-                if(lb_1.isClicked(gamepad1.left_bumper)){
+                if (lb_1.isClicked(gamepad1.left_bumper)) {
                     robot.retractIntake();
                 }
-            }else{
-                if(rb_1.isReleased(gamepad1.right_bumper)){
+            } else {
+                if (rb_1.isReleased(gamepad1.right_bumper)) {
                     robot.setNextState(Robot.NextState.DONE);
                 }
             }
 
-            if(rb_1.isClicked(gamepad1.right_bumper) && speciMode){
+            if (rb_1.isClicked(gamepad1.right_bumper) && speciMode) {
                 robot.setNextState(Robot.NextState.DEPOSIT);//TODO: check this
             }
 
-            if(lb_1.isClicked(gamepad1.left_bumper) && robot.getState() != Robot.RobotState.INTAKE_SAMPLE){
+            if (lb_1.isClicked(gamepad1.left_bumper) && robot.getState() != Robot.RobotState.INTAKE_SAMPLE) {
                 robot.setNextState(Robot.NextState.DEPOSIT);
             }
 //
@@ -96,13 +96,13 @@ public class nTeleop extends LinearOpMode {
 
             // Rotate Intake Claw + Grab Specimen
             // lt --> rotate left, rt --> rotate right(if in not specimen mode), rt --> grab specimen(if in specimen mode)
-           // TODO: Check if left/right is plus/minus or vice versa
-            if(gamepad1.left_trigger > triggerThresh){
+            // TODO: Check if left/right is plus/minus or vice versa
+            if (gamepad1.left_trigger > triggerThresh) {
                 robot.setIntakeClawAngle(robot.clawIntake.getClawRotAngle() + intakeClawRotationInc);
-            }else if(gamepad1.right_trigger > triggerThresh){
-                if(speciMode){
+            } else if (gamepad1.right_trigger > triggerThresh) {
+                if (speciMode) {
                     robot.setNextState(Robot.NextState.GRAB_SPECIMEN);
-                }else{
+                } else {
                     robot.setIntakeClawAngle(robot.clawIntake.getClawRotAngle() - intakeClawRotationInc);
                 }
             }
@@ -110,7 +110,7 @@ public class nTeleop extends LinearOpMode {
             // Intake extension
             // Right joystick down --> retract, right joystick up --> extend
             double intakeControl1 = robot.drivetrain.smoothControls(gamepad1.right_stick_y);
-            if(Math.abs(intakeControl1) > 0.2){
+            if (Math.abs(intakeControl1) > 0.2) {
                 robot.setIntakeLength(robot.clawIntake.getExtendoPos() + extendoInc * Math.signum(intakeControl1));
             }
 
@@ -125,34 +125,35 @@ public class nTeleop extends LinearOpMode {
             }
 
             // Specimen/Sample Toggle
-            if(a_2.isClicked(gamepad2.a)){
+            if (a_2.isClicked(gamepad2.a)) {
                 speciMode = !speciMode;
                 robot.updateDepositHeights(speciMode, high);
             }
 
             // Force Deposit Slides Retract
-            if(b_2.isClicked(gamepad2.b)){
+            if (b_2.isClicked(gamepad2.b)) {
                 robot.setDepositHeight(0.0);
             }
 
             // Increment/Decrement Intake Slides
             // Up --> increase, Down --> decrease on right joystick
             double intakeControl2 = robot.drivetrain.smoothControls(gamepad2.right_stick_y);
-            if(Math.abs(intakeControl2) > 0.2){
+            if (Math.abs(intakeControl2) > 0.2) {
                 robot.setIntakeLength(robot.clawIntake.getExtendoPos() + extendoInc * Math.signum(intakeControl2));
             }
 
             // Increment/Decrement Deposit Slides
             // Up --> increase, Down --> decrease on left joystick
             double slidesControl2 = robot.drivetrain.smoothControls(gamepad2.left_stick_y);
-            if(Math.abs(slidesControl2) > 0.2){
+            if (Math.abs(slidesControl2) > 0.2) {
                 robot.setDepositHeight(robot.deposit.getDepositHeight() + Math.signum(slidesControl2) * slidesInc);
             }
 
-        telemetry.addData("isRed", Globals.isRed);
-        telemetry.addData("speciMode", speciMode);
-        telemetry.addData("robot state", robot.getState());
-        telemetry.addData("deposit height", robot.deposit.getDepositHeight());
-        telemetry.update();
+            telemetry.addData("isRed", Globals.isRed);
+            telemetry.addData("speciMode", speciMode);
+            telemetry.addData("robot state", robot.getState());
+            telemetry.addData("deposit height", robot.deposit.getDepositHeight());
+            telemetry.update();
+        }
     }
 }

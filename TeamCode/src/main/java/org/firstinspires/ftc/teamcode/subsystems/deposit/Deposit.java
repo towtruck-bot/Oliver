@@ -123,7 +123,7 @@ public class Deposit {
             case HOLD:
                 moveToWithRad(holdRad, holdY);
                 arm.clawRotation.setTargetAngle(holdClawRad, 1.0);
-
+                arm.speciClose();
                 break;
             case SAMPLE_RAISE:
                 moveToWithRad(sampleRad, targetY);

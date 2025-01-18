@@ -124,7 +124,7 @@ public class ClawIntake {
                 // TODO: modify angle to min angle claw rotation needs to go out before we can start extendo
                 break;
             case FINISH_EXTEND:
-                this.intakeFlipServo.setTargetAngle(intakeHoverAngle);
+                this.intakeFlipServo.setTargetAngle(intakeFlipUpAngle);
                 this.clawRotation.setTargetAngle(clawRotationDefaultAngle);
                 this.claw.setTargetAngle(clawOpenAngle);
                 this.extendoTargetPos = this.intakeSetTargetPos;

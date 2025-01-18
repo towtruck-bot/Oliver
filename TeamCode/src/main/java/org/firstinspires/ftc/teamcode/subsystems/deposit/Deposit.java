@@ -50,9 +50,9 @@ public class Deposit {
     // y is measured from slides 0
 
     // prepare for transfer positions
-    public static double intakeWaitRad = 0.35, intakeWaitClawRad = -1.9, intakeWaitY = 0.0;
+    public static double intakeWaitRad = 0.35, intakeWaitClawRad = -1.8, intakeWaitY = 0.0;
     // transfer positions, move in to grab
-    public static double intakeRad = -0.1, intakeY = 0.0, intakeClawRad = -1.9;
+    public static double intakeRad = 0.0, intakeY = 0.0, intakeClawRad = -1.7;
     // moving positions with a sample
     public static double holdRad = 0.0, holdY = 0.0, holdClawRad = 2;
     // sample basket positions
@@ -60,10 +60,10 @@ public class Deposit {
     // outtake positions, drop behind robot
     public static double outtakeRad = Math.PI, outtakeY = 0.0, outtakeReleaseRad = 0.3;
     // grabbing positions, holdGrab -> off the wall, grabRetract --> moving with a specimen
-    public static double holdGrabRad = 0.3, grabRetractRad = 2.0;
+    public static double holdGrabRad = -0.1, grabRetractRad = 2.0;
     // specimen chamber positions
     public static double speciLRad = 2.75, speciLClawRad = 0.0, speciLSY = 0.0, speciLEY = 0.0;
-    public static double  speciHRad = 1.8, speciHClawRad = 0.05, speciHY = 8.0, speciHEY = 18.0;
+    public static double  speciHRad = 2.9, speciHClawRad = -1.3, speciHY = 8.0, speciHEY = 18.0;
 
     private boolean high = true, auto = false;
 

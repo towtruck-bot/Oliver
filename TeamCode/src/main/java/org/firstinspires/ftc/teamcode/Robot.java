@@ -3,6 +3,8 @@ package org.firstinspires.ftc.teamcode;
 import static org.firstinspires.ftc.teamcode.utils.Globals.GET_LOOP_TIME;
 import static org.firstinspires.ftc.teamcode.utils.Globals.START_LOOP;
 
+import android.util.Log;
+
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.teamcode.sensors.Sensors;
@@ -89,9 +91,11 @@ public class Robot {
     }
 
     private void updateTelemetry() {
-        TelemetryUtil.packet.put("Robot::state", this.state.toString());
-        TelemetryUtil.packet.put("Robot::nextState", this.nextState.toString());
-        TelemetryUtil.packet.put("Robot::outtakeAndThenGrab", this.outtakeAndThenGrab);
+        TelemetryUtil.packet.put("Robot.state", this.state.toString());
+        TelemetryUtil.packet.put("Robot.prevState1", this.prevState1.toString());
+        TelemetryUtil.packet.put("Robot.prevState", this.prevState.toString());
+        TelemetryUtil.packet.put("Robot.nextState", this.nextState.toString());
+        TelemetryUtil.packet.put("Robot.outtakeAndThenGrab", this.outtakeAndThenGrab);
         TelemetryUtil.packet.put("Loop Time", GET_LOOP_TIME());
         TelemetryUtil.sendTelemetry();
     }
@@ -211,7 +215,7 @@ public class Robot {
                 if (wasClicked) {
                     if (this.nextState == NextState.DONE)
                         this.state = RobotState.OUTTAKE;
-                    else if (this.nextState == NextState.DEPOSIT) // TODO: i think this is missing in teleop somehwere
+                    else if (this.nextState == NextState.DEPOSIT)
                         this.state = RobotState.DEPOSIT_SPECIMEN;
                     this.lastClickTime = -1;
                 }

@@ -24,7 +24,7 @@ public class Slides {
     public static double kStatic = 0.05;
     public static double minPower = 0.1850000000000002;
     public static double minPowerThresh = 0.5;
-    public static double forceDownPower = -0.5;
+    public static double forceDownPower = -0.3;
     public static double maxSlidesHeight = 34.0;
 
     public final PriorityMotor slidesMotors;
@@ -32,7 +32,6 @@ public class Slides {
 
     public double length;
     public double vel;
-    public double downPower = -0.1;
 
     private double targetLength = 0;
     private DcMotorEx m1;
@@ -46,13 +45,13 @@ public class Slides {
         m1 = robot.hardwareMap.get(DcMotorEx.class, "slidesMotor0");
         m2 = robot.hardwareMap.get(DcMotorEx.class, "slidesMotor1");
 
-        m1.setDirection(DcMotorSimple.Direction.REVERSE);
+        m2.setDirection(DcMotorSimple.Direction.REVERSE);
 
         if (Globals.RUNMODE != RunMode.TELEOP) {
             resetSlidesEncoders();
         }
 
-        slidesMotors = new PriorityMotor(new DcMotorEx[] {m1, m2}, "slidesMotor", 2, 5, new double[] {1, 1}, robot.sensors);
+        slidesMotors = new PriorityMotor(new DcMotorEx[] {m1, m2}, "slidesMotor", 3, 5, new double[] {1, 1}, robot.sensors);
         robot.hardwareQueue.addDevice(slidesMotors);
     }
 
@@ -90,9 +89,12 @@ public class Slides {
      */
     private double feedforward() {
         double error = targetLength - length;
+        TelemetryUtil.packet.put("Slides: Error", error);
+        TelemetryUtil.packet.put("Slides: Target", targetLength);
+        TelemetryUtil.packet.put("Slides: Length", length);
 
-        if (targetLength <= 0.6 && length < 2) {
-            error = -0.5;
+        if (targetLength <= 0.6 && length <= 3) { // force down
+            return length <= 0.5 ? forceDownPower / 2 : forceDownPower;
         }
         return (error * (maxVel / kA)) * kP + kStatic + ((Math.abs(error) > minPowerThresh) ? minPower * Math.signum(error) : 0);
     }
@@ -130,7 +132,6 @@ public class Slides {
     }
 
     public boolean inPosition(double threshold) {
-        TelemetryUtil.packet.put("Deposit:: Slides error", Math.abs(targetLength - length));
         return Math.abs(targetLength - length) <= threshold;
     }
 

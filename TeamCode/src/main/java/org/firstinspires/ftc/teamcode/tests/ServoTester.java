@@ -28,7 +28,6 @@ import java.util.ArrayList;
 @TeleOp(group = "Test")
 public class ServoTester extends LinearOpMode {
 
-    public static double intakePower = 1.0;
     public static boolean usePosition = false;
     public static double position = Math.toRadians(60);
 
@@ -55,10 +54,8 @@ public class ServoTester extends LinearOpMode {
 
         ButtonToggle buttonY = new ButtonToggle();
         ButtonToggle buttonA = new ButtonToggle();
-        ButtonToggle left_bumper = new ButtonToggle();
 
         int servoSize = 0;
-        boolean intakeOn = false;
 
         // getting number of servos we have;
         for (PriorityDevice device : hardwareQueue.devices) {
@@ -87,14 +84,17 @@ public class ServoTester extends LinearOpMode {
 
             numLoops ++;
 
+            boolean fast = gamepad1.right_trigger > 0.2;
             if (gamepad1.x) {
-                servoPos[servoIndex] += 0.001;
+                servoPos[servoIndex] += fast ? 0.003 : 0.001;
             }
             if (gamepad1.b){
-                servoPos[servoIndex] -= 0.001;
+                servoPos[servoIndex] -= fast ? 0.003 : 0.001;
+            }
+            if (gamepad1.right_bumper){
+                servoPos[servoIndex] = servos.get(servoIndex).basePos;
             }
 
-            //TODO: Should the min-max clip not correspond to the Servo's own min max? - James
             servoPos[servoIndex] = Utils.minMaxClip(servoPos[servoIndex], 0.0, 1.0);
 
             // figuring out time to set servo pos
@@ -121,7 +121,6 @@ public class ServoTester extends LinearOpMode {
             telemetry.addData("servoAngle", servos.get(servoIndex).getCurrentAngle());
             telemetry.addData("averageServoTime", totalTime/numLoops);
             //telemetry.addData("v4Encoder", v4Bar);
-            telemetry.addData("angle", servos.get(servoIndex).getCurrentAngle());
             telemetry.addData("targetAngle", servos.get(servoIndex).getTargetAngle());
             /*if (servos.get(servoIndex) instanceof PriorityServoAxonEnc) {
                 telemetry.addData("voltage", " " + ((PriorityServoAxonEnc) servos.get(servoIndex)).getEncoderVoltage());

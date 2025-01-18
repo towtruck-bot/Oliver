@@ -29,43 +29,45 @@ public class BluePreloadBucketAuto extends LinearOpMode {
 
         robot = new Robot(hardwareMap);
 
-
+        // TODO: Reset encoder values
     }
 
     public void scorePreload(){
-        //go to in front of bucket, angle bot to directly face bucket
-
-
-        robot.drivetrain.goToPoint(new Pose2d(48,-48, Math.toRadians(315)), true, true, 1.0);
+        // go to in front of bucket, angle bot to directly face bucket
+        robot.drivetrain.goToPoint(new Pose2d(1.504653589141163,-0.47072564848254705, 0.781970739364624), false, true, 1.0);
         double startTime = System.currentTimeMillis();
         while (robot.drivetrain.isBusy() || System.currentTimeMillis() > startTime + 5000) {
             robot.update();
         }
 
-        //start deposit from hold, enter sample sequence, reach sample raise
+        // start deposit from hold, enter sample sequence, reach sample raise
         robot.setNextState(Robot.NextState.DEPOSIT);
         while (!robot.deposit.slides.inPosition(0.9) ){
             robot.update();
         }
 
+        // move closer to bucket
+        robot.drivetrain.goToPoint(new Pose2d(1.662282774028439,-0.3064954456019752,0.7775459289550781), false, true, 1.0);
+        startTime = System.currentTimeMillis();
+        while (robot.drivetrain.isBusy() || System.currentTimeMillis() > startTime + 5000) {
+            robot.update();
+        }
+
+        // deposit
         robot.setNextState(Robot.NextState.DEPOSIT);
 
-        robot.drivetrain.goToPoint(new Pose2d(48, -48, Math.toRadians(-90)), false, false, 1.0);
+        // back up
+        robot.drivetrain.goToPoint(new Pose2d(1.504653589141163, -0.47072564848254705, 3.097757339477539), false, false, 1.0);
         startTime = System.currentTimeMillis();
         while (robot.drivetrain.isBusy() || System.currentTimeMillis() > startTime + 5000) {
             robot.update();
         }
-        robot.drivetrain.goToPoint(new Pose2d(60, 60, Math.toRadians(-90)), true, true, 1.0);
+
+        // go to observation zone
+        robot.drivetrain.goToPoint(new Pose2d(-3.105215890607563, 0.06, 3.097757339477539), false, true, 1.0);
         startTime = System.currentTimeMillis();
         while (robot.drivetrain.isBusy() || System.currentTimeMillis() > startTime + 5000) {
             robot.update();
         }
-
-
-        // calculate if claw location is above bucket, if not, adjust
-
-        // release then retract
-
-        // move to park zone to get specimens/ready to sweep three blue samples
     }
 }

@@ -22,8 +22,8 @@ import java.io.IOException;
 public class LocalizationTest extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
-        Vision vision = new Vision(hardwareMap, telemetry, false, false, false);
-        Robot robot = new Robot(hardwareMap, vision);
+//        Vision vision = new Vision(hardwareMap, telemetry, false, false, false);
+        Robot robot = new Robot(hardwareMap);
         Sensors sensors = robot.sensors;
 
         Globals.RUNMODE = RunMode.TESTER;
@@ -33,8 +33,6 @@ public class LocalizationTest extends LinearOpMode {
 
         robot.drivetrain.setPoseEstimate(new Pose2d(0, 0, 0));
 
-        SparkFunOTOS.Pose2D lastPose;
-        SparkFunOTOS.Pose2D currPose = new SparkFunOTOS.Pose2D(0,0,0);
 
         File file = AppUtil.getInstance().getSettingsFile("deceldata.csv");
         FileWriter fw;
@@ -46,23 +44,15 @@ public class LocalizationTest extends LinearOpMode {
         }
 
         while(!isStopRequested()) {
-            lastPose = currPose;
             robot.drivetrain.drive(gamepad1);
-            TelemetryUtil.packet.put("leftOdo", sensors.getOdometry()[0]);
-            TelemetryUtil.packet.put("rightOdo", sensors.getOdometry()[1]);
-            TelemetryUtil.packet.put("backOdo", sensors.getOdometry()[2]);
-            robot.update();
-            double changeX = currPose.x - lastPose.x;
-            double changeY = currPose.y - lastPose.y;
-            double chnageH = currPose.h - lastPose.h;
+            Pose2d pos = robot.drivetrain.getPoseEstimate();
+            TelemetryUtil.packet.put("x: ", pos.x);
+            TelemetryUtil.packet.put("y: ", pos.y);
+            TelemetryUtil.packet.put("heading: ", pos.heading);
 
-            double relChangeX = changeX * Math.cos(lastPose.h) + changeY * Math.sin(lastPose.h);
-            double relChangeY = changeX * -Math.sin(lastPose.h) + changeY * Math.cos(lastPose.h);
+            robot.update();
 
             String buffer = "";
-
-
-            buffer += robot.drivetrain.localizers[0].relDeltaX + "," + relChangeX + "," + robot.drivetrain.localizers[0].relDeltaY + "," + relChangeY + Globals.LOOP_TIME + "," + Math.toDegrees(chnageH) + "\n";
 
             try {
                 fw.write(buffer);

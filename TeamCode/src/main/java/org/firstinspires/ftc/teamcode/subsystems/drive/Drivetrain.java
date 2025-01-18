@@ -69,7 +69,6 @@ public class Drivetrain {
         this.sensors = robot.sensors;
         this.robot = robot;
 
-        //TODO: WHY THIS WHEEL NOT WORKING, IT GO BACKWARD WHICH IS VERY MONKEY
         leftFront = new PriorityMotor(
             hardwareMap.get(DcMotorEx.class, "leftFront"),
             "leftFront",
@@ -106,6 +105,8 @@ public class Drivetrain {
         leftFront.motor[0].setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         leftRear.motor[0].setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         rightRear.motor[0].setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+
 
         setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -222,7 +223,7 @@ public class Drivetrain {
             return;
         }
         updateLocalizer();
-        Pose2d estimate = localizers[0].getPoseEstimate();
+        Pose2d estimate = sensors.getPinpoint();
         ROBOT_POSITION = new Pose2d(estimate.x, estimate.y,estimate.heading);
         ROBOT_VELOCITY = localizers[0].getRelativePoseVelocity();
 
@@ -357,12 +358,12 @@ public class Drivetrain {
     }
 
     public void calculateErrors() {
-        double deltaX = (targetPoint.x - localizers[0].x);
-        double deltaY = (targetPoint.y - localizers[0].y);
+        double deltaX = (targetPoint.x - sensors.getPinpoint().x);
+        double deltaY = (targetPoint.y - sensors.getPinpoint().y);
 
-        xError = Math.cos(localizers[0].heading)*deltaX + Math.sin(localizers[0].heading)*deltaY;
-        yError = -Math.sin(localizers[0].heading)*deltaX + Math.cos(localizers[0].heading)*deltaY;
-        turnError = targetPoint.heading-localizers[0].heading;
+        xError = Math.cos(sensors.getPinpoint().heading)*deltaX + Math.sin(sensors.getPinpoint().heading)*deltaY;
+        yError = -Math.sin(sensors.getPinpoint().heading)*deltaX + Math.cos(sensors.getPinpoint().heading)*deltaY;
+        turnError = targetPoint.heading-sensors.getPinpoint().heading;
 
         while(Math.abs(turnError) > Math.PI ){
             turnError -= Math.PI * 2 * Math.signum(turnError);
@@ -405,33 +406,40 @@ public class Drivetrain {
     double fwd, strafe, turn, turnAdjustThreshold, finalTargetPointDistance;
 
     public void PIDF() {
-        double globalExpectedXError = (targetPoint.x - localizers[0].expected.x);
-        double globalExpectedYError = (targetPoint.y - localizers[0].expected.y);
+//        double globalExpectedXError = (targetPoint.x - localizers[0].expected.x);
+//        double globalExpectedYError = (targetPoint.y - localizers[0].expected.y);
+//
+//        if (path != null) {
+//            finalTargetPointDistance = Math.abs(Utils.calculateDistanceBetweenPoints(localizers[0].getPoseEstimate(), finalTargetPoint));
+//        } else {
+//            finalTargetPointDistance = 0;
+//        }
+//
+//        // converting from global to relative
+//        double relExpectedXError = globalExpectedXError*Math.cos(localizers[0].heading) + globalExpectedYError*Math.sin(localizers[0].heading);
+//        double relExpectedYError = globalExpectedYError*Math.cos(localizers[0].heading) - globalExpectedXError*Math.sin(localizers[0].heading);
+//
+//        if (Math.abs(finalTargetPointDistance) < 20) { // if we are under threshold switch to predictive PID
+//            fwd = Math.abs(relExpectedXError) > xThreshold/2 ? xPID.update(relExpectedXError, -maxPower, maxPower) + 0.05 * Math.signum(relExpectedXError) : 0;
+//            strafe = Math.abs(relExpectedYError) > yThreshold/2 ? yPID.update(relExpectedYError, -maxPower, maxPower) + 0.05 * Math.signum(relExpectedYError) : 0;
+//        } else {
+//            fwd = Math.abs(xError) > xThreshold/2 ? xPID.update(xError, -maxPower, maxPower) + 0.05 * Math.signum(xError) : 0;
+//            strafe = Math.abs(yError) > yThreshold/2 ? yPID.update(yError, -maxPower, maxPower) + 0.05 * Math.signum(yError) : 0;
+//        }
+//        // turn does not have predictiveError
+//        turnAdjustThreshold = (Math.abs(xError) > xThreshold/2 || Math.abs(yError) > yThreshold/2) ? turnThreshold/3.0 : turnThreshold;
+//        turn = Math.abs(turnError) > Math.toRadians(turnAdjustThreshold)/2? turnPID.update(turnError, -maxPower, maxPower) : 0;
 
-        if (path != null) {
-            finalTargetPointDistance = Math.abs(Utils.calculateDistanceBetweenPoints(localizers[0].getPoseEstimate(), finalTargetPoint));
-        } else {
-            finalTargetPointDistance = 0;
-        }
 
-        // converting from global to relative
-        double relExpectedXError = globalExpectedXError*Math.cos(localizers[0].heading) + globalExpectedYError*Math.sin(localizers[0].heading);
-        double relExpectedYError = globalExpectedYError*Math.cos(localizers[0].heading) - globalExpectedXError*Math.sin(localizers[0].heading);
-
-        if (Math.abs(finalTargetPointDistance) < 20) { // if we are under threshold switch to predictive PID
-            fwd = Math.abs(relExpectedXError) > xThreshold/2 ? xPID.update(relExpectedXError, -maxPower, maxPower) + 0.05 * Math.signum(relExpectedXError) : 0;
-            strafe = Math.abs(relExpectedYError) > yThreshold/2 ? yPID.update(relExpectedYError, -maxPower, maxPower) + 0.05 * Math.signum(relExpectedYError) : 0;
-        } else {
-            fwd = Math.abs(xError) > xThreshold/2 ? xPID.update(xError, -maxPower, maxPower) + 0.05 * Math.signum(xError) : 0;
-            strafe = Math.abs(yError) > yThreshold/2 ? yPID.update(yError, -maxPower, maxPower) + 0.05 * Math.signum(yError) : 0;
-        }
-        // turn does not have predictiveError
-        turnAdjustThreshold = (Math.abs(xError) > xThreshold/2 || Math.abs(yError) > yThreshold/2) ? turnThreshold/3.0 : turnThreshold;
-        turn = Math.abs(turnError) > Math.toRadians(turnAdjustThreshold)/2? turnPID.update(turnError, -maxPower, maxPower) : 0;
+        fwd = xPID.update(-xError, -maxPower, maxPower);
+        strafe = yPID.update(-yError, -maxPower, maxPower);
+        turn = turnPID.update(turnError, -maxPower, maxPower);
 
         Vector2 move = new Vector2(fwd, strafe);
         setMoveVector(move, turn);
 
+        TelemetryUtil.packet.put("fwd", fwd);
+        TelemetryUtil.packet.put("strafe", strafe);
         // Logging
 //        TelemetryUtil.packet.put("expectedXError", globalExpectedXError);
 //        TelemetryUtil.packet.put("expectedYError", globalExpectedYError);
@@ -544,9 +552,9 @@ public class Drivetrain {
         return path;
     }
 
-    public static double xThreshold = 1;
-    public static double yThreshold = 1;
-    public static double turnThreshold = 5;
+    public static double xThreshold = 0.05;
+    public static double yThreshold = 0.05;
+    public static double turnThreshold = 0.2;
 
     public static double finalXThreshold = 0.5;
     public static double finalYThreshold = 0.5;
@@ -672,13 +680,10 @@ public class Drivetrain {
     }
 
     public Pose2d getPoseEstimate() {
-        return localizers[0].getPoseEstimate();
+        return ROBOT_POSITION;
     }
 
     public void setPoseEstimate(Pose2d pose2d) {
-        for (Localizer l : localizers) {
-            l.setPoseEstimate(pose2d);
-        }
-        sensors.setOtosHeading(pose2d.heading);
+        sensors.setPinpoint(pose2d);
     }
 }

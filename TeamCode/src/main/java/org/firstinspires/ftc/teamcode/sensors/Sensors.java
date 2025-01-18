@@ -70,7 +70,7 @@ public class Sensors {
 
         this.odo = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
         //TODO: Tune offsets
-        odo.setOffsets(-84.0, -63); //these are tuned for 3110-0002-0001 Product Insight #1
+        odo.setOffsets(-73.025, -48.26); // x:-84.0, y:-63
         odo.setPosition(new Pose2d(0.0, 0.0, 0.0));
         odo.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_SWINGARM_POD);
         odo.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.FORWARD);
@@ -173,7 +173,18 @@ public class Sensors {
         return odometry;
     }
 
-    public Pose2d getPosition(){return odo.getPosition();}
+    public void setPinpoint(Pose2d pos) {
+        odo.setPosition(pos);
+    }
+
+    public Pose2d  getPinpoint(){
+        Pose2d pos = odo.getPosition();
+//        pos.x = pos.x/25.4;
+//        pos.y = pos.y/25.4;
+//        pos.heading = Math.toRadians(pos.heading);
+        return pos;
+    }
+
 
     public double getSlidesVelocity() {
         return slidesVelocity * slidesInchesPerTick;

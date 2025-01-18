@@ -32,7 +32,7 @@ public class SensorTester extends LinearOpMode {
             telemetry.addData("rightOdo", sensors.getOdometry()[1]);
             telemetry.addData("backOdo", sensors.getOdometry()[2]);
 
-            Pose2d pos = sensors.getPosition();
+            Pose2d pos = sensors.getPinpoint();
             String data = String.format(Locale.US, "{X: %.3f, Y: %.3f, H: %.3f}", pos.getX(), pos.getY(), pos.getHeading());
             telemetry.addData("Position", data);
 

@@ -10,6 +10,7 @@ public class Globals {
     public static boolean TESTING_DISABLE_CONTROL = true;
     public static boolean isRed = false;
     public static boolean hasSpecimenPreload = false;
+    public static boolean hasSamplePreload = true;
     public static long autoStartTime = -1;
     public static boolean gotBloodyAnnihilated = false; // STOP DELETEING THIS FOR GODS SAKE
     // drivetrain

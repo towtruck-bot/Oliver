@@ -6,10 +6,13 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.utils.ButtonToggle;
 import org.firstinspires.ftc.teamcode.utils.Globals;
+import org.firstinspires.ftc.teamcode.utils.RunMode;
 
 @TeleOp
 public class nTeleop extends LinearOpMode {
     public void runOpMode() {
+        Globals.RUNMODE = RunMode.TELEOP;
+
         Robot robot = new Robot(hardwareMap);
 
         // Gamepad 1

@@ -62,7 +62,12 @@ public class Robot {
 
         if (Globals.hasSpecimenPreload) {
             this.state = RobotState.SPECIMEN_READY;
+            this.prevState1 = RobotState.SPECIMEN_READY;
             this.prevState = RobotState.SPECIMEN_READY;
+        } else if (Globals.hasSamplePreload) {
+            this.state = RobotState.SAMPLE_READY;
+            this.prevState1 = RobotState.SAMPLE_READY;
+            this.prevState = RobotState.SAMPLE_READY;
         }
         this.sensors = new Sensors(this);
         this.clawIntake = new ClawIntake(this);

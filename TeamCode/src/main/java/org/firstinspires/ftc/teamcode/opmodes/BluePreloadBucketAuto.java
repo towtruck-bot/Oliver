@@ -25,7 +25,7 @@ public class BluePreloadBucketAuto extends LinearOpMode {
 
     public void doInitialization(){
         Globals.RUNMODE = RunMode.AUTO;
-        Globals.hasSpecimenPreload = true;
+        Globals.hasSamplePreload = true;
 
         robot = new Robot(hardwareMap);
 

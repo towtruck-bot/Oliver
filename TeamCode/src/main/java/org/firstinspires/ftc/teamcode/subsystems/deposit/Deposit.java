@@ -73,7 +73,7 @@ public class Deposit {
 
         arm = new Arm(this.robot);
 
-        state = Globals.hasSpecimenPreload ? State.HOLD : State.RETRACT;
+        state = Globals.hasSpecimenPreload ? State.GRAB_HOLD : Globals.hasSamplePreload ? State.HOLD : State.RETRACT;
     }
 
     public void update(){
@@ -314,11 +314,13 @@ public class Deposit {
     public void finishSampleDeposit() {
         Log.i("FSM", this.state + ", finishSampleDeposit()");
         if (state == State.SAMPLE_WAIT) {
+/*
             if (high) {
                 setDepositHeightHighSample();
             } else {
                 setDepositHeightLowSample();
             }
+ */
             state = State.SAMPLE_DEPOSIT;
         }
     }

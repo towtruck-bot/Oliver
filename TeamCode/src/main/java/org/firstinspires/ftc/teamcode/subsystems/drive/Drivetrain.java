@@ -63,6 +63,9 @@ public class Drivetrain {
     public Vision vision;
     public Robot robot;
 
+    public boolean slow = false;
+    public static double slowSpeed = 0.7;
+
     public Drivetrain(Vision vision, Robot robot) {
         HardwareMap hardwareMap = robot.hardwareMap;
         this.hardwareQueue = robot.hardwareQueue;
@@ -644,6 +647,12 @@ public class Drivetrain {
         double forward = smoothControls(gamepad.left_stick_y);
         double strafe = smoothControls(gamepad.left_stick_x);
         double turn = smoothControls(-gamepad.right_stick_x);
+
+        if (slow) {
+            forward *= slowSpeed;
+            strafe *= slowSpeed;
+            turn *= slowSpeed;
+        }
 
         Vector2 drive = new Vector2(forward,strafe);
         if (drive.mag() <= 0.05){

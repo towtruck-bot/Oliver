@@ -7,6 +7,7 @@ import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.utils.ButtonToggle;
 import org.firstinspires.ftc.teamcode.utils.Globals;
 import org.firstinspires.ftc.teamcode.utils.RunMode;
+import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 
 @TeleOp
 public class nTeleop extends LinearOpMode {
@@ -20,6 +21,7 @@ public class nTeleop extends LinearOpMode {
         ButtonToggle rb_1 = new ButtonToggle();
         ButtonToggle x_1 = new ButtonToggle();
         ButtonToggle b_1 = new ButtonToggle();
+        ButtonToggle rsb_1 = new ButtonToggle();
 
         //Gamepad 2
         ButtonToggle x_2 = new ButtonToggle();
@@ -28,7 +30,7 @@ public class nTeleop extends LinearOpMode {
 
         final double slidesInc = 0.4;
         final double extendoInc = 0.4;
-        final double intakeClawRotationInc = 0.08;
+        final double intakeClawRotationInc = 0.1; // 0.08
         boolean speciMode = false;
         boolean high = true;
 
@@ -71,7 +73,7 @@ public class nTeleop extends LinearOpMode {
                     robot.setNextState(Robot.NextState.DEPOSIT);
                 }
             }
-
+//LIAM IS THE BEST EVER!
             if (lb_1.isClicked(gamepad1.left_bumper)) {
                 if (robot.getState() == Robot.RobotState.IDLE) {
                     robot.setNextState(speciMode ? Robot.NextState.GRAB_SPECIMEN : Robot.NextState.INTAKE_SAMPLE);
@@ -80,11 +82,22 @@ public class nTeleop extends LinearOpMode {
                 }
             }
 
-            double intakeControl1 = robot.drivetrain.smoothControls(-gamepad1.right_stick_y);
-            robot.clawIntake.setIntakeTargetPos(robot.clawIntake.getIntakeTargetPos() + extendoInc * intakeControl1);
+            if (robot.getState() == Robot.RobotState.DEPOSIT_BUCKET) {
+                double slidesControl1 = robot.drivetrain.smoothControls(-gamepad1.right_stick_y);
+                robot.deposit.setDepositHeight(robot.deposit.getDepositHeight() + slidesInc * slidesControl1);
+            } else {
+                double intakeControl1 = robot.drivetrain.smoothControls(-gamepad1.right_stick_y);
+                robot.clawIntake.setIntakeTargetPos(robot.clawIntake.getIntakeTargetPos() + extendoInc * intakeControl1);
+            }
             robot.clawIntake.setClawRotation(robot.clawIntake.getClawRotAngle() + intakeClawRotationInc * (gamepad1.right_trigger - gamepad1.left_trigger));
 
+            if (rsb_1.isClicked(gamepad1.right_stick_button)) {
+                robot.deposit.slides.resetSlidesEncoders();
+                robot.clawIntake.resetExtendoEncoders();
+            }
+
             // Driving
+            robot.drivetrain.slow = robot.clawIntake.isExtended();
             robot.drivetrain.drive(gamepad1);
 
             // Driver 2
@@ -122,6 +135,8 @@ public class nTeleop extends LinearOpMode {
             telemetry.addData("deposit height", robot.deposit.getDepositHeight());
             telemetry.addData("isRed", Globals.isRed);
             telemetry.addData("robot state", robot.getState());
+            telemetry.addData("Slides: Length", robot.deposit.slides.getLength());
+            telemetry.addData("hasSamplePreload", Globals.hasSamplePreload);
             telemetry.update();
         }
     }

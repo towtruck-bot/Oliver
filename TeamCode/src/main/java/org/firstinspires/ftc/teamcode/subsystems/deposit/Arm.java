@@ -13,7 +13,7 @@ public class Arm {
     public final nPriorityServo clawRotation;
     public final nPriorityServo clawGrip;
 
-    public final double sampleOpenRad = 0.9, sampleCloseRad = 0.55, speciOpenRad = 0.6, speciCloseRad = 0.02;
+    public static double sampleOpenRad = 0.9, sampleCloseRad = 0.55, speciOpenRad = 0.7, speciCloseRad = 0.02;
     public final double armLength = 5.905314961;
 
     public Arm(Robot robot){

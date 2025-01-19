@@ -22,9 +22,10 @@ public class Slides {
     public static double kP = 0.5; // used to be 0.11
     public static double kA = 20;
     public static double kStatic = 0.05;
-    public static double minPower = 0.1850000000000002;
+    public static double minPower = 0.19;
     public static double minPowerThresh = 0.5;
-    public static double forceDownPower = -0.3;
+    public static double forceDownPower = -0.45;
+    public static double forceDownThresh = 5;
     public static double maxSlidesHeight = 33.5;
 
     public final PriorityMotor slidesMotors;
@@ -93,7 +94,7 @@ public class Slides {
         TelemetryUtil.packet.put("Slides: Target", targetLength);
         TelemetryUtil.packet.put("Slides: Length", length);
 
-        if (targetLength <= 0.6 && length <= 3) { // force down
+        if (targetLength <= 0.5 && length <= forceDownThresh) { // force down
             return length <= 0.5 ? forceDownPower / 2 : forceDownPower;
         }
         return (error * (maxVel / kA)) * kP + kStatic + ((Math.abs(error) > minPowerThresh) ? minPower * Math.signum(error) : 0);

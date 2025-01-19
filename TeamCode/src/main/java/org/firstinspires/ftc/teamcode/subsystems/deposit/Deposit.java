@@ -21,7 +21,8 @@ public class Deposit {
         HOLD,
         SAMPLE_RAISE,
         SAMPLE_WAIT,
-        SAMPLE_DEPOSIT,
+        SAMPLE_RELEASE,
+        SAMPLE_FINISH,
         OUTTAKE_MOVE,
         OUTTAKE_RELEASE,
         GRAB_MOVE,
@@ -52,9 +53,9 @@ public class Deposit {
     // prepare for transfer positions
     public static double intakeWaitRad = 0.35, intakeWaitClawRad = -1.8, intakeWaitY = 0.0;
     // transfer positions, move in to grab
-    public static double intakeRad = 0.0, intakeY = 0.0, intakeClawRad = -1.7;
+    public static double intakeRad = 0.1, intakeY = 0.0, intakeClawRad = -1.7;
     // moving positions with a sample
-    public static double holdRad = 0.0, holdY = 0.0, holdClawRad = 2;
+    public static double sampleHoldRad = 0.3, speciHoldRad = 0.0, holdY = 0.0, holdClawRad = 2;
     // sample basket positions
     public static double sampleLY = 16.75, sampleHY = 33.85, sampleRad = 2.4, sampleClawRad = 0.6;
     // outtake positions, drop behind robot
@@ -79,13 +80,14 @@ public class Deposit {
     public void update(){
         switch(state){
             case IDLE:
+                moveToStart();
                 break;
             case TRANSFER_PREPARE:
                 moveToWithRad(intakeWaitRad, intakeWaitY);
                 arm.setClawRotation(intakeWaitClawRad, 1.0);
                 arm.speciOpen();
 
-                if(arm.inPosition() && slides.inPosition(0.8) && arm.clawFinished()){
+                if(arm.inPosition() && slides.inPosition(1) && arm.clawFinished()){
                     state = State.TRANSFER_WAIT;
                 }
                 break;
@@ -113,23 +115,23 @@ public class Deposit {
                 }
                 break;
             case TRANSFER_FINISH:
-                moveToWithRad(holdRad, holdY);
-                arm.clawRotation.setTargetAngle(holdClawRad, 1.0);
+                moveToWithRad(sampleHoldRad, holdY);
+                arm.setClawRotation(holdClawRad, 1.0);
 
                 if(arm.inPosition()){
                     state = State.HOLD;
                 }
                 break;
             case HOLD:
-                moveToWithRad(holdRad, holdY);
-                arm.clawRotation.setTargetAngle(holdClawRad, 1.0);
+                moveToWithRad(sampleHoldRad, holdY);
+                arm.setClawRotation(holdClawRad, 1.0);
                 arm.speciClose();
                 break;
             case SAMPLE_RAISE:
                 moveToWithRad(sampleRad, targetY);
                 arm.setClawRotation(sampleClawRad, 1.0);
 
-                if(arm.inPosition() && slides.inPosition(0.8)){
+                if(arm.inPosition() && slides.inPosition(1)){
                     state = State.SAMPLE_WAIT;
                 }
                 break;
@@ -137,26 +139,34 @@ public class Deposit {
                 moveToWithRad(sampleRad, targetY);
                 arm.setClawRotation(sampleClawRad, 1.0);
                 break;
-            case SAMPLE_DEPOSIT:
+            case SAMPLE_RELEASE:
                 moveToWithRad(sampleRad, targetY);
                 arm.setClawRotation(sampleClawRad, 1.0);
                 arm.sampleOpen();
 
                 if(arm.clawFinished()){
+                    state = State.SAMPLE_FINISH;
+                }
+                break;
+            case SAMPLE_FINISH:
+                moveToWithRad(0, targetY);
+                arm.setClawRotation(0, 1.0);
+
+                if(arm.inPosition()){
                     state = State.RETRACT;
                 }
                 break;
             case OUTTAKE_MOVE:
                 moveToWithRad(outtakeRad, outtakeY);
-                arm.clawRotation.setTargetAngle(outtakeReleaseRad, 1.0);
+                arm.setClawRotation(outtakeReleaseRad, 1.0);
 
-                if(arm.inPosition() && slides.inPosition(0.8)){
+                if(arm.inPosition() && slides.inPosition(1)){
                     state = State.OUTTAKE_RELEASE;
                 }
                 break;
             case OUTTAKE_RELEASE:
                 moveToWithRad(outtakeRad, outtakeY);
-                arm.clawRotation.setTargetAngle(outtakeReleaseRad, 1.0);
+                arm.setClawRotation(outtakeReleaseRad, 1.0);
 
                 arm.sampleOpen();
 
@@ -165,20 +175,20 @@ public class Deposit {
                 }
                 break;
             case GRAB_MOVE:
-                moveToWithRad(holdRad, holdY);
+                moveToWithRad(speciHoldRad, holdY);
                 arm.setClawRotation(holdGrabRad, 1.0);
                 arm.speciOpen();
 
-                if(arm.inPosition() && slides.inPosition(0.8) && arm.clawFinished()){
+                if(arm.inPosition() && slides.inPosition(1) && arm.clawFinished()){
                     state = State.GRAB_WAIT;
                 }
                 break;
             case GRAB_WAIT:
-                moveToWithRad(holdRad, holdY);
+                moveToWithRad(speciHoldRad, holdY);
                 arm.setClawRotation(holdGrabRad, 1.0);
                 break;
             case GRAB:
-                moveToWithRad(holdRad, holdY);
+                moveToWithRad(speciHoldRad, holdY);
                 arm.setClawRotation(holdGrabRad, 1.0);
                 arm.speciClose();
 
@@ -220,7 +230,7 @@ public class Deposit {
             case RETRACT:
                 moveToStart();
 
-                if(arm.inPosition() && slides.inPosition(0.8)){
+                if(arm.inPosition() && slides.inPosition(1)){
                     state = State.IDLE;
                 }
                 break;
@@ -321,7 +331,7 @@ public class Deposit {
                 setDepositHeightLowSample();
             }
  */
-            state = State.SAMPLE_DEPOSIT;
+            state = State.SAMPLE_RELEASE;
         }
     }
 

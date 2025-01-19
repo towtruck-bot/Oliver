@@ -37,6 +37,7 @@ public class ParkAutoBlue extends LinearOpMode {
 
     public void doInitialization(){
         Globals.RUNMODE = RunMode.AUTO;
+        Globals.hasSamplePreload = true;
 
         robot = new Robot(hardwareMap);
 

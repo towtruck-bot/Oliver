@@ -32,8 +32,8 @@ public class ClawIntake {
     public static PID extendoPID = new PID(0.15, 0.01, 0.008);
     public static double slidesTolerance = 0.5;
 
-    public static double intakeHoverAngle = -1.4;
-    public static double intakeFlipConfirmAngle = -1.35;
+    public static double intakeHoverAngle = -1.35;
+    public static double intakeFlipConfirmAngle = -1.3;
     public static double intakeFlipUpAngle = -0.7;
     public static double intakeFlipGrabAngle = -1.6;
     public static double intakeFlipBackAngle = -0.1;
@@ -120,18 +120,16 @@ public class ClawIntake {
                 this.extendoTargetPos = 0;
                 this.intakeSetTargetPos = 15;
                 this.clawRotationAlignAngle = clawRotationDefaultAngle;
+                this.grab = false;
                 if (this.intakeFlipServo.inPosition()) this.clawIntakeState = ClawIntakeState.FINISH_EXTEND;
-                // TODO: modify angle to min angle claw rotation needs to go out before we can start extendo
                 break;
             case FINISH_EXTEND:
                 this.intakeFlipServo.setTargetAngle(intakeFlipUpAngle);
                 this.clawRotation.setTargetAngle(clawRotationDefaultAngle);
                 this.claw.setTargetAngle(clawOpenAngle);
                 this.extendoTargetPos = this.intakeSetTargetPos;
-                if (this.isExtensionAtTarget()) {
-                    this.clawIntakeState = ClawIntakeState.ALIGN;
-                    this.grab = false;
-                }
+                this.grab = false;
+                if (this.isExtensionAtTarget()) this.clawIntakeState = ClawIntakeState.ALIGN;
                 break;
             case ALIGN:
                 this.intakeFlipServo.setTargetAngle(intakeHoverAngle);
@@ -258,7 +256,7 @@ public class ClawIntake {
 
     public boolean isExtensionAtTarget() { return Math.abs(this.extendoTargetPos - this.extendoCurrentPos) <= slidesTolerance; }
 
-    private void resetExtendoEncoders() {
+    public void resetExtendoEncoders() {
         Log.e("RESETTTING", "RESTETING EXTENDO *************");
 
         m.setPower(0);

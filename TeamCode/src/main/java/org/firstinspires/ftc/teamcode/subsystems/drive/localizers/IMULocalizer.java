@@ -13,6 +13,6 @@ public class IMULocalizer extends Localizer {
     @Override
     public void update() {
         super.update();
-        heading = currentPose.heading = sensors.getOtosHeading();
+        heading = currentPose.heading = sensors.getHeading();
     }
 }

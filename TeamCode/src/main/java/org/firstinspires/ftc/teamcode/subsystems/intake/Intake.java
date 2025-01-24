@@ -74,7 +74,7 @@ public class Intake {
     public static double flipDownAngleMax = 185;
     public static double flipAngleToGoOverBarrier = 100;
 
-    private Sensors.BlockColor sampleColor = Sensors.BlockColor.NONE;
+//    private Sensors.BlockColor sampleColor = Sensors.BlockColor.NONE;
     private long sampleCheckTime;
     public static long sampleConfirmDuration = 50;
 
@@ -117,8 +117,8 @@ public class Intake {
      */
     public void update() {
         long currentTime = System.nanoTime();
-        slidesCurrentPos = this.robot.sensors.getExtendoPosition() - slidesBasePos;
-        sampleColor = this.robot.sensors.getIntakeColor();
+        slidesCurrentPos = this.robot.sensors.getExtendoPos() - slidesBasePos;
+//        sampleColor = this.robot.sensors.getIntakeColor();
 
         if (Globals.TESTING_DISABLE_CONTROL && Globals.RUNMODE == RunMode.TESTER) {
             pid.update(0,-1.0,1.0);
@@ -156,24 +156,24 @@ public class Intake {
             case EXTENDED:
                 slidesControlTargetPos = targetPositionWhenExtended;
                 intakeFlipServo.setTargetAngle(Math.toRadians(flipDownAngle * flipGearRatio), 1.0);
-                if (sampleColor == Sensors.BlockColor.NONE) {
-                    didStopRoller = false;
-                    sampleCheckTime = currentTime;
-                } else if (currentTime > sampleCheckTime + sampleConfirmDuration * 1e6) {
-                    if (Globals.isRed ? sampleColor == Sensors.BlockColor.BLUE : this.sampleColor == Sensors.BlockColor.RED) {
-                        if (autoUnjamIntake) setRollerUnjam();
-                        else if (!didStopRoller) {
-                            setRollerOff();
-                            didStopRoller = true;
-                        }
-                    } else {
-                        if (!didStopRoller) {
-                            setRollerOff();
-                            didStopRoller = true;
-                        }
-                        if (autoRetractIntake) intakeState = IntakeState.PICK_UP;
-                    }
-                }
+//                if (sampleColor == Sensors.BlockColor.NONE) {
+//                    didStopRoller = false;
+//                    sampleCheckTime = currentTime;
+//                } else if (currentTime > sampleCheckTime + sampleConfirmDuration * 1e6) {
+//                    if (Globals.isRed ? sampleColor == Sensors.BlockColor.BLUE : this.sampleColor == Sensors.BlockColor.RED) {
+//                        if (autoUnjamIntake) setRollerUnjam();
+//                        else if (!didStopRoller) {
+//                            setRollerOff();
+//                            didStopRoller = true;
+//                        }
+//                    } else {
+//                        if (!didStopRoller) {
+//                            setRollerOff();
+//                            didStopRoller = true;
+//                        }
+//                        if (autoRetractIntake) intakeState = IntakeState.PICK_UP;
+//                    }
+//                }
                 if (intakeState != IntakeState.PICK_UP) break;
             case PICK_UP:
                 setRollerKeepIn();
@@ -352,7 +352,7 @@ public class Intake {
      * Sets the slides zero position. -- Daniel
      */
     public void setSlidesZero() {
-        slidesBasePos = robot.sensors.getExtendoPosition() - slidesTolerance;
+        slidesBasePos = robot.sensors.getExtendoPos() - slidesTolerance;
     }
 
     /**
@@ -372,5 +372,5 @@ public class Intake {
      * Checks if the intake has a sample in it. -- Daniel
      * @return whether the intake has a sample in it
      */
-    public boolean hasSample() { return this.sampleColor != Sensors.BlockColor.NONE; }
+//    public boolean hasSample() { return this.sampleColor != Sensors.BlockColor.NONE; }
 }

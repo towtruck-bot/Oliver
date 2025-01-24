@@ -235,7 +235,7 @@ public class ClawIntake {
     }
 
     private void updateExtendo() {
-        this.extendoCurrentPos = this.robot.sensors.getExtendoPosition();
+        this.extendoCurrentPos = this.robot.sensors.getExtendoPos();
 
         double pow = 0;
         if (this.isExtensionAtTarget()) {

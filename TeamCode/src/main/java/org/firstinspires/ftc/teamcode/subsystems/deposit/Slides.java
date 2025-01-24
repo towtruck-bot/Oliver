@@ -103,8 +103,8 @@ public class Slides {
     public boolean manualMode = false;
 
     public void update() {
-        length = this.robot.sensors.getSlidesPosition();
-        vel = this.robot.sensors.getSlidesVelocity();
+        length = this.robot.sensors.getSlidesPos();
+        vel = this.robot.sensors.getSlidesVel();
 
         if (!manualMode) {
 //            if (!(Globals.RUNMODE == RunMode.TESTER)) {

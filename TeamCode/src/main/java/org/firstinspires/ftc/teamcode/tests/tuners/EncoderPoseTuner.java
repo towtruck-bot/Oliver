@@ -26,15 +26,15 @@ public class EncoderPoseTuner extends LinearOpMode {
 
         while (!isStopRequested()) {
             drivetrain.drive(gamepad1);
-            odometry = sensors.getOdometry();
+            // odometry = sensors.getOdometry();
             theta = Math.PI * 20; // 10 rotations
 
             robot.update();
 
-            telemetry.addData("leftOdoRadius", (odometry[0]*ticksToInches)/theta + "");
-            telemetry.addData("rightOdoRadius", (odometry[1]*ticksToInches)/theta + "");
-            telemetry.addData("backOdoRadius", (odometry[2]*ticksToInches)/theta + "");
-            telemetry.update();
+//            telemetry.addData("leftOdoRadius", (odometry[0]*ticksToInches)/theta + "");
+//            telemetry.addData("rightOdoRadius", (odometry[1]*ticksToInches)/theta + "");
+//            telemetry.addData("backOdoRadius", (odometry[2]*ticksToInches)/theta + "");
+//            telemetry.update();
         }
     }
 }

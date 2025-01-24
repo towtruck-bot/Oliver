@@ -28,19 +28,16 @@ public class SensorTester extends LinearOpMode {
         while (!isStopRequested()) {
             robot.sensors.update();
 
-            telemetry.addData("leftOdo", sensors.getOdometry()[0]);
-            telemetry.addData("rightOdo", sensors.getOdometry()[1]);
-            telemetry.addData("backOdo", sensors.getOdometry()[2]);
+//            telemetry.addData("leftOdo", sensors.getOdometry()[0]);
+//            telemetry.addData("rightOdo", sensors.getOdometry()[1]);
+//            telemetry.addData("backOdo", sensors.getOdometry()[2]);
 
-            Pose2d pos = sensors.getPinpoint();
+            Pose2d pos = sensors.getOdometryPosition();
             String data = String.format(Locale.US, "{X: %.3f, Y: %.3f, H: %.3f}", pos.getX(), pos.getY(), pos.getHeading());
             telemetry.addData("Position", data);
 
-            telemetry.addData("Slides position", sensors.getSlidesPosition());
-            telemetry.addData("extendo slides position", sensors.getExtendoPosition());
-
-            telemetry.addData("Extendo position", sensors.getExtendoPosition());
-            telemetry.addData("Intake color", sensors.getIntakeColor().toString());
+            telemetry.addData("Slides position", sensors.getSlidesPos());
+            telemetry.addData("extendo slides position", sensors.getExtendoPos());
 
             telemetry.update();
             TelemetryUtil.sendTelemetry();

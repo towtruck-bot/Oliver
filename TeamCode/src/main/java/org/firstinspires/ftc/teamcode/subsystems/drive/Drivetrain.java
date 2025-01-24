@@ -226,7 +226,7 @@ public class Drivetrain {
             return;
         }
         updateLocalizer();
-        Pose2d estimate = sensors.getPinpoint();
+        Pose2d estimate = sensors.getOdometryPosition();
         ROBOT_POSITION = new Pose2d(estimate.x, estimate.y,estimate.heading);
         ROBOT_VELOCITY = localizers[0].getRelativePoseVelocity();
 
@@ -361,12 +361,12 @@ public class Drivetrain {
     }
 
     public void calculateErrors() {
-        double deltaX = (targetPoint.x - sensors.getPinpoint().x);
-        double deltaY = (targetPoint.y - sensors.getPinpoint().y);
+        double deltaX = (targetPoint.x - sensors.getOdometryPosition().x);
+        double deltaY = (targetPoint.y - sensors.getOdometryPosition().y);
 
-        xError = Math.cos(sensors.getPinpoint().heading)*deltaX + Math.sin(sensors.getPinpoint().heading)*deltaY;
-        yError = -Math.sin(sensors.getPinpoint().heading)*deltaX + Math.cos(sensors.getPinpoint().heading)*deltaY;
-        turnError = targetPoint.heading-sensors.getPinpoint().heading;
+        xError = Math.cos(sensors.getOdometryPosition().heading)*deltaX + Math.sin(sensors.getOdometryPosition().heading)*deltaY;
+        yError = -Math.sin(sensors.getOdometryPosition().heading)*deltaX + Math.cos(sensors.getOdometryPosition().heading)*deltaY;
+        turnError = targetPoint.heading-sensors.getOdometryPosition().heading;
 
         while(Math.abs(turnError) > Math.PI ){
             turnError -= Math.PI * 2 * Math.signum(turnError);
@@ -478,11 +478,11 @@ public class Drivetrain {
     }
 
     public void updateLocalizer() {
-        for (Localizer l : localizers) {
-            l.updateEncoders(sensors.getOdometry());
-            l.update();
-        }
-        //oldLocalizer.update();
+//        for (Localizer l : localizers) {
+//            l.updateEncoders(sensors.getOdometry());
+//            l.update();
+//        }
+//        //oldLocalizer.update();
     }
 
     public void updateTelemetry () {
@@ -693,6 +693,6 @@ public class Drivetrain {
     }
 
     public void setPoseEstimate(Pose2d pose2d) {
-        sensors.setPinpoint(pose2d);
+        sensors.setOdometryPosition(pose2d);
     }
 }

@@ -24,7 +24,7 @@ public class TwoWheelLocalizer extends Localizer {
         double backX = encoders[2].x;
 
         //This is the heading from the otos
-        double deltaHeading = (sensors.getOtosHeading() - sensors.getLastOtosHeading());
+        double deltaHeading = 0;// (sensors.getOtosHeading() - sensors.getLastOtosHeading());
         //This gives us deltaY because the back minus theta*R is the amount moved to the left minus the amount of movement in the back encoder due to change in heading
         relDeltaY = deltaBack - deltaHeading*backX;
         //This is a weighted average for the amount moved forward with the weights being how far away the other one is from the center
@@ -38,7 +38,7 @@ public class TwoWheelLocalizer extends Localizer {
         x = currentPose.x;
         y = currentPose.y;
 
-        heading = currentPose.heading = sensors.getOtosHeading();
+        heading = currentPose.heading = sensors.getHeading();
 
         relHistory.add(0,relDelta);
         nanoTimes.add(0, currentTime);

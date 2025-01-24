@@ -46,7 +46,7 @@ public class SlideEncoderTester extends LinearOpMode{
             robot.sensors.update();
             robot.hardwareQueue.update();
 
-            telemetry.addData("Slides position", sensors.getSlidesPosition());
+            telemetry.addData("Slides position", sensors.getSlidesPos());
             telemetry.addData("motor power", motorPower);
             telemetry.update();
 

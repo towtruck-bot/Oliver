@@ -26,7 +26,7 @@ public class IMUMergeLocalizer extends Localizer {
         double backX = encoders[2].x;
 
         //This is the heading from the otos imu
-        double deltaIMUHeading = (sensors.getOtosHeading() - sensors.getLastOtosHeading());
+        double deltaIMUHeading = 0; // (sensors.getOtosHeading() - sensors.getLastOtosHeading());
         //This is the heading because the heading is proportional to the difference between the left and right wheel.
         double deltaOdoHeading = (deltaRight - deltaLeft)/(leftY-rightY);
         //This is the heading given by taking 20% from the odo and 80% from the otos
@@ -44,7 +44,7 @@ public class IMUMergeLocalizer extends Localizer {
         x = currentPose.x;
         y = currentPose.y;
 
-        heading = currentPose.heading = sensors.getOtosHeading();
+        heading = currentPose.heading = sensors.getHeading();
 
         relHistory.add(0,relDelta);
         nanoTimes.add(0, currentTime);

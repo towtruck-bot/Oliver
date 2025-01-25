@@ -64,7 +64,7 @@ public class Drivetrain {
     public Robot robot;
 
     public boolean slow = false;
-    public static double slowSpeed = 0.7;
+    public static double slowSpeed = 0.4; // originally 0.7, neil told me to change it to 0.4 - ryan
 
     public Drivetrain(Vision vision, Robot robot) {
         HardwareMap hardwareMap = robot.hardwareMap;

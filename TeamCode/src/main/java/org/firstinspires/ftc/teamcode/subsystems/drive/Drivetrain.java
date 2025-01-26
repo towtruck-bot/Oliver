@@ -245,7 +245,7 @@ public class Drivetrain {
             double lastRadius = path.poses.get(Math.max(0,pathIndex-1)).getDistanceFromPoint(estimate);
             double radiusToPath = path.poses.get(pathIndex).getDistanceFromPoint(estimate);
 
-            // determine radiusToPath? yet its not used anywhere else
+            // determine index of next pose needed by finding ideal distance away(i.e. not a past point and not a too far ahead point)
             while (radiusToPath < pathRadius && pathIndex != path.poses.size()) {
                 radiusToPath = path.poses.get(pathIndex).getDistanceFromPoint(estimate);
                 if (lastRadius > radiusToPath && radiusToPath > pathRadius/3.0){
@@ -282,9 +282,12 @@ public class Drivetrain {
         calculateErrors();
         updateTelemetry();
 
+        // drive stuff finally!!!
         switch (state) {
             case FOLLOW_SPLINE:
+                // how??? (x^2 + y^2)/2y ... is this pure pursuit lookahead distance?
                 double radius = (xError*xError + yError*yError) / (2*yError);
+
                 Log.e("radius", ""+radius);
                 if (Math.abs(radius) < 50) {
                     Canvas canvas = TelemetryUtil.packet.fieldOverlay();
@@ -292,16 +295,22 @@ public class Drivetrain {
                     canvas.strokeCircle(estimate.x - radius * Math.sin(estimate.heading), estimate.y + radius * Math.cos(estimate.heading), Math.abs(radius));
                 }
 
-                double speed = 0.25 + 0.75*Math.min(Math.abs(radius), 200)/200.0;
+                // magic numbers pog
+                double speed = 0.25 + 0.75 * Math.min(Math.abs(radius), 200)/200.0;
 
+                // calc forward power, scale off of error
                 double targetFwd = maxPower*speed*Math.signum(xError);
                 if (slowDown) {
                     targetFwd *= 0.3;
                 }
+
+                // calc turn power, scale off of more magic numbers!!!!
                 double targetTurn = ((3.88193 * Math.exp(-3.94484 * Math.abs(targetFwd)) + 0.725107) * (TRACK_WIDTH)/ radius) * targetFwd;
 
-                double centripetal = centripetalTune*targetFwd*targetFwd/radius;
+                // centripetal force thingy, used while accounting for turns
+                double centripetal = centripetalTune * targetFwd * targetFwd / radius;
 
+                // determine index of next pose needed by finding ideal distance away(i.e. not a past point and not a too far ahead point)
                 double lastDist = estimate.getDistanceFromPoint(targetPoint);
                 int index = Math.max(pathIndex-1,0);
                 double dist = estimate.getDistanceFromPoint(path.poses.get(index));
@@ -311,14 +320,17 @@ public class Drivetrain {
                     dist = estimate.getDistanceFromPoint(path.poses.get(index));
                 }
 
+                // now find error to this next point
                 Pose2d point = path.poses.get(index);
                 double erX = point.x-estimate.x;
                 double erY = point.y-estimate.y;
                 double relY = -Math.sin(estimate.heading)*erX + Math.cos(estimate.heading)*erY;
 
+                // calculate strafe power needed
                 double strafe = Math.abs(relY) > 2 ? relY*strafeTune : 0;
                 strafe = Math.max(Math.min(strafe, 0.2), -0.2);
 
+                // finally tell motors to do what!!!
                 double fwd = targetFwd;
                 double turn = targetTurn;
                 double[] motorPowers = {
@@ -328,7 +340,6 @@ public class Drivetrain {
                         fwd + turn + centripetal + strafe,
                 };
                 normalizeArray(motorPowers);
-
                 setMotorPowers(motorPowers[0],motorPowers[1],motorPowers[2],motorPowers[3]);
 
                 break;
@@ -379,10 +390,12 @@ public class Drivetrain {
         double deltaX = (targetPoint.x - sensors.getOdometryPosition().x);
         double deltaY = (targetPoint.y - sensors.getOdometryPosition().y);
 
+        // convert error into direction robot is facing
         xError = Math.cos(sensors.getOdometryPosition().heading)*deltaX + Math.sin(sensors.getOdometryPosition().heading)*deltaY;
         yError = -Math.sin(sensors.getOdometryPosition().heading)*deltaX + Math.cos(sensors.getOdometryPosition().heading)*deltaY;
         turnError = targetPoint.heading-sensors.getOdometryPosition().heading;
 
+        // make this like, a good value thats not insanely large from the robot oouiiaaeeaoiaaieee ing
         while(Math.abs(turnError) > Math.PI ){
             turnError -= Math.PI * 2 * Math.signum(turnError);
         }

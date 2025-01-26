@@ -33,7 +33,13 @@ public class Sensors {
         this.hardwareQueue = robot.hardwareQueue;
 
         odometry = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
-        odometry.setOffsets(-73.025, -48.26);
+        // Set tracking point offsets here. in mm
+        odometry.setOffsets(7.75, 5.0);
+        odometry.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_SWINGARM_POD);
+        odometry.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.REVERSED, GoBildaPinpointDriver.EncoderDirection.REVERSED);
+
+        // TODO: NOTE THAT THIS SHOULD BE CALLED EVERY TIME NEW START POINT IS SET
+        odometry.resetPosAndIMU();
 
         voltage = hardwareMap.voltageSensor.iterator().next().getVoltage();
     }
@@ -51,6 +57,14 @@ public class Sensors {
         }
 
         updateTelemetry();
+    }
+
+    public void resetPosAndIMU(){
+        odometry.resetPosAndIMU();
+    }
+
+    public void setOffsets(double x, double y){
+        odometry.setOffsets(x, y);
     }
 
     public void setOdometryPosition(double x, double y, double heading){
@@ -72,6 +86,8 @@ public class Sensors {
     public double getHeading(){
         return odometry.getHeading();
     }
+
+    public Pose2d getVelocity() {return odometry.getVelocity();}
 
     public double getSlidesPos(){
         return slidesEncoder * slidesInchesPerTick;

@@ -45,6 +45,7 @@ public class nDrivetrain {
 
     public nDrivetrain (Robot robot){
         this.sensors = robot.sensors;
+
         HardwareMap hardwareMap = robot.hardwareMap;
 
         leftFront = new PriorityMotor(

@@ -31,9 +31,9 @@ public class ClawIntakeTester extends LinearOpMode {
         waitForStart();
 
         while (opModeIsActive()) {
-            if (button_a.isClicked(gamepad1.a)) robot.clawIntake.extend();
+            if (button_a.isClicked(gamepad1.y)) robot.clawIntake.extend();
             if (button_b.isClicked(gamepad1.b)) robot.clawIntake.grab(!robot.clawIntake.hasSample());
-            if (button_y.isClicked(gamepad1.y)) robot.clawIntake.retract();
+            if (button_y.isClicked(gamepad1.a)) robot.clawIntake.retract();
             if (button_x.isClicked(gamepad1.x)) robot.clawIntake.release();
 
             if (gamepad1.dpad_left)
@@ -41,8 +41,7 @@ public class ClawIntakeTester extends LinearOpMode {
             if (gamepad1.dpad_right)
                 robot.clawIntake.setIntakeTargetPos(robot.clawIntake.getIntakeTargetPos() - extendoInc);
 
-            if (gamepad1.left_trigger > triggerThresh) robot.clawIntake.setClawRotation(robot.clawIntake.getClawRotAngle() + intakeClawRotationInc);
-            if (gamepad1.right_trigger > triggerThresh) robot.clawIntake.setClawRotation(robot.clawIntake.getClawRotAngle() - intakeClawRotationInc);
+            robot.clawIntake.setClawRotation(robot.clawIntake.getClawRotAngle() + intakeClawRotationInc * (gamepad1.right_trigger - gamepad1.left_trigger));
 
             robot.update();
 

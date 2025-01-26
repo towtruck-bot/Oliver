@@ -67,6 +67,7 @@ public class nTeleop extends LinearOpMode {
             // lb --> close claw and grab, then retract and return to transfer position
 
             if (robot.clawIntake.isExtended()) {
+                rb_1.isClicked(gamepad1.right_bumper);
                 robot.clawIntake.grab(gamepad1.right_bumper);
             } else if (robot.clawIntake.isRetracted()) {
                 if (rb_1.isClicked(gamepad1.right_bumper)) {
@@ -77,15 +78,19 @@ public class nTeleop extends LinearOpMode {
             if (lb_1.isClicked(gamepad1.left_bumper)) {
                 if (robot.getState() == Robot.RobotState.IDLE) {
                     robot.setNextState(speciMode ? Robot.NextState.GRAB_SPECIMEN : Robot.NextState.INTAKE_SAMPLE);
+                } else if (robot.getState() == Robot.RobotState.SAMPLE_READY) {
+                    robot.setNextState(Robot.NextState.INTAKE_SAMPLE);
+                } else if (speciMode && robot.getState() == Robot.RobotState.GRAB_SPECIMEN) {
+                    robot.setNextState(Robot.NextState.GRAB_SPECIMEN);
                 } else {
                     robot.setNextState(Robot.NextState.DONE);
                 }
             }
 
-            if (robot.getState() == Robot.RobotState.DEPOSIT_BUCKET) {
+            if (robot.getState() == Robot.RobotState.DEPOSIT_BUCKET || robot.getState() == Robot.RobotState.DEPOSIT_SPECIMEN) {
                 double slidesControl1 = robot.drivetrain.smoothControls(-gamepad1.right_stick_y);
                 robot.deposit.setDepositHeight(robot.deposit.getDepositHeight() + slidesInc * slidesControl1);
-            } else {
+            } else if (robot.getState() == Robot.RobotState.INTAKE_SAMPLE) {
                 double intakeControl1 = robot.drivetrain.smoothControls(-gamepad1.right_stick_y);
                 robot.clawIntake.setIntakeTargetPos(robot.clawIntake.getIntakeTargetPos() + extendoInc * intakeControl1);
             }

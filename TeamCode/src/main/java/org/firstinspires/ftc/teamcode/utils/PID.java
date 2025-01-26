@@ -29,7 +29,7 @@ public class PID {
         }
 
         long currentTime = System.nanoTime();
-        loopTime = (currentTime - lastLoopTime)/1000000000.0;
+        loopTime = (currentTime - lastLoopTime)/1.0e9;
         lastLoopTime = currentTime; // lastLoopTime's start time
 
         double proportion = p * error;

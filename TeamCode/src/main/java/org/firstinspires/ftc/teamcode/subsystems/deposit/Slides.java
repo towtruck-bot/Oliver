@@ -19,7 +19,7 @@ public class Slides {
     public static double maxVel = 1.6528571428571428;
 
     //kStatic -> 0.05, kP -> 0.11
-    public static double kP = 0.5; // used to be 0.11
+    public static double kP = 3; // used to be 0.11
     public static double kA = 20;
     public static double kStatic = 0.05;
     public static double minPower = 0.19;

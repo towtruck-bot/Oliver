@@ -225,18 +225,27 @@ public class Drivetrain {
         if (!DRIVETRAIN_ENABLED) {
             return;
         }
+
+        // Update Localizer, no longer used with pinpoint
         updateLocalizer();
+
+        // Get estimate of where the robot is
         Pose2d estimate = sensors.getOdometryPosition();
         ROBOT_POSITION = new Pose2d(estimate.x, estimate.y,estimate.heading);
-        ROBOT_VELOCITY = localizers[0].getRelativePoseVelocity();
+        ROBOT_VELOCITY = sensors.getVelocity();
 
-
+        // If currently following a spline, update the pathIndex, essentially determining where on the spline-path the robot is
         if (path != null) {
+            //update initial variables + states. pathIndex is the index of the next defined point in the spline
             pathIndex = Math.min(path.poses.size()-1, pathIndex);
             state = State.FOLLOW_SPLINE;
             maxPower = path.poses.get(pathIndex).power;
+
+            // lastRadius --> previous radii. have a Math.max(0, pathIndex - 1) to account for currently at first start. radiusToPath --> current
             double lastRadius = path.poses.get(Math.max(0,pathIndex-1)).getDistanceFromPoint(estimate);
             double radiusToPath = path.poses.get(pathIndex).getDistanceFromPoint(estimate);
+
+            // determine radiusToPath? yet its not used anywhere else
             while (radiusToPath < pathRadius && pathIndex != path.poses.size()) {
                 radiusToPath = path.poses.get(pathIndex).getDistanceFromPoint(estimate);
                 if (lastRadius > radiusToPath && radiusToPath > pathRadius/3.0){
@@ -245,12 +254,18 @@ public class Drivetrain {
                 lastRadius = radiusToPath;
                 pathIndex ++;
             }
+
+            // pathTarget --> current target location
             SplinePose2d pathTarget = path.poses.get(Math.min(path.poses.size()-1,pathIndex));
             lastTargetPoint = targetPoint;
             targetPoint = pathTarget.clone();
+
+            // If last point, activate slowdown
             if (path.poses.size() - 1 - pathIndex < slowdownPoints) {
                 slowDown = true;
             }
+
+            // Essentially, if it is close enough then just do goToPoint. Otherwise spline
             if (pathIndex == path.poses.size() && path.poses.get(path.poses.size()-1).getDistanceFromPoint(estimate) < finalPIDThreshold){
                 state = State.GO_TO_POINT;
                 maxPower/=2;
@@ -259,12 +274,13 @@ public class Drivetrain {
             } else {
                 targetPoint.heading = Math.atan2(targetPoint.y - ROBOT_POSITION.y, targetPoint.x - ROBOT_POSITION.x);
             }
+
+            // Why the heck is this here???
             targetPoint.heading += pathTarget.reversed ? Math.PI : 0;
         }
 
         calculateErrors();
         updateTelemetry();
-
 
         switch (state) {
             case FOLLOW_SPLINE:
@@ -299,7 +315,6 @@ public class Drivetrain {
                 double erX = point.x-estimate.x;
                 double erY = point.y-estimate.y;
                 double relY = -Math.sin(estimate.heading)*erX + Math.cos(estimate.heading)*erY;
-
 
                 double strafe = Math.abs(relY) > 2 ? relY*strafeTune : 0;
                 strafe = Math.max(Math.min(strafe, 0.2), -0.2);

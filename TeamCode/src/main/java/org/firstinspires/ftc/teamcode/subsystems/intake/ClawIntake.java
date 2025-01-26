@@ -31,6 +31,7 @@ public class ClawIntake {
 
     public static PID extendoPID = new PID(0.15, 0.01, 0.008);
     public static double slidesTolerance = 0.5;
+    public static double slidesForcePullPow = -0.3;
 
     public static double intakeHoverAngle = -1.35;
     public static double intakeFlipConfirmAngle = -1.3;
@@ -42,7 +43,7 @@ public class ClawIntake {
     private double clawRotationAlignAngle = 0.0;
 
     public static double clawOpenAngle = 0.2634;
-    public static double clawCloseAngle = 0.9918;
+    public static double clawCloseAngle = 1.25;
 
     private boolean grab = false;
 
@@ -106,6 +107,8 @@ public class ClawIntake {
         if (Globals.RUNMODE != RunMode.TELEOP) {
             resetExtendoEncoders();
         }
+
+        this.intakeSetTargetPos = 15;
     }
 
     //general update for entire class
@@ -114,22 +117,22 @@ public class ClawIntake {
 
         switch (clawIntakeState) {
             case START_EXTEND: // clawRotation goes up
-                this.intakeFlipServo.setTargetAngle(intakeFlipConfirmAngle);
+                this.intakeFlipServo.setTargetAngle(intakeFlipUpAngle);
                 this.clawRotation.setTargetAngle(clawRotationDefaultAngle);
-                this.claw.setTargetAngle(clawOpenAngle);
+                this.claw.setTargetAngle(this.grab ? clawCloseAngle : clawOpenAngle);
                 this.extendoTargetPos = 0;
-                this.intakeSetTargetPos = 15;
                 this.clawRotationAlignAngle = clawRotationDefaultAngle;
-                this.grab = false;
                 if (this.intakeFlipServo.inPosition()) this.clawIntakeState = ClawIntakeState.FINISH_EXTEND;
                 break;
             case FINISH_EXTEND:
                 this.intakeFlipServo.setTargetAngle(intakeFlipUpAngle);
                 this.clawRotation.setTargetAngle(clawRotationDefaultAngle);
-                this.claw.setTargetAngle(clawOpenAngle);
+                this.claw.setTargetAngle(this.grab ? clawCloseAngle : clawOpenAngle);
                 this.extendoTargetPos = this.intakeSetTargetPos;
-                this.grab = false;
-                if (this.isExtensionAtTarget()) this.clawIntakeState = ClawIntakeState.ALIGN;
+                if (this.isExtensionAtTarget()) {
+                    this.clawIntakeState = ClawIntakeState.ALIGN;
+                    this.grab = false;
+                }
                 break;
             case ALIGN:
                 this.intakeFlipServo.setTargetAngle(intakeHoverAngle);
@@ -212,8 +215,10 @@ public class ClawIntake {
     }
 
     public void release() {
-        if (this.clawIntakeState == ClawIntakeState.HOLD)
+        if (this.clawIntakeState == ClawIntakeState.HOLD) {
             this.clawIntakeState = ClawIntakeState.READY;
+            grab = false;
+        }
     }
 
     public boolean isRetracted() {
@@ -241,7 +246,7 @@ public class ClawIntake {
         if (this.isExtensionAtTarget()) {
             extendoPID.update(0,-1.0,1.0);
             extendoPID.resetIntegral();
-            pow = this.extendoTargetPos < 0.5 ? -0.3 : 0;
+            pow = this.extendoTargetPos <= slidesTolerance ? slidesForcePullPow : 0;
         } else {
             pow = extendoPID.update(this.extendoTargetPos - this.extendoCurrentPos, -0.7, 0.7);
         }
@@ -254,7 +259,10 @@ public class ClawIntake {
         TelemetryUtil.packet.put("ClawIntake State", this.clawIntakeState);
     }
 
-    public boolean isExtensionAtTarget() { return Math.abs(this.extendoTargetPos - this.extendoCurrentPos) <= slidesTolerance; }
+    public boolean isExtensionAtTarget() {
+        if (this.extendoTargetPos <= slidesTolerance) return this.extendoCurrentPos <= slidesTolerance;
+        return Math.abs(this.extendoTargetPos - this.extendoCurrentPos) <= slidesTolerance;
+    }
 
     public void resetExtendoEncoders() {
         Log.e("RESETTTING", "RESTETING EXTENDO *************");

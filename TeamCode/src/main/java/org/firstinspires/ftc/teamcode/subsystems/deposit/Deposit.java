@@ -336,7 +336,7 @@ public class Deposit {
     }
 
     public boolean isSampleDepositDone() {
-        return state == State.IDLE;
+        return state == State.IDLE || state == State.RETRACT;
     }
 
     public void startOuttake() {

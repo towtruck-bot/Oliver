@@ -462,8 +462,8 @@ public class Drivetrain {
 //        turn = Math.abs(turnError) > Math.toRadians(turnAdjustThreshold)/2? turnPID.update(turnError, -maxPower, maxPower) : 0;
 
 
-        fwd = xPID.update(-xError, -maxPower, maxPower);
-        strafe = yPID.update(-yError, -maxPower, maxPower);
+        fwd = xPID.update(xError, -maxPower, maxPower);
+        strafe = yPID.update(yError, -maxPower, maxPower);
         turn = turnPID.update(turnError, -maxPower, maxPower);
 
         Vector2 move = new Vector2(fwd, strafe);
@@ -516,9 +516,12 @@ public class Drivetrain {
     public void updateTelemetry () {
         TelemetryUtil.packet.put("Drivetrain State", state);
 
-        TelemetryUtil.packet.put("xError", xError);
-        TelemetryUtil.packet.put("yError", yError);
-        TelemetryUtil.packet.put("turnError (deg)", Math.toDegrees(turnError));
+        TelemetryUtil.packet.put("Drivetrain:: xError", xError);
+        TelemetryUtil.packet.put("Drivetrain:: yError", yError);
+        TelemetryUtil.packet.put("Drivetrain:: turnError (deg)", Math.toDegrees(turnError));
+        TelemetryUtil.packet.put("Drivetrain:: xTarget", targetPoint.x);
+        TelemetryUtil.packet.put("Drivetrain:: yTarget", targetPoint.y);
+
 
 //        TelemetryUtil.packet.put("maxPower", maxPower);
 

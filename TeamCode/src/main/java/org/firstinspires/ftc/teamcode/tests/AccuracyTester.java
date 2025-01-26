@@ -12,6 +12,7 @@ import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 @Config
 public class AccuracyTester extends LinearOpMode {
     public static boolean goTo = false;
+    public static double x = 0.0, y = 0.0, heading = 0.0;
 
     public void runOpMode(){
         Robot robot = new Robot(hardwareMap);
@@ -41,9 +42,7 @@ public class AccuracyTester extends LinearOpMode {
             Pose2d estimate = robot.sensors.getOdometryPosition();
 
             if(goTo) {
-                robot.drivetrain.goToPoint(new Pose2d(12.0, 12.0, 0.0), false, true, 0.8);
-            }else{
-                robot.drivetrain.goToPoint(new Pose2d(0.0, 0.0, 0.0), false, true, 0.8);
+                robot.drivetrain.goToPoint(new Pose2d(x, y, heading), false, true, 0.8);
             }
 
             TelemetryUtil.packet.put("Pinpoint:: x", estimate.getX());

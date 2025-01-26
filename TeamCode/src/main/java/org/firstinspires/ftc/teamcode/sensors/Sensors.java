@@ -38,9 +38,6 @@ public class Sensors {
         odometry.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_SWINGARM_POD);
         odometry.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.REVERSED, GoBildaPinpointDriver.EncoderDirection.REVERSED);
 
-        // TODO: NOTE THAT THIS SHOULD BE CALLED EVERY TIME NEW START POINT IS SET
-        odometry.resetPosAndIMU();
-
         voltage = hardwareMap.voltageSensor.iterator().next().getVoltage();
     }
 

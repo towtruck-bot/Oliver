@@ -9,8 +9,6 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.subsystems.drive.Drivetrain;
-import org.firstinspires.ftc.teamcode.utils.Globals;
-import org.firstinspires.ftc.teamcode.utils.RunMode;
 import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 import org.firstinspires.ftc.teamcode.utils.priority.PriorityMotor;
 
@@ -48,9 +46,9 @@ public class Slides {
 
         m2.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        if (Globals.RUNMODE != RunMode.TELEOP) {
+        //if (Globals.RUNMODE != RunMode.TELEOP) {
             resetSlidesEncoders();
-        }
+        //}
 
         slidesMotors = new PriorityMotor(new DcMotorEx[] {m1, m2}, "slidesMotor", 3, 5, new double[] {1, 1}, robot.sensors);
         robot.hardwareQueue.addDevice(slidesMotors);

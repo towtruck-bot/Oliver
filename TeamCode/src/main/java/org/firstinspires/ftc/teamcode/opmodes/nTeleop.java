@@ -7,7 +7,6 @@ import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.utils.ButtonToggle;
 import org.firstinspires.ftc.teamcode.utils.Globals;
 import org.firstinspires.ftc.teamcode.utils.RunMode;
-import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 
 @TeleOp
 public class nTeleop extends LinearOpMode {
@@ -18,6 +17,7 @@ public class nTeleop extends LinearOpMode {
 
         // Gamepad 1
         ButtonToggle lb_1 = new ButtonToggle();
+        ButtonToggle lt_1 = new ButtonToggle();
         ButtonToggle rb_1 = new ButtonToggle();
         ButtonToggle x_1 = new ButtonToggle();
         ButtonToggle b_1 = new ButtonToggle();
@@ -31,6 +31,7 @@ public class nTeleop extends LinearOpMode {
         final double slidesInc = 0.4;
         final double extendoInc = 0.4;
         final double intakeClawRotationInc = 0.1; // 0.08
+        final double triggerThresh = 0.2;
         boolean speciMode = false;
         boolean high = true;
 
@@ -40,6 +41,7 @@ public class nTeleop extends LinearOpMode {
 
         while (!isStopRequested()) {
             robot.update();
+            Robot.RobotState robotState = robot.getState();
 
             // DRIVER 1
 
@@ -62,39 +64,36 @@ public class nTeleop extends LinearOpMode {
                 robot.deposit.setDepositHeight(robot.deposit.getDepositHeight() - slidesInc);
             }
 
-            // Transition Between Intake or Deposit FSMs through Robot
-            // rb(held) --> lower claw and keep open, rb(released) --> raise claw and keep open
-            // lb --> close claw and grab, then retract and return to transfer position
-
-            if (robot.clawIntake.isExtended()) {
-                rb_1.isClicked(gamepad1.right_bumper);
-                robot.clawIntake.grab(gamepad1.right_bumper);
-            } else if (robot.clawIntake.isRetracted()) {
-                if (rb_1.isClicked(gamepad1.right_bumper)) {
-                    robot.setNextState(Robot.NextState.DEPOSIT);
-                }
-            }
 //LIAM IS THE BEST EVER!
             if (lb_1.isClicked(gamepad1.left_bumper)) {
-                if (robot.getState() == Robot.RobotState.IDLE) {
+                if (robotState == Robot.RobotState.IDLE) {
                     robot.setNextState(speciMode ? Robot.NextState.GRAB_SPECIMEN : Robot.NextState.INTAKE_SAMPLE);
-                } else if (robot.getState() == Robot.RobotState.SAMPLE_READY) {
+                } else if (robotState == Robot.RobotState.SAMPLE_READY) {
                     robot.setNextState(Robot.NextState.INTAKE_SAMPLE);
-                } else if (speciMode && robot.getState() == Robot.RobotState.GRAB_SPECIMEN) {
+                } else if (robotState == Robot.RobotState.GRAB_SPECIMEN || robotState == Robot.RobotState.SPECIMEN_READY) {
                     robot.setNextState(Robot.NextState.GRAB_SPECIMEN);
                 } else {
                     robot.setNextState(Robot.NextState.DONE);
                 }
             }
 
-            if (robot.getState() == Robot.RobotState.DEPOSIT_BUCKET || robot.getState() == Robot.RobotState.DEPOSIT_SPECIMEN) {
+            if (robot.clawIntake.isExtended()) {
+                rb_1.isClicked(gamepad1.right_bumper);
+                lt_1.isClicked(gamepad1.left_trigger > triggerThresh);
+                robot.clawIntake.grab(gamepad1.right_bumper);
+                robot.clawIntake.setClawRotation(robot.clawIntake.getClawRotAngle() + intakeClawRotationInc * (gamepad1.right_trigger - gamepad1.left_trigger));
+            } else {
+                if (rb_1.isClicked(gamepad1.right_bumper)) robot.setNextState(Robot.NextState.DEPOSIT);
+                if (lt_1.isClicked(gamepad1.left_trigger > triggerThresh)) robot.setNextState(Robot.NextState.DONE);
+            }
+
+            if (robotState == Robot.RobotState.DEPOSIT_BUCKET || robotState == Robot.RobotState.DEPOSIT_SPECIMEN) {
                 double slidesControl1 = robot.drivetrain.smoothControls(-gamepad1.right_stick_y);
                 robot.deposit.setDepositHeight(robot.deposit.getDepositHeight() + slidesInc * slidesControl1);
-            } else if (robot.getState() == Robot.RobotState.INTAKE_SAMPLE) {
+            } else if (robotState == Robot.RobotState.INTAKE_SAMPLE) {
                 double intakeControl1 = robot.drivetrain.smoothControls(-gamepad1.right_stick_y);
                 robot.clawIntake.setIntakeTargetPos(robot.clawIntake.getIntakeTargetPos() + extendoInc * intakeControl1);
             }
-            robot.clawIntake.setClawRotation(robot.clawIntake.getClawRotAngle() + intakeClawRotationInc * (gamepad1.right_trigger - gamepad1.left_trigger));
 
             if (rsb_1.isClicked(gamepad1.right_stick_button)) {
                 robot.deposit.slides.resetSlidesEncoders();
@@ -135,11 +134,12 @@ public class nTeleop extends LinearOpMode {
 
             telemetry.addData("speciMode", speciMode);
             telemetry.addData("high", high);
-            telemetry.addData("intake target pos", robot.clawIntake.getIntakeTargetPos());
-            telemetry.addData("intake claw rotation", robot.clawIntake.getClawRotAngle());
+            telemetry.addData("Intake target pos", robot.clawIntake.getIntakeTargetPos());
+            telemetry.addData("Intake claw rotation", robot.clawIntake.getClawRotAngle());
             telemetry.addData("deposit height", robot.deposit.getDepositHeight());
             telemetry.addData("isRed", Globals.isRed);
-            telemetry.addData("robot state", robot.getState());
+            telemetry.addData("robotState", robotState);
+            telemetry.addData("Intake current length", robot.sensors.getExtendoPos());
             telemetry.addData("Slides: Length", robot.deposit.slides.getLength());
             telemetry.addData("hasSamplePreload", Globals.hasSamplePreload);
             telemetry.update();

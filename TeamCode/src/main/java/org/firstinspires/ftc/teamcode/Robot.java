@@ -14,6 +14,7 @@ import org.firstinspires.ftc.teamcode.subsystems.drive.Spline;
 import org.firstinspires.ftc.teamcode.subsystems.intake.ClawIntake;
 import org.firstinspires.ftc.teamcode.utils.Func;
 import org.firstinspires.ftc.teamcode.utils.Globals;
+import org.firstinspires.ftc.teamcode.utils.Pose2d;
 import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 import org.firstinspires.ftc.teamcode.utils.priority.HardwareQueue;
 import org.firstinspires.ftc.teamcode.vision.Vision;
@@ -93,28 +94,6 @@ public class Robot {
         this.robotFSM();
 
         this.hardwareQueue.update();
-    }
-
-    private void updateTelemetry() {
-        TelemetryUtil.packet.put("Robot.state", this.state.toString());
-        TelemetryUtil.packet.put("Robot.prevState1", this.prevState1.toString());
-        TelemetryUtil.packet.put("Robot.prevState", this.prevState.toString());
-        TelemetryUtil.packet.put("Robot.nextState", this.nextState.toString());
-        TelemetryUtil.packet.put("Robot.outtakeAndThenGrab", this.outtakeAndThenGrab);
-        TelemetryUtil.packet.put("Loop Time", GET_LOOP_TIME());
-        TelemetryUtil.sendTelemetry();
-    }
-
-    public void followSpline(Spline spline, Func func) {
-        long start = System.currentTimeMillis();
-        drivetrain.setPath(spline);
-        drivetrain.state = Drivetrain.State.GO_TO_POINT;
-        drivetrain.setMaxPower(1);
-        update();
-
-        do {
-            update();
-        } while (((boolean) func.call()) && System.currentTimeMillis() - start <= 10000 && drivetrain.isBusy());
     }
 
 /* Main Robot FSM diagram below
@@ -246,6 +225,27 @@ public class Robot {
          */
     public RobotState getState() { return this.state; }
 
+    public void goToPoint(Pose2d pose, Func func, boolean finalAdjustment, boolean stop, double maxPower) {
+        long start = System.currentTimeMillis();
+        drivetrain.goToPoint(pose, finalAdjustment, stop, maxPower); // need this to start the process so thresholds don't immediately become true
+        update(); // maybe remove?
+        while(((boolean) func.call()) && System.currentTimeMillis() - start <= 5000 && drivetrain.isBusy()) {
+            update();
+        }
+    }
+
+    public void followSpline(Spline spline, Func func) {
+        long start = System.currentTimeMillis();
+        drivetrain.setPath(spline);
+        drivetrain.state = Drivetrain.State.GO_TO_POINT;
+        drivetrain.setMaxPower(1);
+        update();
+
+        do {
+            update();
+        } while (((boolean) func.call()) && System.currentTimeMillis() - start <= 10000 && drivetrain.isBusy());
+    }
+
     public void forceRetractToSampleReady(){
         state = RobotState.SAMPLE_READY;
         prevState = RobotState.TRANSFER;
@@ -339,4 +339,15 @@ public class Robot {
             }
         }
     }
+
+    private void updateTelemetry() {
+        TelemetryUtil.packet.put("Robot.state", this.state.toString());
+        TelemetryUtil.packet.put("Robot.prevState1", this.prevState1.toString());
+        TelemetryUtil.packet.put("Robot.prevState", this.prevState.toString());
+        TelemetryUtil.packet.put("Robot.nextState", this.nextState.toString());
+        TelemetryUtil.packet.put("Robot.outtakeAndThenGrab", this.outtakeAndThenGrab);
+        TelemetryUtil.packet.put("Loop Time", GET_LOOP_TIME());
+        TelemetryUtil.sendTelemetry();
+    }
+
 }

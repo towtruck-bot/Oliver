@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.Robot;
+import org.firstinspires.ftc.teamcode.utils.Func;
 import org.firstinspires.ftc.teamcode.utils.Pose2d;
 import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 
@@ -38,12 +39,18 @@ public class AccuracyTester extends LinearOpMode {
 //
 //        robot.drivetrain.goToPoint(new Pose2d(0.0, 0.0, 0.0), true, true, 0.8);
 
+        boolean arrived = false;
         while(!isStopRequested()){
             Pose2d estimate = robot.sensors.getOdometryPosition();
 
-            if(goTo) {
-                robot.drivetrain.goToPoint(new Pose2d(x, y, heading), false, true, 0.8);
-            }
+//            if(goTo) {
+//                robot.drivetrain.goToPoint(new Pose2d(x, y, heading), false, true, 0.8);
+//                goTo = !goTo;
+//            }
+
+            robot.drivetrain.goToPoint(new Pose2d(48.0, 0.0, 0.0), false, false, 0.8);
+//            robot.goToPoint(new Pose2d(0.0, 0.0, 0.0), (Func) this, false, false, 0.8);
+
 
             TelemetryUtil.packet.put("Pinpoint:: x", estimate.getX());
             TelemetryUtil.packet.put("Pinpoint:: y", estimate.getY());

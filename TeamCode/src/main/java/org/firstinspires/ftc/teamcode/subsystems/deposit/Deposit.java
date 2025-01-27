@@ -217,7 +217,8 @@ public class Deposit {
                 }
                 break;
             case SPECI_DEPOSIT:
-                moveToWithRad(speciHRad, targetY); //TODO: In AUTO, this will have to be set to corresponding height, left here as placeholder. We may never need it either, who knows
+                //TODO: In AUTO, this will have to be set to corresponding height, left here as placeholder. We may never need it either, who knows
+                moveToWithRad(speciHRad, targetY);
                 arm.setClawRotation(speciHClawRad, 1.0);
                 break;
             case RELEASE:

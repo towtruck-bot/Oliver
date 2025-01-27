@@ -430,7 +430,7 @@ public class Drivetrain {
         setMoveVector(move, turn);
     }
 
-    public static PID xPID = new PID(0.04,0.0,0.003);
+    public static PID xPID = new PID(0.020,0.0,0.0035);
     public static PID yPID = new PID(0.125,0.0,0.0175);
     public static PID turnPID = new PID(0.25,0.0,0.01);
 

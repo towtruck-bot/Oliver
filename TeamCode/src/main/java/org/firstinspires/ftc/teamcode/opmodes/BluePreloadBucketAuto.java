@@ -6,6 +6,8 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.Robot;
+import org.firstinspires.ftc.teamcode.subsystems.drive.Spline;
+import org.firstinspires.ftc.teamcode.utils.Func;
 import org.firstinspires.ftc.teamcode.utils.Globals;
 import org.firstinspires.ftc.teamcode.utils.Pose2d;
 import org.firstinspires.ftc.teamcode.utils.RunMode;
@@ -19,8 +21,9 @@ public class BluePreloadBucketAuto extends LinearOpMode {
 
         doInitialization();
         waitForStart();
+        Globals.autoStartTime = System.currentTimeMillis();
 
-        scorePreload();
+        moveToBelowBucket();
     }
 
     public void doInitialization(){
@@ -29,45 +32,20 @@ public class BluePreloadBucketAuto extends LinearOpMode {
 
         robot = new Robot(hardwareMap);
 
-        // TODO: Reset encoder values
+        robot.sensors.resetPosAndIMU();
+
+        while(opModeInInit() && !isStopRequested()){
+            robot.sensors.setOdometryPosition(24.0 - Globals.TRACK_WIDTH/2, 72.0 - Globals.TRACK_LENGTH/2, -Math.PI / 2);
+            robot.deposit.setDepositHeight(0.0);
+
+            robot.update();
+        }
+
+        // Do vision stuff here?
     }
 
-    public void scorePreload(){
-        // go to in front of bucket, angle bot to directly face bucket
-        robot.drivetrain.goToPoint(new Pose2d(1.504653589141163,-0.47072564848254705, 0.781970739364624), false, true, 1.0);
-        double startTime = System.currentTimeMillis();
-        while (robot.drivetrain.isBusy() || System.currentTimeMillis() > startTime + 5000) {
-            robot.update();
-        }
-
-        // start deposit from hold, enter sample sequence, reach sample raise
+    public void moveToBelowBucket(){
+        robot.goToPoint(new Pose2d(58, 58, Math.PI/4), (Func) this, false, true, 0.8);
         robot.setNextState(Robot.NextState.DEPOSIT);
-        while (!robot.deposit.slides.inPosition(0.9) ){
-            robot.update();
-        }
-
-        // move closer to bucket
-        robot.drivetrain.goToPoint(new Pose2d(1.662282774028439,-0.3064954456019752,0.7775459289550781), false, true, 1.0);
-        startTime = System.currentTimeMillis();
-        while (robot.drivetrain.isBusy() || System.currentTimeMillis() > startTime + 5000) {
-            robot.update();
-        }
-
-        // deposit
-        robot.setNextState(Robot.NextState.DEPOSIT);
-
-        // back up
-        robot.drivetrain.goToPoint(new Pose2d(1.504653589141163, -0.47072564848254705, 3.097757339477539), false, false, 1.0);
-        startTime = System.currentTimeMillis();
-        while (robot.drivetrain.isBusy() || System.currentTimeMillis() > startTime + 5000) {
-            robot.update();
-        }
-
-        // go to observation zone
-        robot.drivetrain.goToPoint(new Pose2d(-3.105215890607563, 0.06, 3.097757339477539), false, true, 1.0);
-        startTime = System.currentTimeMillis();
-        while (robot.drivetrain.isBusy() || System.currentTimeMillis() > startTime + 5000) {
-            robot.update();
-        }
     }
 }

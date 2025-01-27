@@ -177,10 +177,10 @@ public class Deposit {
             case GRAB_MOVE:
                 moveToWithRad(speciHoldRad, holdY);
                 arm.setClawRotation(holdGrabRad, 1.0);
-                arm.speciOpen();
 
-                if(arm.inPosition() && slides.inPosition(1) && arm.clawFinished()){
+                if(arm.inPosition() && slides.inPosition(1)){
                     state = State.GRAB_WAIT;
+                    arm.speciOpen();
                 }
                 break;
             case GRAB_WAIT:
@@ -308,8 +308,7 @@ public class Deposit {
 
     public void startTransfer() {
         Log.i("FSM", this.state + ", startTransfer()");
-        if (state == State.TRANSFER_WAIT)
-            state = State.TRANSFER_GRAB;
+        if (state == State.TRANSFER_WAIT) state = State.TRANSFER_GRAB;
     }
 
     public boolean isSampleReady() {
@@ -318,8 +317,7 @@ public class Deposit {
 
     public void startSampleDeposit() {
         Log.i("FSM", this.state + ", startSampleDeposit()");
-        if (state == State.HOLD)
-            state = State.SAMPLE_RAISE;
+        if (state == State.HOLD) state = State.SAMPLE_RAISE;
     }
 
     public void finishSampleDeposit() {
@@ -342,8 +340,7 @@ public class Deposit {
 
     public void startOuttake() {
         Log.i("FSM", this.state + ", startOuttake()");
-        if (state == State.HOLD || state == State.GRAB_HOLD)
-            state = State.OUTTAKE_MOVE;
+        if (state == State.HOLD || state == State.GRAB_HOLD) state = State.OUTTAKE_MOVE;
     }
 
     public boolean isOuttakeDone() {
@@ -352,14 +349,12 @@ public class Deposit {
 
     public void startSpecimenGrab() {
         Log.i("FSM", this.state + ", startSpecimenGrab()");
-        if (state == State.IDLE)
-            state = State.GRAB_MOVE;
+        if (state == State.IDLE || state == State.GRAB_HOLD) state = State.GRAB_MOVE;
     }
 
     public void finishSpecimenGrab() {
         Log.i("FSM", this.state + ", finishSpecimenGrab()");
-        if (state == State.GRAB_WAIT)
-            state = State.GRAB;
+        if (state == State.GRAB_WAIT) state = State.GRAB;
     }
 
     public boolean isSpecimenReady() {
@@ -368,8 +363,7 @@ public class Deposit {
 
     public void startSpecimenDeposit() {
         Log.i("FSM", this.state + ", startSpecimenDeposit()");
-        if(state == State.GRAB_HOLD)
-            state = State.SPECI_RAISE;
+        if (state == State.GRAB_HOLD) state = State.SPECI_RAISE;
     }
 
     public void finishSpecimenDeposit() {
@@ -382,8 +376,7 @@ public class Deposit {
 //            }
 //            state = State.SPECI_DEPOSIT;
 //        }
-        if(state == State.SPECI_RAISE)
-            state = State.RELEASE;
+        if (state == State.SPECI_RAISE) state = State.RELEASE;
     }
 
     public boolean isSpecimenDepositDone() {

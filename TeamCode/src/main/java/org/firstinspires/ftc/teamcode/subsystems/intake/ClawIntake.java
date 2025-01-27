@@ -8,9 +8,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.Robot;
-import org.firstinspires.ftc.teamcode.utils.Globals;
 import org.firstinspires.ftc.teamcode.utils.PID;
-import org.firstinspires.ftc.teamcode.utils.RunMode;
 import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 import org.firstinspires.ftc.teamcode.utils.Utils;
 import org.firstinspires.ftc.teamcode.utils.priority.PriorityMotor;
@@ -104,9 +102,9 @@ public class ClawIntake {
         );
         robot.hardwareQueue.addDevice(clawRotation);
 
-        if (Globals.RUNMODE != RunMode.TELEOP) {
+        //if (Globals.RUNMODE != RunMode.TELEOP) {
             resetExtendoEncoders();
-        }
+        //}
 
         this.intakeSetTargetPos = 15;
     }

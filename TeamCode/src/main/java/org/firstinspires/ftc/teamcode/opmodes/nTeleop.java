@@ -140,7 +140,7 @@ public class nTeleop extends LinearOpMode {
             telemetry.addData("isRed", Globals.isRed);
             telemetry.addData("robotState", robotState);
             telemetry.addData("Intake current length", robot.sensors.getExtendoPos());
-            telemetry.addData("Slides: Length", robot.deposit.slides.getLength());
+            telemetry.addData("Slides current length", robot.deposit.slides.getLength());
             telemetry.addData("hasSamplePreload", Globals.hasSamplePreload);
             telemetry.update();
         }

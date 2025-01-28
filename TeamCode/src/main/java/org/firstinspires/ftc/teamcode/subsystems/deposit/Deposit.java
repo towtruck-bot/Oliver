@@ -55,16 +55,16 @@ public class Deposit {
     // transfer positions, move in to grab
     public static double intakeRad = 0.1, intakeY = 0.0, intakeClawRad = -1.7;
     // moving positions with a sample
-    public static double sampleHoldRad = 0.3, speciHoldRad = 0.0, holdY = 0.0, holdClawRad = 2;
+    public static double sampleHoldRad = 0.3, holdY = 0.0, holdSampleClawRad = 2;
+    public static double specimenGrabRad = 0.0, specimenGrabClawRad = -0.5, specimenConfirmRad = 0.6, specimenConfirmClawRad = -0.5;
     // sample basket positions
     public static double sampleLY = 16.75, sampleHY = 33.85, sampleRad = 2.4, sampleClawRad = 0.6;
     // outtake positions, drop behind robot
-    public static double outtakeRad = Math.PI, outtakeY = 0.0, outtakeReleaseRad = 0.3;
+    public static double outtakeRad = Math.PI, outtakeY = 0.0, outtakeClawRad = -0.3;
     // grabbing positions, holdGrab -> off the wall, grabRetract --> moving with a specimen
-    public static double holdGrabRad = -0.1, grabRetractRad = 2.0;
     // specimen chamber positions
-    public static double speciLRad = 2.75, speciLClawRad = 0.0, speciLSY = 0.0, speciLEY = 0.0;
-    public static double  speciHRad = 2.9, speciHClawRad = -1.3, speciHY = 8.0, speciHEY = 18.0;
+    public static double speciLRad = 2.75, speciLClawRad = 0.0, speciLSY = 0.0;
+    public static double  speciHRad = 3.2, speciHClawRad = -0.9, speciHY = 15.9;
 
     private boolean high = true, auto = false;
 
@@ -116,7 +116,7 @@ public class Deposit {
                 break;
             case TRANSFER_FINISH:
                 moveToWithRad(sampleHoldRad, holdY);
-                arm.setClawRotation(holdClawRad, 1.0);
+                arm.setClawRotation(holdSampleClawRad, 1.0);
 
                 if(arm.inPosition()){
                     state = State.HOLD;
@@ -124,7 +124,7 @@ public class Deposit {
                 break;
             case HOLD:
                 moveToWithRad(sampleHoldRad, holdY);
-                arm.setClawRotation(holdClawRad, 1.0);
+                arm.setClawRotation(holdSampleClawRad, 1.0);
                 arm.speciClose();
                 break;
             case SAMPLE_RAISE:
@@ -158,7 +158,7 @@ public class Deposit {
                 break;
             case OUTTAKE_MOVE:
                 moveToWithRad(outtakeRad, outtakeY);
-                arm.setClawRotation(outtakeReleaseRad, 1.0);
+                arm.setClawRotation(outtakeClawRad, 1.0);
 
                 if(arm.inPosition() && slides.inPosition(1)){
                     state = State.OUTTAKE_RELEASE;
@@ -166,7 +166,7 @@ public class Deposit {
                 break;
             case OUTTAKE_RELEASE:
                 moveToWithRad(outtakeRad, outtakeY);
-                arm.setClawRotation(outtakeReleaseRad, 1.0);
+                arm.setClawRotation(outtakeClawRad, 1.0);
 
                 arm.sampleOpen();
 
@@ -175,8 +175,8 @@ public class Deposit {
                 }
                 break;
             case GRAB_MOVE:
-                moveToWithRad(speciHoldRad, holdY);
-                arm.setClawRotation(holdGrabRad, 1.0);
+                moveToWithRad(specimenGrabRad, holdY);
+                arm.setClawRotation(specimenGrabClawRad, 1.0);
 
                 if(arm.inPosition() && slides.inPosition(1)){
                     state = State.GRAB_WAIT;
@@ -184,12 +184,12 @@ public class Deposit {
                 }
                 break;
             case GRAB_WAIT:
-                moveToWithRad(speciHoldRad, holdY);
-                arm.setClawRotation(holdGrabRad, 1.0);
+                moveToWithRad(specimenGrabRad, holdY);
+                arm.setClawRotation(specimenGrabClawRad, 1.0);
                 break;
             case GRAB:
-                moveToWithRad(speciHoldRad, holdY);
-                arm.setClawRotation(holdGrabRad, 1.0);
+                moveToWithRad(specimenGrabRad, holdY);
+                arm.setClawRotation(specimenGrabClawRad, 1.0);
                 arm.speciClose();
 
                 if(arm.clawFinished()){
@@ -197,16 +197,17 @@ public class Deposit {
                 }
                 break;
             case GRAB_RETRACT:
-                moveToWithRad(grabRetractRad, holdY);
-                arm.setClawRotation(speciHClawRad, 1.0);
+                moveToWithRad(specimenConfirmRad, holdY);
+                arm.setClawRotation(specimenConfirmClawRad, 1.0);
 
                 if(arm.inPosition()){
                     state = State.GRAB_HOLD;
                 }
                 break;
             case GRAB_HOLD:
-                moveToWithRad(grabRetractRad, holdY);
-                arm.setClawRotation(speciHClawRad, 1.0);
+                moveToWithRad(specimenConfirmRad, holdY);
+                arm.setClawRotation(specimenConfirmClawRad, 1.0);
+                targetY = speciHY;
                 break;
             case SPECI_RAISE:
                 moveToWithRad(speciHRad, targetY);

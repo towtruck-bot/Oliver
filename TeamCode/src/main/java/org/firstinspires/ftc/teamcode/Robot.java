@@ -103,6 +103,15 @@ public class Robot {
         TelemetryUtil.sendTelemetry();
     }
 
+    public void goToPoint(Pose2d pose, Func func, boolean finalAdjustment, boolean stop, double maxPower) {
+        long start = System.currentTimeMillis();
+        drivetrain.goToPoint(pose, finalAdjustment, stop, maxPower); // need this to start the process so thresholds don't immediately become true
+        update(); // maybe remove?
+        while(((boolean) func.call()) && System.currentTimeMillis() - start <= 5000 && drivetrain.isBusy()) {
+            update();
+        }
+    }
+
     public void followSpline(Spline spline, Func func) {
         long start = System.currentTimeMillis();
         drivetrain.setPath(spline);
@@ -115,7 +124,7 @@ public class Robot {
         } while (((boolean) func.call()) && System.currentTimeMillis() - start <= 10000 && drivetrain.isBusy());
     }
 
-/* Main Robot FSM diagram: "robot_fsm.png" https://drive.google.com/drive/folders/1sDZOtl4i8u25d1JrAI3fPGEy5iU4Kujq?usp=sharing
+/* Main Robot FSM diagram: "robot_fsm_v2.png" https://drive.google.com/drive/folders/1sDZOtl4i8u25d1JrAI3fPGEy5iU4Kujq?usp=sharing
 
     Single arrow: auto-advance state
     Double arrow: manual advance during Teleop

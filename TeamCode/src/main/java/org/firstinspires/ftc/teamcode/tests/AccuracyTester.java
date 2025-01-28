@@ -43,12 +43,12 @@ public class AccuracyTester extends LinearOpMode {
         while(!isStopRequested()){
             Pose2d estimate = robot.sensors.getOdometryPosition();
 
-//            if(goTo) {
-//                robot.drivetrain.goToPoint(new Pose2d(x, y, heading), false, true, 0.8);
-//                goTo = !goTo;
-//            }
+            if(goTo) {
+                robot.drivetrain.goToPoint(new Pose2d(x, y, heading), true, true, 0.8);
+                goTo = !goTo;
+            }
 
-            robot.drivetrain.goToPoint(new Pose2d(48.0, 0.0, 0.0), false, false, 0.8);
+            //robot.drivetrain.goToPoint(new Pose2d(40, 0.0, 0.0), false, false, 0.8);
 //            robot.goToPoint(new Pose2d(0.0, 0.0, 0.0), (Func) this, false, false, 0.8);
 
 

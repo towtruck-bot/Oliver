@@ -21,6 +21,7 @@ public class nTeleop extends LinearOpMode {
         ButtonToggle rb_1 = new ButtonToggle();
         ButtonToggle x_1 = new ButtonToggle();
         ButtonToggle b_1 = new ButtonToggle();
+        ButtonToggle lsb_1 = new ButtonToggle();
         ButtonToggle rsb_1 = new ButtonToggle();
 
         //Gamepad 2
@@ -98,6 +99,10 @@ public class nTeleop extends LinearOpMode {
             if (rsb_1.isClicked(gamepad1.right_stick_button)) {
                 robot.deposit.slides.resetSlidesEncoders();
                 robot.clawIntake.resetExtendoEncoders();
+            }
+
+            if (lsb_1.isClicked(gamepad1.left_stick_button)) {
+                robot.restartState();
             }
 
             // Driving

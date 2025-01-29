@@ -28,6 +28,7 @@ public class Robot {
     public final Deposit deposit;
 
     public enum RobotState {
+        RESET,
         IDLE,
         INTAKE_SAMPLE,
         TRANSFER,
@@ -45,8 +46,8 @@ public class Robot {
         GRAB_SPECIMEN
     }
     private RobotState state = RobotState.IDLE;
-    private RobotState prevState = RobotState.OUTTAKE;
-    private RobotState prevState1 = RobotState.IDLE;
+    private RobotState prevState = RobotState.RESET;
+    private RobotState prevState1 = RobotState.RESET;
     private NextState nextState = NextState.DONE;
     private long lastClickTime = -1;
     public static long bufferClickDuration = 100;
@@ -220,10 +221,10 @@ public class Robot {
         prevState1 = state;
     }
 
-        /**
-         * Gets the Robot FSM's state. -- Daniel
-         * @return the Robot FSM's state
-         */
+    /**
+     * Gets the Robot FSM's state. -- Daniel
+     * @return the Robot FSM's state
+     */
     public RobotState getState() { return this.state; }
 
     /**
@@ -282,6 +283,13 @@ public class Robot {
         Log.i("FSM", this.state + ", " + nextState);
         this.nextState = nextState;
         this.lastClickTime = System.nanoTime();
+    }
+
+    /**
+     * Restarts the current state. -- Daniel
+     */
+    public void restartState() {
+        this.prevState = this.prevState1 = RobotState.RESET;
     }
 
     public void updateDepositHeights(boolean speciMode, boolean high){

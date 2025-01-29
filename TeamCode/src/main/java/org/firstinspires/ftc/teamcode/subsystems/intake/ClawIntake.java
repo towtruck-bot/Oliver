@@ -8,7 +8,9 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.Robot;
+import org.firstinspires.ftc.teamcode.utils.Globals;
 import org.firstinspires.ftc.teamcode.utils.PID;
+import org.firstinspires.ftc.teamcode.utils.RunMode;
 import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 import org.firstinspires.ftc.teamcode.utils.Utils;
 import org.firstinspires.ftc.teamcode.utils.priority.PriorityMotor;
@@ -29,7 +31,7 @@ public class ClawIntake {
 
     public static PID extendoPID = new PID(0.15, 0.03, 0.008);
     public static double slidesTolerance = 0.6;
-    public static double slidesForcePullPow = -0.4;
+    public static double slidesForcePullPow = -0.2;
 
     public static double intakeHoverAngle = -1.35;
     public static double intakeFlipConfirmAngle = -1.3;
@@ -241,15 +243,22 @@ public class ClawIntake {
         this.extendoCurrentPos = this.robot.sensors.getExtendoPos();
 
         double pow = 0;
-        if (this.isExtensionAtTarget()) {
-            extendoPID.update(0,-1.0,1.0);
-            extendoPID.resetIntegral();
-            pow = this.extendoTargetPos <= slidesTolerance ? slidesForcePullPow : 0;
-        } else {
-            pow = extendoPID.update(this.extendoTargetPos - this.extendoCurrentPos, -0.7, 0.7);
-        }
 
-        this.intakeExtensionMotor.setTargetPower(pow);
+        if (Globals.TESTING_DISABLE_CONTROL && Globals.RUNMODE == RunMode.TESTER) {
+            extendoPID.update(0, -1.0, 1.0);
+            extendoPID.resetIntegral();
+            intakeExtensionMotor.setTargetPower(0.0);
+        } else {
+            if (this.isExtensionAtTarget()) {
+                extendoPID.update(0, -1.0, 1.0);
+                extendoPID.resetIntegral();
+                pow = this.extendoTargetPos <= slidesTolerance && this.extendoCurrentPos > 0.0 ? slidesForcePullPow : 0;
+            } else {
+                pow = extendoPID.update(this.extendoTargetPos - this.extendoCurrentPos, -0.7, 0.7);
+            }
+
+            this.intakeExtensionMotor.setTargetPower(pow);
+        }
 
         TelemetryUtil.packet.put("ClawIntake extendo power", pow);
         TelemetryUtil.packet.put("ClawIntake.extendoTargetPos", this.extendoTargetPos);

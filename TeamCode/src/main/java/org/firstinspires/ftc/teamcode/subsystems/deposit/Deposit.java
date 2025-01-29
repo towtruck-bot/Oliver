@@ -56,7 +56,7 @@ public class Deposit {
     public static double intakeRad = 0.1, intakeY = 0.0, intakeClawRad = -1.7;
     // moving positions with a sample
     public static double sampleHoldRad = 0.3, holdY = 0.0, holdSampleClawRad = 2;
-    public static double specimenGrabRad = 0.0, specimenGrabClawRad = -0.5, specimenConfirmRad = 0.6, specimenConfirmClawRad = -0.5;
+    public static double specimenGrabRad = 0.0, specimenGrabClawRad = -0.1, specimenConfirmRad = 0.6, specimenConfirmClawRad = -0.5;
     // sample basket positions
     public static double sampleLY = 16.75, sampleHY = 33.85, sampleRad = 2.4, sampleClawRad = 0.6;
     // outtake positions, drop behind robot
@@ -64,7 +64,7 @@ public class Deposit {
     // grabbing positions, holdGrab -> off the wall, grabRetract --> moving with a specimen
     // specimen chamber positions
     public static double speciLRad = 2.75, speciLClawRad = 0.0, speciLSY = 0.0;
-    public static double  speciHRad = 3.2, speciHClawRad = -0.9, speciHY = 15.9;
+    public static double  speciHRad = 3.2, speciHClawRad = -0.9, speciHY = 12.5;
 
     private boolean high = true, auto = false;
 
@@ -309,7 +309,7 @@ public class Deposit {
 
     public void startTransfer() {
         Log.i("FSM", this.state + ", startTransfer()");
-        if (state == State.TRANSFER_WAIT) state = State.TRANSFER_GRAB;
+        if (state == State.TRANSFER_PREPARE || state == State.TRANSFER_WAIT) state = State.TRANSFER_GRAB;
     }
 
     public boolean isSampleReady() {

@@ -430,9 +430,9 @@ public class Drivetrain {
         setMoveVector(move, turn);
     }
 
-    public static PID xPID = new PID(0.020,0.0,0.0035);
-    public static PID yPID = new PID(0.125,0.0,0.0175);
-    public static PID turnPID = new PID(0.25,0.0,0.01);
+    public static PID xPID = new PID(0.040,0.0,0.0001);
+    public static PID yPID = new PID(0.04,0.0,0.0001);
+    public static PID turnPID = new PID(0.25,0.0,0.0001);
 
     double fwd, strafe, turn, turnAdjustThreshold, finalTargetPointDistance;
 
@@ -476,9 +476,9 @@ public class Drivetrain {
 //        TelemetryUtil.packet.put("expectedYError", globalExpectedYError);
     }
 
-    public static PID finalXPID = new PID(0.035, 0.0,0.0);
-    public static PID finalYPID = new PID(0.1, 0.0,0.0);
-    public static PID finalTurnPID = new PID(0.01, 0.0,0.0);
+    public static PID finalXPID = new PID(0.005, 0.0,0.0);
+    public static PID finalYPID = new PID(0.005, 0.0,0.0);
+    public static PID finalTurnPID = new PID(0.005, 0.0,0.0);
 
     public void finalAdjustment() {
         double fwd = Math.abs(xError) > finalXThreshold/2 ? finalXPID.update(xError, -maxPower, maxPower) : 0;
@@ -586,13 +586,13 @@ public class Drivetrain {
         return path;
     }
 
-    public static double xThreshold = 0.05;
-    public static double yThreshold = 0.05;
-    public static double turnThreshold = 0.2;
+    public static double xThreshold = 2;
+    public static double yThreshold = 2;
+    public static double turnThreshold = 6;
 
     public static double finalXThreshold = 0.5;
     public static double finalYThreshold = 0.5;
-    public static double finalTurnThreshold = 2.5;
+    public static double finalTurnThreshold = 0.5;
 
     public void setBreakFollowingThresholds(Pose2d thresholds) {
         xThreshold = thresholds.getX();

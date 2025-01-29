@@ -6,7 +6,9 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.utils.Func;
+import org.firstinspires.ftc.teamcode.utils.Globals;
 import org.firstinspires.ftc.teamcode.utils.Pose2d;
+import org.firstinspires.ftc.teamcode.utils.RunMode;
 import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 
 @TeleOp
@@ -16,6 +18,9 @@ public class AccuracyTester extends LinearOpMode {
     public static double x = 0.0, y = 0.0, heading = 0.0;
 
     public void runOpMode(){
+        Globals.RUNMODE = RunMode.TESTER;
+        Globals.TESTING_DISABLE_CONTROL = true;
+
         Robot robot = new Robot(hardwareMap);
 
         waitForStart();
@@ -43,10 +48,8 @@ public class AccuracyTester extends LinearOpMode {
         while(!isStopRequested()){
             Pose2d estimate = robot.sensors.getOdometryPosition();
 
-            if(goTo) {
-                robot.drivetrain.goToPoint(new Pose2d(x, y, heading), true, true, 0.8);
-                goTo = !goTo;
-            }
+            robot.drivetrain.goToPoint(new Pose2d(x, y, Math.toRadians(heading)), true, true, 0.8);
+
 
             //robot.drivetrain.goToPoint(new Pose2d(40, 0.0, 0.0), false, false, 0.8);
 //            robot.goToPoint(new Pose2d(0.0, 0.0, 0.0), (Func) this, false, false, 0.8);

@@ -1,9 +1,11 @@
 package org.firstinspires.ftc.teamcode.sensors;
 
+import com.acmerobotics.dashboard.canvas.Canvas;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.teamcode.Robot;
+import org.firstinspires.ftc.teamcode.utils.DashboardUtil;
 import org.firstinspires.ftc.teamcode.utils.Pose2d;
 import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 import org.firstinspires.ftc.teamcode.utils.priority.HardwareQueue;
@@ -36,7 +38,7 @@ public class Sensors {
         // Set tracking point offsets here. in mm
         // new x? 7.6, new y? 6.75?
         // old x? 7.75, old y? 6.5
-        odometry.setOffsets(7.6, 6.75);
+        odometry.setOffsets(70, 65);
         odometry.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_SWINGARM_POD);
         odometry.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.REVERSED, GoBildaPinpointDriver.EncoderDirection.REVERSED);
 
@@ -112,5 +114,12 @@ public class Sensors {
 
         TelemetryUtil.packet.put("Slides position", getSlidesPos());
         TelemetryUtil.packet.put("Slides encoder", this.slidesEncoder);
+
+        Pose2d currentPos = getOdometryPosition();
+        TelemetryUtil.packet.put("Pinpoint: x", currentPos.x);
+        TelemetryUtil.packet.put("Pinpoint: y", currentPos.y);
+        TelemetryUtil.packet.put("Pinpoint: heading (deg)", Math.toDegrees(currentPos.heading));
+        Canvas fieldOverlay = TelemetryUtil.packet.fieldOverlay();
+        DashboardUtil.drawRobot(fieldOverlay, currentPos, "#ff00ff");
     }
 }

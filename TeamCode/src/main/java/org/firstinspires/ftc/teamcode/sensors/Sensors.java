@@ -34,7 +34,9 @@ public class Sensors {
 
         odometry = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
         // Set tracking point offsets here. in mm
-        odometry.setOffsets(7.75, 5.0);
+        // new x? 7.6, new y? 6.75?
+        // old x? 7.75, old y? 6.5
+        odometry.setOffsets(7.6, 6.75);
         odometry.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_SWINGARM_POD);
         odometry.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.REVERSED, GoBildaPinpointDriver.EncoderDirection.REVERSED);
 

@@ -374,7 +374,8 @@ public class Drivetrain {
                 state = State.WAIT_AT_POINT;
                 break;
             case WAIT_AT_POINT:
-                if (!atPointThresholds(1.5, 1.5, 5)) {
+                // actual thresholds for stopping here???
+                if (!atPointThresholds(finalAdjustment ? finalXThreshold : xThreshold, finalAdjustment ? finalYThreshold : yThreshold, finalAdjustment ? finalTurnThreshold : turnThreshold)) {
                     resetIntegrals();
                     state = State.GO_TO_POINT;
                 }
@@ -430,9 +431,9 @@ public class Drivetrain {
         setMoveVector(move, turn);
     }
 
-    public static PID xPID = new PID(0.040,0.0,0.0001);
-    public static PID yPID = new PID(0.04,0.0,0.0001);
-    public static PID turnPID = new PID(0.25,0.0,0.0001);
+    public static PID xPID = new PID(0.045,0.0,0.009);
+    public static PID yPID = new PID(0.045,0.0,0.011);
+    public static PID turnPID = new PID(0.25,0.0,0.009);
 
     double fwd, strafe, turn, turnAdjustThreshold, finalTargetPointDistance;
 
@@ -476,9 +477,9 @@ public class Drivetrain {
 //        TelemetryUtil.packet.put("expectedYError", globalExpectedYError);
     }
 
-    public static PID finalXPID = new PID(0.005, 0.0,0.0);
-    public static PID finalYPID = new PID(0.005, 0.0,0.0);
-    public static PID finalTurnPID = new PID(0.005, 0.0,0.0);
+    public static PID finalXPID = new PID(0.01, 0.0,0.001);
+    public static PID finalYPID = new PID(0.01, 0.0,0.001);
+    public static PID finalTurnPID = new PID(0.01, 0.0,0.0015);
 
     public void finalAdjustment() {
         double fwd = Math.abs(xError) > finalXThreshold/2 ? finalXPID.update(xError, -maxPower, maxPower) : 0;
@@ -588,11 +589,11 @@ public class Drivetrain {
 
     public static double xThreshold = 2;
     public static double yThreshold = 2;
-    public static double turnThreshold = 6;
+    public static double turnThreshold = 5;
 
     public static double finalXThreshold = 0.5;
     public static double finalYThreshold = 0.5;
-    public static double finalTurnThreshold = 0.5;
+    public static double finalTurnThreshold = 1.5;
 
     public void setBreakFollowingThresholds(Pose2d thresholds) {
         xThreshold = thresholds.getX();

@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.tests;
 
+import android.util.Log;
+
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -15,18 +17,18 @@ import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 @Config
 public class AccuracyTester extends LinearOpMode {
     public static boolean goTo = false, finalAdjustment = false, stop = false;
-    public static double x = 0.0, y = 0.0, heading = 0.0;
+    public static double x = 48.0 - Globals.TRACK_WIDTH / 2.0, y = 72.0 - Globals.TRACK_LENGTH / 2.0, heading = Math.PI/2;
 
     public void runOpMode(){
         Globals.RUNMODE = RunMode.TESTER;
         Globals.TESTING_DISABLE_CONTROL = true;
 
         Robot robot = new Robot(hardwareMap);
+        robot.sensors.setOdometryPosition(48.0 - Globals.TRACK_WIDTH / 2.0, 72.0 - Globals.TRACK_LENGTH / 2.0, Math.PI/2);
+//        Pose2d currPos = robot.sensors.getOdometryPosition();
+//        Log.i("what the fuck is happening", currPos.x + " " + currPos.y + " " + currPos.heading);
 
         waitForStart();
-
-        robot.sensors.resetPosAndIMU();
-        robot.sensors.setOdometryPosition(0.0, 0.0, 0.0);
 
         while(opModeInInit()){
             robot.update();
@@ -38,7 +40,7 @@ public class AccuracyTester extends LinearOpMode {
             Pose2d estimate = robot.sensors.getOdometryPosition();
 
             if(goTo){
-                robot.drivetrain.goToPoint(new Pose2d(x, y, Math.toRadians(heading)), finalAdjustment, stop, 0.8);
+                robot.drivetrain.goToPoint(new Pose2d(x, y, heading), finalAdjustment, stop, 0.8);
                 goTo = !goTo;
             }
 

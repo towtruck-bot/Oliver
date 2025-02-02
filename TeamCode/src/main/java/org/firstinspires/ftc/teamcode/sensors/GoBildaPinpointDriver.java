@@ -336,8 +336,8 @@ public class GoBildaPinpointDriver extends I2cDeviceSynchDevice<I2cDeviceSynchSi
      * @param pos a Pose2D describing the robot's new position.
      */
     public Pose2d setPosition(Pose2d pos){
-        writeByteArray(Register.X_POSITION,(floatToByteArray((float) pos.getX(), ByteOrder.LITTLE_ENDIAN)));
-        writeByteArray(Register.Y_POSITION,(floatToByteArray((float) pos.getY(),ByteOrder.LITTLE_ENDIAN)));
+        writeByteArray(Register.X_POSITION,(floatToByteArray((float) (pos.getX() * 25.4), ByteOrder.LITTLE_ENDIAN)));
+        writeByteArray(Register.Y_POSITION,(floatToByteArray((float) (pos.getY() * 25.4),ByteOrder.LITTLE_ENDIAN)));
         writeByteArray(Register.H_ORIENTATION,(floatToByteArray((float) pos.getHeading(),ByteOrder.LITTLE_ENDIAN)));
         return pos;
     }
@@ -392,11 +392,11 @@ public class GoBildaPinpointDriver extends I2cDeviceSynchDevice<I2cDeviceSynchSi
     /**
      * @return the estimated X (forward) position of the robot in mm
      */
-    public double getPosX(){return xPosition; }
+    public double getPosX(){return xPosition/25.4; }
     /**
      * @return the estimated Y (Strafe) position of the robot in mm
      */
-    public double getPosY(){return yPosition; }
+    public double getPosY(){return yPosition/25.4; }
     /**
      * @return the estimated H (heading) position of the robot in Radians
      */
@@ -404,11 +404,11 @@ public class GoBildaPinpointDriver extends I2cDeviceSynchDevice<I2cDeviceSynchSi
     /**
      * @return the estimated X (forward) velocity of the robot in mm/sec
      */
-    public double getVelX(){return xVelocity; }
+    public double getVelX(){return xVelocity /25.4; }
     /**
      * @return the estimated Y (strafe) velocity of the robot in mm/sec
      */
-    public double getVelY(){return yVelocity; }
+    public double getVelY(){return yVelocity/25.4; }
     /**
      * @return the estimated H (heading) velocity of the robot in radians/sec
      */
@@ -437,8 +437,8 @@ public class GoBildaPinpointDriver extends I2cDeviceSynchDevice<I2cDeviceSynchSi
      */
     public Pose2d getVelocity(){
         return new Pose2d(
-                xVelocity/25.4,
-                yVelocity/25.4,
+                xVelocity,
+                yVelocity,
                 hVelocity);
     }
 }

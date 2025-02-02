@@ -33,7 +33,8 @@ public class Deposit {
         SPECI_RAISE,
         SPECI_DEPOSIT,
         RELEASE,
-        RETRACT
+        RETRACT,
+        TEST
     }
 
     public State state;
@@ -236,6 +237,11 @@ public class Deposit {
                     state = State.IDLE;
                 }
                 break;
+            case TEST:
+//                arm.setArmRotation(arm.armRotation.getTargetAngle(), 1.0);
+//                arm.setClawRotation(arm.clawRotation.getTargetAngle(), 1.0);
+//                arm.clawGrip.setTargetAngle(arm.clawGrip.getTargetAngle(), 1.0);
+//                slides.setTargetLength(slides.getLength());
         }
 
         slides.update();
@@ -260,8 +266,8 @@ public class Deposit {
     }
 
     private double targetY = speciHY;
-    public void setDepositHeight(double targetY){
-        this.targetY = Utils.minMaxClip(targetY, 0.0, 34.0);
+    public void setDepositHeight(double target){
+        this.targetY = Utils.minMaxClip(target, 0.0, 34.0);
     }
 
     public void setAuto(boolean auto){
@@ -320,6 +326,8 @@ public class Deposit {
         Log.i("FSM", this.state + ", startSampleDeposit()");
         if (state == State.HOLD) state = State.SAMPLE_RAISE;
     }
+
+    public boolean isSampleHigh(){return state == State.SAMPLE_WAIT;}
 
     public void finishSampleDeposit() {
         Log.i("FSM", this.state + ", finishSampleDeposit()");
@@ -390,6 +398,8 @@ public class Deposit {
     }
 
     public boolean isRetractDone(){
+        Log.i("funny stuffs", "Current: " + arm.armRotation.getCurrentAngle());
+        Log.i("funny stuffs", "Target: " + arm.armRotation.getTargetAngle());
         return state == State.IDLE;
     }
 }

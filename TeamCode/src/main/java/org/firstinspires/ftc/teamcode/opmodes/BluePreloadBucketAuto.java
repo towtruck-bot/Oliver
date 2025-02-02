@@ -24,6 +24,7 @@ public class BluePreloadBucketAuto extends LinearOpMode {
         Globals.autoStartTime = System.currentTimeMillis();
 
         moveToBelowBucket();
+        score();
     }
 
     public void doInitialization(){
@@ -35,7 +36,7 @@ public class BluePreloadBucketAuto extends LinearOpMode {
         robot.sensors.resetPosAndIMU();
 
         while(opModeInInit() && !isStopRequested()){
-            robot.sensors.setOdometryPosition(24.0 - Globals.TRACK_WIDTH/2, 72.0 - Globals.TRACK_LENGTH/2, -Math.PI / 2);
+            robot.sensors.setOdometryPosition(48.0 - Globals.TRACK_WIDTH / 2.0, 72.0 - Globals.TRACK_LENGTH / 2.0, Math.PI/2);
             robot.deposit.setDepositHeight(0.0);
 
             robot.update();
@@ -45,7 +46,46 @@ public class BluePreloadBucketAuto extends LinearOpMode {
     }
 
     public void moveToBelowBucket(){
-        robot.goToPoint(new Pose2d(58, 58, Math.PI/4), (Func) this, false, true, 0.8);
+        //robot current state, SAMPLE_READY
+        robot.goToPoint(new Pose2d(55, 55, 5 * Math.PI/4), () -> {
+            return !robot.atPoint();
+        }, false, true, 0.8);
+
+        //raise slides
+        robot.updateDepositHeights(false, true);
+        Log.i("why is this not working", String.valueOf(robot.deposit.getDepositHeight()));
         robot.setNextState(Robot.NextState.DEPOSIT);
+
+        while (!robot.deposit.isSampleHigh())
+            robot.update();
+    }
+
+    public void score(){
+        //robot current state, DEPOSIT_BUCKET
+        robot.goToPoint(new Pose2d(58, 58, 5 * Math.PI/4), () -> {
+            return !robot.atPoint();
+        }, true, true, 0.8);
+
+        //release sample
+        robot.setNextState(Robot.NextState.DONE);
+
+        robot.goToPoint(new Pose2d(55, 55, 5 * Math.PI/4), () -> {
+            return !robot.atPoint();
+        }, false, true, 0.8);
+
+        while (!robot.deposit.isRetractDone() || true){
+            robot.update();
+        }
+    }
+
+    public void get1stGround(){
+        robot.goToPoint(new Pose2d(48, 48, -Math.PI/2), () -> {
+            return !robot.atPoint();
+        }, false, true, 0.8);
+
+        //intake sample
+        robot.setNextState(Robot.NextState.INTAKE_SAMPLE);
+        robot.setIntakeExtension(13.0);
+
     }
 }

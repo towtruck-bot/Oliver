@@ -15,6 +15,7 @@ import org.firstinspires.ftc.teamcode.subsystems.intake.ClawIntake;
 import org.firstinspires.ftc.teamcode.utils.Func;
 import org.firstinspires.ftc.teamcode.utils.Globals;
 import org.firstinspires.ftc.teamcode.utils.Pose2d;
+import org.firstinspires.ftc.teamcode.utils.RunMode;
 import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 import org.firstinspires.ftc.teamcode.utils.priority.HardwareQueue;
 import org.firstinspires.ftc.teamcode.vision.Vision;
@@ -107,10 +108,9 @@ public class Robot {
     public void goToPoint(Pose2d pose, Func func, boolean finalAdjustment, boolean stop, double maxPower) {
         long start = System.currentTimeMillis();
         drivetrain.goToPoint(pose, finalAdjustment, stop, maxPower); // need this to start the process so thresholds don't immediately become true
-        update(); // maybe remove?
-        while(((boolean) func.call()) && System.currentTimeMillis() - start <= 5000 && drivetrain.isBusy()) {
+        do {
             update();
-        }
+        } while (((boolean) func.call()) && System.currentTimeMillis() - start <= 5000 && drivetrain.isBusy());
     }
 
     public void followSpline(Spline spline, Func func) {
@@ -123,6 +123,18 @@ public class Robot {
         do {
             update();
         } while (((boolean) func.call()) && System.currentTimeMillis() - start <= 10000 && drivetrain.isBusy());
+    }
+
+    public boolean atPoint(){
+        return drivetrain.state == Drivetrain.State.WAIT_AT_POINT;
+    }
+
+    public void setIntakeExtension(double target){
+        clawIntake.setIntakeTargetPos(target);
+    }
+
+    public void grab(){
+
     }
 
 /* Main Robot FSM diagram: "robot_fsm_v2.png" https://drive.google.com/drive/folders/1sDZOtl4i8u25d1JrAI3fPGEy5iU4Kujq?usp=sharing
@@ -147,12 +159,12 @@ public class Robot {
 
         switch (this.state) {
             case IDLE:
-                if (this.prevState != RobotState.IDLE) this.deposit.retract();
-                if (wasClicked) {
-                    if (this.nextState == NextState.INTAKE_SAMPLE) this.state = RobotState.INTAKE_SAMPLE;
-                    else if (this.nextState == NextState.GRAB_SPECIMEN) this.state = RobotState.GRAB_SPECIMEN;
-                    this.lastClickTime = -1;
-                }
+                //if (this.prevState != RobotState.IDLE) this.deposit.retract();
+                //if (wasClicked) {
+                //    if (this.nextState == NextState.INTAKE_SAMPLE) this.state = RobotState.INTAKE_SAMPLE;
+                //    else if (this.nextState == NextState.GRAB_SPECIMEN) this.state = RobotState.GRAB_SPECIMEN;
+                //    this.lastClickTime = -1;
+                //}
                 break;
             case INTAKE_SAMPLE:
                 if (this.prevState != RobotState.INTAKE_SAMPLE) {
@@ -162,7 +174,7 @@ public class Robot {
                 if (this.clawIntake.isRetracted()) {
                     if (this.clawIntake.hasSample()) this.state = RobotState.SAMPLE_READY;
                     else this.state = RobotState.IDLE;
-                } else if (wasClicked && this.nextState == NextState.DONE) {
+                } else if ((wasClicked) && this.nextState == NextState.DONE) {
                     this.clawIntake.retract();
                     this.lastClickTime = -1;
                 }
@@ -182,7 +194,7 @@ public class Robot {
             case DEPOSIT_BUCKET:
                 if (prevState != RobotState.DEPOSIT_BUCKET) deposit.startSampleDeposit();
                 if (deposit.isSampleDepositDone()) state = RobotState.IDLE;
-                else if (wasClicked && this.nextState == NextState.DONE) {
+                else if ((wasClicked) && this.nextState == NextState.DONE) {
                     deposit.finishSampleDeposit();
                     lastClickTime = -1;
                 }
@@ -211,7 +223,7 @@ public class Robot {
             case DEPOSIT_SPECIMEN:
                 if (this.prevState != RobotState.DEPOSIT_SPECIMEN) this.deposit.startSpecimenDeposit();
                 if (this.deposit.isSpecimenDepositDone()) this.state = RobotState.IDLE;
-                else if (wasClicked && this.nextState == NextState.DONE) {
+                else if ((wasClicked) && this.nextState == NextState.DONE) {
                     this.deposit.finishSpecimenDeposit();
                     this.lastClickTime = -1;
                 }

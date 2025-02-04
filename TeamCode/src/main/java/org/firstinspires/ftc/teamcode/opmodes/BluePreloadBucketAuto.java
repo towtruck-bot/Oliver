@@ -17,10 +17,8 @@ import org.firstinspires.ftc.teamcode.utils.Vector2;
 public class BluePreloadBucketAuto extends LinearOpMode {
     private Robot robot;
     public void runOpMode(){
-        Globals.isRed = false;
-
         doInitialization();
-        waitForStart();
+
         Globals.autoStartTime = System.currentTimeMillis();
 
         moveToBelowBucket();
@@ -28,6 +26,7 @@ public class BluePreloadBucketAuto extends LinearOpMode {
     }
 
     public void doInitialization(){
+        Globals.isRed = false;
         Globals.RUNMODE = RunMode.AUTO;
         Globals.hasSamplePreload = true;
 
@@ -48,7 +47,7 @@ public class BluePreloadBucketAuto extends LinearOpMode {
     public void moveToBelowBucket(){
         //robot current state, SAMPLE_READY
         robot.goToPoint(new Pose2d(55, 55, 5 * Math.PI/4), () -> {
-            return !robot.atPoint();
+            return !isStopRequested();
         }, false, true, 0.8);
 
         //raise slides
@@ -63,16 +62,17 @@ public class BluePreloadBucketAuto extends LinearOpMode {
     public void score(){
         //robot current state, DEPOSIT_BUCKET
         robot.goToPoint(new Pose2d(58, 58, 5 * Math.PI/4), () -> {
-            return !robot.atPoint();
+            return !isStopRequested();
         }, true, true, 0.8);
 
         //release sample
         robot.setNextState(Robot.NextState.DONE);
 
         robot.goToPoint(new Pose2d(55, 55, 5 * Math.PI/4), () -> {
-            return !robot.atPoint();
+            return !isStopRequested();
         }, false, true, 0.8);
 
+        // This was the incredibly cooked arm part
         while (!robot.deposit.isRetractDone() || true){
             robot.update();
         }
@@ -80,12 +80,13 @@ public class BluePreloadBucketAuto extends LinearOpMode {
 
     public void get1stGround(){
         robot.goToPoint(new Pose2d(48, 48, -Math.PI/2), () -> {
-            return !robot.atPoint();
+            return !isStopRequested();
         }, false, true, 0.8);
 
         //intake sample
         robot.setNextState(Robot.NextState.INTAKE_SAMPLE);
         robot.setIntakeExtension(13.0);
+        robot.grab(true);
 
     }
 }

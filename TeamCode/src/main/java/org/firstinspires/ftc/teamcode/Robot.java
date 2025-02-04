@@ -96,47 +96,6 @@ public class Robot {
         this.hardwareQueue.update();
     }
 
-    private void updateTelemetry() {
-        TelemetryUtil.packet.put("Robot.state", this.state.toString());
-        TelemetryUtil.packet.put("Robot.prevState1", this.prevState1.toString());
-        TelemetryUtil.packet.put("Robot.prevState", this.prevState.toString());
-        TelemetryUtil.packet.put("Robot.nextState", this.nextState.toString());
-        TelemetryUtil.packet.put("Loop Time", GET_LOOP_TIME());
-        TelemetryUtil.sendTelemetry();
-    }
-
-    public void goToPoint(Pose2d pose, Func func, boolean finalAdjustment, boolean stop, double maxPower) {
-        long start = System.currentTimeMillis();
-        drivetrain.goToPoint(pose, finalAdjustment, stop, maxPower); // need this to start the process so thresholds don't immediately become true
-        do {
-            update();
-        } while (((boolean) func.call()) && System.currentTimeMillis() - start <= 5000 && drivetrain.isBusy());
-    }
-
-    public void followSpline(Spline spline, Func func) {
-        long start = System.currentTimeMillis();
-        drivetrain.setPath(spline);
-        drivetrain.state = Drivetrain.State.GO_TO_POINT;
-        drivetrain.setMaxPower(1);
-        update();
-
-        do {
-            update();
-        } while (((boolean) func.call()) && System.currentTimeMillis() - start <= 10000 && drivetrain.isBusy());
-    }
-
-    public boolean atPoint(){
-        return drivetrain.state == Drivetrain.State.WAIT_AT_POINT;
-    }
-
-    public void setIntakeExtension(double target){
-        clawIntake.setIntakeTargetPos(target);
-    }
-
-    public void grab(){
-
-    }
-
 /* Main Robot FSM diagram: "robot_fsm_v2.png" https://drive.google.com/drive/folders/1sDZOtl4i8u25d1JrAI3fPGEy5iU4Kujq?usp=sharing
 
     Single arrow: auto-advance state
@@ -312,5 +271,46 @@ public class Robot {
             if (high) this.deposit.setDepositHeightHighSample();
             else this.deposit.setDepositHeightLowSample();
         }
+    }
+
+    public void goToPoint(Pose2d pose, Func func, boolean finalAdjustment, boolean stop, double maxPower) {
+        long start = System.currentTimeMillis();
+        drivetrain.goToPoint(pose, finalAdjustment, stop, maxPower); // need this to start the process so thresholds don't immediately become true
+        do {
+            update();
+        } while (((boolean) func.call()) && System.currentTimeMillis() - start <= 5000 && drivetrain.isBusy());
+    }
+
+    public void followSpline(Spline spline, Func func) {
+        long start = System.currentTimeMillis();
+        drivetrain.setPath(spline);
+        drivetrain.state = Drivetrain.State.GO_TO_POINT;
+        drivetrain.setMaxPower(1);
+        update();
+
+        do {
+            update();
+        } while (((boolean) func.call()) && System.currentTimeMillis() - start <= 10000 && drivetrain.isBusy());
+    }
+
+    public boolean atPoint(){
+        return drivetrain.state == Drivetrain.State.WAIT_AT_POINT;
+    }
+
+    public void setIntakeExtension(double target){
+        clawIntake.setIntakeTargetPos(target);
+    }
+
+    public void grab(boolean closed){
+        clawIntake.grab(closed);
+    }
+
+    private void updateTelemetry() {
+        TelemetryUtil.packet.put("Robot.state", this.state.toString());
+        TelemetryUtil.packet.put("Robot.prevState1", this.prevState1.toString());
+        TelemetryUtil.packet.put("Robot.prevState", this.prevState.toString());
+        TelemetryUtil.packet.put("Robot.nextState", this.nextState.toString());
+        TelemetryUtil.packet.put("Loop Time", GET_LOOP_TIME());
+        TelemetryUtil.sendTelemetry();
     }
 }

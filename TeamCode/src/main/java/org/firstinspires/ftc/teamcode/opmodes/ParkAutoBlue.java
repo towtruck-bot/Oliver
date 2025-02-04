@@ -17,14 +17,19 @@ public class ParkAutoBlue extends LinearOpMode {
 
     public void runOpMode(){
         Globals.isRed = false;
+        Globals.RUNMODE = RunMode.AUTO;
+        Globals.hasSamplePreload = true;
 
-        doInitialization();
-        waitForStart();
+        robot = new Robot(hardwareMap);
+
+        while (opModeInInit()) {
+            robot.update();
+        }
 
         double startTime = System.currentTimeMillis();
         Log.e("Here", "here1");
 
-        while(System.currentTimeMillis() - startTime < 3000) {
+        while(!isStopRequested() && System.currentTimeMillis() - startTime < 3000) {
             Log.e("Here", "IN LOOP");
             //if 10 seconds
             robot.drivetrain.setMoveVector(new Vector2(0.2, 0), 0);
@@ -34,13 +39,4 @@ public class ParkAutoBlue extends LinearOpMode {
         robot.drivetrain.setMoveVector(new Vector2(), 0);
         robot.update();
     }
-
-    public void doInitialization(){
-        Globals.RUNMODE = RunMode.AUTO;
-        Globals.hasSamplePreload = true;
-
-        robot = new Robot(hardwareMap);
-
-    }
-
 }

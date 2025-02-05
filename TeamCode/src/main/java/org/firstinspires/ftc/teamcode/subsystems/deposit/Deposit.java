@@ -52,20 +52,20 @@ public class Deposit {
     // y is measured from slides 0
 
     // prepare for transfer positions
-    public static double intakeWaitRad = 0.35, intakeWaitClawRad = -1.8, intakeWaitY = 0.0;
+    public static double intakeWaitRad = 0.35, intakeWaitClawRad = -1.5, intakeWaitY = 0.0;
     // transfer positions, move in to grab
-    public static double intakeRad = 0.1, intakeY = 0.0, intakeClawRad = -1.7;
+    public static double intakeRad = 0.1, intakeY = 0.0, intakeClawRad = -1.65;
     // moving positions with a sample
-    public static double sampleHoldRad = 0.3, holdY = 0.0, holdSampleClawRad = 2;
-    public static double specimenGrabRad = 0.0, specimenGrabClawRad = -0.1, specimenConfirmRad = 0.6, specimenConfirmClawRad = -0.5;
+    public static double sampleHoldRad = 0.3, holdY = 0.0, sampleHoldClawRad = 1.66667;
+    public static double specimenGrabRad = 0.0, specimenGrabClawRad = -0.1, specimenConfirmRad = 0.6, specimenConfirmClawRad = -0.41667;
     // sample basket positions
-    public static double sampleLY = 16.75, sampleHY = 33.85, sampleRad = 2.4, sampleClawRad = 0.6;
+    public static double sampleLY = 16.75, sampleHY = 33.85, sampleRad = 2.4, sampleClawRad = 0.5;
     // outtake positions, drop behind robot
-    public static double outtakeRad = Math.PI, outtakeY = 0.0, outtakeClawRad = -0.3;
+    public static double outtakeRad = Math.PI, outtakeY = 0.0, outtakeClawRad = -0.25;
     // grabbing positions, holdGrab -> off the wall, grabRetract --> moving with a specimen
     // specimen chamber positions
     public static double speciLRad = 2.75, speciLClawRad = 0.0, speciLSY = 0.0;
-    public static double  speciHRad = 3.2, speciHClawRad = -0.9, speciHY = 12.5;
+    public static double  speciHRad = 3.2, speciHClawRad = -0.75, speciHY = 14;
 
     private boolean high = true, auto = false;
 
@@ -117,7 +117,7 @@ public class Deposit {
                 break;
             case TRANSFER_FINISH:
                 moveToWithRad(sampleHoldRad, holdY);
-                arm.setClawRotation(holdSampleClawRad, 1.0);
+                arm.setClawRotation(sampleHoldClawRad, 1.0);
 
                 if(arm.inPosition()){
                     state = State.HOLD;
@@ -125,7 +125,7 @@ public class Deposit {
                 break;
             case HOLD:
                 moveToWithRad(sampleHoldRad, holdY);
-                arm.setClawRotation(holdSampleClawRad, 1.0);
+                arm.setClawRotation(sampleHoldClawRad, 1.0);
                 arm.speciClose();
                 break;
             case SAMPLE_RAISE:
@@ -327,7 +327,7 @@ public class Deposit {
         if (state == State.HOLD) state = State.SAMPLE_RAISE;
     }
 
-    public boolean isSampleHigh(){return state == State.SAMPLE_WAIT;}
+    public boolean isSampleUp(){return state == State.SAMPLE_WAIT;}
 
     public void finishSampleDeposit() {
         Log.i("FSM", this.state + ", finishSampleDeposit()");

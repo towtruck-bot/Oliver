@@ -590,9 +590,9 @@ public class Drivetrain {
     public static double yThreshold = 2;
     public static double turnThreshold = 5;
 
-    public static double finalXThreshold = 0.5;
-    public static double finalYThreshold = 0.5;
-    public static double finalTurnThreshold = 1.5;
+    public static double finalXThreshold = 0.35;
+    public static double finalYThreshold = 0.35;
+    public static double finalTurnThreshold = 1.3;
 
     public void setBreakFollowingThresholds(Pose2d thresholds) {
         xThreshold = thresholds.getX();

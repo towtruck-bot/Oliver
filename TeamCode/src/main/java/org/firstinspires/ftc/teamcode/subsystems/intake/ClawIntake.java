@@ -209,6 +209,10 @@ public class ClawIntake {
         grab = closed;
     }
 
+    public boolean grabFinished(){
+        return clawIntakeState == ClawIntakeState.CONFIRM;
+    }
+
     public void extend() {
         if (this.clawIntakeState == ClawIntakeState.READY || this.clawIntakeState == ClawIntakeState.HOLD)
             this.clawIntakeState = ClawIntakeState.START_EXTEND;

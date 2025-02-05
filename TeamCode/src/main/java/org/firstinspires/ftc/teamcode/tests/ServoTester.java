@@ -84,12 +84,12 @@ public class ServoTester extends LinearOpMode {
 
             numLoops ++;
 
-            boolean fast = gamepad1.right_trigger > 0.2;
+            double speed = gamepad1.right_trigger >= 0.7 ? 0.01 : gamepad1.right_trigger >= 0.4 ? 0.005 : gamepad1.right_trigger >= 0.1 ? 0.003 : 0.001;
             if (gamepad1.x) {
-                servoPos[servoIndex] += fast ? 0.003 : 0.001;
+                servoPos[servoIndex] += speed;
             }
             if (gamepad1.b){
-                servoPos[servoIndex] -= fast ? 0.003 : 0.001;
+                servoPos[servoIndex] -= speed;
             }
             if (gamepad1.right_bumper){
                 servoPos[servoIndex] = servos.get(servoIndex).basePos;
@@ -122,6 +122,7 @@ public class ServoTester extends LinearOpMode {
             telemetry.addData("averageServoTime", totalTime/numLoops);
             //telemetry.addData("v4Encoder", v4Bar);
             telemetry.addData("targetAngle", servos.get(servoIndex).getTargetAngle());
+            telemetry.addData("adjustment speed", speed);
             /*if (servos.get(servoIndex) instanceof PriorityServoAxonEnc) {
                 telemetry.addData("voltage", " " + ((PriorityServoAxonEnc) servos.get(servoIndex)).getEncoderVoltage());
                 telemetry.addData("angle", " " + ((PriorityServoAxonEnc) servos.get(servoIndex)).getEncoderAngle());

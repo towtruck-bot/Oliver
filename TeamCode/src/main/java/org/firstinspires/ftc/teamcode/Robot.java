@@ -53,6 +53,8 @@ public class Robot {
     private long lastClickTime = -1;
     public static long bufferClickDuration = 100;
 
+    private Func abortChecker;
+
     public Robot(HardwareMap hardwareMap) {
         this(hardwareMap, null);
     }
@@ -118,12 +120,12 @@ public class Robot {
 
         switch (this.state) {
             case IDLE:
-                //if (this.prevState != RobotState.IDLE) this.deposit.retract();
-                //if (wasClicked) {
-                //    if (this.nextState == NextState.INTAKE_SAMPLE) this.state = RobotState.INTAKE_SAMPLE;
-                //    else if (this.nextState == NextState.GRAB_SPECIMEN) this.state = RobotState.GRAB_SPECIMEN;
-                //    this.lastClickTime = -1;
-                //}
+                if (this.prevState != RobotState.IDLE) this.deposit.retract();
+                if (wasClicked) {
+                    if (this.nextState == NextState.INTAKE_SAMPLE) this.state = RobotState.INTAKE_SAMPLE;
+                    else if (this.nextState == NextState.GRAB_SPECIMEN) this.state = RobotState.GRAB_SPECIMEN;
+                    this.lastClickTime = -1;
+                }
                 break;
             case INTAKE_SAMPLE:
                 if (this.prevState != RobotState.INTAKE_SAMPLE) {
@@ -273,12 +275,39 @@ public class Robot {
         }
     }
 
+    /**
+     * Sets the condition that should abort waiting (waitWhile, goToPoint)
+     * @param func the function to check (return false to abort)
+     */
+    public void setAbortChecker(Func func) { this.abortChecker = func; }
+
+    /**
+     * Waits while a condition is true
+     * @param func the function to check
+     */
+    public void waitWhile(Func func) {
+        do {
+            update();
+        } while (((boolean) this.abortChecker.call()) && ((boolean) func.call()));
+    }
+
+    /**
+     * Waits for a duration
+     * @param duration the duration in milliseconds
+     */
+    public void waitFor(long duration) {
+        long start = System.currentTimeMillis();
+        do {
+            update();
+        } while (((boolean) this.abortChecker.call()) && System.currentTimeMillis() - start < duration);
+    }
+
     public void goToPoint(Pose2d pose, Func func, boolean finalAdjustment, boolean stop, double maxPower) {
         long start = System.currentTimeMillis();
         drivetrain.goToPoint(pose, finalAdjustment, stop, maxPower); // need this to start the process so thresholds don't immediately become true
         do {
             update();
-        } while (((boolean) func.call()) && System.currentTimeMillis() - start <= 5000 && drivetrain.isBusy());
+        } while (((boolean) this.abortChecker.call()) && (func == null || (boolean) func.call()) && System.currentTimeMillis() - start <= 5000 && drivetrain.isBusy());
     }
 
     public void followSpline(Spline spline, Func func) {
@@ -290,11 +319,7 @@ public class Robot {
 
         do {
             update();
-        } while (((boolean) func.call()) && System.currentTimeMillis() - start <= 10000 && drivetrain.isBusy());
-    }
-
-    public boolean atPoint(){
-        return drivetrain.state == Drivetrain.State.WAIT_AT_POINT;
+        } while (((boolean) this.abortChecker.call()) && (func == null || (boolean) func.call()) && System.currentTimeMillis() - start <= 10000 && drivetrain.isBusy());
     }
 
     public void setIntakeExtension(double target){

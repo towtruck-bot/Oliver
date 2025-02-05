@@ -71,7 +71,7 @@ public class nTeleop extends LinearOpMode {
                     robot.setNextState(speciMode ? Robot.NextState.GRAB_SPECIMEN : Robot.NextState.INTAKE_SAMPLE);
                 } else if (robotState == Robot.RobotState.SAMPLE_READY) {
                     robot.setNextState(Robot.NextState.INTAKE_SAMPLE);
-                } else if (robotState == Robot.RobotState.GRAB_SPECIMEN || robotState == Robot.RobotState.SPECIMEN_READY) {
+                } else if (robotState == Robot.RobotState.GRAB_SPECIMEN && speciMode || robotState == Robot.RobotState.SPECIMEN_READY) {
                     robot.setNextState(Robot.NextState.GRAB_SPECIMEN);
                 } else {
                     robot.setNextState(Robot.NextState.DONE);

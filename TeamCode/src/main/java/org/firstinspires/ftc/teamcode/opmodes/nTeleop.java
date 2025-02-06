@@ -40,6 +40,8 @@ public class nTeleop extends LinearOpMode {
             robot.update();
         }
 
+        if (!isStopRequested()) Globals.hasSamplePreload = false;
+
         while (!isStopRequested()) {
             robot.update();
             Robot.RobotState robotState = robot.getState();

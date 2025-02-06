@@ -24,6 +24,7 @@ import org.firstinspires.ftc.teamcode.subsystems.drive.localizers.IMUMergeSoloLo
 import org.firstinspires.ftc.teamcode.subsystems.drive.localizers.Localizer;
 import org.firstinspires.ftc.teamcode.subsystems.drive.localizers.OneHundredMSIMULocalizer;
 import org.firstinspires.ftc.teamcode.subsystems.drive.localizers.TwoWheelLocalizer;
+import org.firstinspires.ftc.teamcode.utils.DashboardUtil;
 import org.firstinspires.ftc.teamcode.utils.Globals;
 import org.firstinspires.ftc.teamcode.utils.PID;
 import org.firstinspires.ftc.teamcode.utils.Pose2d;
@@ -525,10 +526,12 @@ public class Drivetrain {
 
 //        TelemetryUtil.packet.put("maxPower", maxPower);
 
-        TelemetryUtil.packet.fieldOverlay().setStroke("red");
-        TelemetryUtil.packet.fieldOverlay().strokeCircle(targetPoint.x, targetPoint.y, xThreshold);
-
         Canvas canvas = TelemetryUtil.packet.fieldOverlay();
+
+        DashboardUtil.drawRobot(canvas, targetPoint, "#ff00ff");
+        canvas.setStroke("red");
+        canvas.strokeCircle(targetPoint.x, targetPoint.y, xThreshold);
+
         if (path != null) {
             Pose2d last = path.poses.get(0);
             for (int i = 1; i < path.poses.size(); i++) {

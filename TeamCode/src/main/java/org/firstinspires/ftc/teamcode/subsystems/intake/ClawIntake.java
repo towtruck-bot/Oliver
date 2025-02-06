@@ -104,9 +104,9 @@ public class ClawIntake {
         );
         robot.hardwareQueue.addDevice(clawRotation);
 
-        //if (Globals.RUNMODE != RunMode.TELEOP) {
+        if (Globals.RUNMODE != RunMode.TELEOP) {
             resetExtendoEncoders();
-        //}
+        }
 
         this.intakeSetTargetPos = 15;
     }

@@ -1,7 +1,5 @@
 package org.firstinspires.ftc.teamcode.opmodes;
 
-import android.util.Log;
-
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -22,11 +20,6 @@ public class BucketPreloadBlueAuto extends LinearOpMode {
     public static double g2x = 60, g2y = 48, g2h = -Math.PI/2, g2e = 13.75;
     public static double g3x = 60, g3y = 48, g3h = -1.165, g3e = 16;
     public static double fx = 24.0, fy = 12.0, fh = Math.PI;
-
-//    public static double[] gx = {48, 60, 60};
-//    public static double[] gy = {48, 48, 48};
-//    public static double[] gh = {-Math.PI/2, -Math.PI/2, -Math.PI/3};
-//    public static double[] ge = {13, 13, 16};
 
     public void runOpMode(){
         doInitialization();
@@ -57,7 +50,7 @@ public class BucketPreloadBlueAuto extends LinearOpMode {
         if (enabler) {
             goToTeleOpStart();
         } else {
-            robot.waitWhile(() -> { return !robot.deposit.isRetractDone(); });
+            robot.waitWhile(() -> !robot.deposit.isRetractDone());
         }
     }
 
@@ -67,7 +60,7 @@ public class BucketPreloadBlueAuto extends LinearOpMode {
         Globals.hasSamplePreload = true;
 
         robot = new Robot(hardwareMap);
-        robot.setAbortChecker(() -> { return !isStopRequested(); });
+        robot.setAbortChecker(() -> !isStopRequested());
 
         robot.sensors.resetPosAndIMU();
 
@@ -82,14 +75,14 @@ public class BucketPreloadBlueAuto extends LinearOpMode {
     public void moveToBelowBucket() {
         // robot current state, SAMPLE_READY
         robot.goToPoint(new Pose2d(55, 55, 5 * Math.PI/4), null, false, true, 0.8);
-        robot.waitWhile(() -> { return !robot.clawIntake.isRetracted(); });
+        robot.waitWhile(() -> !robot.clawIntake.isRetracted());
 
         // raise slides
         robot.updateDepositHeights(false, true);
         robot.setNextState(Robot.NextState.DEPOSIT);
 
         // wait for full raise
-        robot.waitWhile(() -> { return !robot.deposit.isSampleUp(); });
+        robot.waitWhile(() -> !robot.deposit.isSampleUp());
     }
 
     public void score() {
@@ -137,7 +130,7 @@ public class BucketPreloadBlueAuto extends LinearOpMode {
 
         // grab
         robot.grab(true);
-        robot.waitWhile(() -> { return !robot.clawIntake.grabFinished(); });
+        robot.waitWhile(() -> !robot.clawIntake.grabFinished());
 
         // retract
         robot.setNextState(Robot.NextState.DONE);

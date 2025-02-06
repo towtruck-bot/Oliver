@@ -56,6 +56,8 @@ public class BucketPreloadBlueAuto extends LinearOpMode {
 
         if (enabler) {
             goToTeleOpStart();
+        } else {
+            robot.waitWhile(() -> { return !robot.deposit.isRetractDone(); });
         }
     }
 
@@ -80,6 +82,7 @@ public class BucketPreloadBlueAuto extends LinearOpMode {
     public void moveToBelowBucket() {
         // robot current state, SAMPLE_READY
         robot.goToPoint(new Pose2d(55, 55, 5 * Math.PI/4), null, false, true, 0.8);
+        robot.waitWhile(() -> { return !robot.clawIntake.isRetracted(); });
 
         // raise slides
         robot.updateDepositHeights(false, true);
@@ -101,36 +104,36 @@ public class BucketPreloadBlueAuto extends LinearOpMode {
         robot.goToPoint(new Pose2d(55, 55, 5 * Math.PI/4), null, false, true, 0.8);
 
         // wait for full retract
-        robot.waitWhile(() -> { return !robot.deposit.isRetractDone(); });
+        //robot.waitWhile(() -> { return !robot.deposit.isRetractDone(); });
     }
+/*
+    public void getGround(int index) {
+        robot.goToPoint(new Pose2d(gx[index], gy[index], gh[index]), null, true, true, 0.8);
 
-//    public void getGround(int index) {
-//        robot.goToPoint(new Pose2d(gx[index], gy[index], gh[index]), null, true, true, 0.8);
-//
-//        //intake sample
-//        robot.setNextState(Robot.NextState.INTAKE_SAMPLE);
-//        robot.setIntakeExtension(ge[index]);
-//        robot.waitWhile(() -> { return !robot.clawIntake.isExtended(); });
-//        robot.waitFor(500);
-//
-//        // this will cause clawIntake FSM to lower and grab. previous length was manually measured such that the claw would flip down on the sample
-//        robot.grab(true);
-//        robot.waitWhile(() -> { return !robot.clawIntake.grabFinished(); });
-//
-//        robot.setNextState(Robot.NextState.DONE);
-//        robot.waitWhile(() -> { return !robot.clawIntake.isRetracted(); });
-//    }
+        //intake sample
+        robot.setNextState(Robot.NextState.INTAKE_SAMPLE);
+        robot.setIntakeExtension(ge[index]);
+        robot.waitWhile(() -> { return !robot.clawIntake.isExtended(); });
+        robot.waitFor(500);
 
+        // this will cause clawIntake FSM to lower and grab. previous length was manually measured such that the claw would flip down on the sample
+        robot.grab(true);
+        robot.waitWhile(() -> { return !robot.clawIntake.grabFinished(); });
+
+        robot.setNextState(Robot.NextState.DONE);
+        robot.waitWhile(() -> { return !robot.clawIntake.isRetracted(); });
+    }
+*/
     public void getGround(double gx, double gy, double gh, double ge){
         robot.goToPoint(new Pose2d(gx, gy, gh), null, true, true, 0.8);
 
         // extend intake to desired length
         robot.setNextState(Robot.NextState.INTAKE_SAMPLE);
         robot.setIntakeExtension(ge);
-        robot.waitWhile(() -> { return !robot.clawIntake.isExtended(); });
+        robot.waitWhile(() -> { return !robot.clawIntake.isExtended() /*&& !robot.deposit.isRetractDone()*/; });
 
         // buffer time between extension and grab
-        robot.waitFor(400);
+        robot.waitFor(250);
 
         // grab
         robot.grab(true);
@@ -138,14 +141,14 @@ public class BucketPreloadBlueAuto extends LinearOpMode {
 
         // retract
         robot.setNextState(Robot.NextState.DONE);
-        robot.waitWhile(() -> { return !robot.clawIntake.isRetracted(); });
+        //robot.waitWhile(() -> { return !robot.clawIntake.isRetracted(); });
     }
 
 
     public void goToTeleOpStart() {
         // prepare for teleop
-        robot.goToPoint(new Pose2d(fx, fy, fh), () -> {
-            return !isStopRequested();
-        }, true, true, 0.8);
+        robot.goToPoint(new Pose2d(36, 12, Math.PI), null, false, false, 0.8);
+
+        robot.goToPoint(new Pose2d(fx, fy, fh), null, true, true, 0.8);
     }
 }

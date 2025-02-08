@@ -57,15 +57,16 @@ public class Deposit {
     public static double intakeRad = 0.0, intakeY = 0.0, intakeClawRad = -1.65;
     // moving positions with a sample
     public static double sampleHoldRad = 0.3, holdY = 0.0, sampleHoldClawRad = 1.66667;
-    public static double specimenGrabRad = 0.0, specimenGrabClawRad = -0.1, specimenConfirmRad = 0.6, specimenConfirmClawRad = -0.41667;
+    public static double specimenGrabRad = 0.0, specimenGrabClawRad = 0.2, specimenConfirmRad = 0.6, specimenConfirmClawRad = -0.41667;
     // sample basket positions
     public static double sampleLY = 16.75, sampleHY = 33.85, sampleRad = 2.4, sampleClawRad = 0.5;
     // outtake positions, drop behind robot
     public static double outtakeRad = Math.PI, outtakeY = 0.0, outtakeClawRad = -0.25;
     // grabbing positions, holdGrab -> off the wall, grabRetract --> moving with a specimen
     // specimen chamber positions
-    public static double speciLRad = 2.75, speciLClawRad = 0.0, speciLSY = 0.0;
-    public static double  speciHRad = 3.2, speciHClawRad = -0.75, speciHY = 14;
+    public static double speciLRad = 2.75, speciLClawRad = 0.0, speciLSY = 19.6;
+    public static double  speciHRad = 2.79, speciHClawRad = 1.41, speciHY = 19.6;
+//    public static double  speciHRad = 3.2, speciHClawRad = -0.75, speciHY = 15;
 
     private boolean high = true, auto = false;
 

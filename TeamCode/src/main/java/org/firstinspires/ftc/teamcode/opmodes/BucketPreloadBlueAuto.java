@@ -9,7 +9,7 @@ import org.firstinspires.ftc.teamcode.utils.Globals;
 import org.firstinspires.ftc.teamcode.utils.Pose2d;
 import org.firstinspires.ftc.teamcode.utils.RunMode;
 
-@Autonomous(name = "BucketPreloadBlueAuto", preselectTeleOp = "nTeleop")
+@Autonomous(name = "BucketPreloadBlueAuto", preselectTeleOp = "A. Teleop")
 @Config
 public class BucketPreloadBlueAuto extends LinearOpMode {
     private Robot robot;
@@ -91,19 +91,19 @@ public class BucketPreloadBlueAuto extends LinearOpMode {
 
         // release sample
         robot.setNextState(Robot.NextState.DONE);
-        robot.waitFor(215);
+        //robot.waitFor(215);
 
         // wait for full retract
         robot.waitWhile(() ->  !robot.deposit.isRetractDone());
 
         // back up
-        robot.goToPoint(new Pose2d(52, 52, 5 * Math.PI/4), null, false, true, 0.8);
+        //robot.goToPoint(new Pose2d(52, 52, 5 * Math.PI/4), null, false, true, 0.8);
     }
 
     public void getGround(double gx, double gy, double gh, double ge){
         // extend intake to desired length
         robot.setNextState(Robot.NextState.INTAKE_SAMPLE);
-        robot.setIntakeExtension(ge - 2);
+        robot.setIntakeExtension(ge - 5);
 
         robot.goToPoint(new Pose2d(gx, gy, gh), null, true, true, 0.8);
         robot.setIntakeExtension(ge);
@@ -111,7 +111,7 @@ public class BucketPreloadBlueAuto extends LinearOpMode {
         robot.waitWhile(() -> !robot.clawIntake.isExtended());
 
         // buffer time between extension and grab
-        robot.waitFor(200);
+        robot.waitFor(300);
 
         // grab
         robot.grab(true);

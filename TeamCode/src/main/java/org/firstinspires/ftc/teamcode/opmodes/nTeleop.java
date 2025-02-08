@@ -8,7 +8,7 @@ import org.firstinspires.ftc.teamcode.utils.ButtonToggle;
 import org.firstinspires.ftc.teamcode.utils.Globals;
 import org.firstinspires.ftc.teamcode.utils.RunMode;
 
-@TeleOp
+@TeleOp(name = "A. Teleop")
 public class nTeleop extends LinearOpMode {
     public void runOpMode() {
         Globals.RUNMODE = RunMode.TELEOP;
@@ -89,7 +89,7 @@ public class nTeleop extends LinearOpMode {
                 if (rb_1.isClicked(gamepad1.right_bumper)) robot.setNextState(Robot.NextState.DEPOSIT);
 
                 // neil says he never uses this during teleop, and its not in the control diagram he gave us??? not sure why this is here
-                // if (lt_1.isClicked(gamepad1.left_trigger > triggerThresh)) robot.setNextState(Robot.NextState.DONE);
+                if (lt_1.isClicked(gamepad1.left_trigger > triggerThresh) && robot.clawIntake.isRetracted()) robot.setNextState(Robot.NextState.DONE);
             }
 
             if (robotState == Robot.RobotState.DEPOSIT_BUCKET || robotState == Robot.RobotState.DEPOSIT_SPECIMEN) {

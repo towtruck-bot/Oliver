@@ -1,11 +1,13 @@
 package org.firstinspires.ftc.teamcode.subsystems.deposit;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.sensors.Sensors;
 import org.firstinspires.ftc.teamcode.utils.priority.nPriorityServo;
 
+@Config
 public class Arm {
     public final Sensors sensors;
 
@@ -57,6 +59,7 @@ public class Arm {
                 2.0
         );
         robot.hardwareQueue.addDevice(clawGrip);
+        clawGrip.setTargetAngle(0.02, 1);
     }
 
     public void setArmRotation(double targetRad, double power){

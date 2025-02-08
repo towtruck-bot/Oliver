@@ -11,7 +11,7 @@ import org.firstinspires.ftc.teamcode.utils.RunMode;
 import org.firstinspires.ftc.teamcode.utils.Vector2;
 import org.firstinspires.ftc.teamcode.vision.Vision;
 
-@Autonomous(name = "ParkAuto", preselectTeleOp = "nTeleop")
+@Autonomous(name = "ParkAuto", preselectTeleOp = "A. Teleop")
 public class ParkAutoBlue extends LinearOpMode {
     private Robot robot;
 

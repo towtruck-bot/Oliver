@@ -9,7 +9,7 @@ import org.firstinspires.ftc.teamcode.subsystems.deposit.Deposit;
 
 @TeleOp
 @Config
-public class ArmMoveToWithRadTester extends LinearOpMode {
+public class ArmTester extends LinearOpMode {
     public static double armTargetRad = 0.0, targetY = 0, clawRotationRad = 0.0, clawGripRad = 0.0;
     public static boolean goTo = false;
     public void runOpMode(){

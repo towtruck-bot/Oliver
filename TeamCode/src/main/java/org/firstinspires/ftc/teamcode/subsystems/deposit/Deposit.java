@@ -54,7 +54,7 @@ public class Deposit {
     // prepare for transfer positions
     public static double intakeWaitRad = 0.35, intakeWaitClawRad = -1.5, intakeWaitY = 0.0;
     // transfer positions, move in to grab
-    public static double intakeRad = 0.1, intakeY = 0.0, intakeClawRad = -1.65;
+    public static double intakeRad = 0.0, intakeY = 0.0, intakeClawRad = -1.65;
     // moving positions with a sample
     public static double sampleHoldRad = 0.3, holdY = 0.0, sampleHoldClawRad = 1.66667;
     public static double specimenGrabRad = 0.0, specimenGrabClawRad = -0.1, specimenConfirmRad = 0.6, specimenConfirmClawRad = -0.41667;
@@ -268,10 +268,6 @@ public class Deposit {
     private double targetY = speciHY;
     public void setDepositHeight(double target){
         this.targetY = Utils.minMaxClip(target, 0.0, 34.0);
-    }
-
-    public void setAuto(boolean auto){
-        this.auto = auto;
     }
 
     public void setDepositHeightLowSample(){

@@ -431,9 +431,17 @@ public class Drivetrain {
         setMoveVector(move, turn);
     }
 
-    public static PID xPID = new PID(0.045,0.0,0.009);
-    public static PID yPID = new PID(0.045,0.0,0.011);
-    public static PID turnPID = new PID(0.25,0.0,0.009);
+    public static double xThreshold = 2.0;
+    public static double yThreshold = 2.0;
+    public static double turnThreshold = 4;
+
+    public static double finalXThreshold = 0.35;
+    public static double finalYThreshold = 0.35;
+    public static double finalTurnThreshold = 1.3;
+
+    public static PID xPID = new PID(0.15,0.0,0.025);
+    public static PID yPID = new PID(0.15,0.0,0.025);
+    public static PID turnPID = new PID(0.5,0.0,0.01);
 
     double fwd, strafe, turn, turnAdjustThreshold, finalTargetPointDistance;
 
@@ -472,14 +480,11 @@ public class Drivetrain {
 
         TelemetryUtil.packet.put("fwd", fwd);
         TelemetryUtil.packet.put("strafe", strafe);
-        // Logging
-//        TelemetryUtil.packet.put("expectedXError", globalExpectedXError);
-//        TelemetryUtil.packet.put("expectedYError", globalExpectedYError);
     }
 
-    public static PID finalXPID = new PID(0.01, 0.0,0.001);
-    public static PID finalYPID = new PID(0.01, 0.0,0.001);
-    public static PID finalTurnPID = new PID(0.01, 0.0,0.0015);
+    public static PID finalXPID = new PID(0.05, 0.0,0.006);
+    public static PID finalYPID = new PID(0.05, 0.0,0.006);
+    public static PID finalTurnPID = new PID(0.022, 0.0,0.005);
 
     public void finalAdjustment() {
         double fwd = Math.abs(xError) > finalXThreshold/2 ? finalXPID.update(xError, -maxPower, maxPower) : 0;
@@ -503,42 +508,6 @@ public class Drivetrain {
     public void forceStopAllMotors() {
         for (PriorityMotor motor : motors) {
             motor.setPowerForced(0.0);
-        }
-    }
-
-    public void updateLocalizer() {
-//        for (Localizer l : localizers) {
-//            l.updateEncoders(sensors.getOdometry());
-//            l.update();
-//        }
-//        //oldLocalizer.update();
-    }
-
-    public void updateTelemetry () {
-        TelemetryUtil.packet.put("Drivetrain State", state);
-
-        TelemetryUtil.packet.put("Drivetrain:: xError", xError);
-        TelemetryUtil.packet.put("Drivetrain:: yError", yError);
-        TelemetryUtil.packet.put("Drivetrain:: turnError (deg)", Math.toDegrees(turnError));
-        TelemetryUtil.packet.put("Drivetrain:: xTarget", targetPoint.x);
-        TelemetryUtil.packet.put("Drivetrain:: yTarget", targetPoint.y);
-
-
-//        TelemetryUtil.packet.put("maxPower", maxPower);
-
-        Canvas canvas = TelemetryUtil.packet.fieldOverlay();
-
-        DashboardUtil.drawRobot(canvas, targetPoint, "#ff00ff");
-        canvas.setStroke("red");
-        canvas.strokeCircle(targetPoint.x, targetPoint.y, xThreshold);
-
-        if (path != null) {
-            Pose2d last = path.poses.get(0);
-            for (int i = 1; i < path.poses.size(); i++) {
-                Pose2d next = path.poses.get(i);
-                canvas.strokeLine(last.x, last.y, next.x, next.y);
-                last = next;
-            }
         }
     }
 
@@ -588,14 +557,6 @@ public class Drivetrain {
     public Spline getPath() {
         return path;
     }
-
-    public static double xThreshold = 2;
-    public static double yThreshold = 2;
-    public static double turnThreshold = 5;
-
-    public static double finalXThreshold = 0.35;
-    public static double finalYThreshold = 0.35;
-    public static double finalTurnThreshold = 1.3;
 
     public void setBreakFollowingThresholds(Pose2d thresholds) {
         xThreshold = thresholds.getX();
@@ -728,5 +689,41 @@ public class Drivetrain {
 
     public void setPoseEstimate(Pose2d pose2d) {
         sensors.setOdometryPosition(pose2d);
+    }
+
+    public void updateLocalizer() {
+//        for (Localizer l : localizers) {
+//            l.updateEncoders(sensors.getOdometry());
+//            l.update();
+//        }
+//        //oldLocalizer.update();
+    }
+
+    public void updateTelemetry () {
+        TelemetryUtil.packet.put("Drivetrain State", state);
+
+        TelemetryUtil.packet.put("Drivetrain:: xError", xError);
+        TelemetryUtil.packet.put("Drivetrain:: yError", yError);
+        TelemetryUtil.packet.put("Drivetrain:: turnError (deg)", Math.toDegrees(turnError));
+        TelemetryUtil.packet.put("Drivetrain:: xTarget", targetPoint.x);
+        TelemetryUtil.packet.put("Drivetrain:: yTarget", targetPoint.y);
+
+
+//        TelemetryUtil.packet.put("maxPower", maxPower);
+
+        Canvas canvas = TelemetryUtil.packet.fieldOverlay();
+
+        DashboardUtil.drawRobot(canvas, targetPoint, "#ff00ff");
+        canvas.setStroke("red");
+        canvas.strokeCircle(targetPoint.x, targetPoint.y, xThreshold);
+
+        if (path != null) {
+            Pose2d last = path.poses.get(0);
+            for (int i = 1; i < path.poses.size(); i++) {
+                Pose2d next = path.poses.get(i);
+                canvas.strokeLine(last.x, last.y, next.x, next.y);
+                last = next;
+            }
+        }
     }
 }

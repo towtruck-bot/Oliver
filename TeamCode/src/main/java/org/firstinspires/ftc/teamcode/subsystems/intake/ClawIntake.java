@@ -98,7 +98,7 @@ public class ClawIntake {
                 new Servo[] {robot.hardwareMap.get(Servo.class, "intakeClawRotation")},
                 "intakeClawRotation",
                 nPriorityServo.ServoType.AXON_MINI,
-                0.343,0.894,0.629,
+                0.343,0.894,0.622,
                 new boolean[] {false},
                 1, 5
         );

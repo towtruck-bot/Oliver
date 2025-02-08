@@ -16,9 +16,9 @@ public class BucketPreloadBlueAuto extends LinearOpMode {
 
     public static boolean enableg1 = true, enableg2 = true, enableg3 = true, enabler = true;
 
-    public static double g1x = 49, g1y = 48, g1h = -Math.PI/2, g1e = 13.75;
-    public static double g2x = 60, g2y = 48, g2h = -Math.PI/2, g2e = 13.75;
-    public static double g3x = 60, g3y = 48, g3h = -1.165, g3e = 16;
+    public static double g1x = 49, g1y = 48, g1h = -Math.PI/2, g1e = 13.85;
+    public static double g2x = 60, g2y = 48, g2h = -Math.PI/2, g2e = 13.85;
+    public static double g3x = 60, g3y = 48, g3h = -1.165, g3e = 15.95;
     public static double fx = 24.0, fy = 12.0, fh = Math.PI;
 
     public void runOpMode(){
@@ -87,46 +87,31 @@ public class BucketPreloadBlueAuto extends LinearOpMode {
 
     public void score() {
         // move in (robot current state, DEPOSIT_BUCKET)
-        robot.goToPoint(new Pose2d(58, 58, 5 * Math.PI/4), null, false, true, 0.8);
+        robot.goToPoint(new Pose2d(57, 57, 5 * Math.PI/4), null, false, true, 0.8);
 
         // release sample
         robot.setNextState(Robot.NextState.DONE);
-        robot.waitFor(200);
-
-        // back up
-        robot.goToPoint(new Pose2d(55, 55, 5 * Math.PI/4), null, false, true, 0.8);
+        robot.waitFor(215);
 
         // wait for full retract
-        //robot.waitWhile(() -> { return !robot.deposit.isRetractDone(); });
+        robot.waitWhile(() ->  !robot.deposit.isRetractDone());
+
+        // back up
+        robot.goToPoint(new Pose2d(52, 52, 5 * Math.PI/4), null, false, true, 0.8);
     }
-/*
-    public void getGround(int index) {
-        robot.goToPoint(new Pose2d(gx[index], gy[index], gh[index]), null, true, true, 0.8);
 
-        //intake sample
-        robot.setNextState(Robot.NextState.INTAKE_SAMPLE);
-        robot.setIntakeExtension(ge[index]);
-        robot.waitWhile(() -> { return !robot.clawIntake.isExtended(); });
-        robot.waitFor(500);
-
-        // this will cause clawIntake FSM to lower and grab. previous length was manually measured such that the claw would flip down on the sample
-        robot.grab(true);
-        robot.waitWhile(() -> { return !robot.clawIntake.grabFinished(); });
-
-        robot.setNextState(Robot.NextState.DONE);
-        robot.waitWhile(() -> { return !robot.clawIntake.isRetracted(); });
-    }
-*/
     public void getGround(double gx, double gy, double gh, double ge){
-        robot.goToPoint(new Pose2d(gx, gy, gh), null, true, true, 0.8);
-
         // extend intake to desired length
         robot.setNextState(Robot.NextState.INTAKE_SAMPLE);
+        robot.setIntakeExtension(ge - 2);
+
+        robot.goToPoint(new Pose2d(gx, gy, gh), null, true, true, 0.8);
         robot.setIntakeExtension(ge);
-        robot.waitWhile(() -> { return !robot.clawIntake.isExtended() /*&& !robot.deposit.isRetractDone()*/; });
+
+        robot.waitWhile(() -> !robot.clawIntake.isExtended());
 
         // buffer time between extension and grab
-        robot.waitFor(250);
+        robot.waitFor(200);
 
         // grab
         robot.grab(true);

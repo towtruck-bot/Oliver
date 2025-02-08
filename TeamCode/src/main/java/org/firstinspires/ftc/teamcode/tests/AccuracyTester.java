@@ -24,7 +24,7 @@ public class AccuracyTester extends LinearOpMode {
         Globals.TESTING_DISABLE_CONTROL = true;
 
         Robot robot = new Robot(hardwareMap);
-        robot.sensors.setOdometryPosition(48.0 - Globals.TRACK_WIDTH / 2.0, 72.0 - Globals.TRACK_LENGTH / 2.0, Math.PI/2);
+        robot.sensors.setOdometryPosition(x, y, heading);
 //        Pose2d currPos = robot.sensors.getOdometryPosition();
 //        Log.i("what the fuck is happening", currPos.x + " " + currPos.y + " " + currPos.heading);
 

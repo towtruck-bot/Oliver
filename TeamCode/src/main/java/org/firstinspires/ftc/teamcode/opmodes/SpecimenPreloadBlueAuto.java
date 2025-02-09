@@ -77,7 +77,7 @@ public class SpecimenPreloadBlueAuto extends LinearOpMode {
     public void move3Ground(){
         // Pre-position ground1
         // TODO: Switch to a spline once they are re-tuned
-        robot.goToPoint(new Pose2d(-38.0, 36.0, Math.PI), null, false, false, 0.8);
+        robot.goToPoint(new Pose2d(-38.0, 38.0, Math.PI / 2.0), null, false, false, 0.8);
         robot.goToPoint(new Pose2d(-38.0, ypre, Math.PI / 2.0), null, false, false, 0.8);
         robot.goToPoint(new Pose2d(g1x, ypre, Math.PI / 2.0), null, false, false, 0.8);
 
@@ -85,15 +85,15 @@ public class SpecimenPreloadBlueAuto extends LinearOpMode {
         robot.goToPoint(new Pose2d(g1x, ypush, Math.PI / 2.0), null, false, false, 0.8);
 
         // Pre-position ground2
-        robot.goToPoint(new Pose2d(g2x + 3.0, ypre, Math.PI / 2.0), null, false, false, 0.8);
+        robot.goToPoint(new Pose2d(g2x + 4.0, ypre, Math.PI / 2.0), null, false, false, 0.8);
         robot.goToPoint(new Pose2d(g2x, ypre, Math.PI / 2.0), null, false, false, 0.8);
 
         // Deliver ground2
         robot.goToPoint(new Pose2d(g2x, ypush, Math.PI / 2.0), null, false, false, 0.8);
 
         // Pre-position ground3
-        robot.goToPoint(new Pose2d(g3x + 3.0, ypre, Math.PI / 2.0), null, false, false, 0.8);
-        robot.goToPoint(new Pose2d(g3x, ypre, Math.PI / 2), null, false, false, 0.8);
+        robot.goToPoint(new Pose2d(g3x + 4.0, ypre, Math.PI / 2.0), null, false, false, 0.8);
+        robot.goToPoint(new Pose2d(g3x, ypre, Math.PI / 2.0), null, false, false, 0.8);
 
         // Deliver ground3
         robot.goToPoint(new Pose2d(g3x, ypush, Math.PI / 2.0), null, false, false, 0.8);

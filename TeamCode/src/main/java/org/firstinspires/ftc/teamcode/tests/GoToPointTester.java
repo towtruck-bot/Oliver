@@ -11,9 +11,8 @@ import org.firstinspires.ftc.teamcode.utils.Pose2d;
 @TeleOp
 @Config
 public class GoToPointTester extends LinearOpMode {
-    public static double x = 0;
-    public static double y = 0;
-    public static double h = 0;
+    public static double x = 0,  y = 0, h = 0;
+    public static boolean finalAdjustment = false, stop = false;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -24,7 +23,8 @@ public class GoToPointTester extends LinearOpMode {
         waitForStart();
 
         while (!isStopRequested()) {
-            robot.drivetrain.goToPoint(new Pose2d(x, y, Math.toRadians(h)), false,false, 1);
+            robot.drivetrain.goToPoint(new Pose2d(x, y, h), finalAdjustment,stop, 1);
+            robot.clawIntake.setIntakeTargetPos(0.0);
             robot.update();
         }
     }

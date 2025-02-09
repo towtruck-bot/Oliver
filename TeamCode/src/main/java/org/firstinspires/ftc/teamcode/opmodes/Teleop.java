@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.opmodes;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.Gamepad;
 
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.utils.ButtonToggle;
@@ -142,12 +143,14 @@ public class Teleop extends LinearOpMode {
             double slidesControl2 = robot.drivetrain.smoothControls(-gamepad2.left_stick_y);
             robot.deposit.setDepositHeight(robot.deposit.getDepositHeight() + slidesInc * slidesControl2);
 
-            // hang
+            // hang (both drivers)
             int hangLeftDir = 0, hangRightDir = 0;
-            if (gamepad2.dpad_up) { ++hangLeftDir; ++hangRightDir; }
-            if (gamepad2.dpad_down) { --hangLeftDir; --hangRightDir; }
-            if (gamepad2.dpad_left) { --hangLeftDir; ++hangRightDir; }
-            if (gamepad2.dpad_right) { ++hangLeftDir; --hangRightDir; }
+            for (Gamepad gamepad : new Gamepad[]{gamepad1, gamepad2}) {
+                if (gamepad.dpad_up) { ++hangLeftDir; ++hangRightDir; }
+                if (gamepad.dpad_down) { --hangLeftDir; --hangRightDir; }
+                if (gamepad.dpad_left) { --hangLeftDir; ++hangRightDir; }
+                if (gamepad.dpad_right) { ++hangLeftDir; --hangRightDir; }
+            }
             if (hangLeftDir > 0) robot.hang.leftUp();
             else if (hangLeftDir < 0) robot.hang.leftReverse();
             else robot.hang.leftOff();

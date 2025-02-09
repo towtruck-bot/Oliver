@@ -475,7 +475,7 @@ public class Drivetrain {
         strafe = yPID.update(yError, -maxPower, maxPower);
         turn = turnPID.update(turnError, -maxPower, maxPower);
 
-        Vector2 move = new Vector2(fwd, strafe);
+        Vector2 move = new Vector2(fwd, strafe) /*new Vector2(0, 0)*/;
         setMoveVector(move, turn);
 
         TelemetryUtil.packet.put("fwd", fwd);
@@ -491,7 +491,7 @@ public class Drivetrain {
         double strafe = Math.abs(yError) > finalYThreshold/2 ? finalYPID.update(yError, -maxPower, maxPower) : 0;
         double turn = Math.abs(turnError) > Math.toRadians(finalTurnThreshold)/2 ? finalTurnPID.update(turnError, -maxPower, maxPower) : 0;
 
-        Vector2 move = new Vector2(fwd, strafe);
+        Vector2 move = new Vector2(fwd, strafe) /*new Vector2(0, 0)*/;
         setMoveVector(move, turn);
     }
 

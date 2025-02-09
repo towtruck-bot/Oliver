@@ -56,7 +56,7 @@ public class Deposit {
     // transfer positions, move in to grab
     public static double intakeRad = 0.0, intakeY = 0.0, intakeClawRad = -1.65;
     // moving positions with a sample
-    public static double sampleHoldRad = 0.35, holdY = 0.0, sampleHoldClawRad = -1.5;
+    public static double sampleHoldRad = 0.35, holdY = 0.0, sampleHoldClawRad = -2;
     public static double specimenGrabRad = 0.0, specimenGrabClawRad = 0.0, specimenConfirmRad = 0.6, specimenConfirmClawRad = -0.41667;
     // sample basket positions
     public static double sampleLY = 16.75, sampleHY = 33.85, sampleRad = 2.4, sampleClawRad = 0.5;

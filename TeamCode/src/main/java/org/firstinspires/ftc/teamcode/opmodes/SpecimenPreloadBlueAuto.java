@@ -16,10 +16,10 @@ public class SpecimenPreloadBlueAuto extends LinearOpMode {
 
     public static boolean enablePreload = true, enableGround = true, enableScore = true;
 
-    public static double g1x = -46.0, g2x = -56.0, g3x = -64.5;
+    public static double g1x = -46.0, g2x = -56.0, g3x = -63.5;
     public static double yPre = 15.0, yPush = 57.0;
-    public static double setupX = -34.5, setupY = 63.9;
-    public static double shift = 3.742, baseScoreX = -5.9, baseScoreY = 41.45, scoreY = 29.5;
+    public static double setupX = -36.5, setupY = 63.9;
+    public static double shift = 3.742, baseScoreX = -5.9, baseScoreY = 41.45, scoreY = 28.75;
 
     public static double[] targetX = new double[] {0.0, 2.5, 5.0, 7.5, 10.0};
 
@@ -37,11 +37,18 @@ public class SpecimenPreloadBlueAuto extends LinearOpMode {
         }
 
         if(enableScore){
-            for(int i = 1; i <= 5; i++){
+            for(int i = 0; i < 5; i++){
+                // go into park
+                if(System.currentTimeMillis() - Globals.autoStartTime <= 4000){
+                    break;
+                }
+
                 grabAndSetUp(targetX[i]);
                 score(targetX[i]);
             }
         }
+
+        park();
     }
 
     public void doInitialization(){
@@ -117,5 +124,9 @@ public class SpecimenPreloadBlueAuto extends LinearOpMode {
         // Move to setup
         // Offset is used such that the specimen wont clip on each other
         robot.goToPoint(new Pose2d(offset, baseScoreY, Math.PI / 2.0), null, false, false, 0.95);
+    }
+
+    public void park(){
+        robot.goToPoint(new Pose2d(setupX - 6.0, setupY, Math.PI / 2.0), null, false, true, 1.0);
     }
 }

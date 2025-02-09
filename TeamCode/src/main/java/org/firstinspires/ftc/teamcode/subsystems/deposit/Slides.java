@@ -133,6 +133,7 @@ public class Slides {
     }
 
     public boolean inPosition(double threshold) {
+        if (targetLength <= threshold) return length <= threshold;
         return Math.abs(targetLength - length) <= threshold;
     }
 

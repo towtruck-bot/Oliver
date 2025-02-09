@@ -142,6 +142,19 @@ public class Teleop extends LinearOpMode {
             double slidesControl2 = robot.drivetrain.smoothControls(-gamepad2.left_stick_y);
             robot.deposit.setDepositHeight(robot.deposit.getDepositHeight() + slidesInc * slidesControl2);
 
+            // hang
+            int hangLeftDir = 0, hangRightDir = 0;
+            if (gamepad2.dpad_up) { ++hangLeftDir; ++hangRightDir; }
+            if (gamepad2.dpad_down) { --hangLeftDir; --hangRightDir; }
+            if (gamepad2.dpad_left) { --hangLeftDir; ++hangRightDir; }
+            if (gamepad2.dpad_right) { ++hangLeftDir; --hangRightDir; }
+            if (hangLeftDir > 0) robot.hang.leftUp();
+            else if (hangLeftDir < 0) robot.hang.leftReverse();
+            else robot.hang.leftOff();
+            if (hangRightDir > 0) robot.hang.rightUp();
+            else if (hangRightDir < 0) robot.hang.rightReverse();
+            else robot.hang.rightOff();
+
             telemetry.addData("speciMode", speciMode);
             telemetry.addData("high", high);
             telemetry.addData("Intake target pos", robot.clawIntake.getIntakeTargetPos());

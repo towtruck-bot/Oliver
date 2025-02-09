@@ -64,11 +64,10 @@ public class Deposit {
     public static double outtakeRad = 3.0, outtakeY = 0.0, outtakeClawRad = -0.25;
     // grabbing positions, holdGrab -> off the wall, grabRetract --> moving with a specimen
     // specimen chamber positions
-    public static double speciLRad = 2.75, speciLClawRad = 0.0, speciLSY = 19.6;
-    public static double  speciHRad = 2.79, speciHClawRad = 1.41, speciHY = 19.6;
-//    public static double  speciHRad = 3.2, speciHClawRad = -0.75, speciHY = 15;
+    public static double speciLRad = 2.75, speciLClawRad = 0.0, speciLSY = 19.4;
+    public static double  speciHRad = 2.79, speciHClawRad = 1.46, speciHY = 19.69 ;
 
-    private boolean high = true, auto = false;
+    private boolean high = true;
 
     public Deposit(Robot robot){
         this.robot = robot;
@@ -356,6 +355,10 @@ public class Deposit {
     public void startSpecimenDeposit() {
         Log.i("FSM", this.state + ", startSpecimenDeposit()");
         if (state == State.GRAB_HOLD) state = State.SPECI_RAISE;
+    }
+
+    public boolean readyToRam(){
+        return state == State.SPECI_DEPOSIT;
     }
 
     public void finishSpecimenDeposit() {

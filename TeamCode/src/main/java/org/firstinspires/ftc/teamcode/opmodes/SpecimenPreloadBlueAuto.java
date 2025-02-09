@@ -16,10 +16,12 @@ public class SpecimenPreloadBlueAuto extends LinearOpMode {
 
     public static boolean enablePreload = true, enableGround = true, enableScore = true;
 
-    public static double g1x = -46.0, g2x = -52.0, g3x = -66.1;
-    public static double ypre = 14.0, ypush = 57.0;
-    public static double setupx = -36.0, setupy = 60.0;
-    public static double shift = 2.0, baseScoreX = -5.9, baseScoreY = 41.45, scoreY = 35.1;
+    public static double g1x = -46.0, g2x = -56.0, g3x = -64.5;
+    public static double yPre = 15.0, yPush = 57.0;
+    public static double setupX = -34.5, setupY = 63.9;
+    public static double shift = 3.742, baseScoreX = -5.9, baseScoreY = 41.45, scoreY = 29.5;
+
+    public static double[] targetX = new double[] {0.0, 2.5, 5.0, 7.5, 10.0};
 
     public void runOpMode(){
         doInitialization();
@@ -27,7 +29,7 @@ public class SpecimenPreloadBlueAuto extends LinearOpMode {
         Globals.autoStartTime = System.currentTimeMillis();
 
         if(enablePreload){
-            score(.0);
+            score(-Globals.TRACK_WIDTH / 2.0);
         }
 
         if(enableGround){
@@ -36,8 +38,8 @@ public class SpecimenPreloadBlueAuto extends LinearOpMode {
 
         if(enableScore){
             for(int i = 1; i <= 5; i++){
-                grabAndSetUp(i * shift);
-                score(i * shift);
+                grabAndSetUp(targetX[i]);
+                score(targetX[i]);
             }
         }
     }
@@ -63,53 +65,57 @@ public class SpecimenPreloadBlueAuto extends LinearOpMode {
     public void score(double offset){
         // Extend deposit slides into deposit position
         robot.setNextState(Robot.NextState.DEPOSIT);
-        robot.waitWhile(() -> !robot.deposit.slides.inPosition(0.5) && !robot.deposit.arm.inPosition());
+        robot.waitWhile(() -> !robot.deposit.readyToRam());
         // ^Wait for fully raised slides and arm at correct angle^
 
         // Ram forward
-        robot.goToPoint(new Pose2d(baseScoreX + offset, scoreY, Math.PI/2), null, false, false, 1.0);
+        robot.goToPoint(new Pose2d(offset, scoreY, Math.PI/2), null, false, false, 0.85);
+        robot.waitFor(75);
 
         // Release + backup
         robot.setNextState(Robot.NextState.DONE);
-        robot.goToPoint(new Pose2d(baseScoreX, baseScoreY, -Math.PI/2), null, false, false, 0.8);
+        robot.goToPoint(new Pose2d(baseScoreX, baseScoreY, Math.PI/2), null, false, false, 0.95);
     }
 
     public void move3Ground(){
         // Pre-position ground1
         // TODO: Switch to a spline once they are re-tuned
-        robot.goToPoint(new Pose2d(-38.0, 38.0, Math.PI / 2.0), null, false, false, 0.8);
-        robot.goToPoint(new Pose2d(-38.0, ypre, Math.PI / 2.0), null, false, false, 0.8);
-        robot.goToPoint(new Pose2d(g1x, ypre, Math.PI / 2.0), null, false, false, 0.8);
+        robot.goToPoint(new Pose2d(-38.0, 38.0, Math.PI / 2.0), null, false, false, 0.95);
+        robot.goToPoint(new Pose2d(-38.0, yPre, Math.PI / 2.0), null, false, false, 0.95);
+        robot.goToPoint(new Pose2d(g1x, yPre, Math.PI / 2.0), null, false, false, 0.95);
 
         // Deliver ground1
-        robot.goToPoint(new Pose2d(g1x, ypush, Math.PI / 2.0), null, false, false, 0.8);
+        robot.goToPoint(new Pose2d(g1x, yPush, Math.PI / 2.0), null, false, false, 0.95);
 
         // Pre-position ground2
-        robot.goToPoint(new Pose2d(g2x + 4.0, ypre, Math.PI / 2.0), null, false, false, 0.8);
-        robot.goToPoint(new Pose2d(g2x, ypre, Math.PI / 2.0), null, false, false, 0.8);
+        robot.goToPoint(new Pose2d(g1x, yPre, Math.PI / 2.0), null, false, false, 0.95);
+        robot.goToPoint(new Pose2d(g2x, yPre, Math.PI / 2.0), null, false, false, 0.95);
 
         // Deliver ground2
-        robot.goToPoint(new Pose2d(g2x, ypush, Math.PI / 2.0), null, false, false, 0.8);
+        robot.goToPoint(new Pose2d(g2x, yPush, Math.PI / 2.0), null, false, false, 0.95);
 
         // Pre-position ground3
-        robot.goToPoint(new Pose2d(g3x + 4.0, ypre, Math.PI / 2.0), null, false, false, 0.8);
-        robot.goToPoint(new Pose2d(g3x, ypre, Math.PI / 2.0), null, false, false, 0.8);
+        robot.goToPoint(new Pose2d(g2x, yPre, Math.PI / 2.0), null, false, false, 0.95);
+        robot.goToPoint(new Pose2d(g3x, yPre, Math.PI / 2.0), null, false, false, 0.95);
 
         // Deliver ground3
-        robot.goToPoint(new Pose2d(g3x, ypush, Math.PI / 2.0), null, false, false, 0.8);
+        robot.goToPoint(new Pose2d(g3x, yPush, Math.PI / 2.0), null, false, true, 0.95);
     }
 
     public void grabAndSetUp(double offset){
+        // Pre-position
+        robot.goToPoint(new Pose2d(setupX, setupY - 6.0, Math.PI / 2.0), null, false, false, 0.95);
+
         // Prepare to grab
         robot.setNextState(Robot.NextState.GRAB_SPECIMEN);
-        robot.goToPoint(new Pose2d(setupx, setupy, Math.PI), null, true, true, 0.8);
+        robot.goToPoint(new Pose2d(setupX, setupY, Math.PI / 2.0), null, true, true, 0.8);
 
         // Grab
         robot.setNextState(Robot.NextState.GRAB_SPECIMEN);
-        robot.waitWhile(() -> robot.deposit.isSpecimenReady());
+        robot.waitWhile(() -> !robot.deposit.isSpecimenReady());
 
         // Move to setup
         // Offset is used such that the specimen wont clip on each other
-        robot.goToPoint(new Pose2d(baseScoreX + offset, baseScoreY, Math.PI), null, true, false, 0.8);
+        robot.goToPoint(new Pose2d(offset, baseScoreY, Math.PI / 2.0), null, false, false, 0.95);
     }
 }

@@ -14,6 +14,8 @@ import org.firstinspires.ftc.teamcode.utils.RunMode;
 public class SpecimenPreloadBlueAuto extends LinearOpMode {
     private Robot robot;
 
+    public static boolean enablePreload = true, enableGround = true, enableScore = true;
+
     public static double g1x = -46.0, g2x = -52.0, g3x = -72.0 + Globals.TRACK_WIDTH / 2.0;
     public static double ypre = 23.0 - Globals.TRACK_LENGTH / 2.0, ypush = 63.0 - Globals.TRACK_LENGTH / 2.0;
     public static double setupx = -36.0, setupy = 60.0;
@@ -24,12 +26,19 @@ public class SpecimenPreloadBlueAuto extends LinearOpMode {
 
         Globals.autoStartTime = System.currentTimeMillis();
 
-        score(.0);
-        move3Ground();
+        if(enablePreload){
+            score(.0);
+        }
 
-        for(int i = 1; i <= 5; i++){
-            grabAndSetUp(i * shift);
-            score(i * shift);
+        if(enableGround){
+            move3Ground();
+        }
+
+        if(enableScore){
+            for(int i = 1; i <= 5; i++){
+                grabAndSetUp(i * shift);
+                score(i * shift);
+            }
         }
     }
 

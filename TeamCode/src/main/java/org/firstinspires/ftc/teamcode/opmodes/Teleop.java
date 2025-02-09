@@ -12,6 +12,8 @@ import org.firstinspires.ftc.teamcode.utils.RunMode;
 public class Teleop extends LinearOpMode {
     public void runOpMode() {
         Globals.RUNMODE = RunMode.TELEOP;
+        Globals.hasSamplePreload = false;
+        Globals.hasSpecimenPreload = false;
 
         Robot robot = new Robot(hardwareMap);
 
@@ -40,8 +42,6 @@ public class Teleop extends LinearOpMode {
             robot.update();
             robot.updateDepositHeights(speciMode, high);
         }
-
-        if (!isStopRequested()) Globals.hasSamplePreload = false;
 
         while (!isStopRequested()) {
             robot.update();

@@ -1,7 +1,8 @@
 package org.firstinspires.ftc.teamcode.utils;
 
+import com.acmerobotics.dashboard.config.Config;
 
-
+@Config
 public class Globals {
     // general
     public static long LOOP_START = System.nanoTime();

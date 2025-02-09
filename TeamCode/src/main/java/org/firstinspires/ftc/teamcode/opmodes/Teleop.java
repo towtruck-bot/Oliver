@@ -1,121 +1,157 @@
-//package org.firstinspires.ftc.teamcode.opmodes;
-//
-//import com.qualcomm.robotcore.eventloop.opmode.Disabled;
-//import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-//import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-//
-//import org.firstinspires.ftc.teamcode.Robot;
-//import org.firstinspires.ftc.teamcode.subsystems.intake.Intake;
-//import org.firstinspires.ftc.teamcode.utils.Globals;
-//import org.firstinspires.ftc.teamcode.utils.RunMode;
-//
-//@Disabled
-//@TeleOp
-//public class Teleop extends LinearOpMode {
-//    @Override
-//    public void runOpMode() {
-//        Globals.RUNMODE = RunMode.TELEOP;
-//
-//        Robot robot = new Robot(hardwareMap);
-//
-//        final double triggerThreshold = 0.2;
-//        final double intakeAdjustmentSpeed = 0.3;
-//        final double intakeHeightStep = 5;
-//        boolean didToggleAlliance = false;
-//        boolean didToggleIntakeRoller = false;
-//        boolean didToggleIntakeHeight = false;
-//
-//        telemetry.addData("State", "READY TO START");
-//        telemetry.update();
-//
-//        while (opModeInInit()) {
-//            robot.update();
-//        }
-//
-///*
-//P1 ==== A
-//LT finish deposit; start outtake; cancel intake
-//RT start grab specimen
-//LB close claw; start deposit sample/specimen
-//RB start intake sample
-//X roller off
-//A unjam intake
-//B on/reverse intake
-//< roller slow reverse
-//> roller keep in
-//^ intake further out
-//v intake further in
-//P2 ==== B
-//RSY intake slides
-//X red/blue
-//A intake down
-//Y intake up
-//*/
-//
-//        while (!isStopRequested()) {
-//            if (gamepad2.x) {
-//                if (!didToggleAlliance) {
-//                    Globals.isRed = !Globals.isRed;
-//                    didToggleAlliance = true;
-//                }
-//            } else {
-//                didToggleAlliance = false;
-//            }
-//
-//            if (gamepad1.left_trigger > triggerThreshold) robot.setNextState(Robot.NextState.DONE);
-//            else if (gamepad1.left_bumper) robot.setNextState(Robot.NextState.DEPOSIT);
-//            else if (gamepad1.right_bumper) robot.setNextState(Robot.NextState.INTAKE_SAMPLE);
-//            else if (gamepad1.right_trigger > triggerThreshold) robot.setNextState(Robot.NextState.GRAB_SPECIMEN);
-//            //if (gamepad1.y) robot.setOuttakeAndThenGrab(false);
-//            //else if (gamepad1.x) robot.setOuttakeAndThenGrab(true);
-//
-//            if (gamepad1.b) {
-//                if (!didToggleIntakeRoller) {
-//                    if (robot.intake.getIntakeRollerState() == Intake.IntakeRollerState.ON) robot.intake.setRollerReverse();
-//                    else robot.intake.setRollerOn();
-//                    didToggleIntakeRoller = true;
-//                }
-//            } else {
-//                didToggleIntakeRoller = false;
-//            }
-//            if (gamepad1.x) robot.intake.setRollerOff();
-//            else if (gamepad1.a) robot.intake.setRollerUnjam();
-//            else if (gamepad1.dpad_left) robot.intake.setRollerSlowReverse();
-//            else if (gamepad1.dpad_right) robot.intake.setRollerKeepIn();
-//
-//            if (gamepad1.dpad_up) robot.intake.setTargetPositionWhenExtended(robot.intake.getTargetPositionWhenExtended() + intakeAdjustmentSpeed);
-//            else if (gamepad1.dpad_down) robot.intake.setTargetPositionWhenExtended(robot.intake.getTargetPositionWhenExtended() - intakeAdjustmentSpeed);
-//            robot.intake.setTargetPositionWhenExtended(robot.intake.getTargetPositionWhenExtended() + intakeAdjustmentSpeed * -gamepad2.right_stick_y);
-//
-//            if(gamepad2.left_bumper){
-//                robot.intake.intakeState = Intake.IntakeState.RETRACTING;
-//            }
-//
-//            if (gamepad2.a) {
-//                if (!didToggleIntakeHeight) {
-//                    robot.intake.setFlipDownAngle(robot.intake.getFlipDownAngle() + intakeHeightStep);
-//                    didToggleIntakeHeight = true;
-//                }
-//            } else if (gamepad2.y) {
-//                if (!didToggleIntakeHeight) {
-//                    robot.intake.setFlipDownAngle(robot.intake.getFlipDownAngle() - intakeHeightStep);
-//                    didToggleIntakeHeight = true;
-//                }
-//            } else {
-//                didToggleIntakeHeight = false;
-//            }
-//
-//            robot.drivetrain.drive(gamepad1);
-//
-//            robot.update();
-//
-//            telemetry.addData("Globals.isRed", Globals.isRed);
-//            telemetry.addData("Intake.intakeState", robot.intake.getIntakeState().toString());
-//            telemetry.addData("Intake.intakeRollerState", robot.intake.getIntakeRollerState().toString());
-//            telemetry.addData("Intake.targetPositionWhenExtended", robot.intake.getTargetPositionWhenExtended());
-//            telemetry.addData("Intake.flipDownAngle", robot.intake.getFlipDownAngle());
-//
-//            telemetry.update();
-//        }
-//    }
-//}
+package org.firstinspires.ftc.teamcode.opmodes;
+
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+
+import org.firstinspires.ftc.teamcode.Robot;
+import org.firstinspires.ftc.teamcode.utils.ButtonToggle;
+import org.firstinspires.ftc.teamcode.utils.Globals;
+import org.firstinspires.ftc.teamcode.utils.RunMode;
+
+@TeleOp(name = "A. Teleop")
+public class Teleop extends LinearOpMode {
+    public void runOpMode() {
+        Globals.RUNMODE = RunMode.TELEOP;
+
+        Robot robot = new Robot(hardwareMap);
+
+        // Gamepad 1
+        ButtonToggle lb_1 = new ButtonToggle();
+        ButtonToggle lt_1 = new ButtonToggle();
+        ButtonToggle rb_1 = new ButtonToggle();
+        ButtonToggle x_1 = new ButtonToggle();
+        ButtonToggle b_1 = new ButtonToggle();
+        ButtonToggle lsb_1 = new ButtonToggle();
+        ButtonToggle rsb_1 = new ButtonToggle();
+
+        //Gamepad 2
+        ButtonToggle x_2 = new ButtonToggle();
+        ButtonToggle a_2 = new ButtonToggle();
+        ButtonToggle b_2 = new ButtonToggle();
+
+        final double slidesInc = 0.4;
+        final double extendoInc = 0.4;
+        final double intakeClawRotationInc = 0.1; // 0.08
+        final double triggerThresh = 0.2;
+        boolean speciMode = false;
+        boolean high = true;
+
+        while (opModeInInit()) {
+            robot.update();
+        }
+
+        if (!isStopRequested()) Globals.hasSamplePreload = false;
+
+        while (!isStopRequested()) {
+            robot.update();
+            Robot.RobotState robotState = robot.getState();
+
+            // DRIVER 1
+
+            // Toggle Specimen/Sample Deposit Mode
+            if (x_1.isClicked(gamepad1.x)) {
+                speciMode = !speciMode;
+                robot.updateDepositHeights(speciMode, high);
+            }
+//liam is so cool lol
+            // Toggle High/Low Deposit
+            if (b_1.isClicked(gamepad1.b)) {
+                high = !high;
+                robot.updateDepositHeights(speciMode, high);
+            }
+
+            // Increment / Decrement Slides Height
+            if (gamepad1.y) {
+                robot.deposit.setDepositHeight(robot.deposit.getDepositHeight() + slidesInc);
+            } else if (gamepad1.a) {
+                robot.deposit.setDepositHeight(robot.deposit.getDepositHeight() - slidesInc);
+            }
+
+//LIAM IS THE BEST EVER!
+            if (lb_1.isClicked(gamepad1.left_bumper)) {
+                if (robotState == Robot.RobotState.IDLE) {
+                    robot.setNextState(speciMode ? Robot.NextState.GRAB_SPECIMEN : Robot.NextState.INTAKE_SAMPLE);
+                } else if (robotState == Robot.RobotState.SAMPLE_READY) {
+                    robot.setNextState(Robot.NextState.INTAKE_SAMPLE);
+                } else if (robotState == Robot.RobotState.GRAB_SPECIMEN && speciMode || robotState == Robot.RobotState.SPECIMEN_READY) {
+                    robot.setNextState(Robot.NextState.GRAB_SPECIMEN);
+                } else {
+                    robot.setNextState(Robot.NextState.DONE);
+                }
+            }
+
+            if (robot.clawIntake.isExtended()) {
+                rb_1.isClicked(gamepad1.right_bumper);
+                lt_1.isClicked(gamepad1.left_trigger > triggerThresh);
+                robot.clawIntake.grab(gamepad1.right_bumper);
+                robot.clawIntake.setClawRotation(robot.clawIntake.getClawRotAngle() + intakeClawRotationInc * (gamepad1.right_trigger - gamepad1.left_trigger));
+            } else {
+                if (rb_1.isClicked(gamepad1.right_bumper)) robot.setNextState(Robot.NextState.DEPOSIT);
+
+                // neil says he never uses this during teleop, and its not in the control diagram he gave us??? not sure why this is here
+                if (lt_1.isClicked(gamepad1.left_trigger > triggerThresh) && robot.clawIntake.isRetracted()) robot.setNextState(Robot.NextState.DONE);
+            }
+
+            if (robotState == Robot.RobotState.DEPOSIT_BUCKET || robotState == Robot.RobotState.DEPOSIT_SPECIMEN) {
+                double slidesControl1 = robot.drivetrain.smoothControls(-gamepad1.right_stick_y);
+                robot.deposit.setDepositHeight(robot.deposit.getDepositHeight() + slidesInc * slidesControl1);
+            } else if (robotState == Robot.RobotState.INTAKE_SAMPLE) {
+                double intakeControl1 = robot.drivetrain.smoothControls(-gamepad1.right_stick_y);
+                robot.clawIntake.setIntakeTargetPos(robot.clawIntake.getIntakeTargetPos() + extendoInc * intakeControl1);
+            }
+
+            if (rsb_1.isClicked(gamepad1.right_stick_button)) {
+                robot.deposit.slides.resetSlidesEncoders();
+                robot.clawIntake.resetExtendoEncoders();
+            }
+
+            if (lsb_1.isClicked(gamepad1.left_stick_button)) {
+                robot.restartState();
+            }
+
+            // Driving
+            robot.drivetrain.slow = robot.clawIntake.isExtended();
+            robot.drivetrain.drive(gamepad1);
+
+            // Driver 2
+
+            // Toggle Alliance
+            if (x_2.isClicked(gamepad2.x)) {
+                Globals.isRed = !Globals.isRed;
+            }
+
+            // Specimen/Sample Toggle
+            if (a_2.isClicked(gamepad2.a)) {
+                speciMode = !speciMode;
+                robot.updateDepositHeights(speciMode, high);
+            }
+
+            // Force Deposit Slides Retract
+            if (b_2.isClicked(gamepad2.b)) {
+                robot.deposit.setDepositHeight(0.0);
+            }
+
+            // Increment/Decrement Intake Slides
+            // Up --> increase, Down --> decrease on right joystick
+            double intakeControl2 = robot.drivetrain.smoothControls(-gamepad2.right_stick_y);
+            robot.clawIntake.setIntakeTargetPos(robot.clawIntake.getIntakeTargetPos() + extendoInc * intakeControl2);
+
+            // Increment/Decrement Deposit Slides
+            // Up --> increase, Down --> decrease on left joystick
+            double slidesControl2 = robot.drivetrain.smoothControls(-gamepad2.left_stick_y);
+            robot.deposit.setDepositHeight(robot.deposit.getDepositHeight() + slidesInc * slidesControl2);
+
+            telemetry.addData("speciMode", speciMode);
+            telemetry.addData("high", high);
+            telemetry.addData("Intake target pos", robot.clawIntake.getIntakeTargetPos());
+            telemetry.addData("Intake claw rotation", robot.clawIntake.getClawRotAngle());
+            telemetry.addData("deposit height", robot.deposit.getDepositHeight());
+            telemetry.addData("isRed", Globals.isRed);
+            telemetry.addData("robotState", robotState);
+            telemetry.addData("Intake current length", robot.sensors.getExtendoPos());
+            telemetry.addData("Slides current length", robot.deposit.slides.getLength());
+            telemetry.addData("hasSamplePreload", Globals.hasSamplePreload);
+            telemetry.update();
+        }
+    }
+}

@@ -215,12 +215,11 @@ public class Deposit {
                 moveToWithRad(speciHRad, targetY);
                 arm.setClawRotation(speciHClawRad, 1.0);
 
-                if(auto && arm.inPosition() && arm.clawFinished()){
+                if(arm.inPosition() && arm.clawFinished()){
                     state = State.SPECI_DEPOSIT;
                 }
                 break;
             case SPECI_DEPOSIT:
-                //TODO: In AUTO, this will have to be set to corresponding height, left here as placeholder. We may never need it either, who knows
                 moveToWithRad(speciHRad, targetY);
                 arm.setClawRotation(speciHClawRad, 1.0);
                 break;
@@ -374,15 +373,7 @@ public class Deposit {
 
     public void finishSpecimenDeposit() {
         Log.i("FSM", this.state + ", finishSpecimenDeposit()");
-//        if (state == State.SPECI_WAIT) {
-//            if (high) {
-//                setDepositHighSpeciEnd();
-//            } else {
-//                setDepositLowSpeciEnd();
-//            }
-//            state = State.SPECI_DEPOSIT;
-//        }
-        if (state == State.SPECI_RAISE) state = State.RELEASE;
+        if (state == State.SPECI_RAISE || state == State.SPECI_DEPOSIT) state = State.RELEASE;
     }
 
     public boolean isSpecimenDepositDone() {

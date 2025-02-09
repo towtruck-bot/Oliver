@@ -9,10 +9,9 @@ import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.utils.Globals;
 import org.firstinspires.ftc.teamcode.utils.RunMode;
 import org.firstinspires.ftc.teamcode.utils.Vector2;
-import org.firstinspires.ftc.teamcode.vision.Vision;
 
 @Autonomous(name = "ParkAuto", preselectTeleOp = "A. Teleop")
-public class ParkAutoBlue extends LinearOpMode {
+public class ParkAuto extends LinearOpMode {
     private Robot robot;
 
     public void runOpMode(){

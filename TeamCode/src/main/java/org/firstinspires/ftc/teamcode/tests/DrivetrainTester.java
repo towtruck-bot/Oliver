@@ -60,7 +60,6 @@ public class DrivetrainTester extends LinearOpMode {
             robot.goToPoint(new Pose2d(0.0, 60.0, Math.PI), null, false, false, 0.8);
             robot.goToPoint(new Pose2d(-24.0, 48.0, -Math.PI), null, false, false, 0.8);
             robot.goToPoint(new Pose2d(-48.0, 24.0, -Math.PI), null, false, true, 0.8);
-
 //            robot.followSpline(
 //                    new Spline(
 //                        new Pose2d(-24.0, 48.0, Math.PI),
@@ -71,7 +70,6 @@ public class DrivetrainTester extends LinearOpMode {
 //                        .addPoint(new Pose2d(48.0, 48.0, Math.PI)),
 //                    this::opModeIsActive
 //            );
-
             robot.goToPoint(new Pose2d(-24.0, 48.0, -Math.PI), null, false, false, 0.8);
             robot.goToPoint(new Pose2d(0.0, 60.0, Math.PI), null, false, false, 0.8);
             robot.goToPoint(new Pose2d(24.0, 60.0, Math.PI), null, false, false, 0.8);

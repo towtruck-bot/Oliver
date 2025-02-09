@@ -56,7 +56,7 @@ public class Deposit {
     // transfer positions, move in to grab
     public static double intakeRad = 0.0, intakeY = 0.0, intakeClawRad = -1.65;
     // moving positions with a sample
-    public static double sampleHoldRad = 0.3, holdY = 0.0, sampleHoldClawRad = 1.66667;
+    public static double sampleHoldRad = 0.35, holdY = 0.0, sampleHoldClawRad = -1.5;
     public static double specimenGrabRad = 0.0, specimenGrabClawRad = 0.2, specimenConfirmRad = 0.6, specimenConfirmClawRad = -0.41667;
     // sample basket positions
     public static double sampleLY = 16.75, sampleHY = 33.85, sampleRad = 2.4, sampleClawRad = 0.5;
@@ -238,10 +238,7 @@ public class Deposit {
                 }
                 break;
             case TEST:
-//                arm.setArmRotation(arm.armRotation.getTargetAngle(), 1.0);
-//                arm.setClawRotation(arm.clawRotation.getTargetAngle(), 1.0);
-//                arm.clawGrip.setTargetAngle(arm.clawGrip.getTargetAngle(), 1.0);
-//                slides.setTargetLength(slides.getLength());
+                break;
         }
 
         slides.update();
@@ -289,16 +286,6 @@ public class Deposit {
         targetY = speciHY;
         high = true;
     }
-
-//    public void setDepositLowSpeciEnd(){
-//        targetY = speciLEY;
-//        high = false;
-//    }
-//
-//    public void setDepositHighSpeciEnd(){
-//        targetY = speciHEY;
-//        high = true;
-//    }
 
     public double getDepositHeight(){
         return targetY;

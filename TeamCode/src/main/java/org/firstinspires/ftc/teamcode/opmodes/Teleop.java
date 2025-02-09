@@ -38,6 +38,7 @@ public class Teleop extends LinearOpMode {
 
         while (opModeInInit()) {
             robot.update();
+            robot.updateDepositHeights(speciMode, high);
         }
 
         if (!isStopRequested()) Globals.hasSamplePreload = false;

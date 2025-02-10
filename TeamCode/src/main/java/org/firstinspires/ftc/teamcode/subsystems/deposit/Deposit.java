@@ -67,6 +67,10 @@ public class Deposit {
     public static double speciLRad = 2.75, speciLClawRad = 0.0, speciLSY = 19.4;
     public static double  speciHRad = 2.79, speciHClawRad = 1.46, speciHY = 19.69 ;
 
+    private long currentTime = -1;
+    private long sampleReleaseTime = -1;
+    public static long sampleReleaseDuration = 300;
+
     private boolean high = true;
 
     public Deposit(Robot robot){
@@ -79,7 +83,9 @@ public class Deposit {
     }
 
     public void update(){
-        switch(state){
+        this.currentTime = System.nanoTime();
+
+        switch (state) {
             case IDLE:
                 moveToStart();
                 break;
@@ -100,7 +106,7 @@ public class Deposit {
                 moveToWithRad(intakeRad, intakeY);
                 arm.setClawRotation(intakeClawRad, 1.0);
 
-                if(arm.inPosition() && slides.inPosition(1)){ // Need to figure out this threshold better
+                if(arm.inPosition() && slides.inPosition(0.7)){ // Need to figure out this threshold better
                     state = State.TRANSFER_CLOSE;
                 }
                 break;
@@ -132,22 +138,21 @@ public class Deposit {
                 moveToWithRad(sampleRad, targetY);
                 arm.setClawRotation(sampleClawRad, 1.0);
 
-                if(arm.inPosition() && slides.inPosition(1)){
+                if(arm.inPosition() && slides.inPosition(0.7)){
                     state = State.SAMPLE_WAIT;
                 }
                 break;
             case SAMPLE_WAIT:
                 moveToWithRad(sampleRad, targetY);
                 arm.setClawRotation(sampleClawRad, 1.0);
+                this.sampleReleaseTime = this.currentTime;
                 break;
             case SAMPLE_RELEASE:
                 moveToWithRad(sampleRad, targetY);
                 arm.setClawRotation(sampleClawRad, 1.0);
                 arm.sampleOpen();
 
-                if(arm.clawFinished()){
-                    state = State.SAMPLE_FINISH;
-                }
+                if (arm.clawFinished() && currentTime >= this.sampleReleaseTime + sampleReleaseDuration * 1e6) state = State.SAMPLE_FINISH;
                 break;
             case SAMPLE_FINISH:
                 moveToWithRad(0, targetY);
@@ -179,7 +184,7 @@ public class Deposit {
                 moveToWithRad(specimenGrabRad, holdY);
                 arm.setClawRotation(specimenGrabClawRad, 1.0);
 
-                if(arm.inPosition() && slides.inPosition(1)){
+                if(arm.inPosition() && slides.inPosition(0.7)){
                     state = State.GRAB_WAIT;
                     arm.speciOpen();
                 }
@@ -232,7 +237,7 @@ public class Deposit {
             case RETRACT:
                 moveToStart();
 
-                if(arm.inPosition() && slides.inPosition(1)){
+                if(arm.inPosition() && slides.inPosition(0.7)){
                     state = State.IDLE;
                 }
                 break;

@@ -17,7 +17,7 @@ public class BucketPreloadBlueAuto extends LinearOpMode {
     public static boolean enableg1 = true, enableg2 = true, enableg3 = true, enabler = true;
 
     public static double g1x = 49, g1y = 48, g1h = -Math.PI/2, g1e = 13.9;
-    public static double g2x = 60, g2y = 48, g2h = -Math.PI/2, g2e = 13.9;
+    public static double g2x = 60, g2y = 48, g2h = -Math.PI/2, g2e = 13.7;
     public static double g3x = 60, g3y = 48, g3h = -1.165, g3e = 15.95;
     public static double fx = 24.0, fy = 12.0, fh = Math.PI;
 

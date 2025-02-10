@@ -24,7 +24,7 @@ public class Slides {
     public static double kStatic = 0.05;
     public static double minPower = 0.19;
     public static double minPowerThresh = 0.5;
-    public static double forceDownPower = -0.45;
+    public static double forceDownPower = -0.55;
     public static double forceDownThresh = 5;
     public static double maxSlidesHeight = 33.5;
 

@@ -437,7 +437,7 @@ public class Drivetrain {
 
     public static double finalXThreshold = 0.35;
     public static double finalYThreshold = 0.35;
-    public static double finalTurnThreshold = 2.7;
+    public static double finalTurnThreshold = 3.0;
 
     public static PID xPID = new PID(0.147,0.0,0.026);
     public static PID yPID = new PID(0.15,0.0,0.025);

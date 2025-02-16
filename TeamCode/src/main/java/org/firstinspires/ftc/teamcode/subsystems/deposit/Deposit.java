@@ -330,6 +330,11 @@ public class Deposit {
         }
     }
 
+    public static double heightThresh = 12.0;
+    public boolean safeToMove(){
+        return slides.getLength() <= heightThresh;
+    }
+
     public boolean isSampleDepositDone() {
         return state == State.IDLE || state == State.RETRACT;
     }

@@ -84,15 +84,7 @@ public class ClawIntake {
         );
         robot.hardwareQueue.addDevice(intakeFlipServo);
 
-        claw = new nPriorityServo(
-                new Servo[] {robot.hardwareMap.get(Servo.class, "intakeClaw")},
-                "intakeClaw",
-                nPriorityServo.ServoType.AXON_MINI,
-                0.474, 0.749, 0.47,
-                new boolean[] {false},
-                1.0, 5
-        );
-        robot.hardwareQueue.addDevice(claw);
+
 
         clawRotation = new nPriorityServo(
                 new Servo[] {robot.hardwareMap.get(Servo.class, "intakeClawRotation")},

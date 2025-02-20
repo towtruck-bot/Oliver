@@ -25,6 +25,7 @@ public class Sensors {
     public static double slidesInchesPerTick = 0.01773835920177383;
 
     private int extendoEncoder;
+    private double extendoVel;
     public static double extendoInchesPerTick = 0.04293545803;
 
     private final AnalogInput[] analogEncoders = new AnalogInput[2];
@@ -47,7 +48,8 @@ public class Sensors {
 
         slidesEncoder = ((PriorityMotor) hardwareQueue.getDevice("slidesMotor")).motor[0].getCurrentPosition();
         slidesVel = ((PriorityMotor) hardwareQueue.getDevice("slidesMotor")).motor[0].getVelocity();
-        extendoEncoder = ((PriorityMotor) hardwareQueue.getDevice("intakeExtensionMotor")).motor[0].getCurrentPosition();
+        extendoEncoder = ((PriorityMotor) hardwareQueue.getDevice("extendoMotor")).motor[0].getCurrentPosition();
+        extendoVel = ((PriorityMotor) hardwareQueue.getDevice("extendoMotor")).motor[0].getVelocity();
 
         if (System.currentTimeMillis() - lastVoltageUpdatedTime > voltageUpdateTime) {
             voltage = hardwareMap.voltageSensor.iterator().next().getVoltage();
@@ -100,6 +102,10 @@ public class Sensors {
 
     public double getExtendoPos(){
         return extendoEncoder * extendoInchesPerTick;
+    }
+
+    public double getExtendoVel(){
+        return extendoEncoder * extendoVel;
     }
 
     public double getVoltage(){

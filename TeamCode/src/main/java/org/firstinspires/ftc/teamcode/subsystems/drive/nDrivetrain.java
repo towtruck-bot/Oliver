@@ -24,6 +24,7 @@
 //import org.firstinspires.ftc.teamcode.subsystems.drive.localizers.Localizer;
 //import org.firstinspires.ftc.teamcode.subsystems.drive.localizers.OneHundredMSIMULocalizer;
 //import org.firstinspires.ftc.teamcode.subsystems.drive.localizers.TwoWheelLocalizer;
+//import org.firstinspires.ftc.teamcode.utils.DashboardUtil;
 //import org.firstinspires.ftc.teamcode.utils.Globals;
 //import org.firstinspires.ftc.teamcode.utils.PID;
 //import org.firstinspires.ftc.teamcode.utils.Pose2d;
@@ -110,7 +111,6 @@
 //        rightRear.motor[0].setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 //
 //
-//
 //        setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 //        setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 //
@@ -125,7 +125,7 @@
 ////                new TwoWheelLocalizer(hardwareMap, sensors, this, "#aaaa00", "#00aaaa"),
 ////                new Localizer(hardwareMap, sensors, this, "#0000aa", "#aa00aa")
 ////        };
-////        setMinPowersToOvercomeFriction();
+//        setMinPowersToOvercomeFriction();
 //    }
 //
 //    public void resetSlidesMotorRightFront() {
@@ -431,9 +431,17 @@
 //        setMoveVector(move, turn);
 //    }
 //
-//    public static PID xPID = new PID(0.045,0.0,0.009);
-//    public static PID yPID = new PID(0.045,0.0,0.011);
-//    public static PID turnPID = new PID(0.25,0.0,0.009);
+//    public static double xThreshold = 2.0;
+//    public static double yThreshold = 2.0;
+//    public static double turnThreshold = 4;
+//
+//    public static double finalXThreshold = 0.35;
+//    public static double finalYThreshold = 0.35;
+//    public static double finalTurnThreshold = 3.0;
+//
+//    public static PID xPID = new PID(0.147,0.0,0.026);
+//    public static PID yPID = new PID(0.15,0.0,0.025);
+//    public static PID turnPID = new PID(0.25,0.0,0.01);
 //
 //    double fwd, strafe, turn, turnAdjustThreshold, finalTargetPointDistance;
 //
@@ -467,26 +475,23 @@
 //        strafe = yPID.update(yError, -maxPower, maxPower);
 //        turn = turnPID.update(turnError, -maxPower, maxPower);
 //
-//        Vector2 move = new Vector2(fwd, strafe);
+//        Vector2 move = new Vector2(fwd, strafe) /*new Vector2(0, 0)*/;
 //        setMoveVector(move, turn);
 //
 //        TelemetryUtil.packet.put("fwd", fwd);
 //        TelemetryUtil.packet.put("strafe", strafe);
-//        // Logging
-////        TelemetryUtil.packet.put("expectedXError", globalExpectedXError);
-////        TelemetryUtil.packet.put("expectedYError", globalExpectedYError);
 //    }
 //
-//    public static PID finalXPID = new PID(0.01, 0.0,0.002);
-//    public static PID finalYPID = new PID(0.01, 0.0,0.002);
-//    public static PID finalTurnPID = new PID(0.01, 0.0,0.002);
+//    public static PID finalXPID = new PID(0.05, 0.0,0.006);
+//    public static PID finalYPID = new PID(0.05, 0.0,0.006);
+//    public static PID finalTurnPID = new PID(0.022, 0.0,0.005);
 //
 //    public void finalAdjustment() {
-//        double fwd = Math.abs(xError) > finalXThreshold ? finalXPID.update(xError, -maxPower, maxPower) : 0;
-//        double strafe = Math.abs(yError) > finalYThreshold ? finalYPID.update(yError, -maxPower, maxPower) : 0;
-//        double turn = Math.abs(turnError) > Math.toRadians(finalTurnThreshold) ? finalTurnPID.update(turnError, -maxPower, maxPower) : 0;
+//        double fwd = Math.abs(xError) > finalXThreshold/2 ? finalXPID.update(xError, -maxPower, maxPower) : 0;
+//        double strafe = Math.abs(yError) > finalYThreshold/2 ? finalYPID.update(yError, -maxPower, maxPower) : 0;
+//        double turn = Math.abs(turnError) > Math.toRadians(finalTurnThreshold)/2 ? finalTurnPID.update(turnError, -maxPower, maxPower) : 0;
 //
-//        Vector2 move = new Vector2(fwd, strafe);
+//        Vector2 move = new Vector2(fwd, strafe) /*new Vector2(0, 0)*/;
 //        setMoveVector(move, turn);
 //    }
 //
@@ -504,14 +509,6 @@
 //        for (PriorityMotor motor : motors) {
 //            motor.setPowerForced(0.0);
 //        }
-//    }
-//
-//    public void updateLocalizer() {
-////        for (Localizer l : localizers) {
-////            l.updateEncoders(sensors.getOdometry());
-////            l.update();
-////        }
-////        //oldLocalizer.update();
 //    }
 //
 //    boolean finalAdjustment = false;
@@ -560,14 +557,6 @@
 //    public Spline getPath() {
 //        return path;
 //    }
-//
-//    public static double xThreshold = 2;
-//    public static double yThreshold = 2;
-//    public static double turnThreshold = 5;
-//
-//    public static double finalXThreshold = 0.5;
-//    public static double finalYThreshold = 0.5;
-//    public static double finalTurnThreshold = 1;
 //
 //    public void setBreakFollowingThresholds(Pose2d thresholds) {
 //        xThreshold = thresholds.getX();
@@ -702,6 +691,14 @@
 //        sensors.setOdometryPosition(pose2d);
 //    }
 //
+//    public void updateLocalizer() {
+////        for (Localizer l : localizers) {
+////            l.updateEncoders(sensors.getOdometry());
+////            l.update();
+////        }
+////        //oldLocalizer.update();
+//    }
+//
 //    public void updateTelemetry () {
 //        TelemetryUtil.packet.put("Drivetrain State", state);
 //
@@ -714,10 +711,12 @@
 //
 ////        TelemetryUtil.packet.put("maxPower", maxPower);
 //
-//        TelemetryUtil.packet.fieldOverlay().setStroke("red");
-//        TelemetryUtil.packet.fieldOverlay().strokeCircle(targetPoint.x, targetPoint.y, xThreshold);
-//
 //        Canvas canvas = TelemetryUtil.packet.fieldOverlay();
+//
+//        DashboardUtil.drawRobot(canvas, targetPoint, "#ff00ff");
+//        canvas.setStroke("red");
+//        canvas.strokeCircle(targetPoint.x, targetPoint.y, xThreshold);
+//
 //        if (path != null) {
 //            Pose2d last = path.poses.get(0);
 //            for (int i = 1; i < path.poses.size(); i++) {

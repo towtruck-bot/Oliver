@@ -11,14 +11,15 @@ import org.firstinspires.ftc.teamcode.utils.RunMode;
 
 @Autonomous(name = "BucketPreloadBlueAuto", preselectTeleOp = "A. Teleop")
 @Config
-public class BucketPreloadBlueAuto extends LinearOpMode {
+public class SamplePreloadBlueAuto extends LinearOpMode {
     private Robot robot;
 
     public static boolean enableg1 = true, enableg2 = true, enableg3 = true, enabler = true;
 
-    public static double g1x = 49, g1y = 48, g1h = -Math.PI/2, g1e = 13.9;
-    public static double g2x = 60, g2y = 48, g2h = -Math.PI/2, g2e = 13.7;
-    public static double g3x = 60, g3y = 48, g3h = -1.165, g3e = 15.95;
+    public static double gx = 60, gy = 48;
+    public static double g1h = -1.976, g1e = 15.95;
+    public static double g2h = -Math.PI/2, g2e = 13.7;
+    public static double g3h = -1.165, g3e = 15.95;
     public static double fx = 24.0, fy = 12.0, fh = Math.PI;
 
     public void runOpMode(){
@@ -30,19 +31,19 @@ public class BucketPreloadBlueAuto extends LinearOpMode {
         score();
 
         if (enableg1) {
-            getGround(g1x, g1y, g1h, g1e);
+            getGround(gx, gy, g1h, g1e);
             moveToBelowBucket();
             score();
         }
 
         if (enableg2) {
-            getGround(g2x, g2y, g2h, g2e);
+            getGround(gx, gy, g2h, g2e);
             moveToBelowBucket();
             score();
         }
 
         if (enableg3) {
-            getGround(g3x, g3y, g3h, g3e);
+            getGround(gx, gy, g3h, g3e);
             moveToBelowBucket();
             score();
         }
@@ -94,7 +95,7 @@ public class BucketPreloadBlueAuto extends LinearOpMode {
         //robot.waitFor(215);
 
         // wait for full retract
-        robot.waitWhile(() ->  !robot.deposit.isRetractDone());
+        robot.waitWhile(() ->  !robot.deposit.safeToMove());
 
         // back up
         //robot.goToPoint(new Pose2d(52, 52, 5 * Math.PI/4), null, false, true, 0.8);
@@ -121,7 +122,6 @@ public class BucketPreloadBlueAuto extends LinearOpMode {
         robot.setNextState(Robot.NextState.DONE);
         //robot.waitWhile(() -> { return !robot.clawIntake.isRetracted(); });
     }
-
 
     public void goToTeleOpStart() {
         // prepare for teleop

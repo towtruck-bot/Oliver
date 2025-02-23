@@ -16,10 +16,13 @@ public class SpecimenPreloadBlueAuto extends LinearOpMode {
 
     public static boolean enablePreload = true, enableGround = true, enableScore = true;
 
-    public static double g1x = -46.0, g2x = -56.0, g3x = -63.5;
-    public static double yPre = 15.0, yPush = 57.0;
+    public static double gx = -60.0, gy = 52.25, cy = 56.0;
+    public static double g1e = 15.95, g1h = -1.976;
+    public static double g2e = 13.7, g2h = -Math.PI / 2;
+    public static double g3e = 15.95, g3h = -1.165;
+
     public static double setupX = -36.5, setupY = 63.9;
-    public static double shift = 3.742, baseScoreX = -5.9, baseScoreY = 41.45, scoreY = 28.75;
+    public static double baseScoreX = -5.9, baseScoreY = 41.45, scoreY = 28.75;
 
     public static double[] targetX = new double[] {0.0, 2.5, 5.0, 7.5, 10.0};
 
@@ -85,28 +88,44 @@ public class SpecimenPreloadBlueAuto extends LinearOpMode {
     }
 
     public void move3Ground(){
-        // Pre-position ground1
-        // TODO: Switch to a spline once they are re-tuned
-        robot.goToPoint(new Pose2d(-38.0, 38.0, Math.PI / 2.0), null, false, false, 0.95);
-        robot.goToPoint(new Pose2d(-38.0, yPre, Math.PI / 2.0), null, false, false, 0.95);
-        robot.goToPoint(new Pose2d(g1x, yPre, Math.PI / 2.0), null, false, false, 0.95);
+       robot.goToPoint(new Pose2d(-24.0, gy, -Math.PI / 2), null, true, false, 0.95);
+       robot.goToPoint(new Pose2d(gx, gy, -Math.PI / 2), null, false, true, 0.95);
 
-        // Deliver ground1
-        robot.goToPoint(new Pose2d(g1x, yPush, Math.PI / 2.0), null, false, false, 0.95);
+        pickUp(g2e, g2h);
+        chuckOut();
 
-        // Pre-position ground2
-        robot.goToPoint(new Pose2d(g1x, yPre, Math.PI / 2.0), null, false, false, 0.95);
-        robot.goToPoint(new Pose2d(g2x, yPre, Math.PI / 2.0), null, false, false, 0.95);
+        pickUp(g1e, g1h);
+        chuckOut();
 
-        // Deliver ground2
-        robot.goToPoint(new Pose2d(g2x, yPush, Math.PI / 2.0), null, false, false, 0.95);
+        pickUp(g3e, g3h);
+        chuckOut();
+    }
 
-        // Pre-position ground3
-        robot.goToPoint(new Pose2d(g2x, yPre, Math.PI / 2.0), null, false, false, 0.95);
-        robot.goToPoint(new Pose2d(g3x, yPre, Math.PI / 2.0), null, false, false, 0.95);
+    public void pickUp(double ge, double gh){
+        robot.goToPoint(new Pose2d(gx, gy, gh), null, true, true, 0.95);
 
-        // Deliver ground3
-        robot.goToPoint(new Pose2d(g3x, yPush, Math.PI / 2.0), null, false, true, 0.95);
+        robot.setIntakeExtension(ge);
+        robot.setNextState(Robot.NextState.INTAKE_SAMPLE);
+
+        robot.waitWhile(() -> !robot.clawIntake.isExtended());
+
+        // buffer time between extension and grab
+        robot.waitFor(275);
+
+        // grab
+        robot.grab(true);
+
+        robot.waitWhile(() -> !robot.clawIntake.grabFinished());
+
+        // retract
+        robot.setNextState(Robot.NextState.DONE);
+    }
+
+    public void chuckOut(){
+        robot.goToPoint(new Pose2d(gx, cy, -Math.PI / 2), null, false, false, 0.95);
+
+        // Outtake
+        robot.setNextState(Robot.NextState.DONE);
     }
 
     public void grabAndSetUp(double offset){

@@ -40,14 +40,11 @@ import java.util.List;
 
 @Config
 public class Drivetrain {
-
     public enum State {
         FOLLOW_SPLINE,
         GO_TO_POINT,
         DRIVE,
         FINAL_ADJUSTMENT,
-        ALIGN_WITH_STACK,
-        ALIGN_WITH_STACK_FINAL_ADJUSTMENT,
         BRAKE,
         WAIT_AT_POINT,
         IDLE
@@ -179,8 +176,11 @@ public class Drivetrain {
         }
     }
 
+    Spline path = null;
+    int pathIndex = 0;
     public Pose2d targetPoint = new Pose2d(0,0,0);
     Pose2d lastTargetPoint = new Pose2d(0,0,0);
+    public static int pathRadius = 20;
 
     double xError = 0.0;
     double yError = 0.0;
@@ -217,10 +217,6 @@ public class Drivetrain {
     double targetTurnPower = 0;
 
     long perfectHeadingTimeStart = System.currentTimeMillis();
-
-    Spline path = null;
-    int pathIndex = 0;
-    public static int pathRadius = 20;
 
     public void update() {
         if (!DRIVETRAIN_ENABLED) {
@@ -285,7 +281,6 @@ public class Drivetrain {
                 Log.e("radius", ""+radius);
                 if (Math.abs(radius) < 50) {
                     Canvas canvas = TelemetryUtil.packet.fieldOverlay();
-                    //canvas.setStroke("green");
                     canvas.strokeCircle(estimate.x - radius * Math.sin(estimate.heading), estimate.y + radius * Math.cos(estimate.heading), Math.abs(radius));
                 }
 
@@ -333,12 +328,12 @@ public class Drivetrain {
                 setMinPowersToOvercomeFriction();
                 PIDF();
 
-                if (atPoint()) {
+                if(atPoint()) {
                     if (finalAdjustment) {
                         finalTurnPID.resetIntegral();
                         perfectHeadingTimeStart = System.currentTimeMillis();
                         state = State.FINAL_ADJUSTMENT;
-                    } else {
+                    }else {
                         state = State.BRAKE;
                     }
                 }
@@ -604,9 +599,6 @@ public class Drivetrain {
         TelemetryUtil.packet.put("Drivetrain:: turnError (deg)", Math.toDegrees(turnError));
         TelemetryUtil.packet.put("Drivetrain:: xTarget", targetPoint.x);
         TelemetryUtil.packet.put("Drivetrain:: yTarget", targetPoint.y);
-
-
-//        TelemetryUtil.packet.put("maxPower", maxPower);
 
         Canvas canvas = TelemetryUtil.packet.fieldOverlay();
 

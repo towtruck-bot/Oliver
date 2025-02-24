@@ -13,6 +13,7 @@ import org.firstinspires.ftc.teamcode.subsystems.drive.Drivetrain;
 import org.firstinspires.ftc.teamcode.subsystems.drive.Spline;
 import org.firstinspires.ftc.teamcode.subsystems.hang.Hang;
 import org.firstinspires.ftc.teamcode.subsystems.intake.ClawIntake;
+import org.firstinspires.ftc.teamcode.subsystems.intake.Intake;
 import org.firstinspires.ftc.teamcode.utils.Func;
 import org.firstinspires.ftc.teamcode.utils.Globals;
 import org.firstinspires.ftc.teamcode.utils.Pose2d;
@@ -27,6 +28,7 @@ public class Robot {
     public final Sensors sensors;
     public final Drivetrain drivetrain;
     public final ClawIntake clawIntake;
+    public final Intake intake;
     public final Deposit deposit;
     public final Hang hang;
 
@@ -74,11 +76,13 @@ public class Robot {
             this.prevState1 = RobotState.SAMPLE_READY;
             this.prevState = RobotState.SAMPLE_READY;
         }
-        this.sensors = new Sensors(this);
-        this.clawIntake = new ClawIntake(this);
-        this.drivetrain = new Drivetrain(this);
-        this.deposit = new Deposit(this);
-        this.hang = new Hang(this);
+
+        sensors = new Sensors(this);
+        clawIntake = new ClawIntake(this);
+        intake = new Intake(this);
+        drivetrain = new Drivetrain(this);
+        deposit = new Deposit(this);
+        hang = new Hang(this);
 
         TelemetryUtil.setup();
     }

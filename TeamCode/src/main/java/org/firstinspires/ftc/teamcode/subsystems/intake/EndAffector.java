@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.subsystems.intake;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.Robot;
+import org.firstinspires.ftc.teamcode.utils.Globals;
 import org.firstinspires.ftc.teamcode.utils.priority.nPriorityServo;
 import org.firstinspires.ftc.teamcode.utils.priority.PriorityMotor;
 
@@ -17,6 +18,8 @@ public class EndAffector {
     public static double clawOpenAngle = 0.2634;
     public static double clawCloseAngle = 1.4;
     public static double extendThresh = 0.05;
+
+    private double targetX, targetY;
 
     public EndAffector(Robot robot){
         this.robot = robot;
@@ -57,6 +60,16 @@ public class EndAffector {
 
         targetRotation = 0.0;
         targetLength = 0.0;
+
+
+        if(Globals.hasSamplePreload){
+            targetX = 49.0;
+            targetY = 26.0;
+        } else{
+            targetX = -49.0;
+            targetY = 26.0;
+        }
+
         closed = false;
     }
 
@@ -84,10 +97,14 @@ public class EndAffector {
         return closed && claw.inPosition();
     }
 
-    public boolean canExtend(double currX, double currY, double currH, double targetX, double targetY){
+    public boolean canExtend(double currX, double currY, double currH){
         double dx = targetX - currX;
         double dy = targetY - currY;
         return Math.abs(Math.atan2(dy, dx)) < extendThresh;
+    }
+
+    public boolean withinRange(double currX, double currY, double thresh){
+        return thresh * thresh >= currX * currX + currY * currY;
     }
 
     public boolean inPosition(){

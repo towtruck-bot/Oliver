@@ -32,35 +32,24 @@ public class LimelightTest extends LinearOpMode {
 
             telemetry.setMsTransmissionInterval(11);
 
-            limelight.pipelineSwitch(0);
+            limelight.pipelineSwitch(1);
             /*
              * Starts polling for data.
              */
             limelight.start();
             LLResult result = limelight.getLatestResult();
-            /*if (result != null) {
-                if (result.isValid()) {
-                    Pose3D botpose = result.getBotpose();
-                    Log.d("", "result: " + result.getTx());
-                }
-                else {
-                    //Log.e("", ""+limelight.isConnected());
-                    //Log.e("", "" +limelight.getStatus());
-                    Log.e("", "result is not valid");
-                }
-            }
-            else
-                Log.e("", "null");
-
-             */
-
-            // print some data for each detected target
             if (result !=null) {
                 if (result.isValid()) {
-                    Pose3D botpose = result.getBotpose();
-                    telemetry.addData("tx", result.getTx());
-                    telemetry.addData("ty", result.getTy());
-                    telemetry.addData("Botpose", botpose.toString());
+                    double tx = result.getTx(); // How far left or right the target is (degrees)
+                    double ty = result.getTy(); // How far up or down the target is (degrees)
+                    double ta = result.getTa(); // How big the target looks (0%-100% of the image)
+
+                    telemetry.addData("Target X", tx);
+                    telemetry.addData("Target Y", ty);
+                    telemetry.addData("Target Area", ta);
+
+
+
                 }
             }
             else

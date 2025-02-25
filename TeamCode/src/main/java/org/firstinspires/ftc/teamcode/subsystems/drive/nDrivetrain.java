@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.subsystems.drive;
 
+import static org.firstinspires.ftc.teamcode.utils.Globals.ROBOT_POSITION;
+
 import com.acmerobotics.dashboard.canvas.Canvas;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -117,6 +119,7 @@ public class nDrivetrain{
     }
 
     private Pose2d targetPoint = new Pose2d(0.0, 0.0, 0.0);
+    private Pose2d lastTargetPoint = new Pose2d(0.0, 0.0, 0.0);
     private double xError = 0.0, yError = 0.0, turnError = 0.0;
 
     public void update() {
@@ -147,13 +150,36 @@ public class nDrivetrain{
 
                 // Idea of this state is to allow the intake to extend while adjusting for any heading errors
                 // Need to set new target values based on calculations of current position to determine new heading (write calculation method)
+                calculateTargetHeading();
 
                 goToPoint();
 
+                if(!atPoint()){
+                    state = DriveState.GO_TO_POINT;
+                }
 
+                if(atHeading()){
+                    state = DriveState.BRAKE;
+                }
+                break;
+            case BRAKE:
+                stopAllMotors();
+                slowDown = false;
+                state = DriveState.WAIT_AT_POINT;
+                break;
+            case WAIT_AT_POINT:
+                if(!atPoint()){
+                    state = DriveState.GO_TO_POINT;
+                }
+                break;
+            case DRIVE:
+                break;
+            case IDLE:
+                break;
         }
     }
 
+    // PIDs + CHECKS
     private void calculateErrors() {
         double deltaX = (targetPoint.x - sensors.getOdometryPosition().x);
         double deltaY = (targetPoint.y - sensors.getOdometryPosition().y);
@@ -167,12 +193,21 @@ public class nDrivetrain{
         }
     }
 
+    private void calculateTargetHeading(){
+        Pose2d curr = sensors.getOdometryPosition();
+        double dx = targetPoint.x - curr.x;
+        double dy = targetPoint.y - curr.y;
+
+        targetPoint.heading = Math.atan2(dy, dx) - Math.signum(dy) == -1 ? Math.PI : 0;
+    }
+
     private double maxPower;
     private boolean stop = false, slowDown = false, moveNear = false, adjust = false;
 
-    public static PID xPID = new PID(0.147,0.0,0.026);
-    public static PID yPID = new PID(0.15,0.0,0.025);
-    public static PID turnPID = new PID(0.25,0.0,0.01);
+    public static PID xPID = new PID(0.2,0.0,0.0);
+    public static PID yPID = new PID(0.2,0.0,0.0);
+    public static PID turnPID = new PID(0.2,0.0,0.0);
+    public static PID turnEAPID = new PID(0.15, 0.0, 0.0);
 
     public static double xThreshold = 2.0;
     public static double yThreshold = 2.0;
@@ -180,7 +215,7 @@ public class nDrivetrain{
 
     public static double xEAThreshold = 16.0;
     public static double yEAThreshold = 16.0;
-    public static double turnEAThreshold = 3.0;
+    public static double turnEAFinalThreshold = 3.0;
 
     private double fwd, strafe, turn;
 
@@ -189,12 +224,12 @@ public class nDrivetrain{
         if (moveNear && atPoint()) {
             fwd = 0.0;
             strafe = 0.0;
+            turn = turnEAPID.update(turnError, -maxPower, maxPower);
         } else {
             fwd = xPID.update(xError, -maxPower, maxPower);
             strafe = yPID.update(yError, -maxPower, maxPower);
+            turn = turnPID.update(turnError, -maxPower, maxPower);
         }
-
-        turn = turnPID.update(turnError, -maxPower, maxPower);
 
         Vector2 move = new Vector2(fwd, strafe);
         setMoveVector(move, turn);
@@ -202,12 +237,23 @@ public class nDrivetrain{
 
     private boolean atPoint() {
         if (moveNear) {
-            return Math.abs(xError) < xEAThreshold && Math.abs(yError) < yEAThreshold && Math.abs(turnError) < turnEAThreshold;
+            return Math.abs(xError) < xEAThreshold && Math.abs(yError) < yEAThreshold;
         }
 
         return Math.abs(xError) < xThreshold && Math.abs(yError) < yThreshold && Math.abs(turnError) < turnThreshold;
     }
 
+    private boolean atHeading(){
+        return Math.abs(turnError) < turnEAFinalThreshold;
+    }
+
+    private void resetIntegrals() {
+        xPID.resetIntegral();
+        yPID.resetIntegral();
+        turnPID.resetIntegral();
+    }
+
+    // MOVEMENT
     private void setMoveVector(Vector2 moveVector, double turn) {
         double[] powers = {
                 moveVector.x - turn - moveVector.y,
@@ -243,6 +289,12 @@ public class nDrivetrain{
         rightFront.setTargetPowerSmooth(rf);
     }
 
+    private void stopAllMotors() {
+        for (PriorityMotor motor : motors) {
+            motor.setTargetPower(0);
+        }
+    }
+
     private void updateTelemetry () {
         TelemetryUtil.packet.put("Drivetrain State", state);
 
@@ -257,5 +309,38 @@ public class nDrivetrain{
         DashboardUtil.drawRobot(canvas, targetPoint, "#ff00ff");
         canvas.setStroke("red");
         canvas.strokeCircle(targetPoint.x, targetPoint.y, xThreshold);
+    }
+
+    // GETTERS/SETTERS/PUBLIC METHODS
+    public void goToPoint(Pose2d targetPoint, boolean moveNear, boolean slowDown, boolean stop, double maxPower) {
+        this.moveNear = moveNear;
+        this.slowDown = slowDown;
+        this.stop = stop;
+        this.maxPower = Math.abs(maxPower);
+
+        if (targetPoint.x != lastTargetPoint.x || targetPoint.y != lastTargetPoint.y || targetPoint.heading != lastTargetPoint.heading) {
+            this.targetPoint = targetPoint;
+            lastTargetPoint = targetPoint;
+
+            resetIntegrals();
+
+            state = DriveState.GO_TO_POINT;
+        }
+    }
+
+    public Pose2d getPoseEstimate() {
+        return ROBOT_POSITION;
+    }
+
+    public void setPoseEstimate(Pose2d pose2d) {
+        sensors.setOdometryPosition(pose2d);
+    }
+
+    public double getOptimalHeading(){
+        return targetPoint.heading;
+    }
+
+    public boolean isBusy() {
+        return state != DriveState.WAIT_AT_POINT && state != DriveState.IDLE;
     }
 }

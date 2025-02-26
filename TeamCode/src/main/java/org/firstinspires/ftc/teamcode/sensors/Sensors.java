@@ -12,8 +12,7 @@ import org.firstinspires.ftc.teamcode.utils.priority.HardwareQueue;
 import org.firstinspires.ftc.teamcode.utils.priority.PriorityMotor;
 
 public class Sensors {
-    private HardwareMap hardwareMap;
-    private HardwareQueue hardwareQueue;
+    private Robot robot;
     private GoBildaPinpointDriver odometry;
 
     private double voltage;
@@ -32,27 +31,26 @@ public class Sensors {
     public double[] analogVoltages = new double[analogEncoders.length];
 
     public Sensors(Robot robot){
-        this.hardwareMap = robot.hardwareMap;
-        this.hardwareQueue = robot.hardwareQueue;
+        this.robot = robot;
 
-        odometry = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
+        odometry = robot.hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
         odometry.setOffsets(70, 65);
         odometry.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_SWINGARM_POD);
         odometry.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.REVERSED, GoBildaPinpointDriver.EncoderDirection.REVERSED);
 
-        voltage = hardwareMap.voltageSensor.iterator().next().getVoltage();
+        voltage = robot.hardwareMap.voltageSensor.iterator().next().getVoltage();
     }
 
     public void update(){
         odometry.update();
 
-        slidesEncoder = ((PriorityMotor) hardwareQueue.getDevice("slidesMotor")).motor[0].getCurrentPosition();
-        slidesVel = ((PriorityMotor) hardwareQueue.getDevice("slidesMotor")).motor[0].getVelocity();
-        extendoEncoder = ((PriorityMotor) hardwareQueue.getDevice("extendoMotor")).motor[0].getCurrentPosition();
-        extendoVel = ((PriorityMotor) hardwareQueue.getDevice("extendoMotor")).motor[0].getVelocity();
+        slidesEncoder = ((PriorityMotor) this.robot.hardwareQueue.getDevice("slidesMotor")).motor[0].getCurrentPosition();
+        slidesVel = ((PriorityMotor) this.robot.hardwareQueue.getDevice("slidesMotor")).motor[0].getVelocity();
+        extendoEncoder = this.robot.intake.endAffector.intakeExtension.extendoMotor.motor[0].getCurrentPosition();
+        extendoVel = this.robot.intake.endAffector.intakeExtension.extendoMotor.motor[0].getVelocity();
 
         if (System.currentTimeMillis() - lastVoltageUpdatedTime > voltageUpdateTime) {
-            voltage = hardwareMap.voltageSensor.iterator().next().getVoltage();
+            voltage = this.robot.hardwareMap.voltageSensor.iterator().next().getVoltage();
             lastVoltageUpdatedTime = System.currentTimeMillis() ;
         }
 

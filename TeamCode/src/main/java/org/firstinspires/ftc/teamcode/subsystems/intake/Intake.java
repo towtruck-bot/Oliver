@@ -19,7 +19,7 @@ public class Intake {
     private IntakeState intakeState = IntakeState.READY;
 
     private Robot robot;
-    private EndAffector endAffector;
+    public EndAffector endAffector;
 
     private boolean close;
 

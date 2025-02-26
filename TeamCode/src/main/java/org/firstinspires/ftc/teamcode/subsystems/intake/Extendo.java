@@ -26,25 +26,25 @@ public class Extendo {
     public static double maxExtendoLength = 27.0;
 
     private Robot robot;
-    private PriorityMotor extendoMotor;
+    public PriorityMotor extendoMotor;
     private DcMotorEx m;
 
     private double extendoCurrentPos;
     private double targetLength = 0.0;
-    public static PID extendoPID = new PID(0.15, 0.03, 0.008);
+    public static PID extendoPID = new PID(0.15, 0.05, 0.008);
     public static double tollerance = 0.6;
     public static double slidesForcePullPow = -0.2;
 
     public Extendo(Robot robot){
         this.robot = robot;
 
-        m = robot.hardwareMap.get(DcMotorEx.class, "extendoMotor");
+        m = robot.hardwareMap.get(DcMotorEx.class, "intakeExtensionMotor");
 
         if(Globals.RUNMODE != RunMode.TELEOP){
             resetExtendoEncoders();
         }
 
-        extendoMotor = new PriorityMotor(new DcMotorEx[] {m}, "extendoMotor", 3, 5, new double[] {1}, robot.sensors);
+        extendoMotor = new PriorityMotor(new DcMotorEx[] {m}, "intakeExtensionMotor", 3, 5, new double[] {1}, robot.sensors);
         robot.hardwareQueue.addDevice(extendoMotor);
     }
 

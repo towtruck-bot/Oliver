@@ -29,7 +29,7 @@ public class ClawIntake {
     private double intakeSetTargetPos;
     private double extendoCurrentPos;
 
-    public static PID extendoPID = new PID(0.15, 0.03, 0.008);
+    public static PID extendoPID = new PID(0.15, 0.05, 0.008);
     public static double slidesTolerance = 0.6;
     public static double slidesForcePullPow = -0.2;
 

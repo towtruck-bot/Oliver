@@ -9,7 +9,7 @@ import org.firstinspires.ftc.teamcode.utils.priority.PriorityMotor;
 
 public class EndAffector {
     private Robot robot;
-    private Extendo intakeExtension;
+    public Extendo intakeExtension;
     private nPriorityServo flipServo, clawRotation, claw;
 
     private double targetRotation = 0.0, targetLength = 0.0;
@@ -30,7 +30,7 @@ public class EndAffector {
                 new Servo[] {robot.hardwareMap.get(Servo.class, "intakeFlipServo")},
                 "flipServo",
                 nPriorityServo.ServoType.HITEC,
-                0, 1, 0.69,
+                0, 0.69, 0.69,
                 new boolean[] {false},
                 1.0, 5.0
         );

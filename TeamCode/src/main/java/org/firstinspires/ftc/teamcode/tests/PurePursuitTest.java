@@ -23,8 +23,8 @@ public class PurePursuitTest extends LinearOpMode {
 
         waitForStart();
 
-        robot.drivetrain.setStop(true);
-        robot.drivetrain.setFinalAdjustment(true);
-        robot.followSpline(path, this::opModeIsActive);
+//        robot.drivetrain.setStop(true);
+//        robot.drivetrain.setFinalAdjustment(true);
+//        robot.followSpline(path, this::opModeIsActive);
     }
 }

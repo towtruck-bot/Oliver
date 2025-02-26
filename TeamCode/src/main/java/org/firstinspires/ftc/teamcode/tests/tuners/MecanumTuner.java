@@ -7,6 +7,8 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.subsystems.drive.Drivetrain;
+import org.firstinspires.ftc.teamcode.subsystems.drive.OldDrivetrain;
+import org.firstinspires.ftc.teamcode.utils.Pose2d;
 import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 
 @Disabled
@@ -22,9 +24,11 @@ public class MecanumTuner extends LinearOpMode {
         double start = System.currentTimeMillis();
         if (System.currentTimeMillis()  >= start + 1500) {
             drivetrain.setMotorPowers(0,0,0,0);
-            TelemetryUtil.packet.put("heading", drivetrain.localizers[0].heading);
-            TelemetryUtil.packet.put("x", drivetrain.localizers[0].x);
-            TelemetryUtil.packet.put("y",drivetrain.localizers[0].y);
+
+            Pose2d curr = robot.sensors.getOdometryPosition();
+            TelemetryUtil.packet.put("heading", curr.heading);
+            TelemetryUtil.packet.put("x", curr.x);
+            TelemetryUtil.packet.put("y",curr.y);
             drivetrain.update();
         }
     }

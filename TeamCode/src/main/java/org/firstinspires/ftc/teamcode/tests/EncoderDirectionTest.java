@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.subsystems.drive.Drivetrain;
+import org.firstinspires.ftc.teamcode.subsystems.drive.OldDrivetrain;
 
 @Disabled
 @TeleOp
@@ -19,9 +20,9 @@ public class EncoderDirectionTest extends LinearOpMode {
         while (opModeIsActive()){
             robot.update();
 
-            telemetry.addData("right Encoder",drive.localizers[0].encoders[0].getCurrentDist());
-            telemetry.addData("left Encoder",drive.localizers[0].encoders[1].getCurrentDist());
-            telemetry.addData("back Encoder",drive.localizers[0].encoders[2].getCurrentDist());
+//            telemetry.addData("right Encoder",drive.localizers[0].encoders[0].getCurrentDist());
+//            telemetry.addData("left Encoder",drive.localizers[0].encoders[1].getCurrentDist());
+//            telemetry.addData("back Encoder",drive.localizers[0].encoders[2].getCurrentDist());
             telemetry.update();
         }
     }

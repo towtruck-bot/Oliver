@@ -9,6 +9,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.subsystems.drive.Drivetrain;
+import org.firstinspires.ftc.teamcode.subsystems.drive.OldDrivetrain;
 import org.firstinspires.ftc.teamcode.utils.Globals;
 import org.firstinspires.ftc.teamcode.utils.RunMode;
 import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
@@ -56,8 +57,6 @@ public class Slides {
 
     public void resetSlidesEncoders() {
         Log.e("RESETTTING", "RESTETING SLIDES *************");
-
-        drivetrain.resetSlidesMotorRightFront();
 
         m1.setPower(0);
         m2.setPower(0);

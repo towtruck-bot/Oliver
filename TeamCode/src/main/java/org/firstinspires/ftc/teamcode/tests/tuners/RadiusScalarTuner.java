@@ -10,6 +10,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.subsystems.drive.Drivetrain;
+import org.firstinspires.ftc.teamcode.subsystems.drive.OldDrivetrain;
 import org.firstinspires.ftc.teamcode.utils.Globals;
 import org.firstinspires.ftc.teamcode.utils.Pose2d;
 import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
@@ -52,7 +53,7 @@ public class RadiusScalarTuner extends LinearOpMode {
             robot.drivetrain.normalizeArray(motorPowers);
 
 
-            robot.drivetrain.state = Drivetrain.State.IDLE;
+            robot.drivetrain.state = Drivetrain.DriveState.IDLE;
             robot.drivetrain.setMotorPowers(motorPowers[0], motorPowers[1], motorPowers[2], motorPowers[3]);
 
             robot.update();
@@ -67,7 +68,7 @@ public class RadiusScalarTuner extends LinearOpMode {
 
             while (System.currentTimeMillis() < startTime + 500) {
                 double targetTurn = (value * (TRACK_WIDTH / radius)) * targetFwd;
-                double centripetal = 0.5*Math.pow(robot.drivetrain.localizers[0].getRelativePoseVelocity().x / Globals.MAX_X_SPEED, 2)/radius;
+                double centripetal = 0.5*Math.pow(robot.sensors.getVelocity().x / Globals.MAX_X_SPEED, 2)/radius;
                 double[] motorPowers = new double[] {
                     targetFwd - targetTurn - centripetal,
                     targetFwd - targetTurn + centripetal,
@@ -77,24 +78,24 @@ public class RadiusScalarTuner extends LinearOpMode {
                 robot.drivetrain.normalizeArray(motorPowers);
 
 
-                robot.drivetrain.state = Drivetrain.State.IDLE;
+                robot.drivetrain.normalizeArray(motorPowers);
                 robot.drivetrain.setMotorPowers(motorPowers[0], motorPowers[1], motorPowers[2], motorPowers[3]);
 
-                double leftEnc = robot.drivetrain.localizers[0].encoders[0].getDelta();
-                double rightEnc = robot.drivetrain.localizers[0].encoders[1].getDelta();
-                double leftY = robot.drivetrain.localizers[0].encoders[0].y;
-                double rightY = robot.drivetrain.localizers[0].encoders[1].y;
+//                double leftEnc = robot.drivetrain.localizers[0].encoders[0].getDelta();
+//                double rightEnc = robot.drivetrain.localizers[0].encoders[1].getDelta();
+//                double leftY = robot.drivetrain.localizers[0].encoders[0].y;
+//                double rightY = robot.drivetrain.localizers[0].encoders[1].y;
 
-                double fwd = (rightEnc * leftY - leftEnc * rightY) / (leftY - rightY);
-                double theta = (rightEnc - leftEnc) / (leftY - rightY);
-                sumFwd += fwd;
-                sumTheta += theta;
-                double foundRadius = sumFwd / sumTheta;
-                Log.e("LOOK AT ME FOUND RADIUS", foundRadius + "");
-                error = (radius / (sumFwd / sumTheta));
-
-                TelemetryUtil.packet.put("radiusError", error);
-                TelemetryUtil.packet.put("radiusValue", value);
+//                double fwd = (rightEnc * leftY - leftEnc * rightY) / (leftY - rightY);
+//                double theta = (rightEnc - leftEnc) / (leftY - rightY);
+//                sumFwd += fwd;
+//                sumTheta += theta;
+//                double foundRadius = sumFwd / sumTheta;
+//                Log.e("LOOK AT ME FOUND RADIUS", foundRadius + "");
+//                error = (radius / (sumFwd / sumTheta));
+//
+//                TelemetryUtil.packet.put("radiusError", error);
+//                TelemetryUtil.packet.put("radiusValue", value);
 
                 robot.update();
             }

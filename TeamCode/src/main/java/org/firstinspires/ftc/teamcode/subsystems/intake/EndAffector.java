@@ -83,6 +83,13 @@ public class EndAffector {
         clawRotation.setTargetAngle(rotation, 1.0);
     }
 
+    public void extendTarget(double flip){
+        intakeExtension.setTargetLength(robot.drivetrain.getExtension());
+        flipServo.setTargetAngle(flip, 1.0);
+        // TODO: Verify this v
+        clawRotation.setTargetAngle(3 * Math.PI / 2 - robot.drivetrain.getOptimalHeading());
+    }
+
     public void grab(){
         claw.setTargetAngle(clawCloseAngle, 1.0);
         closed = true;
@@ -97,22 +104,13 @@ public class EndAffector {
         return closed && claw.inPosition();
     }
 
-    public boolean canExtend(double currX, double currY, double currH){
-        double dx = targetX - currX;
-        double dy = targetY - currY;
-        return Math.abs(Math.atan2(dy, dx)) < extendThresh;
-    }
-
-    public boolean withinRange(double currX, double currY, double thresh){
-        return thresh * thresh >= currX * currX + currY * currY;
-    }
 
     public boolean inPosition(){
-        return intakeExtension.inPosition(0.5) && flipServo.inPosition() && clawRotation.inPosition();
+        return intakeExtension.inPosition() && flipServo.inPosition() && clawRotation.inPosition();
     }
 
-    public boolean extendoInPosition(double thresh){
-        return intakeExtension.inPosition(thresh);
+    public boolean extendoInPosition(){
+        return intakeExtension.inPosition();
     }
 
     public boolean flipInPosition(){

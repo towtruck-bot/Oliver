@@ -52,7 +52,7 @@ public class Intake {
             case FINISH_EXTEND:
                 endAffector.extendManual(targetLength, intakeHoverAngle, targetRotation);
                 endAffector.open();
-                if(endAffector.extendoInPosition(0.5)){
+                if(endAffector.extendoInPosition()){
                     intakeState = IntakeState.ALIGN;
                     close = false;
                 }

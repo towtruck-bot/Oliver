@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.subsystems.drive.Drivetrain;
+import org.firstinspires.ftc.teamcode.subsystems.drive.OldDrivetrain;
 import org.firstinspires.ftc.teamcode.utils.Pose2d;
 import org.firstinspires.ftc.teamcode.utils.Vector2;
 
@@ -18,7 +19,7 @@ public class KineticKStaticTuner extends LinearOpMode {
 
     public void runOpMode() {
         Robot robot = new Robot(hardwareMap);
-        robot.drivetrain.state = Drivetrain.State.IDLE;
+        robot.drivetrain.state = Drivetrain.DriveState.IDLE;
         robot.drivetrain.setPoseEstimate(new Pose2d(0, 0, 0));
 
         /*robot.drivetrain.rightRear.setMinimumPowerToOvercomeFriction(0);
@@ -31,7 +32,7 @@ public class KineticKStaticTuner extends LinearOpMode {
         double power = 0.0;
 
         while (opModeIsActive()) {
-            double velx = robot.drivetrain.localizers[0].getRelativePoseVelocity().x;
+            double velx = robot.sensors.getVelocity().x;
 
             power += scalar * (velx > 5.0 ? -1 : 1);
 

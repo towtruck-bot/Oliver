@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.utils.Globals;
+import org.firstinspires.ftc.teamcode.utils.PID;
 import org.firstinspires.ftc.teamcode.utils.RunMode;
 import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 import org.firstinspires.ftc.teamcode.utils.Utils;
@@ -26,13 +27,13 @@ public class Extendo {
 
     private Robot robot;
     private PriorityMotor extendoMotor;
-    private double length;
-    private double vel;
-
-    private double targetLength = 0.0;
     private DcMotorEx m;
 
-    private boolean manualMode = false;
+    private double extendoCurrentPos;
+    private double targetLength = 0.0;
+    public static PID extendoPID = new PID(0.15, 0.03, 0.008);
+    public static double tollerance = 0.6;
+    public static double slidesForcePullPow = -0.2;
 
     public Extendo(Robot robot){
         this.robot = robot;
@@ -48,52 +49,42 @@ public class Extendo {
     }
 
     public void update(){
-        length = robot.sensors.getExtendoPos();
-        vel = robot.sensors.getExtendoVel();
+        this.extendoCurrentPos = this.robot.sensors.getExtendoPos();
 
-        if(!manualMode){
-            double pow = feedforward();
-            extendoMotor.setTargetPower(Utils.minMaxClip(pow, -1, 1));
-            TelemetryUtil.packet.put("Slides:: Power", pow);
+        double pow = 0;
+
+        if (Globals.TESTING_DISABLE_CONTROL && Globals.RUNMODE == RunMode.TESTER) {
+            extendoPID.update(0, -1.0, 1.0);
+            extendoPID.resetIntegral();
+            extendoMotor.setTargetPower(0.0);
+        } else {
+            if (this.inPosition()) {
+                extendoPID.update(0, -1.0, 1.0);
+                extendoPID.resetIntegral();
+                pow = this.targetLength <= tollerance && this.extendoCurrentPos > 0.0 ? slidesForcePullPow : 0;
+            } else {
+                pow = extendoPID.update(this.targetLength - this.extendoCurrentPos, -0.7, 0.7);
+            }
+
+            this.extendoMotor.setTargetPower(pow);
         }
-    }
 
-    private double feedforward() {
-        double error = targetLength - length;
-
-        TelemetryUtil.packet.put("Extendo: Error", error);
-        TelemetryUtil.packet.put("Extendo: Target", targetLength);
-        TelemetryUtil.packet.put("Extendo: Length", length);
-
-        if (targetLength <= 0.5 && length <= forceDownThresh) {
-            return length <= 0.5 ? forceDownPower / 2 : forceDownPower;
-        }
-        return (error * (maxVel / kA)) * kP + kStatic + ((Math.abs(error) > minPowerThresh) ? minPower * Math.signum(error) : 0);
+        TelemetryUtil.packet.put("ClawIntake extendo power", pow);
+        TelemetryUtil.packet.put("ClawIntake.extendoTargetPos", this.targetLength);
+        TelemetryUtil.packet.put("ClawIntake.extendoCurrentPos", this.extendoCurrentPos);
     }
 
     public void setTargetLength(double l){
-        targetLength = Utils.minMaxClip(length, 0.0, maxExtendoLength);
+        targetLength = Utils.minMaxClip(l, 0.0, maxExtendoLength);
     }
 
-    public boolean inPosition(double threshold) {
-        if (targetLength <= threshold) return length <= threshold;
-        return Math.abs(targetLength - length) <= threshold;
+    public boolean inPosition() {
+        if (targetLength <= tollerance) return extendoCurrentPos <= tollerance;
+        return Math.abs(targetLength - extendoCurrentPos) <= tollerance;
     }
 
     public double getLength() {
-        return length;
-    }
-
-    public double getMaxLength() {
-        return maxExtendoLength;
-    }
-
-    public void setTargetPowerFORCED(double power) {
-        extendoMotor.setTargetPower(Math.max(Math.min(power, 1), -1));
-    }
-
-    public void turnOffPowerFORCED() {
-        extendoMotor.motor[0].setPower(0);
+        return extendoCurrentPos;
     }
 
     public void resetExtendoEncoders(){
@@ -106,13 +97,5 @@ public class Extendo {
 
         targetLength = 0.0;
         m.setPower(0.0);
-    }
-
-    public void setSlidesMotorsToCoast() {
-        m.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-    }
-
-    public void setSlidesMotorsToBrake() {
-        m.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
 }

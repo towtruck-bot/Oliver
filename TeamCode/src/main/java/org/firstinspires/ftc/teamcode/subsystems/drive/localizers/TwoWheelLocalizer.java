@@ -3,11 +3,11 @@ package org.firstinspires.ftc.teamcode.subsystems.drive.localizers;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.teamcode.sensors.Sensors;
-import org.firstinspires.ftc.teamcode.subsystems.drive.Drivetrain;
+import org.firstinspires.ftc.teamcode.subsystems.drive.OldDrivetrain;
 import org.firstinspires.ftc.teamcode.utils.Pose2d;
 
 public class TwoWheelLocalizer extends Localizer {
-    public TwoWheelLocalizer(HardwareMap hardwareMap, Sensors sensors, Drivetrain drivetrain, String color, String expectedColor) {
+    public TwoWheelLocalizer(HardwareMap hardwareMap, Sensors sensors, OldDrivetrain drivetrain, String color, String expectedColor) {
         super(hardwareMap, sensors, drivetrain, color, expectedColor);
     }
 

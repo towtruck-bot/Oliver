@@ -10,6 +10,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.teamcode.sensors.Sensors;
 import org.firstinspires.ftc.teamcode.subsystems.deposit.Deposit;
 import org.firstinspires.ftc.teamcode.subsystems.drive.Drivetrain;
+import org.firstinspires.ftc.teamcode.subsystems.drive.OldDrivetrain;
 import org.firstinspires.ftc.teamcode.subsystems.drive.Spline;
 import org.firstinspires.ftc.teamcode.subsystems.hang.Hang;
 import org.firstinspires.ftc.teamcode.subsystems.intake.ClawIntake;
@@ -17,7 +18,6 @@ import org.firstinspires.ftc.teamcode.subsystems.intake.Intake;
 import org.firstinspires.ftc.teamcode.utils.Func;
 import org.firstinspires.ftc.teamcode.utils.Globals;
 import org.firstinspires.ftc.teamcode.utils.Pose2d;
-import org.firstinspires.ftc.teamcode.utils.RunMode;
 import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 import org.firstinspires.ftc.teamcode.utils.priority.HardwareQueue;
 import org.firstinspires.ftc.teamcode.vision.Vision;
@@ -310,25 +310,25 @@ public class Robot {
         } while (((boolean) this.abortChecker.call()) && System.currentTimeMillis() - start < duration);
     }
 
-    public void goToPoint(Pose2d pose, Func func, boolean finalAdjustment, boolean stop, double maxPower) {
+    public void goToPoint(Pose2d pose, Func func, boolean moveNear, boolean slowDown, boolean stop, double maxPower) {
         long start = System.currentTimeMillis();
-        drivetrain.goToPoint(pose, finalAdjustment, stop, maxPower); // need this to start the process so thresholds don't immediately become true
+        drivetrain.goToPoint(pose, moveNear, slowDown, stop, maxPower); // need this to start the process so thresholds don't immediately become true
         do {
             update();
         } while (((boolean) this.abortChecker.call()) && (func == null || (boolean) func.call()) && System.currentTimeMillis() - start <= 5000 && drivetrain.isBusy());
     }
 
-    public void followSpline(Spline spline, Func func) {
-        long start = System.currentTimeMillis();
-        drivetrain.setPath(spline);
-        drivetrain.state = Drivetrain.State.GO_TO_POINT;
-        drivetrain.setMaxPower(1);
-        update();
-
-        do {
-            update();
-        } while (((boolean) this.abortChecker.call()) && (func == null || (boolean) func.call()) && System.currentTimeMillis() - start <= 10000 && drivetrain.isBusy());
-    }
+//    public void followSpline(Spline spline, Func func) {
+//        long start = System.currentTimeMillis();
+//        drivetrain.setPath(spline);
+//        drivetrain.state = OldDrivetrain.State.GO_TO_POINT;
+//        drivetrain.setMaxPower(1);
+//        update();
+//
+//        do {
+//            update();
+//        } while (((boolean) this.abortChecker.call()) && (func == null || (boolean) func.call()) && System.currentTimeMillis() - start <= 10000 && drivetrain.isBusy());
+//    }
 
     public void setIntakeExtension(double target){
         clawIntake.setIntakeTargetPos(target);

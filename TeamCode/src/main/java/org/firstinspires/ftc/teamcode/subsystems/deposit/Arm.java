@@ -50,7 +50,7 @@ public class Arm {
         clawGrip = new nPriorityServo(
                 new Servo[] {robot.hardwareMap.get(Servo.class, "clawGrip")},
                 "clawGrip",
-                nPriorityServo.ServoType.AXON_MINI,
+                nPriorityServo.ServoType.HITEC,
                 0.0,
                 0.28,
                 0.001,

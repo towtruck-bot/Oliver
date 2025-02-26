@@ -10,8 +10,6 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.teamcode.sensors.Sensors;
 import org.firstinspires.ftc.teamcode.subsystems.deposit.Deposit;
 import org.firstinspires.ftc.teamcode.subsystems.drive.Drivetrain;
-import org.firstinspires.ftc.teamcode.subsystems.drive.OldDrivetrain;
-import org.firstinspires.ftc.teamcode.subsystems.drive.Spline;
 import org.firstinspires.ftc.teamcode.subsystems.hang.Hang;
 import org.firstinspires.ftc.teamcode.subsystems.intake.ClawIntake;
 import org.firstinspires.ftc.teamcode.subsystems.intake.Intake;
@@ -28,7 +26,7 @@ public class Robot {
     public final Sensors sensors;
     public final Drivetrain drivetrain;
     public final ClawIntake clawIntake;
-    public final Intake intake;
+    //public final Intake intake;
     public final Deposit deposit;
     public final Hang hang;
 
@@ -79,7 +77,7 @@ public class Robot {
 
         sensors = new Sensors(this);
         clawIntake = new ClawIntake(this);
-        intake = new Intake(this);
+        //intake = new Intake(this);
         drivetrain = new Drivetrain(this);
         deposit = new Deposit(this);
         hang = new Hang(this);

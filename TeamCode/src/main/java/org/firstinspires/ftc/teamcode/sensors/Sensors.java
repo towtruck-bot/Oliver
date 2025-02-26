@@ -2,18 +2,16 @@ package org.firstinspires.ftc.teamcode.sensors;
 
 import com.acmerobotics.dashboard.canvas.Canvas;
 import com.qualcomm.robotcore.hardware.AnalogInput;
-import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.utils.DashboardUtil;
 import org.firstinspires.ftc.teamcode.utils.Pose2d;
 import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
-import org.firstinspires.ftc.teamcode.utils.priority.HardwareQueue;
 import org.firstinspires.ftc.teamcode.utils.priority.PriorityMotor;
 
 public class Sensors {
-    private Robot robot;
-    private GoBildaPinpointDriver odometry;
+    private final Robot robot;
+    private final GoBildaPinpointDriver odometry;
 
     private double voltage;
     private double voltageUpdateTime = 5000;
@@ -46,8 +44,9 @@ public class Sensors {
 
         slidesEncoder = ((PriorityMotor) this.robot.hardwareQueue.getDevice("slidesMotor")).motor[0].getCurrentPosition();
         slidesVel = ((PriorityMotor) this.robot.hardwareQueue.getDevice("slidesMotor")).motor[0].getVelocity();
-        extendoEncoder = this.robot.intake.endAffector.intakeExtension.extendoMotor.motor[0].getCurrentPosition();
-        extendoVel = this.robot.intake.endAffector.intakeExtension.extendoMotor.motor[0].getVelocity();
+        extendoEncoder = this.robot.clawIntake.intakeExtensionMotor.motor[0].getCurrentPosition();
+        //extendoEncoder = this.robot.intake.endAffector.intakeExtension.extendoMotor.motor[0].getCurrentPosition();
+        //extendoVel = this.robot.intake.endAffector.intakeExtension.extendoMotor.motor[0].getVelocity();
 
         if (System.currentTimeMillis() - lastVoltageUpdatedTime > voltageUpdateTime) {
             voltage = this.robot.hardwareMap.voltageSensor.iterator().next().getVoltage();

@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode.subsystems.intake;
 
-import android.renderscript.RenderScript;
 import android.util.Log;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -15,14 +14,6 @@ import org.firstinspires.ftc.teamcode.utils.Utils;
 import org.firstinspires.ftc.teamcode.utils.priority.PriorityMotor;
 
 public class Extendo {
-    public static double maxVel = 1.6528571428571428;
-    public static double kP = 2;
-    public static double kA = 20;
-    public static double kStatic = 0.05;
-    public static double minPower = 0.19;
-    public static double minPowerThresh = 0.5;
-    public static double forceDownPower = -0.45;
-    public static double forceDownThresh = 5;
     public static double maxExtendoLength = 27.0;
 
     private Robot robot;
@@ -32,7 +23,7 @@ public class Extendo {
     private double extendoCurrentPos;
     private double targetLength = 0.0;
     public static PID extendoPID = new PID(0.15, 0.05, 0.008);
-    public static double tollerance = 0.6;
+    public static double tollerance = 0.4;
     public static double slidesForcePullPow = -0.2;
 
     public Extendo(Robot robot){

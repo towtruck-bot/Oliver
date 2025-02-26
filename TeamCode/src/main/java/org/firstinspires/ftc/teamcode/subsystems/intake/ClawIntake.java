@@ -30,7 +30,7 @@ public class ClawIntake {
     private double extendoCurrentPos;
 
     public static PID extendoPID = new PID(0.15, 0.05, 0.008);
-    public static double slidesTolerance = 0.6;
+    public static double slidesTolerance = 0.4;
     public static double slidesForcePullPow = -0.2;
 
     public static double intakeHoverAngle = -1.35;
@@ -78,7 +78,7 @@ public class ClawIntake {
                 new Servo[] {robot.hardwareMap.get(Servo.class, "intakeFlipServo")},
                 "intakeFlipServo",
                 nPriorityServo.ServoType.HITEC,
-                0, 1, 0.69,
+                0.0, 0.69, 0.69,
                 new boolean[] {false},
                 1.0, 5.0
         );

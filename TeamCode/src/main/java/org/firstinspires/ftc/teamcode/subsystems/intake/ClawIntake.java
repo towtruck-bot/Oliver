@@ -268,6 +268,7 @@ public class ClawIntake {
         TelemetryUtil.packet.put("ClawIntake.extendoTargetPos", this.extendoTargetPos);
         TelemetryUtil.packet.put("ClawIntake.extendoCurrentPos", this.extendoCurrentPos);
         TelemetryUtil.packet.put("ClawIntake State", this.clawIntakeState);
+        TelemetryUtil.packet.put("ClawIntake Disable", this.clawIntakeState);
     }
 
     public boolean isExtensionAtTarget() {

@@ -52,7 +52,7 @@ public class Deposit {
     // y is measured from slides 0
 
     // prepare for transfer positions
-    public static double intakeWaitRad = 0.35, intakeWaitClawRad = -1.5, intakeWaitY = 0.0;
+    public static double intakeWaitRad = 0.65, intakeWaitClawRad = -1.65, intakeWaitY = 0.0;
     // transfer positions, move in to grab
     public static double intakeRad = 0.0, intakeY = 0.0, intakeClawRad = -1.65;
     // moving positions with a sample

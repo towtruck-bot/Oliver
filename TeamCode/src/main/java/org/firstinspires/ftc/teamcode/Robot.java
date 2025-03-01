@@ -341,6 +341,8 @@ public class Robot {
         TelemetryUtil.packet.put("Robot.prevState1", this.prevState1.toString());
         TelemetryUtil.packet.put("Robot.prevState", this.prevState.toString());
         TelemetryUtil.packet.put("Robot.nextState", this.nextState.toString());
+        TelemetryUtil.packet.put("Globals::RUNMODE", Globals.RUNMODE);
+        TelemetryUtil.packet.put("Globals::TESTING_DISABLE_CONTROL", Globals.TESTING_DISABLE_CONTROL);
         TelemetryUtil.packet.put("Loop Time", GET_LOOP_TIME());
         TelemetryUtil.sendTelemetry();
     }

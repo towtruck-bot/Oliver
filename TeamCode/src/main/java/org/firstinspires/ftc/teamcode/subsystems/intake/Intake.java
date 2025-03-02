@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode.subsystems.intake;
 
 import org.firstinspires.ftc.teamcode.Robot;
-import org.firstinspires.ftc.teamcode.utils.Globals;
 import org.firstinspires.ftc.teamcode.utils.Utils;
 
 public class Intake {
@@ -108,10 +107,15 @@ public class Intake {
         }
     }
 
+
     public void extend(){
         if(intakeState == IntakeState.READY || intakeState == IntakeState.HOLD){
             intakeState = IntakeState.START_EXTEND;
         }
+    }
+
+    public void retract(){
+    intakeState = IntakeState.RETRACT;
     }
 
     public void release(){
@@ -121,14 +125,12 @@ public class Intake {
         }
     }
 
-    public void setClawRotation(double angle) {
-        if (angle > 1.7) angle = -1.7;
-        else if (angle < -1.7) angle = 1.7;
-        targetRotation = angle;
-    }
-
     public boolean isExtended(){
         return intakeState == IntakeState.ALIGN || intakeState == IntakeState.LOWER || intakeState == IntakeState.FINISH_GRAB || intakeState == IntakeState.CONFIRM;
+    }
+
+    public boolean isRetracted() {
+        return (intakeState == IntakeState.HOLD || intakeState == IntakeState.READY) && endAffector.flipInPosition();
     }
 
     public boolean hasSample(){
@@ -139,9 +141,23 @@ public class Intake {
         return intakeState == IntakeState.CONFIRM;
     }
 
-    public void setIntakeExtension(double te, double tr){
+    public void setIntakeExtensionAndClawRotation(double te, double tr){
         targetLength = Utils.minMaxClip(te, 0, 27.0);
         targetRotation = tr;
+    }
+
+    public void setIntakeExtension(double te){
+        targetLength = Utils.minMaxClip(te, 0, 27.0);
+    }
+
+    public void setClawRotation(double angle) {
+        if (angle > 1.7) angle = -1.7;
+        else if (angle < -1.7) angle = 1.7;
+        targetRotation = angle;
+    }
+
+    public double getClawRot(){
+        return endAffector.getClawRot();
     }
 
     public double getIntakeTargetLength(){

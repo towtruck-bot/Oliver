@@ -77,7 +77,7 @@ public class SamplePreloadBlueAuto extends LinearOpMode {
     public void moveToBelowBucket() {
         // robot current state, SAMPLE_READY
         robot.goToPoint(new Pose2d(55, 55, 5 * Math.PI/4), null, false, false, false, 0.8);
-        robot.waitWhile(() -> !robot.clawIntake.isRetracted());
+        robot.waitWhile(() -> !robot.intake.isRetracted());
 
         // raise slides
         robot.updateDepositHeights(false, true);

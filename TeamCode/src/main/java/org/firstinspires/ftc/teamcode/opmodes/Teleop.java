@@ -82,16 +82,16 @@ public class Teleop extends LinearOpMode {
                 }
             }
 
-            if (robot.clawIntake.isExtended()) {
+            if (robot.intake.isExtended()) {
                 rb_1.isClicked(gamepad1.right_bumper);
                 lt_1.isClicked(gamepad1.left_trigger > triggerThresh);
-                robot.clawIntake.grab(gamepad1.right_bumper);
-                robot.clawIntake.setClawRotation(robot.clawIntake.getClawRotAngle() + intakeClawRotationInc * (gamepad1.right_trigger - gamepad1.left_trigger));
+                robot.intake.grab(gamepad1.right_bumper);
+                robot.intake.setClawRotation(robot.intake.getClawRot() + intakeClawRotationInc * (gamepad1.right_trigger - gamepad1.left_trigger));
             } else {
                 if (rb_1.isClicked(gamepad1.right_bumper)) robot.setNextState(Robot.NextState.DEPOSIT);
 
                 // neil says he never uses this during teleop, and its not in the control diagram he gave us??? not sure why this is here
-                if (lt_1.isClicked(gamepad1.left_trigger > triggerThresh) && robot.clawIntake.isRetracted()) robot.setNextState(Robot.NextState.DONE);
+                if (lt_1.isClicked(gamepad1.left_trigger > triggerThresh) && robot.intake.isRetracted()) robot.setNextState(Robot.NextState.DONE);
             }
 
             if (robotState == Robot.RobotState.DEPOSIT_BUCKET || robotState == Robot.RobotState.DEPOSIT_SPECIMEN) {
@@ -99,12 +99,12 @@ public class Teleop extends LinearOpMode {
                 robot.deposit.setDepositHeight(robot.deposit.getDepositHeight() + slidesInc * slidesControl1);
             } else if (robotState == Robot.RobotState.INTAKE_SAMPLE) {
                 double intakeControl1 = robot.drivetrain.smoothControls(-gamepad1.right_stick_y);
-                robot.clawIntake.setIntakeTargetPos(robot.clawIntake.getIntakeTargetPos() + extendoInc * intakeControl1);
+                robot.intake.setIntakeExtension(robot.intake.getIntakeTargetLength() + extendoInc * intakeControl1);
             }
 
             if (rsb_1.isClicked(gamepad1.right_stick_button)) {
                 robot.deposit.slides.resetSlidesEncoders();
-                robot.clawIntake.resetExtendoEncoders();
+                robot.intake.endAffector.intakeExtension.resetExtendoEncoders();
             }
 
             if (lsb_1.isClicked(gamepad1.left_stick_button)) {
@@ -112,7 +112,7 @@ public class Teleop extends LinearOpMode {
             }
 
             // Driving
-            robot.drivetrain.slow = robot.clawIntake.isExtended();
+            robot.drivetrain.slow = robot.intake.isExtended();
             robot.drivetrain.drive(gamepad1);
 
             // Driver 2
@@ -136,7 +136,7 @@ public class Teleop extends LinearOpMode {
             // Increment/Decrement Intake Slides
             // Up --> increase, Down --> decrease on right joystick
             double intakeControl2 = robot.drivetrain.smoothControls(-gamepad2.right_stick_y);
-            robot.clawIntake.setIntakeTargetPos(robot.clawIntake.getIntakeTargetPos() + extendoInc * intakeControl2);
+            robot.intake.setIntakeExtension(robot.intake.getIntakeTargetLength() + extendoInc * intakeControl2);
 
             // Increment/Decrement Deposit Slides
             // Up --> increase, Down --> decrease on left joystick
@@ -160,8 +160,8 @@ public class Teleop extends LinearOpMode {
 
             telemetry.addData("speciMode", speciMode);
             telemetry.addData("high", high);
-            telemetry.addData("Intake target pos", robot.clawIntake.getIntakeTargetPos());
-            telemetry.addData("Intake claw rotation", robot.clawIntake.getClawRotAngle());
+            telemetry.addData("Intake target pos", robot.intake.getIntakeTargetLength());
+            telemetry.addData("Intake claw rotation", robot.intake.getClawRot());
             telemetry.addData("deposit height", robot.deposit.getDepositHeight());
             telemetry.addData("isRed", Globals.isRed);
             telemetry.addData("robotState", robotState);

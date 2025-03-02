@@ -117,7 +117,7 @@ public class Deposit {
                 arm.speciClose();
 
                 if(arm.clawFinished()){
-                    robot.clawIntake.release();
+                    robot.intake.release();
                     state = State.TRANSFER_FINISH;
                 }
                 break;

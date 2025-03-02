@@ -95,6 +95,14 @@ public class EndAffector {
         closed = true;
     }
 
+    public double getClawRot(){
+        return clawRotation.getCurrentAngle();
+    }
+
+    public double getExtension(){
+        return intakeExtension.getLength();
+    }
+
     public void open(){
         claw.setTargetAngle(clawOpenAngle, 1.0);
         closed = false;
@@ -103,7 +111,6 @@ public class EndAffector {
     public boolean isClosed(){
         return closed && claw.inPosition();
     }
-
 
     public boolean inPosition(){
         return intakeExtension.inPosition() && flipServo.inPosition() && clawRotation.inPosition();

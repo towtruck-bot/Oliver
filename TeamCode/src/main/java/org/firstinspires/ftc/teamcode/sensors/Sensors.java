@@ -42,14 +42,12 @@ public class Sensors {
     public void update(){
         odometry.update();
 
-        slidesEncoder = ((PriorityMotor) this.robot.hardwareQueue.getDevice("slidesMotor")).motor[0].getCurrentPosition();
-        slidesVel = ((PriorityMotor) this.robot.hardwareQueue.getDevice("slidesMotor")).motor[0].getVelocity();
-        extendoEncoder = this.robot.clawIntake.intakeExtensionMotor.motor[0].getCurrentPosition();
-        //extendoEncoder = this.robot.intake.endAffector.intakeExtension.extendoMotor.motor[0].getCurrentPosition();
-        //extendoVel = this.robot.intake.endAffector.intakeExtension.extendoMotor.motor[0].getVelocity();
+        slidesEncoder = ((PriorityMotor) robot.hardwareQueue.getDevice("slidesMotor")).motor[0].getCurrentPosition();
+        slidesVel = ((PriorityMotor) robot.hardwareQueue.getDevice("slidesMotor")).motor[0].getVelocity();
+        extendoEncoder = ((PriorityMotor) robot.hardwareQueue.getDevice("intakeExtensionMotor")).motor[0].getCurrentPosition();
 
         if (System.currentTimeMillis() - lastVoltageUpdatedTime > voltageUpdateTime) {
-            voltage = this.robot.hardwareMap.voltageSensor.iterator().next().getVoltage();
+            voltage = robot.hardwareMap.voltageSensor.iterator().next().getVoltage();
             lastVoltageUpdatedTime = System.currentTimeMillis() ;
         }
 

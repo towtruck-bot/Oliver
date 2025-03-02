@@ -107,7 +107,6 @@ public class Intake {
         }
     }
 
-
     public void extend(){
         if(intakeState == IntakeState.READY || intakeState == IntakeState.HOLD){
             intakeState = IntakeState.START_EXTEND;
@@ -118,6 +117,15 @@ public class Intake {
     intakeState = IntakeState.RETRACT;
     }
 
+
+    public void grab(boolean g){
+        close = g;
+    }
+
+    public boolean grabFinished(){
+        return intakeState == IntakeState.CONFIRM;
+    }
+
     public void release(){
         if(intakeState == IntakeState.HOLD){
             intakeState = IntakeState.READY;
@@ -125,20 +133,8 @@ public class Intake {
         }
     }
 
-    public boolean isExtended(){
-        return intakeState == IntakeState.ALIGN || intakeState == IntakeState.LOWER || intakeState == IntakeState.FINISH_GRAB || intakeState == IntakeState.CONFIRM;
-    }
-
-    public boolean isRetracted() {
-        return (intakeState == IntakeState.HOLD || intakeState == IntakeState.READY) && endAffector.flipInPosition();
-    }
-
     public boolean hasSample(){
         return close;
-    }
-
-    public boolean grabFinished(){
-        return intakeState == IntakeState.CONFIRM;
     }
 
     public void setIntakeExtensionAndClawRotation(double te, double tr){
@@ -157,18 +153,18 @@ public class Intake {
     }
 
     public double getClawRot(){
-        return endAffector.getClawRot();
+        return targetRotation;
     }
 
     public double getIntakeTargetLength(){
         return targetLength;
     }
 
-    public double getIntakeRotation(){
-        return targetRotation;
+    public boolean isExtended(){
+        return intakeState == IntakeState.ALIGN || intakeState == IntakeState.LOWER || intakeState == IntakeState.FINISH_GRAB || intakeState == IntakeState.CONFIRM;
     }
 
-    public void grab(boolean g){
-        close = g;
+    public boolean isRetracted() {
+        return (intakeState == IntakeState.HOLD || intakeState == IntakeState.READY) && endAffector.flipInPosition();
     }
 }

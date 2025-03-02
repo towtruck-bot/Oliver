@@ -43,9 +43,9 @@ public class RobotTester extends LinearOpMode {
             if (button_x.isClicked(gamepad1.x))
                 robot.setNextState(Robot.NextState.DONE);
 
-            if (robot.intake.isExtended()) {
-                robot.intake.grab(gamepad1.right_bumper);
-            } else if (robot.intake.isRetracted()) {
+            if (robot.clawIntake.isExtended()) {
+                robot.clawIntake.grab(gamepad1.right_bumper);
+            } else if (robot.clawIntake.isRetracted()) {
                 if (rb_1.isClicked(gamepad1.right_bumper)) {
                     robot.setNextState(Robot.NextState.DEPOSIT);
                 }
@@ -60,23 +60,23 @@ public class RobotTester extends LinearOpMode {
             }
 
             if (gamepad1.dpad_left)
-                robot.intake.setIntakeExtension(robot.intake.getIntakeTargetLength() + extendoInc);
+                robot.clawIntake.setIntakeTargetPos(robot.clawIntake.getIntakeTargetPos() + extendoInc);
             if (gamepad1.dpad_right)
-                robot.intake.setIntakeExtension(robot.intake.getIntakeTargetLength() - extendoInc);
+                robot.clawIntake.setIntakeTargetPos(robot.clawIntake.getIntakeTargetPos() - extendoInc);
             if (gamepad1.dpad_up)
                 robot.deposit.setDepositHeight(robot.deposit.getDepositHeight() + slidesInc);
             if (gamepad1.dpad_down)
                 robot.deposit.setDepositHeight(robot.deposit.getDepositHeight() - slidesInc);
 
             double intakeControl1 = robot.drivetrain.smoothControls(-gamepad1.right_stick_y);
-            robot.intake.setIntakeExtension(robot.intake.getIntakeTargetLength() + extendoInc * intakeControl1);
-            robot.intake.setClawRotation(robot.intake.getIntakeTargetLength() + intakeClawRotationInc * (gamepad1.right_trigger - gamepad1.left_trigger));
+            robot.clawIntake.setIntakeTargetPos(robot.clawIntake.getIntakeTargetPos() + extendoInc * intakeControl1);
+            robot.clawIntake.setClawRotation(robot.clawIntake.getIntakeTargetPos() + intakeClawRotationInc * (gamepad1.right_trigger - gamepad1.left_trigger));
 
             robot.update();
 
             telemetry.addData("robot state", robot.getState());
-            telemetry.addData("intake target pos", robot.intake.getIntakeTargetLength());
-            telemetry.addData("intake claw rotation", robot.intake.getClawRot());
+            telemetry.addData("intake target pos", robot.clawIntake.getIntakeTargetPos());
+            telemetry.addData("intake claw rotation", robot.clawIntake.getClawRotAngle());
             telemetry.addData("deposit height", robot.deposit.getDepositHeight());
             telemetry.update();
         }

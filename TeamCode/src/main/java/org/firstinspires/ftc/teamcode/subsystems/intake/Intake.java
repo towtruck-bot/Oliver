@@ -35,6 +35,8 @@ public class Intake {
 
         endAffector = new EndAffector(robot);
         close = false;
+        targetRotation = intakeFlipBackAngle;
+        targetLength = 0.0;
     }
 
     public void update(){
@@ -42,14 +44,15 @@ public class Intake {
 
         switch(intakeState){
             case START_EXTEND:
-                endAffector.extendManual(0.0, intakeFlipUpAngle, targetRotation);
+                endAffector.extend(0.0, intakeFlipUpAngle, targetRotation);
                 endAffector.open();
                 if(endAffector.flipInPosition()){
                     intakeState = IntakeState.FINISH_EXTEND;
+                    targetLength = targetLength == 0 ? 15.0 : targetLength;
                 }
                 break;
             case FINISH_EXTEND:
-                endAffector.extendManual(targetLength, intakeHoverAngle, targetRotation);
+                endAffector.extend(targetLength, intakeHoverAngle, targetRotation);
                 endAffector.open();
                 if(endAffector.extendoInPosition()){
                     intakeState = IntakeState.ALIGN;
@@ -57,34 +60,35 @@ public class Intake {
                 }
                 break;
             case ALIGN:
-                endAffector.extendManual(targetLength, intakeHoverAngle, targetRotation);
+                endAffector.extend(targetLength, intakeHoverAngle, targetRotation);
                 endAffector.open();
                 if(close && endAffector.rotInPosition()){
                     intakeState = IntakeState.LOWER;
                 }
             case LOWER:
-                endAffector.extendManual(targetLength, intakeFlipGrabAngle, targetRotation);
+                endAffector.extend(targetLength, intakeFlipGrabAngle, targetRotation);
                 endAffector.open();
                 if(endAffector.flipInPosition()){
                     intakeState = IntakeState.FINISH_GRAB;
                 }
                 break;
             case FINISH_GRAB:
-                endAffector.extendManual(targetLength, intakeFlipGrabAngle, targetRotation);
+                endAffector.extend(targetLength, intakeFlipGrabAngle, targetRotation);
                 endAffector.grab();
                 if(endAffector.isClosed()){
                     intakeState = IntakeState.CONFIRM;
                 }
                 break;
             case CONFIRM:
-                endAffector.extendManual(targetLength, intakeFlipConfirmAngle, targetRotation);
+                endAffector.extend(targetLength, intakeFlipConfirmAngle, targetRotation);
                 endAffector.grab();
                 if(!close){
                     intakeState = IntakeState.ALIGN;
                 }
                 break;
             case RETRACT:
-                endAffector.extendManual(0.0, intakeFlipUpAngle, 0.0);
+                targetLength = 0.0;
+                endAffector.extend(targetLength, intakeFlipUpAngle, 0.0);
                 if(close){
                     endAffector.grab();
                 }else{
@@ -92,16 +96,16 @@ public class Intake {
                 }
 
                 if(endAffector.inPosition()){
-                    endAffector.extendManual(0.0, intakeFlipUpAngle, 0.0);
+                    endAffector.extend(0.0, intakeFlipUpAngle, 0.0);
                     intakeState = close ? IntakeState.HOLD : IntakeState.READY;
                 }
                 break;
             case HOLD:
-                endAffector.extendManual(0.0, intakeFlipUpAngle, 0.0);
+                endAffector.extend(0.0, intakeFlipUpAngle, 0.0);
                 endAffector.grab();
                 break;
             case READY:
-                endAffector.extendManual(0.0, intakeFlipUpAngle, 0.0);
+                endAffector.extend(0.0, intakeFlipUpAngle, 0.0);
                 endAffector.open();
                 break;
         }
@@ -135,11 +139,6 @@ public class Intake {
 
     public boolean hasSample(){
         return close;
-    }
-
-    public void setIntakeExtensionAndClawRotation(double te, double tr){
-        targetLength = Utils.minMaxClip(te, 0, 27.0);
-        targetRotation = tr;
     }
 
     public void setIntakeExtension(double te){

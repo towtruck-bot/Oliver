@@ -204,7 +204,7 @@ public class Drivetrain {
         double dy = targetPoint.y - curr.y;
 
         targetPoint.heading = Math.atan2(dy, dx) - Math.signum(dy) == -1 ? Math.PI : 0;
-        robot.intake.setClawRotation(3 * Math.PI / 2 - targetPoint.heading);
+        robot.clawIntake.setClawRotation(3 * Math.PI / 2 - targetPoint.heading);
     }
 
     private double maxPower;

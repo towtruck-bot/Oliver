@@ -15,7 +15,7 @@ public class Arm {
     public final nPriorityServo clawRotation;
     public final nPriorityServo clawGrip;
 
-    public static double sampleOpenRad = 1, sampleCloseRad = 0.55, speciOpenRad = 0.7, speciCloseRad = 0.01;
+    public static double sampleOpenRad = 1, sampleCloseRad = 0.35, speciOpenRad = 0.7, speciCloseRad = 0.055;
     public final double armLength = 5.905314961;
 
     public Arm(Robot robot){
@@ -91,6 +91,6 @@ public class Arm {
     }
 
     public boolean clawFinished(){
-        return clawGrip.inPosition();
+        return clawGrip.inPosition(0.005);
     }
 }

@@ -5,7 +5,6 @@ import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.utils.Globals;
 import org.firstinspires.ftc.teamcode.utils.priority.nPriorityServo;
-import org.firstinspires.ftc.teamcode.utils.priority.PriorityMotor;
 
 public class EndAffector {
     private Robot robot;
@@ -77,17 +76,10 @@ public class EndAffector {
         intakeExtension.update();
     }
 
-    public void extendManual(double extension, double flip, double rotation){
+    public void extend(double extension, double flip, double rotation){
         intakeExtension.setTargetLength(extension);
         flipServo.setTargetAngle(flip, 1.0);
         clawRotation.setTargetAngle(rotation, 1.0);
-    }
-
-    public void extendTarget(double flip){
-        intakeExtension.setTargetLength(robot.drivetrain.getExtension());
-        flipServo.setTargetAngle(flip, 1.0);
-        // TODO: Verify this v
-        clawRotation.setTargetAngle(3 * Math.PI / 2 - robot.drivetrain.getOptimalHeading());
     }
 
     public void grab(){

@@ -54,7 +54,7 @@ public class Deposit {
     // prepare for transfer positions
     public static double intakeWaitRad = 0.65, intakeWaitClawRad = -1.65, intakeWaitY = 0.0;
     // transfer positions, move in to grab
-    public static double intakeRad = 0.0, intakeY = 0.0, intakeClawRad = -1.65;
+    public static double intakeRad = -0.02, intakeY = 0.0, intakeClawRad = -1.23;
     // moving positions with a sample
     public static double sampleHoldRad = 0.35, holdY = 0.0, sampleHoldClawRad = -2;
     public static double specimenGrabRad = 0.0, specimenGrabClawRad = 0.0, specimenConfirmRad = 0.8, specimenConfirmClawRad = -0.5;
@@ -82,6 +82,9 @@ public class Deposit {
         state = Globals.hasSpecimenPreload ? State.GRAB_HOLD : Globals.hasSamplePreload ? State.HOLD : State.RETRACT;
     }
 
+    long time;
+    public static double bufferThresh = 180;
+
     public void update(){
         this.currentTime = System.nanoTime();
 
@@ -108,6 +111,8 @@ public class Deposit {
 
                 if(arm.inPosition() && slides.inPosition(0.7)){ // Need to figure out this threshold better
                     state = State.TRANSFER_CLOSE;
+                    arm.speciClose();
+                    time = System.currentTimeMillis();
                 }
                 break;
             case TRANSFER_CLOSE:
@@ -116,14 +121,15 @@ public class Deposit {
 
                 arm.speciClose();
 
-                if(arm.clawFinished()){
-                    robot.intake.release();
+                if(arm.clawFinished() && System.currentTimeMillis() - time > bufferThresh){
                     state = State.TRANSFER_FINISH;
+                    robot.clawIntake.release();
                 }
                 break;
             case TRANSFER_FINISH:
                 moveToWithRad(sampleHoldRad, holdY);
                 arm.setClawRotation(sampleHoldClawRad, 1.0);
+                arm.speciClose();
 
                 if(arm.inPosition()){
                     state = State.HOLD;
@@ -389,5 +395,12 @@ public class Deposit {
         Log.i("funny stuffs", "Current: " + arm.armRotation.getCurrentAngle());
         Log.i("funny stuffs", "Target: " + arm.armRotation.getTargetAngle());
         return state == State.IDLE;
+    }
+
+    public void buffer(long duration) {
+        long start = System.currentTimeMillis();
+        do {
+            update();
+        } while (System.currentTimeMillis() - start < duration);
     }
 }

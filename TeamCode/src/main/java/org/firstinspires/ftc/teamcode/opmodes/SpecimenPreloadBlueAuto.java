@@ -103,12 +103,12 @@ public class SpecimenPreloadBlueAuto extends LinearOpMode {
         robot.setNextState(Robot.NextState.INTAKE_SAMPLE);
         robot.setIntakeExtension(robot.drivetrain.getExtension());
 
-        robot.waitWhile(() -> !robot.intake.isExtended());
+        robot.waitWhile(() -> !robot.clawIntake.isExtended());
 
         robot.waitFor(50);
 
         robot.grab(true);
-        robot.waitWhile(() -> !robot.intake.grabFinished());
+        robot.waitWhile(() -> !robot.clawIntake.grabFinished());
 
         robot.setNextState(Robot.NextState.DONE);
     }
@@ -119,7 +119,7 @@ public class SpecimenPreloadBlueAuto extends LinearOpMode {
         robot.setNextState(Robot.NextState.INTAKE_SAMPLE);
         robot.setIntakeExtension(robot.drivetrain.getExtension());
 
-        robot.waitWhile(() -> !robot.intake.isExtended());
+        robot.waitWhile(() -> !robot.clawIntake.isExtended());
 
         robot.waitFor(50);
 

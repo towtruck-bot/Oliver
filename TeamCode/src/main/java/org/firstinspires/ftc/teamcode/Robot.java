@@ -25,8 +25,8 @@ public class Robot {
     public final HardwareQueue hardwareQueue;
     public final Sensors sensors;
     public final Drivetrain drivetrain;
-    // public final ClawIntake clawIntake;
-    public final Intake intake;
+    public final ClawIntake clawIntake;
+    // public final Intake intake;
     public final Deposit deposit;
     public final Hang hang;
 
@@ -76,8 +76,8 @@ public class Robot {
         }
 
         sensors = new Sensors(this);
-        // clawIntake = new ClawIntake(this);
-        intake = new Intake(this);
+        clawIntake = new ClawIntake(this);
+        // intake = new Intake(this);
         drivetrain = new Drivetrain(this);
         deposit = new Deposit(this);
         hang = new Hang(this);
@@ -94,8 +94,8 @@ public class Robot {
     private void updateSubsystems() {
         this.sensors.update();
 
-        //this.clawIntake.update();
-        intake.update();
+        this.clawIntake.update();
+        // intake.update();
         this.drivetrain.update();
         this.deposit.update();
         this.hang.update();
@@ -136,14 +136,14 @@ public class Robot {
                 break;
             case INTAKE_SAMPLE:
                 if (this.prevState != RobotState.INTAKE_SAMPLE) {
-                    this.intake.extend();
+                    this.clawIntake.extend();
                     this.deposit.prepareTransfer();
                 }
-                if (this.intake.isRetracted()) {
-                    if (this.intake.hasSample()) this.state = RobotState.SAMPLE_READY;
+                if (this.clawIntake.isRetracted()) {
+                    if (this.clawIntake.hasSample()) this.state = RobotState.SAMPLE_READY;
                     else this.state = RobotState.IDLE;
                 } else if ((wasClicked) && this.nextState == NextState.DONE) {
-                    this.intake.retract();
+                    this.clawIntake.retract();
                     this.lastClickTime = -1;
                 }
                 break;
@@ -330,11 +330,11 @@ public class Robot {
 //    }
 
     public void setIntakeExtension(double target){
-        intake.setIntakeExtension(target);
+        clawIntake.setIntakeTargetPos(target);
     }
 
     public void grab(boolean closed){
-        intake.grab(closed);
+        clawIntake.grab(closed);
     }
 
     private void updateTelemetry() {

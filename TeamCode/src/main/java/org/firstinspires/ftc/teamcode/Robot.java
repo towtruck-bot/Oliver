@@ -26,7 +26,7 @@ public class Robot {
     public final Sensors sensors;
     public final Drivetrain drivetrain;
     public final ClawIntake clawIntake;
-    //public final Intake intake;
+    public final Intake intake;
     public final Deposit deposit;
     public final Hang hang;
 
@@ -77,7 +77,7 @@ public class Robot {
 
         sensors = new Sensors(this);
         clawIntake = new ClawIntake(this);
-        //intake = new Intake(this);
+        intake = new Intake(this);
         drivetrain = new Drivetrain(this);
         deposit = new Deposit(this);
         hang = new Hang(this);

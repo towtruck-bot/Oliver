@@ -118,12 +118,15 @@ public class Intake {
     }
 
     public void retract(){
-    intakeState = IntakeState.RETRACT;
+        intakeState = IntakeState.RETRACT;
     }
-
 
     public void grab(boolean g){
         close = g;
+    }
+
+    public boolean hasSample(){
+        return close;
     }
 
     public boolean grabFinished(){
@@ -137,12 +140,12 @@ public class Intake {
         }
     }
 
-    public boolean hasSample(){
-        return close;
+    public void setIntakeTargetPos(double te){
+        targetLength = Utils.minMaxClip(te, 0, 27.0);
     }
 
-    public void setIntakeExtension(double te){
-        targetLength = Utils.minMaxClip(te, 0, 27.0);
+    public double getIntakeTargetPos(){
+        return targetLength;
     }
 
     public void setClawRotation(double angle) {
@@ -151,12 +154,8 @@ public class Intake {
         targetRotation = angle;
     }
 
-    public double getClawRot(){
+    public double getClawRotAngle(){
         return targetRotation;
-    }
-
-    public double getIntakeTargetLength(){
-        return targetLength;
     }
 
     public boolean isExtended(){

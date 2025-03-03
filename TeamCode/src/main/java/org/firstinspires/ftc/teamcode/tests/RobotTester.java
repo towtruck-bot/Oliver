@@ -70,7 +70,7 @@ public class RobotTester extends LinearOpMode {
 
             double intakeControl1 = robot.drivetrain.smoothControls(-gamepad1.right_stick_y);
             robot.clawIntake.setIntakeTargetPos(robot.clawIntake.getIntakeTargetPos() + extendoInc * intakeControl1);
-            robot.clawIntake.setClawRotation(robot.clawIntake.getClawRotAngle() + intakeClawRotationInc * (gamepad1.right_trigger - gamepad1.left_trigger));
+            robot.clawIntake.setClawRotation(robot.clawIntake.getIntakeTargetPos() + intakeClawRotationInc * (gamepad1.right_trigger - gamepad1.left_trigger));
 
             robot.update();
 

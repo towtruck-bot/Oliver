@@ -88,7 +88,8 @@ public class Teleop extends LinearOpMode {
                 robot.clawIntake.grab(gamepad1.right_bumper);
                 robot.clawIntake.setClawRotation(robot.clawIntake.getClawRotAngle() + intakeClawRotationInc * (gamepad1.right_trigger - gamepad1.left_trigger));
             } else {
-                if (rb_1.isClicked(gamepad1.right_bumper)) robot.setNextState(Robot.NextState.DEPOSIT);
+                if (rb_1.isClicked(gamepad1.right_bumper))
+                    robot.setNextState(Robot.NextState.DEPOSIT);
 
                 // neil says he never uses this during teleop, and its not in the control diagram he gave us??? not sure why this is here
                 if (lt_1.isClicked(gamepad1.left_trigger > triggerThresh) && robot.clawIntake.isRetracted()) robot.setNextState(Robot.NextState.DONE);

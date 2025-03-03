@@ -75,28 +75,20 @@ public class EndAffector {
         intakeExtension.update();
     }
 
-    public void extendManual(double extension, double flip, double rotation) {
+    public void extend(double extension, double flip, double rotation) {
         intakeExtension.setTargetLength(extension);
         flipServo.setTargetAngle(flip, 1.0);
         clawRotation.setTargetAngle(rotation, 1.0);
     }
 
-    public void extendTarget(double flip){
-        intakeExtension.setTargetLength(robot.drivetrain.getExtension());
-        flipServo.setTargetAngle(flip, 1.0);
-        // TODO: Verify this v
-        clawRotation.setTargetAngle(3 * Math.PI / 2 - robot.drivetrain.getOptimalHeading());
-    }
-
-    public void setClawState(boolean closed) {
-        this.closed = closed;
-        this.claw.setTargetAngle(this.closed ? clawCloseAngle : clawOpenAngle, 1.0);
+	public void setClawState(boolean closed) {
+		this.closed = closed;
+		this.claw.setTargetAngle(this.closed ? clawCloseAngle : clawOpenAngle, 1.0);
     }
 
     public boolean isClosed(){
         return closed && claw.inPosition();
     }
-
 
     public boolean inPosition(){
         return intakeExtension.inPosition() && flipServo.inPosition() && clawRotation.inPosition();

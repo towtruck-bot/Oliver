@@ -70,6 +70,8 @@ public class Deposit {
     private long currentTime = -1;
     private long sampleReleaseTime = -1;
     public static long sampleReleaseDuration = 300;
+    private long grabStartTime = -1;
+    public static long transferBufferDuration = 200;
 
     private boolean high = true;
 
@@ -109,22 +111,24 @@ public class Deposit {
 
                 if(arm.inPosition() && slides.inPosition(0.7)){ // Need to figure out this threshold better
                     state = State.TRANSFER_CLOSE;
+                    arm.speciClose();
+                    this.grabStartTime = this.currentTime;
                 }
                 break;
             case TRANSFER_CLOSE:
                 moveToWithRad(intakeRad, intakeY);
                 arm.setClawRotation(intakeClawRad, 1.0);
-
                 arm.speciClose();
 
-                if(arm.clawFinished()){
-                    robot.clawIntake.release();
+                if (arm.clawFinished() && this.currentTime - this.grabStartTime >= transferBufferDuration * 1e6) {
                     state = State.TRANSFER_FINISH;
+                    robot.clawIntake.release();
                 }
                 break;
             case TRANSFER_FINISH:
                 moveToWithRad(sampleHoldRad, holdY);
                 arm.setClawRotation(sampleHoldClawRad, 1.0);
+                arm.speciClose();
 
                 if(arm.inPosition()){
                     state = State.HOLD;
@@ -153,7 +157,9 @@ public class Deposit {
                 arm.setClawRotation(sampleClawRad, 1.0);
                 arm.sampleOpen();
 
-                if (arm.clawFinished() && currentTime >= this.sampleReleaseTime + sampleReleaseDuration * 1e6) state = State.SAMPLE_FINISH;
+                if (arm.clawFinished() && this.currentTime >= this.sampleReleaseTime + sampleReleaseDuration * 1e6) {
+                    state = State.SAMPLE_FINISH;
+                }
                 break;
             case SAMPLE_FINISH:
                 moveToWithRad(0, targetY);

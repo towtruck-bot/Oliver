@@ -204,6 +204,7 @@ public class Drivetrain {
         double dy = targetPoint.y - curr.y;
 
         targetPoint.heading = Math.atan2(dy, dx) - Math.signum(dy) == -1 ? Math.PI : 0;
+        robot.clawIntake.setClawRotation(3 * Math.PI / 2 - targetPoint.heading);
     }
 
     private double maxPower;
@@ -218,8 +219,7 @@ public class Drivetrain {
     public static double yThreshold = 2.0;
     public static double turnThreshold = 4;
 
-    public static double xEAThreshold = 16.0;
-    public static double yEAThreshold = 16.0;
+    public static double eaThresh = 24.0;
     public static double turnEAFinalThreshold = 3.0;
 
     private double fwd, strafe, turn;
@@ -242,7 +242,7 @@ public class Drivetrain {
 
     private boolean atPoint() {
         if (moveNear) {
-            return Math.abs(xError) < xEAThreshold && Math.abs(yError) < yEAThreshold;
+            return xError * xError + yError * yError <= eaThresh * eaThresh;
         }
 
         return Math.abs(xError) < xThreshold && Math.abs(yError) < yThreshold && Math.abs(turnError) < turnThreshold;

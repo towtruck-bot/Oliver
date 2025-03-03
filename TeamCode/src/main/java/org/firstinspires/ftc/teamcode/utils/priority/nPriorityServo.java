@@ -80,6 +80,10 @@ public class nPriorityServo extends PriorityDevice {
         return Math.abs(targetAngle-currentAngle) < Math.toRadians(0.01);
     }
 
+    public boolean inPosition(double thresh){
+        return Math.abs(targetAngle - currentAngle) < thresh;
+    }
+
     public void setTargetAngle(double angle) {
         this.targetAngle = Utils.minMaxClip(angle, convertPosToAngle(minPos), convertPosToAngle(maxPos));
     }

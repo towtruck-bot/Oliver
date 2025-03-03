@@ -8,8 +8,6 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 import org.firstinspires.ftc.teamcode.Robot;
-import org.firstinspires.ftc.teamcode.subsystems.drive.Drivetrain;
-import org.firstinspires.ftc.teamcode.subsystems.drive.OldDrivetrain;
 import org.firstinspires.ftc.teamcode.utils.Globals;
 import org.firstinspires.ftc.teamcode.utils.RunMode;
 import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
@@ -25,7 +23,7 @@ public class Slides {
     public static double minPowerThresh = 0.5;
     public static double forceDownPower = -0.45;
     public static double forceDownThresh = 5;
-    public static double maxSlidesHeight = 33.5;
+    public static double maxSlidesHeight = 33.0;
 
     public final PriorityMotor slidesMotors;
     private final Robot robot;
@@ -34,13 +32,11 @@ public class Slides {
     public double vel;
 
     private double targetLength = 0;
-    private DcMotorEx m1;
-    private DcMotorEx m2;
-    private Drivetrain drivetrain;
+    private final DcMotorEx m1;
+    private final DcMotorEx m2;
 
     public Slides(Robot robot) {
         this.robot = robot;
-        this.drivetrain = robot.drivetrain;
 
         m1 = robot.hardwareMap.get(DcMotorEx.class, "slidesMotor0");
         m2 = robot.hardwareMap.get(DcMotorEx.class, "slidesMotor1");

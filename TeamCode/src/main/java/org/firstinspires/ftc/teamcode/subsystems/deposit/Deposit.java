@@ -54,7 +54,7 @@ public class Deposit {
     // prepare for transfer positions
     public static double intakeWaitRad = 0.65, intakeWaitClawRad = -1.65, intakeWaitY = 0.0;
     // transfer positions, move in to grab
-    public static double intakeRad = 0.0, intakeY = 0.0, intakeClawRad = -1.65;
+    public static double intakeRad = 0.1, intakeY = 0.0, intakeClawRad = -1.4;
     // moving positions with a sample
     public static double sampleHoldRad = 0.35, holdY = 0.0, sampleHoldClawRad = -2;
     public static double specimenGrabRad = 0.0, specimenGrabClawRad = 0.0, specimenConfirmRad = 0.8, specimenConfirmClawRad = -0.5;
@@ -64,7 +64,7 @@ public class Deposit {
     public static double outtakeRad = 3.0, outtakeY = 0.0, outtakeClawRad = -0.25;
     // grabbing positions, holdGrab -> off the wall, grabRetract --> moving with a specimen
     // specimen chamber positions
-    public static double speciLRad = 2.75, speciLClawRad = 0.0, speciLSY = 19.4;
+    public static double speciLSY = 19.4;
     public static double  speciHRad = 2.79, speciHClawRad = 1.46, speciHY = 19.69 ;
 
     private long currentTime = -1;
@@ -92,7 +92,7 @@ public class Deposit {
             case TRANSFER_PREPARE:
                 moveToWithRad(intakeWaitRad, intakeWaitY);
                 arm.setClawRotation(intakeWaitClawRad, 1.0);
-                arm.speciOpen();
+                arm.sampleOpen();
 
                 if(arm.inPosition() && slides.inPosition(1) && arm.clawFinished()){
                     state = State.TRANSFER_WAIT;
@@ -105,6 +105,7 @@ public class Deposit {
             case TRANSFER_GRAB:
                 moveToWithRad(intakeRad, intakeY);
                 arm.setClawRotation(intakeClawRad, 1.0);
+                arm.speciOpen();
 
                 if(arm.inPosition() && slides.inPosition(0.7)){ // Need to figure out this threshold better
                     state = State.TRANSFER_CLOSE;
@@ -260,8 +261,8 @@ public class Deposit {
     }
 
     public void moveToStart(){
-        arm.setArmRotation(0.0, 1.0);
-        arm.setClawRotation(0.0, 1.0);
+        arm.setArmRotation(0.001, 1.0);
+        arm.setClawRotation(0.001, 1.0);
         arm.sampleOpen();
         slides.setTargetLength(0.0);
     }
@@ -386,8 +387,8 @@ public class Deposit {
     }
 
     public boolean isRetractDone(){
-        Log.i("funny stuffs", "Current: " + arm.armRotation.getCurrentAngle());
-        Log.i("funny stuffs", "Target: " + arm.armRotation.getTargetAngle());
+        //Log.i("funny stuffs", "Current: " + arm.armRotation.getCurrentAngle());
+        //Log.i("funny stuffs", "Target: " + arm.armRotation.getTargetAngle());
         return state == State.IDLE;
     }
 }

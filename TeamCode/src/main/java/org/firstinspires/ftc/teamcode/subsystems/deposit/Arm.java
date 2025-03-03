@@ -16,7 +16,6 @@ public class Arm {
     public final nPriorityServo clawGrip;
 
     public static double sampleOpenRad = 1, sampleCloseRad = 0.55, speciOpenRad = 0.7, speciCloseRad = 0.01;
-    public final double armLength = 5.905314961;
 
     public Arm(Robot robot){
         this.sensors = robot.sensors;
@@ -50,8 +49,8 @@ public class Arm {
         clawGrip = new nPriorityServo(
                 new Servo[] {robot.hardwareMap.get(Servo.class, "clawGrip")},
                 "clawGrip",
-                nPriorityServo.ServoType.HITEC,
-                0.075,
+                nPriorityServo.ServoType.AXON_MINI,
+                0.078,
                 0.28,
                 0.08,
                 new boolean[] {false},
@@ -59,6 +58,9 @@ public class Arm {
                 2.0
         );
         robot.hardwareQueue.addDevice(clawGrip);
+
+        armRotation.setTargetAngle(0.02, 1);
+        clawRotation.setTargetAngle(0.02, 1);
         clawGrip.setTargetAngle(0.02, 1);
     }
 

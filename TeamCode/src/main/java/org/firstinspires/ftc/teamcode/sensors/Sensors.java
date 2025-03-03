@@ -14,7 +14,7 @@ public class Sensors {
     private final GoBildaPinpointDriver odometry;
 
     private double voltage;
-    private double voltageUpdateTime = 5000;
+    private final double voltageUpdateTime = 5000;
     private long lastVoltageUpdatedTime = System.currentTimeMillis();
 
     private int slidesEncoder;
@@ -22,7 +22,6 @@ public class Sensors {
     public static double slidesInchesPerTick = 0.01773835920177383;
 
     private int extendoEncoder;
-    private double extendoVel;
     public static double extendoInchesPerTick = 0.04293545803;
 
     private final AnalogInput[] analogEncoders = new AnalogInput[2];
@@ -99,10 +98,6 @@ public class Sensors {
 
     public double getExtendoPos(){
         return extendoEncoder * extendoInchesPerTick;
-    }
-
-    public double getExtendoVel(){
-        return extendoEncoder * extendoVel;
     }
 
     public double getVoltage(){

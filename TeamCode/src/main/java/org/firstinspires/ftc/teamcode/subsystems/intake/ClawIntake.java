@@ -33,10 +33,10 @@ public class ClawIntake {
     public static double slidesTolerance = 0.4;
     public static double slidesForcePullPow = -0.2;
 
-    public static double intakeHoverAngle = -1.35;
-    public static double intakeFlipConfirmAngle = -1.3;
+    public static double intakeHoverAngle = -1.25;
+    public static double intakeFlipConfirmAngle = -1.2;
     public static double intakeFlipUpAngle = -0.7;
-    public static double intakeFlipGrabAngle = -1.7;
+    public static double intakeFlipGrabAngle = -1.45;
     public static double intakeFlipBackAngle = -0.1;
 
     public static double clawRotationDefaultAngle = 0.0;
@@ -60,7 +60,7 @@ public class ClawIntake {
     }
 
     private ClawIntakeState clawIntakeState = ClawIntakeState.READY;
-    private DcMotorEx m;
+    private final DcMotorEx m;
 
     public ClawIntake(Robot robot) {
         this.robot = robot;

@@ -70,6 +70,8 @@ public class Deposit {
     private long currentTime = -1;
     private long sampleReleaseTime = -1;
     public static long sampleReleaseDuration = 300;
+    long grabStartTime;
+    public static double bufferThresh = 200;
 
     private boolean high = true;
 
@@ -81,9 +83,6 @@ public class Deposit {
 
         state = Globals.hasSpecimenPreload ? State.GRAB_HOLD : Globals.hasSamplePreload ? State.HOLD : State.RETRACT;
     }
-
-    long time;
-    public static double bufferThresh = 180;
 
     public void update(){
         this.currentTime = System.nanoTime();
@@ -112,7 +111,7 @@ public class Deposit {
                 if(arm.inPosition() && slides.inPosition(0.7)){ // Need to figure out this threshold better
                     state = State.TRANSFER_CLOSE;
                     arm.speciClose();
-                    time = System.currentTimeMillis();
+                    grabStartTime = System.currentTimeMillis();
                 }
                 break;
             case TRANSFER_CLOSE:
@@ -121,7 +120,8 @@ public class Deposit {
 
                 arm.speciClose();
 
-                if(arm.clawFinished() && System.currentTimeMillis() - time > bufferThresh){
+                // have a stay duration
+                if(arm.clawFinished() && System.currentTimeMillis() - grabStartTime > bufferThresh){
                     state = State.TRANSFER_FINISH;
                     robot.clawIntake.release();
                 }
@@ -158,7 +158,9 @@ public class Deposit {
                 arm.setClawRotation(sampleClawRad, 1.0);
                 arm.sampleOpen();
 
-                if (arm.clawFinished() && currentTime >= this.sampleReleaseTime + sampleReleaseDuration * 1e6) state = State.SAMPLE_FINISH;
+                if (arm.clawFinished() && currentTime >= this.sampleReleaseTime + sampleReleaseDuration * 1e6){
+                    state = State.SAMPLE_FINISH;
+                }
                 break;
             case SAMPLE_FINISH:
                 moveToWithRad(0, targetY);

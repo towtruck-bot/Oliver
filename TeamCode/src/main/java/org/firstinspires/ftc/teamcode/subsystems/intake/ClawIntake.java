@@ -9,6 +9,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.utils.Globals;
+import org.firstinspires.ftc.teamcode.utils.LogUtil;
 import org.firstinspires.ftc.teamcode.utils.PID;
 import org.firstinspires.ftc.teamcode.utils.RunMode;
 import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
@@ -33,10 +34,10 @@ public class ClawIntake {
     public static double slidesTolerance = 0.4;
     public static double slidesForcePullPow = -0.2;
 
-    public static double intakeHoverAngle = -1.25;
-    public static double intakeFlipConfirmAngle = -1.2;
+    public static double intakeHoverAngle = -1.35;
+    public static double intakeFlipConfirmAngle = -1.3;
     public static double intakeFlipUpAngle = -0.7;
-    public static double intakeFlipGrabAngle = -1.45;
+    public static double intakeFlipGrabAngle = -1.7;
     public static double intakeFlipBackAngle = -0.1;
 
     public static double clawRotationDefaultAngle = 0.0;
@@ -188,8 +189,13 @@ public class ClawIntake {
         }
 
         TelemetryUtil.packet.put("ClawIntake.clawRotationAlignAngle", clawRotationAlignAngle);
-        TelemetryUtil.packet.put("ClawIntake intakeFlipServo", intakeFlipServo.getCurrentAngle());
-        TelemetryUtil.packet.put("ClawIntake clawRotation", clawRotation.getCurrentAngle());
+        LogUtil.intakeClawRotationAngle.set(clawRotationAlignAngle);
+        TelemetryUtil.packet.put("ClawIntake.grab", grab);
+        LogUtil.intakeClawGrab.set(grab);
+        TelemetryUtil.packet.put("ClawIntake intakeFlipServo angle", intakeFlipServo.getCurrentAngle());
+        TelemetryUtil.packet.put("ClawIntake clawRotation angle", clawRotation.getCurrentAngle());
+        TelemetryUtil.packet.put("ClawIntake State", this.clawIntakeState);
+        LogUtil.intakeState.set(this.clawIntakeState.toString());
     }
 
     public void setClawRotation(double angle) {
@@ -266,9 +272,8 @@ public class ClawIntake {
 
         TelemetryUtil.packet.put("ClawIntake extendo power", pow);
         TelemetryUtil.packet.put("ClawIntake.extendoTargetPos", this.extendoTargetPos);
-        TelemetryUtil.packet.put("ClawIntake.extendoCurrentPos", this.extendoCurrentPos);
-        TelemetryUtil.packet.put("ClawIntake State", this.clawIntakeState);
-        TelemetryUtil.packet.put("ClawIntake Disable", this.clawIntakeState);
+        LogUtil.extendoTargetPos.set(this.extendoTargetPos);
+        //TelemetryUtil.packet.put("ClawIntake.extendoCurrentPos", this.extendoCurrentPos);
     }
 
     public boolean isExtensionAtTarget() {

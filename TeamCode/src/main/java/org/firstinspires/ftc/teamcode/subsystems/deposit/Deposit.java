@@ -6,6 +6,7 @@ import com.acmerobotics.dashboard.config.Config;
 
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.utils.Globals;
+import org.firstinspires.ftc.teamcode.utils.LogUtil;
 import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 import org.firstinspires.ftc.teamcode.utils.Utils;
 
@@ -255,6 +256,7 @@ public class Deposit {
         slides.update();
 
         TelemetryUtil.packet.put("Deposit.state", this.state);
+        LogUtil.depositState.set(this.state.toString());
         TelemetryUtil.packet.put("Deposit.targetY", this.targetY);
         TelemetryUtil.packet.put("Deposit: Arm inPosition", arm.inPosition());
         TelemetryUtil.packet.put("Deposit: Slides inPosition", slides.inPosition(0.5));

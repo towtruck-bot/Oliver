@@ -12,6 +12,7 @@ import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.sensors.Sensors;
 import org.firstinspires.ftc.teamcode.utils.DashboardUtil;
 import org.firstinspires.ftc.teamcode.utils.Globals;
+import org.firstinspires.ftc.teamcode.utils.LogUtil;
 import org.firstinspires.ftc.teamcode.utils.PID;
 import org.firstinspires.ftc.teamcode.utils.Pose2d;
 import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
@@ -313,12 +314,17 @@ public class Drivetrain {
 
     private void updateTelemetry () {
         TelemetryUtil.packet.put("Drivetrain State", state);
+        LogUtil.driveState.set(state.toString());
 
         TelemetryUtil.packet.put("Drivetrain:: xError", xError);
         TelemetryUtil.packet.put("Drivetrain:: yError", yError);
         TelemetryUtil.packet.put("Drivetrain:: turnError (deg)", Math.toDegrees(turnError));
         TelemetryUtil.packet.put("Drivetrain:: xTarget", targetPoint.x);
         TelemetryUtil.packet.put("Drivetrain:: yTarget", targetPoint.y);
+        TelemetryUtil.packet.put("Drivetrain:: turnTarget", targetPoint.heading);
+        LogUtil.driveTargetX.set(targetPoint.x);
+        LogUtil.driveTargetY.set(targetPoint.y);
+        LogUtil.driveTargetAngle.set(targetPoint.heading);
 
         Canvas canvas = TelemetryUtil.packet.fieldOverlay();
 

@@ -81,9 +81,9 @@ public class EndAffector {
         clawRotation.setTargetAngle(rotation, 1.0);
     }
 
-	public void setClawState(boolean closed) {
-		this.closed = closed;
-		this.claw.setTargetAngle(this.closed ? clawCloseAngle : clawOpenAngle, 1.0);
+    public void setClawState(boolean closed) {
+        this.closed = closed;
+        this.claw.setTargetAngle(this.closed ? clawCloseAngle : clawOpenAngle, 1.0);
     }
 
     public boolean isClosed(){

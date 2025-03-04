@@ -25,9 +25,9 @@ public class Intake {
     private double targetLength, targetRotation;
 
     public static double intakeFlipUpAngle = -0.7;
-    public static double intakeHoverAngle = -1.25;
-    public static double intakeFlipGrabAngle = -1.45;
-    public static double intakeFlipConfirmAngle = -1.2;
+    public static double intakeHoverAngle = -1.35;
+    public static double intakeFlipGrabAngle = -1.7;
+    public static double intakeFlipConfirmAngle = -1.3;
     public static double intakeFlipBackAngle = -0.1;
 
     public Intake(Robot robot){
@@ -35,7 +35,7 @@ public class Intake {
 
         endAffector = new EndAffector(robot);
         close = false;
-		targetLength = 15.0;
+        targetLength = 15.0;
     }
 
     public void update(){
@@ -45,7 +45,7 @@ public class Intake {
             case START_EXTEND:
                 endAffector.extend(0.0, intakeFlipUpAngle, 0.0);
                 endAffector.setClawState(this.close);
-				targetRotation = 0.0;
+                targetRotation = 0.0;
                 if (endAffector.flipInPosition()) {
                     intakeState = IntakeState.FINISH_EXTEND;
                 }
@@ -111,23 +111,23 @@ public class Intake {
         }
     }
 
-	public void retract(){
-		intakeState = IntakeState.RETRACT;
-	}
+    public void retract(){
+        intakeState = IntakeState.RETRACT;
+    }
 
-	public void grab(boolean g) {
-		close = g;
-	}
+    public void grab(boolean g) {
+        close = g;
+    }
 
-	public boolean hasSample() {
-		return close;
-	}
+    public boolean hasSample() {
+        return close;
+    }
 
-	public boolean grabFinished(){
-		return intakeState == IntakeState.CONFIRM;
-	}
+    public boolean grabFinished(){
+        return intakeState == IntakeState.CONFIRM;
+    }
 
-	public void release() {
+    public void release() {
         if (intakeState == IntakeState.HOLD) {
             intakeState = IntakeState.READY;
             close = false;
@@ -148,15 +148,15 @@ public class Intake {
         targetRotation = angle;
     }
 
-	public double getClawRotAngle(){
-		return targetRotation;
-	}
+    public double getClawRotAngle(){
+        return targetRotation;
+    }
 
-	public boolean isExtended() {
+    public boolean isExtended() {
         return intakeState == IntakeState.ALIGN || intakeState == IntakeState.LOWER || intakeState == IntakeState.FINISH_GRAB || intakeState == IntakeState.CONFIRM;
     }
 
-	public boolean isRetracted() {
-		return (intakeState == IntakeState.HOLD || intakeState == IntakeState.READY) && endAffector.flipInPosition();
-	}
+    public boolean isRetracted() {
+        return (intakeState == IntakeState.HOLD || intakeState == IntakeState.READY) && endAffector.flipInPosition();
+    }
 }

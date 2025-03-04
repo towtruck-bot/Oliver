@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.hardware.AnalogInput;
 
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.utils.DashboardUtil;
+import org.firstinspires.ftc.teamcode.utils.LogUtil;
 import org.firstinspires.ftc.teamcode.utils.Pose2d;
 import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 import org.firstinspires.ftc.teamcode.utils.priority.PriorityMotor;
@@ -107,9 +108,11 @@ public class Sensors {
 
         TelemetryUtil.packet.put("Extendo position", getExtendoPos());
         TelemetryUtil.packet.put("Extendo encoder", this.extendoEncoder);
+        LogUtil.extendoCurrentPos.set(getExtendoPos());
 
         TelemetryUtil.packet.put("Slides position", getSlidesPos());
         TelemetryUtil.packet.put("Slides encoder", this.slidesEncoder);
+        LogUtil.slidesCurrentPos.set(getSlidesPos());
 
         Pose2d currentPos = getOdometryPosition();
         TelemetryUtil.packet.put("Pinpoint: x", currentPos.x);
@@ -117,5 +120,8 @@ public class Sensors {
         TelemetryUtil.packet.put("Pinpoint: heading (deg)", Math.toDegrees(currentPos.heading));
         Canvas fieldOverlay = TelemetryUtil.packet.fieldOverlay();
         DashboardUtil.drawRobot(fieldOverlay, currentPos, "#00ff00");
+        LogUtil.driveCurrentX.set(currentPos.x);
+        LogUtil.driveCurrentY.set(currentPos.y);
+        LogUtil.driveCurrentAngle.set(currentPos.heading);
     }
 }

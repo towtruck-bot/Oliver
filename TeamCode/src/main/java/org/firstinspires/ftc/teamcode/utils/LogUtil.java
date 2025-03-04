@@ -5,7 +5,7 @@ public class LogUtil {
 
     // These are all of the fields that we want in the datalog.
     // Note that order here is NOT important. The order is important in the setFields() call below
-    public static Datalogger.GenericField loopTime = new Datalogger.GenericField("loopTime");
+    //public static Datalogger.GenericField loopTime = new Datalogger.GenericField("loopTime");
     public static Datalogger.GenericField robotState = new Datalogger.GenericField("robotState");
     public static Datalogger.GenericField intakeState = new Datalogger.GenericField("intakeState");
     public static Datalogger.GenericField depositState = new Datalogger.GenericField("depositState");
@@ -23,6 +23,8 @@ public class LogUtil {
     public static Datalogger.GenericField driveTargetY = new Datalogger.GenericField("driveTargetY");
     public static Datalogger.GenericField driveTargetAngle = new Datalogger.GenericField("driveTargetAngle");
 
+    private static int loopCountBeforeWrite;
+
     public static void init() {
         String fileName = "Log_" + System.currentTimeMillis();
 
@@ -37,13 +39,12 @@ public class LogUtil {
             // Note that order *IS* important here! The order in which we list
             // the fields is the order in which they will appear in the log.
             .setFields(
-                loopTime,
                 robotState,
                 intakeState,
                 depositState,
                 extendoCurrentPos,
                 extendoTargetPos,
-                intakeClawRotationAngle,
+                //intakeClawRotationAngle,
                 intakeClawGrab,
                 slidesCurrentPos,
                 slidesTargetPos,
@@ -56,9 +57,16 @@ public class LogUtil {
                 driveTargetAngle
             )
             .build();
+
+        loopCountBeforeWrite = 0;
     }
 
     public static void send() {
-        datalogger.writeLine();
+        if (loopCountBeforeWrite > 0) {
+            --loopCountBeforeWrite;
+        } else {
+            datalogger.writeLine();
+            loopCountBeforeWrite = 10;
+        }
     }
 }

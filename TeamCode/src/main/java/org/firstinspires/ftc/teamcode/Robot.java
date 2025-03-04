@@ -347,7 +347,7 @@ public class Robot {
         //TelemetryUtil.packet.put("Globals::RUNMODE", Globals.RUNMODE);
         //TelemetryUtil.packet.put("Globals::TESTING_DISABLE_CONTROL", Globals.TESTING_DISABLE_CONTROL);
         TelemetryUtil.packet.put("Loop Time", GET_LOOP_TIME());
-        LogUtil.loopTime.set(GET_LOOP_TIME());
+        //LogUtil.loopTime.set(GET_LOOP_TIME());
         TelemetryUtil.sendTelemetry();
     }
 }

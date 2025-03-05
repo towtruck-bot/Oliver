@@ -44,7 +44,7 @@ public class LogUtil {
                 depositState,
                 extendoCurrentPos,
                 extendoTargetPos,
-                //intakeClawRotationAngle,
+                intakeClawRotationAngle,
                 intakeClawGrab,
                 slidesCurrentPos,
                 slidesTargetPos,
@@ -62,11 +62,10 @@ public class LogUtil {
     }
 
     public static void send() {
-        if (loopCountBeforeWrite > 0) {
-            --loopCountBeforeWrite;
-        } else {
+        --loopCountBeforeWrite;
+        if (loopCountBeforeWrite <= 0) {
             datalogger.writeLine();
-            loopCountBeforeWrite = 10;
+            loopCountBeforeWrite = 25;
         }
     }
 }

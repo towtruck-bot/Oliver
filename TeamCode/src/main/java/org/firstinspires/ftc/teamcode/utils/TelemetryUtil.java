@@ -10,7 +10,6 @@ public class TelemetryUtil {
     public static void setup() {
         dashboard = FtcDashboard.getInstance();
         dashboard.setTelemetryTransmissionInterval(25);
-        LogUtil.init();
     }
 
     public static TelemetryPacket getPacket() {
@@ -20,6 +19,5 @@ public class TelemetryUtil {
     public static void sendTelemetry() {
         dashboard.sendTelemetryPacket(packet);
         packet = new TelemetryPacket();
-        LogUtil.send();
     }
 }

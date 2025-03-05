@@ -84,6 +84,7 @@ public class Robot {
         hang = new Hang(this);
 
         TelemetryUtil.setup();
+        LogUtil.reset();
     }
 
     public void update() {
@@ -349,5 +350,6 @@ public class Robot {
         TelemetryUtil.packet.put("Loop Time", GET_LOOP_TIME());
         //LogUtil.loopTime.set(GET_LOOP_TIME());
         TelemetryUtil.sendTelemetry();
+        LogUtil.send();
     }
 }

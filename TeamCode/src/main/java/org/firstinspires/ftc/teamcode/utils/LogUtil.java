@@ -1,7 +1,10 @@
 package org.firstinspires.ftc.teamcode.utils;
 
+import com.acmerobotics.dashboard.config.Config;
+
+@Config
 public class LogUtil {
-    private static Datalogger datalogger;
+    private static Datalogger datalogger = null;
 
     // These are all of the fields that we want in the datalog.
     // Note that order here is NOT important. The order is important in the setFields() call below
@@ -25,11 +28,22 @@ public class LogUtil {
 
     private static int loopCountBeforeWrite;
 
+    public static boolean DISABLED = false;
+
+    public static void reset() {
+        if (datalogger != null) {
+            datalogger = null;
+        }
+    }
+
     public static void init() {
+        loopCountBeforeWrite = 0;
+
+        if (datalogger != null) throw new IllegalStateException("LogUtil was already initialized");
+        if (DISABLED) return;
+
         String fileName = "Log_" + System.currentTimeMillis();
-
         TelemetryUtil.packet.put("Log filename", fileName);
-
         datalogger = new Datalogger.Builder()
             // Pass through the filename
             .setFilename(fileName)
@@ -57,11 +71,10 @@ public class LogUtil {
                 driveTargetAngle
             )
             .build();
-
-        loopCountBeforeWrite = 0;
     }
 
     public static void send() {
+        if (datalogger == null) return;
         --loopCountBeforeWrite;
         if (loopCountBeforeWrite <= 0) {
             datalogger.writeLine();

@@ -25,8 +25,8 @@ public class Arm {
                 "armRotation",
                 nPriorityServo.ServoType.AXON_MINI,
                 0,
-                0.6,
-                0.025,
+                0.72,
+                0.11,
                 new boolean[] {false, true},
                 1.0,
                 2.0
@@ -37,9 +37,9 @@ public class Arm {
                 new Servo[] {robot.hardwareMap.get(Servo.class, "clawRotation")},
                 "clawRotation",
                 nPriorityServo.ServoType.AXON_MINI,
-                0.32,
-                1.0,
-                0.69,
+                0,
+                0.65,
+                0.28,
                 new boolean[] {true},
                 1.0,
                 2.0

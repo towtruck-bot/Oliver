@@ -79,7 +79,7 @@ public class ClawIntake {
                 new Servo[] {robot.hardwareMap.get(Servo.class, "intakeFlipServo")},
                 "intakeFlipServo",
                 nPriorityServo.ServoType.HITEC,
-                0.0, 0.69, 0.69,
+                0.0, 0.69, 0.685,
                 new boolean[] {false},
                 1.0, 5.0
         );
@@ -89,7 +89,7 @@ public class ClawIntake {
                 new Servo[] {robot.hardwareMap.get(Servo.class, "intakeClaw")},
                 "intakeClaw",
                 nPriorityServo.ServoType.AXON_MINI,
-                0.474, 0.749, 0.47,
+                0.46, 0.75, 0.47,
                 new boolean[] {false},
                 1.0, 5
         );
@@ -99,11 +99,15 @@ public class ClawIntake {
                 new Servo[] {robot.hardwareMap.get(Servo.class, "intakeClawRotation")},
                 "intakeClawRotation",
                 nPriorityServo.ServoType.AXON_MINI,
-                0.343,0.894,0.629,
+                0.06,0.67,0.37,
                 new boolean[] {false},
                 1, 5
         );
         robot.hardwareQueue.addDevice(clawRotation);
+
+        intakeFlipServo.setTargetAngle(0.02, 1);
+        clawRotation.setTargetAngle(0.02, 1);
+        claw.setTargetAngle(0.02, 1);
 
         if (Globals.RUNMODE != RunMode.TELEOP) {
             resetExtendoEncoders();

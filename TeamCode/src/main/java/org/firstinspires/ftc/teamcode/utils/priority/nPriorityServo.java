@@ -14,7 +14,7 @@ public class nPriorityServo extends PriorityDevice {
         TORQUE(0.2162104887, Math.toRadians(60) / 0.25),
         SPEED(0.2162104887, Math.toRadians(60) / 0.11),
         SUPER_SPEED(0.2162104887, Math.toRadians(60) / 0.055),
-        AXON_MINI(0.1784612002049795, 5.6403953024772129),
+        AXON_MINI(1 / Math.toRadians(305), 5.6403953024772129), //0.1784612002049795
         AXON_MAX(0.1775562245447108, 6.5830247235911042),
         AXON_MICRO(0.1775562245447108, 6.5830247235911042),  // TODO need to tune
         AMAZON(0.2122065908, Math.toRadians(60) / 0.13),
@@ -129,7 +129,7 @@ public class nPriorityServo extends PriorityDevice {
         // Clamp
         if (Math.abs(deltaAngle) > Math.abs(error) || power == 1)
             currentIntermediateTargetAngle = targetAngle;
-        Log.e("ooga", "booga");
+        //Log.e("ooga", "booga");
 
         // Update servos
         for (int i = 0; i < servos.length; i++) {

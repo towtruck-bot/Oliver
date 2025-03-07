@@ -74,8 +74,6 @@ public class ServoTester extends LinearOpMode {
         double numLoops = 0;
         double totalTime = 0;
 
-        TelemetryUtil.setup();
-
         waitForStart();
         while (!isStopRequested()) {
             START_LOOP();

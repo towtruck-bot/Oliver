@@ -9,6 +9,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.utils.Globals;
+import org.firstinspires.ftc.teamcode.utils.LogUtil;
 import org.firstinspires.ftc.teamcode.utils.PID;
 import org.firstinspires.ftc.teamcode.utils.RunMode;
 import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
@@ -60,7 +61,7 @@ public class ClawIntake {
     }
 
     private ClawIntakeState clawIntakeState = ClawIntakeState.READY;
-    private DcMotorEx m;
+    private final DcMotorEx m;
 
     public ClawIntake(Robot robot) {
         this.robot = robot;
@@ -78,7 +79,7 @@ public class ClawIntake {
                 new Servo[] {robot.hardwareMap.get(Servo.class, "intakeFlipServo")},
                 "intakeFlipServo",
                 nPriorityServo.ServoType.HITEC,
-                0.0, 0.69, 0.69,
+                0.0, 0.69, 0.685,
                 new boolean[] {false},
                 1.0, 5.0
         );
@@ -88,7 +89,7 @@ public class ClawIntake {
                 new Servo[] {robot.hardwareMap.get(Servo.class, "intakeClaw")},
                 "intakeClaw",
                 nPriorityServo.ServoType.AXON_MINI,
-                0.474, 0.749, 0.47,
+                0.46, 0.75, 0.47,
                 new boolean[] {false},
                 1.0, 5
         );
@@ -98,11 +99,15 @@ public class ClawIntake {
                 new Servo[] {robot.hardwareMap.get(Servo.class, "intakeClawRotation")},
                 "intakeClawRotation",
                 nPriorityServo.ServoType.AXON_MINI,
-                0.343,0.894,0.629,
+                0.06,0.67,0.37,
                 new boolean[] {false},
                 1, 5
         );
         robot.hardwareQueue.addDevice(clawRotation);
+
+        intakeFlipServo.setTargetAngle(0.02, 1);
+        clawRotation.setTargetAngle(0.02, 1);
+        claw.setTargetAngle(0.02, 1);
 
         if (Globals.RUNMODE != RunMode.TELEOP) {
             resetExtendoEncoders();
@@ -188,8 +193,13 @@ public class ClawIntake {
         }
 
         TelemetryUtil.packet.put("ClawIntake.clawRotationAlignAngle", clawRotationAlignAngle);
-        TelemetryUtil.packet.put("ClawIntake intakeFlipServo", intakeFlipServo.getCurrentAngle());
-        TelemetryUtil.packet.put("ClawIntake clawRotation", clawRotation.getCurrentAngle());
+        LogUtil.intakeClawRotationAngle.set(clawRotationAlignAngle);
+        TelemetryUtil.packet.put("ClawIntake.grab", grab);
+        LogUtil.intakeClawGrab.set(grab);
+        TelemetryUtil.packet.put("ClawIntake intakeFlipServo angle", intakeFlipServo.getCurrentAngle());
+        TelemetryUtil.packet.put("ClawIntake clawRotation angle", clawRotation.getCurrentAngle());
+        TelemetryUtil.packet.put("ClawIntake State", this.clawIntakeState);
+        LogUtil.intakeState.set(this.clawIntakeState.toString());
     }
 
     public void setClawRotation(double angle) {
@@ -266,9 +276,8 @@ public class ClawIntake {
 
         TelemetryUtil.packet.put("ClawIntake extendo power", pow);
         TelemetryUtil.packet.put("ClawIntake.extendoTargetPos", this.extendoTargetPos);
-        TelemetryUtil.packet.put("ClawIntake.extendoCurrentPos", this.extendoCurrentPos);
-        TelemetryUtil.packet.put("ClawIntake State", this.clawIntakeState);
-        TelemetryUtil.packet.put("ClawIntake Disable", this.clawIntakeState);
+        LogUtil.extendoTargetPos.set(this.extendoTargetPos);
+        //TelemetryUtil.packet.put("ClawIntake.extendoCurrentPos", this.extendoCurrentPos);
     }
 
     public boolean isExtensionAtTarget() {

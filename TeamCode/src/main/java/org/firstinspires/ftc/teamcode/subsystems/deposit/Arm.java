@@ -15,8 +15,7 @@ public class Arm {
     public final nPriorityServo clawRotation;
     public final nPriorityServo clawGrip;
 
-    public static double sampleOpenRad = 1, sampleCloseRad = 0.35, speciOpenRad = 0.7, speciCloseRad = 0.055;
-    public final double armLength = 5.905314961;
+    public static double sampleOpenRad = 1, sampleCloseRad = 0.35, speciOpenRad = 0.7, speciCloseRad = 0.01;
 
     public Arm(Robot robot){
         this.sensors = robot.sensors;
@@ -26,8 +25,8 @@ public class Arm {
                 "armRotation",
                 nPriorityServo.ServoType.AXON_MINI,
                 0,
-                0.6,
-                0.025,
+                0.72,
+                0.11,
                 new boolean[] {false, true},
                 1.0,
                 2.0
@@ -38,9 +37,9 @@ public class Arm {
                 new Servo[] {robot.hardwareMap.get(Servo.class, "clawRotation")},
                 "clawRotation",
                 nPriorityServo.ServoType.AXON_MINI,
-                0.32,
-                1.0,
-                0.69,
+                0,
+                0.65,
+                0.28,
                 new boolean[] {true},
                 1.0,
                 2.0
@@ -50,8 +49,8 @@ public class Arm {
         clawGrip = new nPriorityServo(
                 new Servo[] {robot.hardwareMap.get(Servo.class, "clawGrip")},
                 "clawGrip",
-                nPriorityServo.ServoType.HITEC,
-                0.075,
+                nPriorityServo.ServoType.AXON_MINI,
+                0.078,
                 0.28,
                 0.08,
                 new boolean[] {false},
@@ -59,6 +58,9 @@ public class Arm {
                 2.0
         );
         robot.hardwareQueue.addDevice(clawGrip);
+
+        armRotation.setTargetAngle(0.02, 1);
+        clawRotation.setTargetAngle(0.02, 1);
         clawGrip.setTargetAngle(0.02, 1);
     }
 
@@ -91,6 +93,6 @@ public class Arm {
     }
 
     public boolean clawFinished(){
-        return clawGrip.inPosition(0.005);
+        return clawGrip.inPosition();
     }
 }

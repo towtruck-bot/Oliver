@@ -14,10 +14,10 @@ public class Intake {
         RETRACT,
         HOLD,
         READY
-    };
+    }
     private IntakeState intakeState = IntakeState.READY;
 
-    private Robot robot;
+    private final Robot robot;
     public EndAffector endAffector;
 
     private boolean close;
@@ -35,84 +35,78 @@ public class Intake {
 
         endAffector = new EndAffector(robot);
         close = false;
-        targetRotation = intakeFlipBackAngle;
-        targetLength = 0.0;
+        targetLength = 15.0;
     }
 
     public void update(){
         endAffector.update();
 
-        switch(intakeState){
+        switch (intakeState) {
             case START_EXTEND:
-                endAffector.extend(0.0, intakeFlipUpAngle, targetRotation);
-                endAffector.open();
-                if(endAffector.flipInPosition()){
+                endAffector.extend(0.0, intakeFlipUpAngle, 0.0);
+                endAffector.setClawState(this.close);
+                targetRotation = 0.0;
+                if (endAffector.flipInPosition()) {
                     intakeState = IntakeState.FINISH_EXTEND;
-                    targetLength = targetLength == 0 ? 15.0 : targetLength;
                 }
                 break;
             case FINISH_EXTEND:
-                endAffector.extend(targetLength, intakeHoverAngle, targetRotation);
-                endAffector.open();
-                if(endAffector.extendoInPosition()){
+                endAffector.extend(targetLength, intakeHoverAngle, 0.0);
+                endAffector.setClawState(this.close);
+                if (endAffector.extendoInPosition()) {
                     intakeState = IntakeState.ALIGN;
-                    close = false;
+                    this.close = false;
                 }
                 break;
             case ALIGN:
                 endAffector.extend(targetLength, intakeHoverAngle, targetRotation);
-                endAffector.open();
-                if(close && endAffector.rotInPosition()){
+                endAffector.setClawState(false);
+                if (this.close && endAffector.rotInPosition()) {
                     intakeState = IntakeState.LOWER;
                 }
             case LOWER:
                 endAffector.extend(targetLength, intakeFlipGrabAngle, targetRotation);
-                endAffector.open();
-                if(endAffector.flipInPosition()){
+                endAffector.setClawState(false);
+                if (endAffector.flipInPosition()) {
                     intakeState = IntakeState.FINISH_GRAB;
                 }
                 break;
             case FINISH_GRAB:
                 endAffector.extend(targetLength, intakeFlipGrabAngle, targetRotation);
-                endAffector.grab();
-                if(endAffector.isClosed()){
+                endAffector.setClawState(true);
+                if (endAffector.isClosed()) {
                     intakeState = IntakeState.CONFIRM;
                 }
                 break;
             case CONFIRM:
                 endAffector.extend(targetLength, intakeFlipConfirmAngle, targetRotation);
-                endAffector.grab();
-                if(!close){
+                endAffector.setClawState(true);
+                if (!close) {
                     intakeState = IntakeState.ALIGN;
                 }
                 break;
             case RETRACT:
-                targetLength = 0.0;
-                endAffector.extend(targetLength, intakeFlipUpAngle, 0.0);
-                if(close){
-                    endAffector.grab();
-                }else{
-                    endAffector.open();
-                }
+                endAffector.extend(0.0, intakeFlipUpAngle, 0.0);
+                endAffector.setClawState(this.close);
 
-                if(endAffector.inPosition()){
-                    endAffector.extend(0.0, intakeFlipUpAngle, 0.0);
+                if (endAffector.inPosition()) {
+                    endAffector.extend(0.0, intakeFlipBackAngle, 0.0);
                     intakeState = close ? IntakeState.HOLD : IntakeState.READY;
                 }
                 break;
             case HOLD:
-                endAffector.extend(0.0, intakeFlipUpAngle, 0.0);
-                endAffector.grab();
+                endAffector.extend(0.0, intakeFlipBackAngle, 0.0);
+                endAffector.setClawState(true);
                 break;
             case READY:
-                endAffector.extend(0.0, intakeFlipUpAngle, 0.0);
-                endAffector.open();
+                endAffector.extend(0.0, intakeFlipBackAngle, 0.0);
+                endAffector.setClawState(false);
                 break;
         }
     }
 
-    public void extend(){
-        if(intakeState == IntakeState.READY || intakeState == IntakeState.HOLD){
+    public void extend() {
+        if (intakeState == IntakeState.READY || intakeState == IntakeState.HOLD) {
             intakeState = IntakeState.START_EXTEND;
         }
     }
@@ -121,11 +115,11 @@ public class Intake {
         intakeState = IntakeState.RETRACT;
     }
 
-    public void grab(boolean g){
+    public void grab(boolean g) {
         close = g;
     }
 
-    public boolean hasSample(){
+    public boolean hasSample() {
         return close;
     }
 
@@ -133,8 +127,8 @@ public class Intake {
         return intakeState == IntakeState.CONFIRM;
     }
 
-    public void release(){
-        if(intakeState == IntakeState.HOLD){
+    public void release() {
+        if (intakeState == IntakeState.HOLD) {
             intakeState = IntakeState.READY;
             close = false;
         }
@@ -158,7 +152,7 @@ public class Intake {
         return targetRotation;
     }
 
-    public boolean isExtended(){
+    public boolean isExtended() {
         return intakeState == IntakeState.ALIGN || intakeState == IntakeState.LOWER || intakeState == IntakeState.FINISH_GRAB || intakeState == IntakeState.CONFIRM;
     }
 

@@ -16,9 +16,9 @@ import org.firstinspires.ftc.teamcode.utils.priority.PriorityMotor;
 public class Extendo {
     public static double maxExtendoLength = 27.0;
 
-    private Robot robot;
+    private final Robot robot;
     public PriorityMotor extendoMotor;
-    private DcMotorEx m;
+    private final DcMotorEx m;
 
     private double extendoCurrentPos;
     private double targetLength = 0.0;

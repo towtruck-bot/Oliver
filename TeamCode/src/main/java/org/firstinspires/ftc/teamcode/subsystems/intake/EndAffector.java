@@ -7,16 +7,15 @@ import org.firstinspires.ftc.teamcode.utils.Globals;
 import org.firstinspires.ftc.teamcode.utils.priority.nPriorityServo;
 
 public class EndAffector {
-    private Robot robot;
-    public Extendo intakeExtension;
-    private nPriorityServo flipServo, clawRotation, claw;
+    private final Robot robot;
+    public final Extendo intakeExtension;
+    private final nPriorityServo flipServo, clawRotation, claw;
 
-    private double targetRotation = 0.0, targetLength = 0.0;
+    private double targetRotation, targetLength;
 
     private boolean closed;
     public static double clawOpenAngle = 0.2634;
     public static double clawCloseAngle = 1.4;
-    public static double extendThresh = 0.05;
 
     private double targetX, targetY;
 
@@ -61,10 +60,10 @@ public class EndAffector {
         targetLength = 0.0;
 
 
-        if(Globals.hasSamplePreload){
+        if (Globals.hasSamplePreload) {
             targetX = 49.0;
             targetY = 26.0;
-        } else{
+        } else {
             targetX = -49.0;
             targetY = 26.0;
         }
@@ -72,32 +71,19 @@ public class EndAffector {
         closed = false;
     }
 
-    public void update(){
+    public void update() {
         intakeExtension.update();
     }
 
-    public void extend(double extension, double flip, double rotation){
+    public void extend(double extension, double flip, double rotation) {
         intakeExtension.setTargetLength(extension);
         flipServo.setTargetAngle(flip, 1.0);
         clawRotation.setTargetAngle(rotation, 1.0);
     }
 
-    public void grab(){
-        claw.setTargetAngle(clawCloseAngle, 1.0);
-        closed = true;
-    }
-
-    public double getClawRot(){
-        return clawRotation.getCurrentAngle();
-    }
-
-    public double getExtension(){
-        return intakeExtension.getLength();
-    }
-
-    public void open(){
-        claw.setTargetAngle(clawOpenAngle, 1.0);
-        closed = false;
+    public void setClawState(boolean closed) {
+        this.closed = closed;
+        this.claw.setTargetAngle(this.closed ? clawCloseAngle : clawOpenAngle, 1.0);
     }
 
     public boolean isClosed(){

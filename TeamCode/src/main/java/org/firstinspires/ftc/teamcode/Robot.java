@@ -15,6 +15,7 @@ import org.firstinspires.ftc.teamcode.subsystems.intake.ClawIntake;
 import org.firstinspires.ftc.teamcode.subsystems.intake.Intake;
 import org.firstinspires.ftc.teamcode.utils.Func;
 import org.firstinspires.ftc.teamcode.utils.Globals;
+import org.firstinspires.ftc.teamcode.utils.LogUtil;
 import org.firstinspires.ftc.teamcode.utils.Pose2d;
 import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 import org.firstinspires.ftc.teamcode.utils.priority.HardwareQueue;
@@ -83,6 +84,7 @@ public class Robot {
         hang = new Hang(this);
 
         TelemetryUtil.setup();
+        LogUtil.reset();
     }
 
     public void update() {
@@ -339,12 +341,15 @@ public class Robot {
 
     private void updateTelemetry() {
         TelemetryUtil.packet.put("Robot.state", this.state.toString());
-        TelemetryUtil.packet.put("Robot.prevState1", this.prevState1.toString());
-        TelemetryUtil.packet.put("Robot.prevState", this.prevState.toString());
+        LogUtil.robotState.set(this.state.toString());
+        //TelemetryUtil.packet.put("Robot.prevState1", this.prevState1.toString());
+        //TelemetryUtil.packet.put("Robot.prevState", this.prevState.toString());
         TelemetryUtil.packet.put("Robot.nextState", this.nextState.toString());
-        TelemetryUtil.packet.put("Globals::RUNMODE", Globals.RUNMODE);
-        TelemetryUtil.packet.put("Globals::TESTING_DISABLE_CONTROL", Globals.TESTING_DISABLE_CONTROL);
+        //TelemetryUtil.packet.put("Globals::RUNMODE", Globals.RUNMODE);
+        //TelemetryUtil.packet.put("Globals::TESTING_DISABLE_CONTROL", Globals.TESTING_DISABLE_CONTROL);
         TelemetryUtil.packet.put("Loop Time", GET_LOOP_TIME());
+        //LogUtil.loopTime.set(GET_LOOP_TIME());
         TelemetryUtil.sendTelemetry();
+        LogUtil.send();
     }
 }

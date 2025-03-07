@@ -5,7 +5,7 @@ import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 
 public class TelemetryUtil {
     private static FtcDashboard dashboard;
-    public static TelemetryPacket packet = new TelemetryPacket();;
+    public static TelemetryPacket packet = new TelemetryPacket();
 
     public static void setup() {
         dashboard = FtcDashboard.getInstance();
@@ -18,6 +18,6 @@ public class TelemetryUtil {
 
     public static void sendTelemetry() {
         dashboard.sendTelemetryPacket(packet);
-        packet = new TelemetryPacket();;
+        packet = new TelemetryPacket();
     }
 }

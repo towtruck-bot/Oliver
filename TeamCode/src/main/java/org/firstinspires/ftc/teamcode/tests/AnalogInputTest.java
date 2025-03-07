@@ -22,7 +22,6 @@ public class AnalogInputTest extends LinearOpMode {
         Robot robot = new Robot(hardwareMap);
         Globals.RUNMODE = RunMode.TESTER;
         AnalogInput encoder = hardwareMap.get(AnalogInput.class, encoderName);
-        TelemetryUtil.setup();
 
         waitForStart();
 

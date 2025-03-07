@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.hardware.AnalogInput;
 
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.utils.DashboardUtil;
+import org.firstinspires.ftc.teamcode.utils.LogUtil;
 import org.firstinspires.ftc.teamcode.utils.Pose2d;
 import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 import org.firstinspires.ftc.teamcode.utils.priority.PriorityMotor;
@@ -14,7 +15,7 @@ public class Sensors {
     private final GoBildaPinpointDriver odometry;
 
     private double voltage;
-    private double voltageUpdateTime = 5000;
+    private final double voltageUpdateTime = 5000;
     private long lastVoltageUpdatedTime = System.currentTimeMillis();
 
     private int slidesEncoder;
@@ -22,7 +23,6 @@ public class Sensors {
     public static double slidesInchesPerTick = 0.01773835920177383;
 
     private int extendoEncoder;
-    private double extendoVel;
     public static double extendoInchesPerTick = 0.04293545803;
 
     private final AnalogInput[] analogEncoders = new AnalogInput[2];
@@ -99,10 +99,6 @@ public class Sensors {
         return extendoEncoder * extendoInchesPerTick;
     }
 
-    public double getExtendoVel(){
-        return extendoEncoder * extendoVel;
-    }
-
     public double getVoltage(){
         return voltage;
     }
@@ -112,9 +108,11 @@ public class Sensors {
 
         TelemetryUtil.packet.put("Extendo position", getExtendoPos());
         TelemetryUtil.packet.put("Extendo encoder", this.extendoEncoder);
+        LogUtil.extendoCurrentPos.set(getExtendoPos());
 
         TelemetryUtil.packet.put("Slides position", getSlidesPos());
         TelemetryUtil.packet.put("Slides encoder", this.slidesEncoder);
+        LogUtil.slidesCurrentPos.set(getSlidesPos());
 
         Pose2d currentPos = getOdometryPosition();
         TelemetryUtil.packet.put("Pinpoint: x", currentPos.x);
@@ -122,5 +120,8 @@ public class Sensors {
         TelemetryUtil.packet.put("Pinpoint: heading (deg)", Math.toDegrees(currentPos.heading));
         Canvas fieldOverlay = TelemetryUtil.packet.fieldOverlay();
         DashboardUtil.drawRobot(fieldOverlay, currentPos, "#00ff00");
+        LogUtil.driveCurrentX.set(currentPos.x);
+        LogUtil.driveCurrentY.set(currentPos.y);
+        LogUtil.driveCurrentAngle.set(currentPos.heading);
     }
 }

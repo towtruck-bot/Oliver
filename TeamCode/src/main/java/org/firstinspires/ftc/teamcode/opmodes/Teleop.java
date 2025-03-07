@@ -8,6 +8,7 @@ import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.utils.ButtonToggle;
 import org.firstinspires.ftc.teamcode.utils.Globals;
 import org.firstinspires.ftc.teamcode.utils.RunMode;
+import org.firstinspires.ftc.teamcode.utils.LogUtil;
 
 @TeleOp(name = "A. Teleop")
 public class Teleop extends LinearOpMode {
@@ -17,6 +18,8 @@ public class Teleop extends LinearOpMode {
         Globals.hasSpecimenPreload = false;
 
         Robot robot = new Robot(hardwareMap);
+        robot.setAbortChecker(() -> !isStopRequested());
+        LogUtil.init();
 
         // Gamepad 1
         ButtonToggle lb_1 = new ButtonToggle();

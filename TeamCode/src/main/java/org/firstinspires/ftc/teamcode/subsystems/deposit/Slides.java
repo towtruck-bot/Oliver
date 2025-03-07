@@ -8,9 +8,8 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 import org.firstinspires.ftc.teamcode.Robot;
-import org.firstinspires.ftc.teamcode.subsystems.drive.Drivetrain;
-import org.firstinspires.ftc.teamcode.subsystems.drive.OldDrivetrain;
 import org.firstinspires.ftc.teamcode.utils.Globals;
+import org.firstinspires.ftc.teamcode.utils.LogUtil;
 import org.firstinspires.ftc.teamcode.utils.RunMode;
 import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 import org.firstinspires.ftc.teamcode.utils.priority.PriorityMotor;
@@ -25,7 +24,7 @@ public class Slides {
     public static double minPowerThresh = 0.5;
     public static double forceDownPower = -0.38;
     public static double forceDownThresh = 5;
-    public static double maxSlidesHeight = 33.5;
+    public static double maxSlidesHeight = 33.0;
 
     public final PriorityMotor slidesMotors;
     private final Robot robot;
@@ -34,13 +33,11 @@ public class Slides {
     public double vel;
 
     private double targetLength = 0;
-    private DcMotorEx m1;
-    private DcMotorEx m2;
-    private Drivetrain drivetrain;
+    private final DcMotorEx m1;
+    private final DcMotorEx m2;
 
     public Slides(Robot robot) {
         this.robot = robot;
-        this.drivetrain = robot.drivetrain;
 
         m1 = robot.hardwareMap.get(DcMotorEx.class, "slidesMotor0");
         m2 = robot.hardwareMap.get(DcMotorEx.class, "slidesMotor1");
@@ -89,7 +86,8 @@ public class Slides {
         double error = targetLength - length;
         TelemetryUtil.packet.put("Slides: Error", error);
         TelemetryUtil.packet.put("Slides: Target", targetLength);
-        TelemetryUtil.packet.put("Slides: Length", length);
+        LogUtil.slidesTargetPos.set(targetLength);
+        //TelemetryUtil.packet.put("Slides: Length", length);
 
         if (targetLength <= 0.5 && length <= forceDownThresh) { // force down
             return length <= 0.5 ? forceDownPower / 2 : forceDownPower;

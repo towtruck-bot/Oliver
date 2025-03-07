@@ -14,8 +14,8 @@ public class EndAffector {
     private double targetRotation, targetLength;
 
     private boolean closed;
-    public static double clawOpenAngle = 0.2634;
-    public static double clawCloseAngle = 1.4;
+    public static double clawOpenAngle = 0.592;
+    public static double clawCloseAngle = 1.0859;
 
     private double targetX, targetY;
 

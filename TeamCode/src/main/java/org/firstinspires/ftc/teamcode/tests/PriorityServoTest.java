@@ -15,29 +15,32 @@ import org.firstinspires.ftc.teamcode.utils.priority.PriorityServo;
 public class PriorityServoTest extends LinearOpMode {
     public static double angle = Math.PI;
     public static double speed = 0.5;
+    public static boolean start = false;
 
     @Override
     public void runOpMode() throws InterruptedException {
-        Robot robot = new Robot(hardwareMap);
-        PriorityServo testServo = new PriorityServo(
-            hardwareMap.get(Servo.class, "testServo"),
-            "testServo",
-            PriorityServo.ServoType.SUPER_SPEED,
-            1,
-            0,
-            1,
-            0.5,
-            true,
-            1, 2
-        );
-        robot.hardwareQueue.addDevice(testServo);
+//        PriorityServo testServo = new PriorityServo(
+//            hardwareMap.get(Servo.class, "testServo"),
+//            "testServo",
+//            PriorityServo.ServoType.SUPER_SPEED,
+//            1,
+//            0,
+//            1,
+//            0.5,
+//            true,
+//            1, 2
+//        );
+
+        Servo testServo = hardwareMap.get(Servo.class, "testServo");
 
         waitForStart();
 
         while (opModeIsActive()) {
-            testServo.setTargetAngle(Math.toRadians(angle), speed);
-            Globals.START_LOOP();
-            robot.hardwareQueue.update();
+            if(start){
+                testServo.setPosition(1.0);
+            }else{
+                testServo.setPosition(0.0);
+            }
         }
     }
 }

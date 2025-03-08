@@ -10,6 +10,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.teamcode.sensors.Sensors;
 import org.firstinspires.ftc.teamcode.subsystems.deposit.Deposit;
 import org.firstinspires.ftc.teamcode.subsystems.drive.Drivetrain;
+import org.firstinspires.ftc.teamcode.subsystems.drive.OldDrivetrain;
 import org.firstinspires.ftc.teamcode.subsystems.hang.Hang;
 import org.firstinspires.ftc.teamcode.subsystems.intake.ClawIntake;
 import org.firstinspires.ftc.teamcode.subsystems.intake.Intake;
@@ -25,7 +26,7 @@ public class Robot {
     public final HardwareMap hardwareMap;
     public final HardwareQueue hardwareQueue;
     public final Sensors sensors;
-    public final Drivetrain drivetrain;
+    public final OldDrivetrain drivetrain;
     public final ClawIntake clawIntake;
     // public final Intake intake;
     public final Deposit deposit;
@@ -79,7 +80,7 @@ public class Robot {
         sensors = new Sensors(this);
         clawIntake = new ClawIntake(this);
         // intake = new Intake(this);
-        drivetrain = new Drivetrain(this);
+        drivetrain = new OldDrivetrain(this);
         deposit = new Deposit(this);
         hang = new Hang(this);
 
@@ -311,9 +312,17 @@ public class Robot {
         } while (((boolean) this.abortChecker.call()) && System.currentTimeMillis() - start < duration);
     }
 
-    public void goToPoint(Pose2d pose, Func func, boolean moveNear, boolean slowDown, boolean stop, double maxPower) {
+//    public void goToPoint(Pose2d pose, Func func, boolean moveNear, boolean slowDown, boolean stop, double maxPower) {
+//        long start = System.currentTimeMillis();
+//        drivetrain.goToPoint(pose, moveNear, slowDown, stop, maxPower); // need this to start the process so thresholds don't immediately become true
+//        do {
+//            update();
+//        } while (((boolean) this.abortChecker.call()) && (func == null || (boolean) func.call()) && System.currentTimeMillis() - start <= 5000 && drivetrain.isBusy());
+//    }
+
+    public void goToPoint(Pose2d pose, Func func, boolean finalAdjustment, boolean stop, double maxPower) {
         long start = System.currentTimeMillis();
-        drivetrain.goToPoint(pose, moveNear, slowDown, stop, maxPower); // need this to start the process so thresholds don't immediately become true
+        drivetrain.goToPoint(pose, finalAdjustment, stop, maxPower); // need this to start the process so thresholds don't immediately become true
         do {
             update();
         } while (((boolean) this.abortChecker.call()) && (func == null || (boolean) func.call()) && System.currentTimeMillis() - start <= 5000 && drivetrain.isBusy());

@@ -15,7 +15,7 @@ public class Arm {
     public final nPriorityServo clawRotation;
     public final nPriorityServo clawGrip;
 
-    public static double sampleOpenRad = 0.6601, sampleCloseRad = -0.0106, speciOpenRad = 0.3726, speciCloseRad = -0.0106;
+    public static double sampleOpenRad = 0.2076, speciOpenRad = 0.103, closeRad = -0.0106;
 
     public Arm(Robot robot){
         this.sensors = robot.sensors;
@@ -50,8 +50,8 @@ public class Arm {
                 new Servo[] {robot.hardwareMap.get(Servo.class, "clawGrip")},
                 "clawGrip",
                 nPriorityServo.ServoType.AXON_MINI,
-                0.078,
-                0.28,
+                0.074,
+                0.12,
                 0.08,
                 new boolean[] {false},
                 1.0,
@@ -80,12 +80,8 @@ public class Arm {
         clawGrip.setTargetAngle(speciOpenRad, 1.0);
     }
 
-    public void sampleClose(){
-        clawGrip.setTargetAngle(sampleCloseRad, 1.0);
-    }
-
-    public void speciClose(){
-        clawGrip.setTargetAngle(speciCloseRad, 1.0);
+    public void clawClose(){
+        clawGrip.setTargetAngle(closeRad, 1.0);
     }
 
     public boolean inPosition(){

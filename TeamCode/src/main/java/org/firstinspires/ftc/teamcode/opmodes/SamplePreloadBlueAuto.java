@@ -6,7 +6,6 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.utils.Globals;
-import org.firstinspires.ftc.teamcode.utils.LogUtil;
 import org.firstinspires.ftc.teamcode.utils.Pose2d;
 import org.firstinspires.ftc.teamcode.utils.RunMode;
 
@@ -17,12 +16,11 @@ public class SamplePreloadBlueAuto extends LinearOpMode {
 
     public static boolean enableg1 = true, enableg2 = true, enableg3 = true, enabler = true;
 
-    public static double gx1 = 49.0, gy1 = 25.75;
-    public static double gx2 = 60.0, gy2 = 25.75;
-    public static double gx3 = 70.0, gy3 = 25.75;
-
-    public static double fx1 = 36.0, fy1 = 12.0 , fh1 = Math.PI;
-    public static double fx2 = 24.0, fy2 = 12.0, fh2 = Math.PI;
+    public static double gx = 60, gy = 48;
+    public static double g1h = -1.976, g1e = 15.95;
+    public static double g2h = -Math.PI/2, g2e = 13.7;
+    public static double g3h = -1.165, g3e = 15.95;
+    public static double fx = 24.0, fy = 12.0, fh = Math.PI;
 
     public void runOpMode(){
         doInitialization();
@@ -33,19 +31,19 @@ public class SamplePreloadBlueAuto extends LinearOpMode {
         score();
 
         if (enableg1) {
-            intakeGroundAt(gx1, gy1);
+            getGround(gx, gy, g1h, g1e);
             moveToBelowBucket();
             score();
         }
 
         if (enableg2) {
-            intakeGroundAt(gx2, gy2);
+            getGround(gx, gy, g2h, g2e);
             moveToBelowBucket();
             score();
         }
 
         if (enableg3) {
-            intakeGroundAt(gx3, gy3);
+            getGround(gx, gy, g3h, g3e);
             moveToBelowBucket();
             score();
         }
@@ -64,7 +62,6 @@ public class SamplePreloadBlueAuto extends LinearOpMode {
 
         robot = new Robot(hardwareMap);
         robot.setAbortChecker(() -> !isStopRequested());
-        LogUtil.init();
 
         robot.sensors.resetPosAndIMU();
 
@@ -78,7 +75,7 @@ public class SamplePreloadBlueAuto extends LinearOpMode {
 
     public void moveToBelowBucket() {
         // robot current state, SAMPLE_READY
-        robot.goToPoint(new Pose2d(55, 55, 5 * Math.PI/4), null, false, false, false, 0.8);
+        robot.goToPoint(new Pose2d(55, 55, 5 * Math.PI/4), null, false, true, 0.8);
         robot.waitWhile(() -> !robot.clawIntake.isRetracted());
 
         // raise slides
@@ -91,7 +88,7 @@ public class SamplePreloadBlueAuto extends LinearOpMode {
 
     public void score() {
         // move in (robot current state, DEPOSIT_BUCKET)
-        robot.goToPoint(new Pose2d(57, 57, 5 * Math.PI / 4), null, false, true, false, 0.8);
+        robot.goToPoint(new Pose2d(57, 57, 5 * Math.PI/4), null, false, true, 0.8);
 
         // release sample
         robot.setNextState(Robot.NextState.DONE);
@@ -104,26 +101,32 @@ public class SamplePreloadBlueAuto extends LinearOpMode {
         //robot.goToPoint(new Pose2d(52, 52, 5 * Math.PI/4), null, false, true, 0.8);
     }
 
-    public void intakeGroundAt(double gx, double gy){
-        robot.goToPoint(new Pose2d(gx, gy), null, true, true, true, 0.8);
-
+    public void getGround(double gx, double gy, double gh, double ge){
+        // extend intake to desired length
         robot.setNextState(Robot.NextState.INTAKE_SAMPLE);
-        robot.setIntakeExtension(robot.drivetrain.getExtension());
+        robot.setIntakeExtension(ge - 5);
+
+        robot.goToPoint(new Pose2d(gx, gy, gh), null, true, true, 0.8);
+        robot.setIntakeExtension(ge);
 
         robot.waitWhile(() -> !robot.clawIntake.isExtended());
 
-        robot.waitFor(50);
+        // buffer time between extension and grab
+        robot.waitFor(300);
 
+        // grab
         robot.grab(true);
         robot.waitWhile(() -> !robot.clawIntake.grabFinished());
 
+        // retract
         robot.setNextState(Robot.NextState.DONE);
+        //robot.waitWhile(() -> { return !robot.clawIntake.isRetracted(); });
     }
 
     public void goToTeleOpStart() {
         // prepare for teleop
-        robot.goToPoint(new Pose2d(fx1, fy1, fh1), null, false, false, false, 0.8);
+        robot.goToPoint(new Pose2d(36, 12, Math.PI), null, false, false, 0.8);
 
-        robot.goToPoint(new Pose2d(fx2, fy2, fh2), null, true, false, true, 0.8);
+        robot.goToPoint(new Pose2d(fx, fy, fh), null, true, true, 0.8);
     }
 }

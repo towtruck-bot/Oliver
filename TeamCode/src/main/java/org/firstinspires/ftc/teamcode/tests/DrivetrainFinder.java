@@ -21,7 +21,7 @@ public class DrivetrainFinder extends LinearOpMode {
 
     public void runOpMode() throws InterruptedException {
         Robot robot = new Robot(hardwareMap);
-        Drivetrain drivetrain = robot.drivetrain;
+        OldDrivetrain drivetrain = robot.drivetrain;
 
         waitForStart();
 

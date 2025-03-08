@@ -6,8 +6,10 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.Robot;
+import org.firstinspires.ftc.teamcode.subsystems.intake.ClawIntake;
+import org.firstinspires.ftc.teamcode.utils.Globals;
+import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 
-@Disabled
 @TeleOp
 @Config
 public class IntakePIDTuner extends LinearOpMode {
@@ -15,23 +17,23 @@ public class IntakePIDTuner extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
+        Globals.TESTING_DISABLE_CONTROL = false;
         Robot robot = new Robot(hardwareMap);
-/*
-        robot.intake.intakeState = Intake.IntakeState.TESTER;
-        robot.intake.setRollerOff();
+
+        robot.clawIntake.clawIntakeState = ClawIntake.ClawIntakeState.TEST;
 
         waitForStart();
 
         while (opModeIsActive()) {
-            robot.intake.extTargetLen = targetExtension;
+            robot.clawIntake.setIntakeTargetPos(targetExtension);
 
             // Logging for PID graphs
-            TelemetryUtil.packet.put("Intake Target", robot.intake.extTargetLen);
-            TelemetryUtil.packet.put("Intake Current Position", robot.intake.extCurrentLen);
+            TelemetryUtil.packet.put("Intake Target", robot.clawIntake.getIntakeTargetPos());
+            TelemetryUtil.packet.put("Intake Current Position", robot.sensors.getExtendoPos());
 
             robot.update();
         }
 
- */
+
     }
 }

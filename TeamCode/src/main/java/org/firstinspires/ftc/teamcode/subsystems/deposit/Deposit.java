@@ -53,16 +53,16 @@ public class Deposit {
     // y is measured from slides 0
 
     // prepare for transfer positions
-    public static double intakeWaitRad = 0.65, intakeWaitClawRad = 1.65, intakeWaitY = 0.0;
+    public static double intakeWaitRad = 0.4, intakeWaitY = 0.0, intakeWaitClawRad = 1.235;
     // transfer positions, move in to grab
-    public static double intakeRad = 0.0639, intakeY = 0.0, intakeClawRad = 1.2669;
+    public static double intakeRad = 0.0266, intakeY = 0.0, intakeClawRad = 1.235;
     // moving positions with a sample
     public static double sampleHoldRad = 0.0, holdY = 0.0, sampleHoldClawRad = -Math.PI / 2;
     public static double specimenGrabRad = 0.0, specimenGrabClawRad = 0.0, specimenConfirmRad = Math.PI / 12 , specimenConfirmClawRad = -Math.PI / 6;
     // sample basket positions
-    public static double sampleLY = 16.75, sampleHY = 33, sampleRad = 2.4, sampleClawRad = 0.5;
+    public static double sampleLY = 16.75, sampleHY = 33, sampleRad = 2.4, sampleClawRad = 0;
     // outtake positions, drop behind robot
-    public static double outtakeRad = Math.PI * 5 / 3, outtakeY = 0.0, outtakeClawRad = Math.PI * - 1 / 3;
+    public static double outtakeRad = Math.PI * 5 / 3, outtakeY = 0.0, outtakeClawRad = 0.0;
     // grabbing positions, holdGrab -> off the wall, grabRetract --> moving with a specimen
     // specimen chamber positions
     public static double speciLSY = 19.4;
@@ -113,14 +113,14 @@ public class Deposit {
 
                 if(arm.inPosition() && slides.inPosition(0.7)){ // Need to figure out this threshold better
                     state = State.TRANSFER_CLOSE;
-                    arm.speciClose();
+                    arm.clawClose();
                     this.grabStartTime = this.currentTime;
                 }
                 break;
             case TRANSFER_CLOSE:
                 moveToWithRad(intakeRad, intakeY);
                 arm.setClawRotation(intakeClawRad, 1.0);
-                arm.speciClose();
+                arm.clawClose();
 
                 if (arm.clawFinished() && this.currentTime - this.grabStartTime >= transferBufferDuration * 1e6) {
                     state = State.TRANSFER_FINISH;
@@ -130,7 +130,7 @@ public class Deposit {
             case TRANSFER_FINISH:
                 moveToWithRad(sampleHoldRad, holdY);
                 arm.setClawRotation(sampleHoldClawRad, 1.0);
-                arm.speciClose();
+                arm.clawClose();
 
                 if(arm.inPosition()){
                     state = State.HOLD;
@@ -139,7 +139,7 @@ public class Deposit {
             case HOLD:
                 moveToWithRad(sampleHoldRad, holdY);
                 arm.setClawRotation(sampleHoldClawRad, 1.0);
-                arm.speciClose();
+                arm.clawClose();
                 break;
             case SAMPLE_RAISE:
                 moveToWithRad(sampleRad, targetY);
@@ -205,7 +205,7 @@ public class Deposit {
             case GRAB:
                 moveToWithRad(specimenGrabRad, holdY);
                 arm.setClawRotation(specimenGrabClawRad, 1.0);
-                arm.speciClose();
+                arm.clawClose();
 
                 if(arm.clawFinished()){
                     state = State.GRAB_RETRACT;

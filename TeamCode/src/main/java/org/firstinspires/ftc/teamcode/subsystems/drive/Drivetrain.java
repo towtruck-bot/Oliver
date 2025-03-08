@@ -36,7 +36,7 @@ public class Drivetrain {
 
     private Robot robot;
     private Vision vision;
-    private Sensors sensors;
+    public Sensors sensors;
 
     private PriorityMotor leftFront, leftRear, rightRear, rightFront;
     private final List<PriorityMotor> motors;

@@ -30,8 +30,8 @@ public class ClawIntake {
     private double intakeSetTargetPos;
     private double extendoCurrentPos;
 
-    public static PID extendoPID = new PID(0.15, 0.05, 0.008);
-    public static double slidesTolerance = 0.4;
+    public static PID extendoPID = new PID(0.15, 0.001, 0.009);
+    public static double slidesTolerance = 0.7;
     public static double slidesForcePullPow = -0.2;
 
     public static double intakeHoverAngle = -1.35;
@@ -48,7 +48,7 @@ public class ClawIntake {
 
     private boolean grab = false;
 
-    enum ClawIntakeState {
+    public enum ClawIntakeState {
         START_EXTEND, //ideally this is where limelight is gonna be reading in auto
         FINISH_EXTEND, //flips down while continuing to extend, continuing to read
         ALIGN, //this is where limelight is gonna read for teleop, move to next on buttom press
@@ -57,10 +57,11 @@ public class ClawIntake {
         CONFIRM,
         RETRACT, //flip up + retract
         HOLD,
-        READY //ungrip
+        READY, //ungrip
+        TEST
     }
 
-    private ClawIntakeState clawIntakeState = ClawIntakeState.READY;
+    public ClawIntakeState clawIntakeState = ClawIntakeState.READY;
     private final DcMotorEx m;
 
     public ClawIntake(Robot robot) {
@@ -189,6 +190,9 @@ public class ClawIntake {
                 this.clawRotation.setTargetAngle(clawRotationDefaultAngle);
                 this.claw.setTargetAngle(clawOpenAngle);
                 this.extendoTargetPos = 0;
+                break;
+            case TEST:
+                extendoTargetPos = intakeSetTargetPos;
                 break;
         }
 

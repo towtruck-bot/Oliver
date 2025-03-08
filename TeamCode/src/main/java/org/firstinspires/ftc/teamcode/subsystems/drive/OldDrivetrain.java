@@ -101,7 +101,7 @@ public class OldDrivetrain {
                 new TwoWheelLocalizer(hardwareMap, sensors, this, "#aaaa00", "#00aaaa"),
                 new Localizer(hardwareMap, sensors, this, "#0000aa", "#aa00aa")
         };
-        setMinPowersToOvercomeFriction();
+//        setMinPowersToOvercomeFriction();
     }
 
     public void configureMotors(){
@@ -145,10 +145,10 @@ public class OldDrivetrain {
 
     // leftFront, leftRear, rightRear, rightFront
     double[] minPowersToOvercomeFriction = new double[] {
-            0.3121803239920063,
-            0.3533249418072871,
-            0.36038420175052865,
-            0.39695077434023707
+            0.2413194940290,
+            0.2337791473,
+            0.246122952040818,
+            0.2737912666227906
     };
 
     public void setMinPowersToOvercomeFriction() {
@@ -387,7 +387,7 @@ public class OldDrivetrain {
     public static double yThreshold = 2.0;
     public static double turnThreshold = 4;
 
-    public static PID xPID = new PID(0.147,0.0,0.026);
+    public static PID xPID = new PID(0.025,0.0,0.004);
     public static PID yPID = new PID(0.15,0.0,0.025);
     public static PID turnPID = new PID(0.25,0.0,0.01);
 
@@ -428,7 +428,7 @@ public class OldDrivetrain {
         TelemetryUtil.packet.put("strafe", strafe);
     }
 
-    public static PID finalXPID = new PID(0.05, 0.0,0.006);
+    public static PID finalXPID = new PID(0.05, 0.0001,0.007);
     public static PID finalYPID = new PID(0.05, 0.0,0.006);
     public static PID finalTurnPID = new PID(0.022, 0.0,0.005);
 
@@ -596,6 +596,7 @@ public class OldDrivetrain {
         TelemetryUtil.packet.put("Drivetrain:: turnError (deg)", Math.toDegrees(turnError));
         TelemetryUtil.packet.put("Drivetrain:: xTarget", targetPoint.x);
         TelemetryUtil.packet.put("Drivetrain:: yTarget", targetPoint.y);
+        TelemetryUtil.packet.put("Drivetrain:: turnTarget", Math.toDegrees(targetPoint.heading));
 
         Canvas canvas = TelemetryUtil.packet.fieldOverlay();
 

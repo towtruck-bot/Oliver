@@ -14,7 +14,7 @@ import org.firstinspires.ftc.teamcode.subsystems.drive.OldDrivetrain;
 public class EncoderDirectionTest extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
         Robot robot = new Robot(hardwareMap);
-        Drivetrain drive = robot.drivetrain;
+        OldDrivetrain drive = robot.drivetrain;
         drive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         waitForStart();
         while (opModeIsActive()){

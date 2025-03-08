@@ -57,16 +57,17 @@ public class Deposit {
     // transfer positions, move in to grab
     public static double intakeRad = 0.0639, intakeY = 0.0, intakeClawRad = 1.2669;
     // moving positions with a sample
-    public static double sampleHoldRad = 0.35, holdY = 0.0, sampleHoldClawRad = -2;
-    public static double specimenGrabRad = 0.0, specimenGrabClawRad = 0.0, specimenConfirmRad = 0.8, specimenConfirmClawRad = -0.5;
+    public static double sampleHoldRad = 0.0, holdY = 0.0, sampleHoldClawRad = -Math.PI / 2;
+    public static double specimenGrabRad = 0.0, specimenGrabClawRad = 0.0, specimenConfirmRad = Math.PI / 12 , specimenConfirmClawRad = -Math.PI / 6;
     // sample basket positions
     public static double sampleLY = 16.75, sampleHY = 33, sampleRad = 2.4, sampleClawRad = 0.5;
     // outtake positions, drop behind robot
-    public static double outtakeRad = 3.0, outtakeY = 0.0, outtakeClawRad = -0.25;
+    public static double outtakeRad = Math.PI * 5 / 3, outtakeY = 0.0, outtakeClawRad = Math.PI * - 1 / 3;
     // grabbing positions, holdGrab -> off the wall, grabRetract --> moving with a specimen
     // specimen chamber positions
     public static double speciLSY = 19.4;
-    public static double  speciHRad = 2.79, speciHClawRad = 1.46, speciHY = 19.69 ;
+    public static double  speciHRad = 2.79, speciHClawRad = -1.46, speciHY = 19.69 ;
+    // TODO: ^ These values look about fine tbh, just had to reverse the sign of the claw. Need to test
 
     private long currentTime = -1;
     private long sampleReleaseTime = -1;

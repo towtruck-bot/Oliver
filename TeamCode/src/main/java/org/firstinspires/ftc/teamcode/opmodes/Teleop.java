@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Gamepad;
 
 import org.firstinspires.ftc.teamcode.Robot;
+import org.firstinspires.ftc.teamcode.subsystems.deposit.Deposit;
 import org.firstinspires.ftc.teamcode.utils.ButtonToggle;
 import org.firstinspires.ftc.teamcode.utils.Globals;
 import org.firstinspires.ftc.teamcode.utils.RunMode;
@@ -32,7 +33,6 @@ public class Teleop extends LinearOpMode {
 
         //Gamepad 2
         ButtonToggle x_2 = new ButtonToggle();
-        ButtonToggle a_2 = new ButtonToggle();
         ButtonToggle b_2 = new ButtonToggle();
 
         final double slidesInc = 0.4;
@@ -127,25 +127,20 @@ public class Teleop extends LinearOpMode {
             }
 
             // Specimen/Sample Toggle
-            if (a_2.isClicked(gamepad2.a)) {
+            if (b_2.isClicked(gamepad2.b)) {
                 speciMode = !speciMode;
                 robot.updateDepositHeights(speciMode, high);
             }
 
-            // Force Deposit Slides Retract
-            if (b_2.isClicked(gamepad2.b)) {
-                robot.deposit.setDepositHeight(0.0);
-            }
-
             // Increment/Decrement Intake Slides
             // Up --> increase, Down --> decrease on right joystick
-            double intakeControl2 = robot.drivetrain.smoothControls(-gamepad2.right_stick_y);
-            robot.clawIntake.setIntakeTargetPos(robot.clawIntake.getIntakeTargetPos() + extendoInc * intakeControl2);
+            //double intakeControl2 = robot.drivetrain.smoothControls(-gamepad2.right_stick_y);
+            //robot.clawIntake.setIntakeTargetPos(robot.clawIntake.getIntakeTargetPos() + extendoInc * intakeControl2);
 
             // Increment/Decrement Deposit Slides
             // Up --> increase, Down --> decrease on left joystick
-            double slidesControl2 = robot.drivetrain.smoothControls(-gamepad2.left_stick_y);
-            robot.deposit.setDepositHeight(robot.deposit.getDepositHeight() + slidesInc * slidesControl2);
+            //double slidesControl2 = robot.drivetrain.smoothControls(-gamepad2.left_stick_y);
+            //robot.deposit.setDepositHeight(robot.deposit.getDepositHeight() + slidesInc * slidesControl2);
 
             // hang (both drivers)
             int hangLeftDir = 0, hangRightDir = 0;
@@ -155,12 +150,24 @@ public class Teleop extends LinearOpMode {
                 if (gamepad.dpad_left) { --hangLeftDir; ++hangRightDir; }
                 if (gamepad.dpad_right) { ++hangLeftDir; --hangRightDir; }
             }
+            if (-gamepad2.right_stick_y >= triggerThresh) ++hangLeftDir;
+            if (-gamepad2.right_stick_y <= -triggerThresh) --hangLeftDir;
+            if (-gamepad2.left_stick_y >= triggerThresh) ++hangRightDir;
+            if (-gamepad2.left_stick_y <= -triggerThresh) --hangRightDir;
+            if (gamepad2.y) { ++hangLeftDir; ++hangRightDir; }
+            if (gamepad2.a) { --hangLeftDir; --hangRightDir; }
             if (hangLeftDir > 0) robot.hang.leftUp();
             else if (hangLeftDir < 0) robot.hang.leftReverse();
             else robot.hang.leftOff();
             if (hangRightDir > 0) robot.hang.rightUp();
             else if (hangRightDir < 0) robot.hang.rightReverse();
             else robot.hang.rightOff();
+
+            if (gamepad2.right_trigger >= 0.7) {
+                robot.deposit.hangMode = Deposit.HangMode.PULL;
+            } else if (gamepad2.left_trigger >= 0.7) {
+                robot.deposit.hangMode = Deposit.HangMode.OUT;
+            }
 
             telemetry.addData("speciMode", speciMode);
             telemetry.addData("high", high);

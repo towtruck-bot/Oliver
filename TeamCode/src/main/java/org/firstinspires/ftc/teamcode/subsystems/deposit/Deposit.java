@@ -77,6 +77,13 @@ public class Deposit {
 
     private boolean high = true;
 
+    public enum HangMode {
+        OUT,
+        PULL,
+        OFF
+    }
+    public HangMode hangMode = HangMode.OFF;
+
     public Deposit(Robot robot){
         this.robot = robot;
         this.slides = new Slides(this.robot);
@@ -262,6 +269,17 @@ public class Deposit {
         TelemetryUtil.packet.put("Deposit: Arm inPosition", arm.inPosition());
         TelemetryUtil.packet.put("Deposit: Slides inPosition", slides.inPosition(0.5));
         TelemetryUtil.packet.put("Deposit: Claw inPosition", arm.clawFinished());
+        TelemetryUtil.packet.put("Deposit: Hanging", hangMode);
+
+        if (hangMode == HangMode.PULL) {
+            slides.setTargetPowerFORCED(-1.0);
+            targetY = 0;
+            hangMode = HangMode.OFF;
+        } else if (hangMode == HangMode.OUT) {
+            slides.setTargetPowerFORCED(0.5);
+            targetY = Slides.maxSlidesHeight;
+            hangMode = HangMode.OFF;
+        }
     }
 
     public void moveToWithRad(double armTargetRad, double targetY){

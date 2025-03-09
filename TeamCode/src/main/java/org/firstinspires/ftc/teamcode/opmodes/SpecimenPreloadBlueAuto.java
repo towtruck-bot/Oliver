@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.opmodes;
 
+import android.util.Log;
+
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -22,7 +24,7 @@ public class SpecimenPreloadBlueAuto extends LinearOpMode {
     public static double g3e = 15.95, g3h = -1.165;
 
     public static double setupX = -36.5, setupY = 63.9;
-    public static double baseScoreX = -5.9, baseScoreY = 41.45, scoreY = 28.75;
+    public static double baseScoreX = -5.9, baseScoreY = 41.45, scoreY = 28.75, backUpX = -8, backUpY = 40.0;
 
     public static double[] targetX = new double[] {0.0, 2.5, 5.0, 7.5, 10.0};
 
@@ -84,21 +86,29 @@ public class SpecimenPreloadBlueAuto extends LinearOpMode {
 
         // Release + backup
         robot.setNextState(Robot.NextState.DONE);
-        robot.goToPoint(new Pose2d(baseScoreX, baseScoreY, Math.PI/2), null, false, false, 0.95);
+        robot.goToPoint(new Pose2d(backUpX, backUpY, Math.PI), null, false, false, 0.95);
     }
 
     public void move3Ground(){
-        robot.goToPoint(new Pose2d(-24.0, gy, -Math.PI / 2), null, true, false, 0.95);
+//        robot.goToPoint(new Pose2d(-24.0, gy, -Math.PI / 2), null, true, false, 0.95);
+//        robot.goToPoint(new Pose2d(gx, gy, -Math.PI / 2), null, false, true, 0.95);
+
         robot.goToPoint(new Pose2d(gx, gy, -Math.PI / 2), null, false, true, 0.95);
 
+        Log.i("AUTO", "start 1");
         pickUp(g2e, g2h);
         chuckOut();
+        Log.i("AUTO", "end 1");
 
+        Log.i("AUTO", "start 2");
         pickUp(g1e, g1h);
         chuckOut();
+        Log.i("AUTO", "end 2");
 
+        Log.i("AUTO", "start 3");
         pickUp(g3e, g3h);
         chuckOut();
+        Log.i("AUTO", "end 3");
     }
 
     public void pickUp(double ge, double gh){
@@ -123,9 +133,14 @@ public class SpecimenPreloadBlueAuto extends LinearOpMode {
 
     public void chuckOut(){
         robot.goToPoint(new Pose2d(gx, cy, -Math.PI / 2), null, false, false, 0.95);
-
+        Log.i("AUTO", "reached 1");
         // Outtake
         robot.setNextState(Robot.NextState.DONE);
+        Log.i("AUTO", "reached 2");
+
+        robot.waitWhile(() -> !robot.deposit.isOuttakeDone());
+        Log.i("AUTO", "reached 3");
+
     }
 
     public void grabAndSetUp(double offset){

@@ -352,7 +352,7 @@ public class OldDrivetrain {
                 state = State.WAIT_AT_POINT;
                 break;
             case WAIT_AT_POINT:
-                if (!atPointThresholds(finalAdjustment ? finalXThreshold : xThreshold, finalAdjustment ? finalYThreshold : yThreshold, finalAdjustment ? finalTurnThreshold : turnThreshold)) {
+                if (!atPointThresholds(finalAdjustment ? finalXThreshold : xThreshold, finalAdjustment ? finalYThreshold : yThreshold, finalAdjustment ? finalTurnThreshold: turnThreshold)) {
                     resetIntegrals();
                     state = State.GO_TO_POINT;
                 }
@@ -371,7 +371,7 @@ public class OldDrivetrain {
         // convert error into direction robot is facing
         xError = Math.cos(sensors.getOdometryPosition().heading)*deltaX + Math.sin(sensors.getOdometryPosition().heading)*deltaY;
         yError = -Math.sin(sensors.getOdometryPosition().heading)*deltaX + Math.cos(sensors.getOdometryPosition().heading)*deltaY;
-        turnError = targetPoint.heading-sensors.getOdometryPosition().heading;
+        turnError = targetPoint.heading -sensors.getOdometryPosition().heading;
 
         // make this like, a good value thats not insanely large from the robot oouiiaaeeaoiaaieee ing
         while(Math.abs(turnError) > Math.PI ){
@@ -428,9 +428,9 @@ public class OldDrivetrain {
         TelemetryUtil.packet.put("strafe", strafe);
     }
 
-    public static PID finalXPID = new PID(0.05, 0.0001,0.007);
+    public static PID finalXPID = new PID(0.007, 0.0001,0.00135);
     public static PID finalYPID = new PID(0.05, 0.0,0.006);
-    public static PID finalTurnPID = new PID(0.022, 0.0,0.005);
+    public static PID finalTurnPID = new PID(0.025, 0.0013,0.0015);
 
     public static double finalXThreshold = 0.35;
     public static double finalYThreshold = 0.35;

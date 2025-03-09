@@ -55,12 +55,12 @@ public class Deposit {
     // prepare for transfer positions
     public static double intakeWaitRad = 0.4, intakeWaitY = 0.0, intakeWaitClawRad = 1.235;
     // transfer positions, move in to grab
-    public static double intakeRad = 0.0266, intakeY = 0.0, intakeClawRad = 1.235;
+    public static double intakeRad = 0.0266, intakeY = 0.0, intakeClawRad = 1.4;
     // moving positions with a sample
     public static double sampleHoldRad = 0.0, holdY = 0.0, sampleHoldClawRad = -Math.PI / 2;
-    public static double specimenGrabRad = 0.0, specimenGrabClawRad = 0.0, specimenConfirmRad = Math.PI / 12 , specimenConfirmClawRad = -Math.PI / 6;
+    public static double specimenGrabRad = 0.0, specimenGrabClawRad = 0.0, specimenConfirmRad = Math.toRadians(30), specimenConfirmClawRad = Math.toRadians(30);
     // sample basket positions
-    public static double sampleLY = 16.75, sampleHY = 33, sampleRad = 2.4, sampleClawRad = 0;
+    public static double sampleLY = 16.75, sampleHY = 32, sampleRad = 2.4, sampleClawRad = -0.3;
     // outtake positions, drop behind robot
     public static double outtakeRad = Math.PI * 5 / 3, outtakeY = 0.0, outtakeClawRad = 0.0;
     // grabbing positions, holdGrab -> off the wall, grabRetract --> moving with a specimen

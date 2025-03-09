@@ -30,8 +30,8 @@ public class ClawIntake {
     private double intakeSetTargetPos;
     private double extendoCurrentPos;
 
-    public static PID extendoPID = new PID(0.15, 0.001, 0.009);
-    public static double slidesTolerance = 0.7;
+    public static PID extendoPID = new PID(0.15, 0.05, 0.009);
+    public static double slidesTolerance = 0.5;
     public static double slidesForcePullPow = -0.2;
 
     public static double intakeHoverAngle = -1.35;
@@ -270,7 +270,7 @@ public class ClawIntake {
             if (this.isExtensionAtTarget()) {
                 extendoPID.update(0, -1.0, 1.0);
                 extendoPID.resetIntegral();
-                pow = this.extendoTargetPos <= slidesTolerance && this.extendoCurrentPos > 0.0 ? slidesForcePullPow : 0;
+                pow = this.extendoTargetPos <= slidesTolerance && this.extendoCurrentPos >= 0.0 ? slidesForcePullPow : 0;
             } else {
                 pow = extendoPID.update(this.extendoTargetPos - this.extendoCurrentPos, -0.7, 0.7);
             }

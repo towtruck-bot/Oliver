@@ -89,7 +89,7 @@ public class Teleop extends LinearOpMode {
                 rb_1.isClicked(gamepad1.right_bumper);
                 lt_1.isClicked(gamepad1.left_trigger > triggerThresh);
                 robot.clawIntake.grab(gamepad1.right_bumper);
-                robot.clawIntake.setClawRotation(robot.clawIntake.getClawRotAngle() + intakeClawRotationInc * (gamepad1.right_trigger - gamepad1.left_trigger));
+                robot.clawIntake.setClawRotation(robot.clawIntake.getClawRotAngle() + intakeClawRotationInc * (gamepad1.left_trigger - gamepad1.right_trigger));
             } else {
                 if (rb_1.isClicked(gamepad1.right_bumper))
                     robot.setNextState(Robot.NextState.DEPOSIT);

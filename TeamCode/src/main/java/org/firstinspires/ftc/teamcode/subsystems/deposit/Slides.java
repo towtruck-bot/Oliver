@@ -24,7 +24,7 @@ public class Slides {
     public static double minPowerThresh = 0.5;
     public static double forceDownPower = -0.38;
     public static double forceDownThresh = 5;
-    public static double maxSlidesHeight = 32.5;
+    public static double maxSlidesHeight = 34.5;
 
     public final PriorityMotor slidesMotors;
     private final Robot robot;

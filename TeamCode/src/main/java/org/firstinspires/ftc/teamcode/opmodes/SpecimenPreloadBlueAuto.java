@@ -60,6 +60,7 @@ public class SpecimenPreloadBlueAuto extends LinearOpMode {
         Globals.isRed = false;
         Globals.RUNMODE = RunMode.AUTO;
         Globals.hasSpecimenPreload = true;
+        Globals.hasSamplePreload = false;
 
         robot = new Robot(hardwareMap);
         robot.setAbortChecker(() -> !isStopRequested());
@@ -69,6 +70,7 @@ public class SpecimenPreloadBlueAuto extends LinearOpMode {
         while (opModeInInit() && !isStopRequested()) {
             robot.sensors.setOdometryPosition( -Globals.TRACK_WIDTH / 2.0, 72.0 - Globals.TRACK_LENGTH / 2.0, Math.PI/2);
             robot.deposit.setDepositHeight(0.0);
+            robot.updateDepositHeights(true, true);
 
             robot.update();
         }
@@ -128,7 +130,7 @@ public class SpecimenPreloadBlueAuto extends LinearOpMode {
         robot.waitWhile(() -> !robot.clawIntake.grabFinished());
 
         // retract
-        robot.setNextState(Robot.NextState.DONE);
+        robot.setNextState(Robot.NextState.DEPOSIT);
     }
 
     public void chuckOut(){

@@ -124,9 +124,12 @@ public class Robot {
     ^-<< {DEPOSIT_SPECIMEN} << SPECIMEN_READY >>-----^^
 */
 
+    boolean wasClicked = false;
+    long currentTime = System.nanoTime();
+
     private void robotFSM() {
-        long currentTime = System.nanoTime();
-        boolean wasClicked = this.lastClickTime != -1 && currentTime - this.lastClickTime <= bufferClickDuration * 1e6;
+        currentTime = System.nanoTime();
+        wasClicked = this.lastClickTime != -1 && Math.abs(currentTime - this.lastClickTime) <= bufferClickDuration * 1e6;
 
         switch (this.state) {
             case IDLE:
@@ -145,18 +148,17 @@ public class Robot {
                 if (this.clawIntake.isRetracted()) {
                     if (this.clawIntake.hasSample()) this.state = RobotState.SAMPLE_READY;
                     else this.state = RobotState.IDLE;
+                    this.lastClickTime = -1;
                 } else if ((wasClicked) && this.nextState == NextState.DONE) {
                     this.clawIntake.retract();
                     this.lastClickTime = -1;
                 }
                 break;
             case SAMPLE_READY:
-                if (wasClicked) {
-                    if (this.nextState == NextState.INTAKE_SAMPLE) state = RobotState.INTAKE_SAMPLE;
-                    else if (this.nextState == NextState.DEPOSIT) state = RobotState.TRANSFER;
-                    else if (this.nextState == NextState.DONE) state = RobotState.TRANSFER;
-                    lastClickTime = -1;
-                }
+                if (this.nextState == NextState.INTAKE_SAMPLE) state = RobotState.INTAKE_SAMPLE;
+                else if (this.nextState == NextState.DEPOSIT) state = RobotState.TRANSFER;
+                else if (this.nextState == NextState.DONE) state = RobotState.TRANSFER;
+                lastClickTime = -1;
                 break;
             case TRANSFER:
                 if (this.prevState != RobotState.TRANSFER) this.deposit.startTransfer();

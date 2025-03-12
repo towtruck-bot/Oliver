@@ -5,6 +5,7 @@ import android.util.Log;
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.Robot;
@@ -21,10 +22,11 @@ import org.firstinspires.ftc.teamcode.utils.priority.nPriorityServo;
 public class ClawIntake {
     private final Robot robot;
 
-    public PriorityMotor intakeExtensionMotor;
-    public nPriorityServo intakeFlipServo;
-    public nPriorityServo claw;
-    public nPriorityServo clawRotation;
+    public final PriorityMotor intakeExtensionMotor;
+    public final nPriorityServo intakeFlipServo;
+    public final nPriorityServo claw;
+    public final nPriorityServo clawRotation;
+    private final DigitalChannel intakeLight;
 
     private double extendoTargetPos;
     private double intakeSetTargetPos;
@@ -106,6 +108,10 @@ public class ClawIntake {
         );
         robot.hardwareQueue.addDevice(clawRotation);
 
+        intakeLight = robot.hardwareMap.get(DigitalChannel.class, "intakeLight");
+        intakeLight.setMode(DigitalChannel.Mode.OUTPUT);
+        intakeLight.setState(false);
+
         intakeFlipServo.setTargetAngle(0.02, 1);
         clawRotation.setTargetAngle(0.02, 1);
         claw.setTargetAngle(0.02, 1);
@@ -138,6 +144,7 @@ public class ClawIntake {
                 if (this.isExtensionAtTarget()) {
                     this.clawIntakeState = ClawIntakeState.ALIGN;
                     this.grab = false;
+                    this.intakeLight.setState(true);
                 }
                 break;
             case ALIGN:
@@ -174,6 +181,7 @@ public class ClawIntake {
                 this.clawRotation.setTargetAngle(clawRotationDefaultAngle);
                 this.claw.setTargetAngle(this.grab ? clawCloseAngle : clawOpenAngle);
                 this.extendoTargetPos = 0;
+                this.intakeLight.setState(false);
                 if (this.isExtensionAtTarget()) {
                     this.intakeFlipServo.setTargetAngle(intakeFlipBackAngle);
                     this.clawIntakeState = this.grab ? ClawIntakeState.HOLD : ClawIntakeState.READY;

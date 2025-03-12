@@ -20,7 +20,7 @@ public class Sensors {
 
     private int slidesEncoder;
     private double slidesVel;
-    public static double slidesInchesPerTick = 0.01773835920177383;
+    public static double slidesInchesPerTick = 0.01773836;
 
     private int extendoEncoder;
     public static double extendoInchesPerTick = 0.04293545803;

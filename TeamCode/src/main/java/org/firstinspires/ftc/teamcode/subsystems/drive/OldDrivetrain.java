@@ -24,6 +24,7 @@ import org.firstinspires.ftc.teamcode.subsystems.drive.localizers.Localizer;
 import org.firstinspires.ftc.teamcode.subsystems.drive.localizers.OneHundredMSIMULocalizer;
 import org.firstinspires.ftc.teamcode.subsystems.drive.localizers.TwoWheelLocalizer;
 import org.firstinspires.ftc.teamcode.utils.DashboardUtil;
+import org.firstinspires.ftc.teamcode.utils.LogUtil;
 import org.firstinspires.ftc.teamcode.utils.PID;
 import org.firstinspires.ftc.teamcode.utils.Pose2d;
 import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
@@ -590,6 +591,7 @@ public class OldDrivetrain {
 
     public void updateTelemetry () {
         TelemetryUtil.packet.put("Drivetrain State", state);
+        LogUtil.driveState.set(state.toString());
 
         TelemetryUtil.packet.put("Drivetrain:: xError", xError);
         TelemetryUtil.packet.put("Drivetrain:: yError", yError);
@@ -597,6 +599,9 @@ public class OldDrivetrain {
         TelemetryUtil.packet.put("Drivetrain:: xTarget", targetPoint.x);
         TelemetryUtil.packet.put("Drivetrain:: yTarget", targetPoint.y);
         TelemetryUtil.packet.put("Drivetrain:: turnTarget", Math.toDegrees(targetPoint.heading));
+        LogUtil.driveTargetX.set(targetPoint.x);
+        LogUtil.driveTargetY.set(targetPoint.y);
+        LogUtil.driveTargetAngle.set(targetPoint.heading);
 
         Canvas canvas = TelemetryUtil.packet.fieldOverlay();
 

@@ -126,11 +126,10 @@ public class SpecimenPreloadBlueAuto extends LinearOpMode {
 
         // grab
         robot.grab(true);
-
         robot.waitWhile(() -> !robot.clawIntake.grabFinished());
 
-        // retract
-        robot.setNextState(Robot.NextState.DEPOSIT);
+        robot.setNextState(Robot.NextState.DONE);
+        robot.waitWhile(() -> robot.getState() != Robot.RobotState.SAMPLE_READY);
     }
 
     public void chuckOut(){

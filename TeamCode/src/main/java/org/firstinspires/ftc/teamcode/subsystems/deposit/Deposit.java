@@ -58,11 +58,11 @@ public class Deposit {
     public static double intakeRad = 0.0266, intakeY = 0.0, intakeClawRad = 1.4;
     // moving positions with a sample
     public static double sampleHoldRad = 0.0, holdY = 0.0, sampleHoldClawRad = -Math.PI / 2;
-    public static double specimenGrabRad = 0.0, specimenGrabClawRad = 0.0, specimenConfirmRad = Math.toRadians(30), specimenConfirmClawRad = Math.toRadians(30);
+    public static double specimenGrabRad = 0.0, specimenGrabClawRad = 0.0, specimenConfirmRad = Math.toRadians(40), specimenConfirmClawRad = Math.toRadians(40);
     // sample basket positions
-    public static double sampleLY = 16.75, sampleHY = 33.5, sampleRad = 2.4, sampleClawRad = 0;
+    public static double sampleLY = 16.75, sampleHY = 31, sampleRad = 2.2, sampleClawRad = -0.2;
     // outtake positions, drop behind robot
-    public static double outtakeRad = Math.PI * 5 / 3, outtakeY = 0.0, outtakeClawRad = 0.0;
+    public static double outtakeRad = Math.toRadians(180), outtakeY = 0.0, outtakeClawRad = 0.0;
     // grabbing positions, holdGrab -> off the wall, grabRetract --> moving with a specimen
     // specimen chamber positions
     public static double speciLSY = 19.4;
@@ -118,7 +118,7 @@ public class Deposit {
                 arm.setClawRotation(intakeClawRad, 1.0);
                 arm.speciOpen();
 
-                if(arm.inPosition() && slides.inPosition(0.7)){ // Need to figure out this threshold better
+                if(arm.inPosition() && slides.inPosition(1)){ // Need to figure out this threshold better
                     state = State.TRANSFER_CLOSE;
                     arm.clawClose();
                     this.grabStartTime = this.currentTime;
@@ -152,7 +152,7 @@ public class Deposit {
                 moveToWithRad(sampleRad, targetY);
                 arm.setClawRotation(sampleClawRad, 1.0);
 
-                if(arm.inPosition() && slides.inPosition(0.7)){
+                if(arm.inPosition() && slides.inPosition(2)){
                     state = State.SAMPLE_WAIT;
                 }
                 break;
@@ -200,7 +200,7 @@ public class Deposit {
                 moveToWithRad(specimenGrabRad, holdY);
                 arm.setClawRotation(specimenGrabClawRad, 1.0);
 
-                if(arm.inPosition() && slides.inPosition(0.7)){
+                if(arm.inPosition() && slides.inPosition(1)){
                     state = State.GRAB_WAIT;
                     arm.speciOpen();
                 }
@@ -253,7 +253,7 @@ public class Deposit {
             case RETRACT:
                 moveToStart();
 
-                if(arm.inPosition() && slides.inPosition(0.7)){
+                if(arm.inPosition() && slides.inPosition(1)){
                     state = State.IDLE;
                 }
                 break;
@@ -273,11 +273,11 @@ public class Deposit {
 
         if (hangMode == HangMode.PULL) {
             slides.setTargetPowerFORCED(-1.0);
-            targetY = 0;
+            targetY = slides.getLength();
             hangMode = HangMode.OFF;
         } else if (hangMode == HangMode.OUT) {
-            slides.setTargetPowerFORCED(0.5);
-            targetY = Slides.maxSlidesHeight;
+            slides.setTargetPowerFORCED(0.7);
+            targetY = slides.getLength();
             hangMode = HangMode.OFF;
         }
     }
@@ -296,7 +296,7 @@ public class Deposit {
 
     private double targetY = speciHY;
     public void setDepositHeight(double target){
-        this.targetY = Utils.minMaxClip(target, 0.0, 34.0);
+        this.targetY = Utils.minMaxClip(target, 0.0, Slides.maxSlidesHeight);
     }
 
     public void setDepositHeightLowSample(){
@@ -346,7 +346,7 @@ public class Deposit {
 
     public void finishSampleDeposit() {
         Log.i("FSM", this.state + ", finishSampleDeposit()");
-        if (state == State.SAMPLE_WAIT) {
+        if (state == State.SAMPLE_WAIT || state == State.SAMPLE_RAISE) {
 /*
             if (high) {
                 setDepositHeightHighSample();

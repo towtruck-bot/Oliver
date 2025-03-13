@@ -71,7 +71,7 @@ public class Deposit {
 
     private long currentTime = -1;
     private long sampleReleaseTime = -1;
-    public static long sampleReleaseDuration = 300;
+    public static long sampleReleaseDuration = 250;
     private long grabStartTime = -1;
     public static long transferBufferDuration = 200;
 
@@ -174,7 +174,7 @@ public class Deposit {
                 moveToWithRad(0, targetY);
                 arm.setClawRotation(0, 1.0);
 
-                if(arm.inPosition()){
+                if(arm.armRotation.getCurrentAngle() <= Math.toRadians(90)){
                     state = State.RETRACT;
                 }
                 break;

@@ -36,11 +36,11 @@ public class ClawIntake {
     public static double slidesTolerance = 0.5;
     public static double slidesForcePullPow = -0.2;
 
-    public static double intakeHoverAngle = -1.35;
-    public static double intakeFlipConfirmAngle = -1.3;
-    public static double intakeFlipUpAngle = -0.7;
-    public static double intakeFlipGrabAngle = -1.7;
-    public static double intakeFlipBackAngle = -0.1;
+    public static double intakeHoverAngle = -1.7;
+    public static double intakeFlipConfirmAngle = -1.555;
+    public static double intakeFlipUpAngle = -0.955;
+    public static double intakeFlipGrabAngle = -1.955;
+    public static double intakeFlipBackAngle = -0.355;
 
     public static double clawRotationDefaultAngle = 0.0;
     private double clawRotationAlignAngle = 0.0;

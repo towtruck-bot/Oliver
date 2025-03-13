@@ -18,9 +18,9 @@ public class SamplePreloadBlueAuto extends LinearOpMode {
     public static boolean enableg1 = true, enableg2 = true, enableg3 = true, enabler = true;
 
     public static double gx = 60, gy = 48;
-    public static double g1h = Math.toRadians(-110), g1e = 15.75;
+    public static double g1h = Math.toRadians(-113.5), g1e = 16.75;
     public static double g2h = Math.toRadians(-90), g2e = 13.7;
-    public static double g3h = Math.toRadians(-68.5), g3e = 15.95;
+    public static double g3h = Math.toRadians(-68.5), g3e = 16.5;
     public static double fx = 24.0, fy = 12.0, fh = Math.PI;
 
     public void runOpMode(){
@@ -32,7 +32,7 @@ public class SamplePreloadBlueAuto extends LinearOpMode {
         score();
 
         if (enableg1) {
-            getGround(gx, gy, g1h, g1e);
+            getGround(48.75, gy, Math.toRadians(-90), 14.75);
             moveToBelowBucket();
             score();
         }

@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.Robot;
+import org.firstinspires.ftc.teamcode.subsystems.deposit.Deposit;
 import org.firstinspires.ftc.teamcode.utils.Globals;
 import org.firstinspires.ftc.teamcode.utils.Pose2d;
 import org.firstinspires.ftc.teamcode.utils.RunMode;
@@ -17,9 +18,9 @@ public class SamplePreloadBlueAuto extends LinearOpMode {
     public static boolean enableg1 = true, enableg2 = true, enableg3 = true, enabler = true;
 
     public static double gx = 60, gy = 48;
-    public static double g1h = -1.976, g1e = 15.95;
-    public static double g2h = -Math.PI/2, g2e = 13.7;
-    public static double g3h = -1.165, g3e = 15.95;
+    public static double g1h = Math.toRadians(-110), g1e = 15.75;
+    public static double g2h = Math.toRadians(-90), g2e = 13.7;
+    public static double g3h = Math.toRadians(-68.5), g3e = 15.95;
     public static double fx = 24.0, fy = 12.0, fh = Math.PI;
 
     public void runOpMode(){
@@ -69,6 +70,8 @@ public class SamplePreloadBlueAuto extends LinearOpMode {
         while (opModeInInit() && !isStopRequested()) {
             robot.sensors.setOdometryPosition(48.0 - Globals.TRACK_WIDTH / 2.0, 72.0 - Globals.TRACK_LENGTH / 2.0, Math.PI/2);
             robot.deposit.setDepositHeight(0.0);
+            //robot.deposit.finishSpecimenGrab();
+            //robot.deposit.state = Deposit.State.HOLD;
             robot.updateDepositHeights(false, true);
 
             robot.update();
@@ -90,7 +93,7 @@ public class SamplePreloadBlueAuto extends LinearOpMode {
 
     public void score() {
         // move in (robot current state, DEPOSIT_BUCKET)
-        robot.goToPoint(new Pose2d(57, 57, 5 * Math.PI/4), null, false, true, 0.8);
+        robot.goToPoint(new Pose2d(58, 58, 5 * Math.PI/4), null, false, true, 0.8);
 
         // release sample
         robot.setNextState(Robot.NextState.DONE);

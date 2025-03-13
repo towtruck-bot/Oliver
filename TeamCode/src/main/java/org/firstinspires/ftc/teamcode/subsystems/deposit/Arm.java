@@ -15,7 +15,7 @@ public class Arm {
     public final nPriorityServo clawRotation;
     public final nPriorityServo clawGrip;
 
-    public static double sampleOpenRad = 0.22, speciOpenRad = 0.11, closeRad = -0.0106;
+    public static double sampleOpenRad = 0.22, speciOpenRad = 0.11, closeRad = 0.0479;
 
     public Arm(Robot robot){
         this.sensors = robot.sensors;

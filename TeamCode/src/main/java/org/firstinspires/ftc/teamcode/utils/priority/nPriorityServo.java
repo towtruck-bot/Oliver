@@ -39,6 +39,7 @@ public class nPriorityServo extends PriorityDevice {
     private double currentAngle = 0, targetAngle = 0, power = 1.0, currentIntermediateTargetAngle = 0;
     protected final boolean[] reversed;
     private long lastLoopTime = Globals.LOOP_START;
+    private boolean first = true; // Priority servo has a problem when the servos won't get set at the start if theyre set to 0
 
     /**
      * Basic initializer
@@ -149,6 +150,14 @@ public class nPriorityServo extends PriorityDevice {
 
     @Override
     protected double getPriority(double timeRemaining) {
+        // STUPID STUPID HACK I HATE YOU
+        if (first) {
+            update();
+            Log.i(name, currentAngle + " is the value [ Eric's Log ]");
+            first = false;
+        }
+
+
         if (isUpdated)
             return 0;
 

@@ -326,6 +326,24 @@ public class Robot {
         } while (((boolean) this.abortChecker.call()) && (func == null || (boolean) func.call()) && System.currentTimeMillis() - start <= 5000 && drivetrain.isBusy());
     }
 
+    public void goToPointWithIntake(Pose2d pose, Func func, boolean moveNear, boolean slowDown, boolean stop, double maxPower) {
+        long start = System.currentTimeMillis();
+        // New Drivetrain not yet implemented
+        // drivetrain.goToPoint(pose, moveNear, slowDown, stop, maxPower);
+
+        do {
+            update();
+            if (drivetrain.state == OldDrivetrain.State.IDLE) { // drivetrain.state == DriveState.WAIT_AT_POINT
+                clawIntake.setIntakeTargetPos(1.0); // drivetrain.getExtension()
+                //clawIntake.extend();
+            } else if (Math.abs(31) < 30) { // Math.abs(drivetrain.getTurnError()) < 30
+                // drivetrain.setEAThresh(12.0);
+                clawIntake.setIntakeTargetPos(10.0);
+                //clawIntake.extend();
+            }
+        } while (((boolean) this.abortChecker.call()) && (func == null || (boolean) func.call()) && System.currentTimeMillis() - start <= 5000 && drivetrain.isBusy());
+    }
+
 //    public void followSpline(Spline spline, Func func) {
 //        long start = System.currentTimeMillis();
 //        drivetrain.setPath(spline);

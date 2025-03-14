@@ -174,8 +174,12 @@ public class Drivetrain {
                 state = DriveState.WAIT_AT_POINT;
                 break;
             case WAIT_AT_POINT:
-                if(!atPoint()){
-                    state = DriveState.GO_TO_POINT;
+                if (!atPoint()) {
+                    if (moveNear) {
+                        state = DriveState.ADJUST;
+                    } else {
+                        state = DriveState.GO_TO_POINT;
+                    }
                 }
                 break;
             case DRIVE:
@@ -249,8 +253,9 @@ public class Drivetrain {
         return Math.abs(xError) < xThreshold && Math.abs(yError) < yThreshold && Math.abs(turnError) < turnThreshold;
     }
 
+    private double intakeOffset = 3.0;
     private boolean atHeading(){
-        return Math.abs(turnError) < turnEAFinalThreshold;
+        return (xError - eaThresh + intakeOffset) * (xError - eaThresh + intakeOffset) + yError * yError <= 2 * 2;
     }
 
     private void resetIntegrals() {
@@ -340,7 +345,15 @@ public class Drivetrain {
         this.stop = stop;
         this.maxPower = Math.abs(maxPower);
 
-        if (targetPoint.x != lastTargetPoint.x || targetPoint.y != lastTargetPoint.y || targetPoint.heading != lastTargetPoint.heading) {
+        if(moveNear && (targetPoint.x != lastTargetPoint.x || targetPoint.y != lastTargetPoint.y)){
+            this.targetPoint = new Pose2d (targetPoint.x, targetPoint.y);
+            calculateTargetHeading();
+            lastTargetPoint = targetPoint;
+
+            resetIntegrals();
+
+            state = DriveState.GO_TO_POINT;
+        }else if (targetPoint.x != lastTargetPoint.x || targetPoint.y != lastTargetPoint.y || targetPoint.heading != lastTargetPoint.heading) {
             this.targetPoint = targetPoint;
             lastTargetPoint = targetPoint;
 
@@ -393,6 +406,14 @@ public class Drivetrain {
     public double getExtension(){
         Pose2d curr = sensors.getOdometryPosition();
         return Math.sqrt((targetPoint.x - curr.x) * (targetPoint.x - curr.x) + (targetPoint.y - curr.y) * (targetPoint.y - curr.y));
+    }
+
+    public void setEAThresh(double t){
+        eaThresh = t;
+    }
+
+    public double getTurnError(){
+        return turnError;
     }
 
     public boolean isBusy() {

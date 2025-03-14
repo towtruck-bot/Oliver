@@ -33,7 +33,8 @@ public class ClawIntake {
     private double extendoCurrentPos;
 
     public static PID extendoPID = new PID(0.15, 0.05, 0.009);
-    public static double slidesTolerance = 0.5;
+    public static double slidesTolerance = 0.8;
+    public static double slidesDeadZone = 0.2;
     public static double slidesForcePullPow = -0.2;
 
     public static double intakeHoverAngle = -1.7;
@@ -111,10 +112,6 @@ public class ClawIntake {
         intakeLight = robot.hardwareMap.get(DigitalChannel.class, "intakeLight");
         intakeLight.setMode(DigitalChannel.Mode.OUTPUT);
         intakeLight.setState(false);
-
-        intakeFlipServo.setTargetAngle(0.02, 1);
-        clawRotation.setTargetAngle(0.02, 1);
-        claw.setTargetAngle(0.02, 1);
 
         if (Globals.RUNMODE != RunMode.TELEOP) {
             resetExtendoEncoders();
@@ -275,7 +272,7 @@ public class ClawIntake {
             extendoPID.resetIntegral();
             intakeExtensionMotor.setTargetPower(0.0);
         } else {
-            if (this.isExtensionAtTarget()) {
+            if (this.isExtensionAtTarget(slidesDeadZone)) {
                 extendoPID.update(0, -1.0, 1.0);
                 extendoPID.resetIntegral();
                 pow = this.extendoTargetPos <= slidesTolerance && this.extendoCurrentPos >= 0.0 ? slidesForcePullPow : 0;
@@ -292,9 +289,11 @@ public class ClawIntake {
         //TelemetryUtil.packet.put("ClawIntake.extendoCurrentPos", this.extendoCurrentPos);
     }
 
-    public boolean isExtensionAtTarget() {
-        if (this.extendoTargetPos <= slidesTolerance) return this.extendoCurrentPos <= slidesTolerance;
-        return Math.abs(this.extendoTargetPos - this.extendoCurrentPos) <= slidesTolerance;
+    public boolean isExtensionAtTarget() { return this.isExtensionAtTarget(slidesTolerance); }
+
+    private boolean isExtensionAtTarget(double tol) {
+        if (this.extendoTargetPos <= tol) return this.extendoCurrentPos <= tol;
+        return Math.abs(this.extendoTargetPos - this.extendoCurrentPos) <= tol;
     }
 
     public void resetExtendoEncoders() {

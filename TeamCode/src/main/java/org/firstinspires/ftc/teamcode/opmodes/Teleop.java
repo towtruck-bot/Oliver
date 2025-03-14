@@ -2,7 +2,6 @@ package org.firstinspires.ftc.teamcode.opmodes;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.Gamepad;
 
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.subsystems.deposit.Deposit;
@@ -15,6 +14,7 @@ import org.firstinspires.ftc.teamcode.utils.LogUtil;
 public class Teleop extends LinearOpMode {
     public void runOpMode() {
         Globals.RUNMODE = RunMode.TELEOP;
+        Globals.TESTING_DISABLE_CONTROL = false;
         Globals.hasSamplePreload = false;
         Globals.hasSpecimenPreload = false;
 
@@ -142,14 +142,17 @@ public class Teleop extends LinearOpMode {
             //double slidesControl2 = robot.drivetrain.smoothControls(-gamepad2.left_stick_y);
             //robot.deposit.setDepositHeight(robot.deposit.getDepositHeight() + slidesInc * slidesControl2);
 
+            if (gamepad2.dpad_up) robot.deposit.setDepositHeight(robot.deposit.getDepositHeight() + slidesInc);
+            else if (gamepad2.dpad_down) robot.deposit.setDepositHeight(robot.deposit.getDepositHeight() - slidesInc);
+
             // hang (both drivers)
             int hangLeftDir = 0, hangRightDir = 0;
-            for (Gamepad gamepad : new Gamepad[]{gamepad1, gamepad2}) {
-                if (gamepad.dpad_up) { ++hangLeftDir; ++hangRightDir; }
-                if (gamepad.dpad_down) { --hangLeftDir; --hangRightDir; }
-                if (gamepad.dpad_left) { --hangLeftDir; ++hangRightDir; }
-                if (gamepad.dpad_right) { ++hangLeftDir; --hangRightDir; }
-            }
+            //for (Gamepad gamepad : new Gamepad[]{gamepad1, gamepad2}) {
+            if (gamepad1.dpad_up) { ++hangLeftDir; ++hangRightDir; }
+            if (gamepad1.dpad_down) { --hangLeftDir; --hangRightDir; }
+            if (gamepad1.dpad_left) { --hangLeftDir; ++hangRightDir; }
+            if (gamepad1.dpad_right) { ++hangLeftDir; --hangRightDir; }
+            //}
             if (-gamepad2.right_stick_y >= triggerThresh) ++hangLeftDir;
             if (-gamepad2.right_stick_y <= -triggerThresh) --hangLeftDir;
             if (-gamepad2.left_stick_y >= triggerThresh) ++hangRightDir;

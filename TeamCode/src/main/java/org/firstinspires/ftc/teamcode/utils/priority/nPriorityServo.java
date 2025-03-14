@@ -5,7 +5,7 @@ import android.util.Log;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.utils.Globals;
-import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
+import org.firstinspires.ftc.teamcode.utils.RunMode;
 import org.firstinspires.ftc.teamcode.utils.Utils;
 
 public class nPriorityServo extends PriorityDevice {
@@ -152,7 +152,9 @@ public class nPriorityServo extends PriorityDevice {
     protected double getPriority(double timeRemaining) {
         // STUPID STUPID HACK I HATE YOU
         if (first) {
-            update();
+            if (!(Globals.TESTING_DISABLE_CONTROL && Globals.RUNMODE == RunMode.TESTER)) {
+                update();
+            }
             Log.i(name, currentAngle + " is the value [ Eric's Log ]");
             first = false;
         }

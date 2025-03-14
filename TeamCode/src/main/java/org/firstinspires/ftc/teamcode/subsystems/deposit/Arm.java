@@ -15,7 +15,7 @@ public class Arm {
     public final nPriorityServo clawRotation;
     public final nPriorityServo clawGrip;
 
-    public static double sampleOpenRad = 0.22, speciOpenRad = 0.11, closeRad = 0.016;
+    public static double sampleOpenRad = 0.4, speciOpenRad = 0.25, closeRad = 0.0;
 
     public Arm(Robot robot){
         this.sensors = robot.sensors;
@@ -58,10 +58,6 @@ public class Arm {
                 2.0
         );
         robot.hardwareQueue.addDevice(clawGrip);
-
-        armRotation.setTargetAngle(0.02, 1);
-        clawRotation.setTargetAngle(0.02, 1);
-        clawGrip.setTargetAngle(0.02, 1);
     }
 
     public void setArmRotation(double targetRad, double power){

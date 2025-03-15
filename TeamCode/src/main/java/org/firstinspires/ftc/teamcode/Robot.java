@@ -271,6 +271,7 @@ public class Robot {
      */
     public void restartState() {
         this.prevState = this.prevState1 = RobotState.RESET;
+        this.deposit.holdSlides = false;
     }
 
     public void updateDepositHeights(boolean speciMode, boolean high){

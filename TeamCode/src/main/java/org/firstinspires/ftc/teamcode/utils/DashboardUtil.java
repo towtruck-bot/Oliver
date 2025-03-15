@@ -85,7 +85,7 @@ public class DashboardUtil {
         canvas.setStroke(color);
         double x = pose.getX(), y = pose.getY();
         double s = Math.sin(pose.heading), c = Math.cos(pose.heading);
-        double re1 = 6, re2 = 6 + ext, rh = 3;
+        double re1 = 6, re2 = 9 + ext, rh = 4;
         double x1 = x + c * re1, y1 = y + s * re1;
         double x2 = x + c * re2, y2 = y + s * re2;
         double xh = x + c * rh, yh = y + s * rh;

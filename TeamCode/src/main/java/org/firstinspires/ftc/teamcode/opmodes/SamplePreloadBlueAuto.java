@@ -18,10 +18,12 @@ public class SamplePreloadBlueAuto extends LinearOpMode {
     public static boolean enableg1 = true, enableg2 = true, enableg3 = true, enabler = true;
 
     public static double gx = 60, gy = 48;
-    public static double g1h = Math.toRadians(-113.5), g1e = 16.75;
-    public static double g2h = Math.toRadians(-90), g2e = 13.7;
-    public static double g3h = Math.toRadians(-68.5), g3e = 16.5;
-    public static double fx = 24.0, fy = 12.0, fh = Math.PI;
+    public static double g1h = Math.toRadians(-113.5), g1e = 15;
+    public static double g2h = Math.toRadians(-90), g2e = 12;
+    public static double g3h = Math.toRadians(-67), g3e = 15;
+    public static double fx1 = 36, fy1 = 12, fh1 = Math.PI;
+    public static double fx = 21, fy = 12, fh = Math.PI;
+    public static double sx = 58, sy = 58, sh = Math.toRadians(225);
 
     public void runOpMode(){
         doInitialization();
@@ -32,7 +34,7 @@ public class SamplePreloadBlueAuto extends LinearOpMode {
         score();
 
         if (enableg1) {
-            getGround(48.75, gy, Math.toRadians(-90), 14.75);
+            getGround(gx, gy, g1h, g1e);
             moveToBelowBucket();
             score();
         }
@@ -80,7 +82,7 @@ public class SamplePreloadBlueAuto extends LinearOpMode {
 
     public void moveToBelowBucket() {
         // robot current state, SAMPLE_READY
-        robot.goToPoint(new Pose2d(55, 55, 5 * Math.PI/4), null, false, true, 0.8);
+        robot.goToPoint(new Pose2d(sx, sy, sh), null, false, true, 0.9);
         robot.waitWhile(() -> !robot.clawIntake.isRetracted());
 
         // raise slides
@@ -93,7 +95,7 @@ public class SamplePreloadBlueAuto extends LinearOpMode {
 
     public void score() {
         // move in (robot current state, DEPOSIT_BUCKET)
-        robot.goToPoint(new Pose2d(58, 58, 5 * Math.PI/4), null, false, true, 0.8);
+        robot.goToPoint(new Pose2d(sx, sy, sh), null, false, true, 0.9);
 
         // release sample
         robot.setNextState(Robot.NextState.DONE);
@@ -111,7 +113,8 @@ public class SamplePreloadBlueAuto extends LinearOpMode {
         robot.setNextState(Robot.NextState.INTAKE_SAMPLE);
         robot.setIntakeExtension(ge - 5);
 
-        robot.goToPoint(new Pose2d(gx, gy, gh), null, true, true, 0.8);
+        robot.goToPoint(new Pose2d(gx, gy, gh), null, true, true, 0.9);
+        robot.clawIntake.setClawRotation(Math.toRadians(-90) - gh);
         robot.setIntakeExtension(ge);
 
         robot.waitWhile(() -> !robot.clawIntake.isExtended());
@@ -130,8 +133,11 @@ public class SamplePreloadBlueAuto extends LinearOpMode {
 
     public void goToTeleOpStart() {
         // prepare for teleop
-        robot.goToPoint(new Pose2d(36, 12, Math.PI), null, false, false, 0.8);
+        robot.goToPoint(new Pose2d(fx1, fy1, fh1), null, false, false, 0.9);
+        robot.goToPoint(new Pose2d(fx, fy, fh), null, true, true, 0.9);
 
-        robot.goToPoint(new Pose2d(fx, fy, fh), null, true, true, 0.8);
+        robot.deposit.holdSlides = true;
+        robot.deposit.setDepositHeight(9.5);
+        robot.waitWhile(() -> true);
     }
 }

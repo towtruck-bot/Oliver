@@ -60,7 +60,7 @@ public class Deposit {
     public static double sampleHoldRad = 0.0, holdY = 0.0, sampleHoldClawRad = -Math.PI / 2;
     public static double specimenGrabRad = 0.0, specimenGrabClawRad = 0.0, specimenConfirmRad = Math.toRadians(40), specimenConfirmClawRad = Math.toRadians(40);
     // sample basket positions
-    public static double sampleLY = 16.75, sampleHY = 31, sampleRad = 2.2, sampleClawRad = -0.2;
+    public static double sampleLY = 16.75, sampleHY = 31, sampleRaiseRad = Math.toRadians(90), sampleDepositRad = 2.2, sampleDepositClawRad = -0.2;
     // outtake positions, drop behind robot
     public static double outtakeRad = Math.toRadians(180), outtakeY = 0.0, outtakeClawRad = 0.0;
     // grabbing positions, holdGrab -> off the wall, grabRetract --> moving with a specimen
@@ -85,6 +85,7 @@ public class Deposit {
         OFF
     }
     public HangMode hangMode = HangMode.OFF;
+    public boolean holdSlides = false;
 
     public Deposit(Robot robot){
         this.robot = robot;
@@ -151,22 +152,23 @@ public class Deposit {
                 arm.clawClose();
                 break;
             case SAMPLE_RAISE:
-                moveToWithRad(sampleRad, targetY);
-                arm.setClawRotation(sampleClawRad, 1.0);
+                moveToWithRad(sampleRaiseRad, targetY);
+                arm.setClawRotation(sampleDepositClawRad, 1.0);
 
                 if(arm.inPosition() && slides.inPosition(2)){
+                    moveToWithRad(sampleDepositRad, targetY);
                     state = State.SAMPLE_WAIT;
                 }
                 break;
             case SAMPLE_WAIT:
-                moveToWithRad(sampleRad, targetY);
-                arm.setClawRotation(sampleClawRad, 1.0);
+                moveToWithRad(sampleDepositRad, targetY);
+                arm.setClawRotation(sampleDepositClawRad, 1.0);
                 this.sampleReleaseTime = this.currentTime;
 
                 break;
             case SAMPLE_RELEASE:
-                moveToWithRad(sampleRad, targetY);
-                arm.setClawRotation(sampleClawRad, 1.0);
+                moveToWithRad(sampleDepositRad, targetY);
+                arm.setClawRotation(sampleDepositClawRad, 1.0);
                 arm.sampleOpen();
 
                 if (arm.clawFinished() && this.currentTime >= this.sampleReleaseTime + sampleReleaseDuration * 1e6) {
@@ -266,6 +268,10 @@ public class Deposit {
                 break;
         }
 
+        if (holdSlides) {
+            slides.setTargetLength(targetY);
+        }
+
         slides.update();
 
         if (hangMode == HangMode.PULL) {
@@ -275,9 +281,7 @@ public class Deposit {
             slides.setTargetPowerFORCED(0.7);
             targetY = slides.getLength() + 0.5;
         }
-        if (hangMode != HangMode.OFF) {
-            state = State.SPECI_DEPOSIT;
-        }
+        if (hangMode != HangMode.OFF) holdSlides = true;
 
         TelemetryUtil.packet.put("Deposit.state", this.state);
         LogUtil.depositState.set(this.state.toString());
@@ -350,7 +354,7 @@ public class Deposit {
         if (state == State.HOLD) state = State.SAMPLE_RAISE;
     }
 
-    public boolean isSampleUp(){return state == State.SAMPLE_WAIT;}
+    public boolean isSampleUp() { return state == State.SAMPLE_WAIT && arm.inPosition(); }
 
     public void finishSampleDeposit() {
         Log.i("FSM", this.state + ", finishSampleDeposit()");

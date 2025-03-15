@@ -9,6 +9,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.teamcode.sensors.Sensors;
 import org.firstinspires.ftc.teamcode.subsystems.deposit.Deposit;
+import org.firstinspires.ftc.teamcode.subsystems.drive.Drivetrain;
 import org.firstinspires.ftc.teamcode.subsystems.drive.OldDrivetrain;
 import org.firstinspires.ftc.teamcode.subsystems.hang.Hang;
 import org.firstinspires.ftc.teamcode.subsystems.intake.ClawIntake;
@@ -329,20 +330,24 @@ public class Robot {
 
     public void goToPointWithIntake(Pose2d pose, Func func, boolean moveNear, boolean slowDown, boolean stop, double maxPower) {
         long start = System.currentTimeMillis();
-        // New Drivetrain not yet implemented
-        // drivetrain.goToPoint(pose, moveNear, slowDown, stop, maxPower);
+        drivetrain.goToPoint(pose, moveNear, slowDown, stop, maxPower);
+        setNextState(NextState.INTAKE_SAMPLE);
+        clawIntake.setIntakeTargetPos(12.0);
 
         do {
             update();
-            if (drivetrain.state == OldDrivetrain.State.IDLE) { // drivetrain.state == DriveState.WAIT_AT_POINT
-                clawIntake.setIntakeTargetPos(1.0); // drivetrain.getExtension()
-                //clawIntake.extend();
-            } else if (Math.abs(31) < 30) { // Math.abs(drivetrain.getTurnError()) < 30
-                // drivetrain.setEAThresh(12.0);
-                clawIntake.setIntakeTargetPos(10.0);
-                //clawIntake.extend();
+            if (drivetrain.state == OldDrivetrain.State.WAIT_AT_POINT) { /* Should use drivetrain.state == Drivetrain.DriveState.WAIT_AT_POINT*/
+                clawIntake.setIntakeTargetPos(drivetrain.getExtension());
+
+                if(clawIntake.isExtensionAtTarget()){
+                    clawIntake.grab(true);
+                }
+            } else if (Math.abs(drivetrain.getTurnError()) < Math.toRadians(30)) {
+                clawIntake.setIntakeTargetPos(12.0);
             }
-        } while (((boolean) this.abortChecker.call()) && (func == null || (boolean) func.call()) && System.currentTimeMillis() - start <= 5000 && drivetrain.isBusy());
+        } while (((boolean) this.abortChecker.call()) && (func == null || (boolean) func.call()) && System.currentTimeMillis() - start <= 5000 && !(clawIntake.hasSample() && clawIntake.grabFinished()));
+
+        setNextState(NextState.DONE);
     }
 
 //    public void followSpline(Spline spline, Func func) {

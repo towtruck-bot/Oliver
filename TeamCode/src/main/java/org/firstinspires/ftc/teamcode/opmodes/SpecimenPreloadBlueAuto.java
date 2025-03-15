@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.utils.Globals;
+import org.firstinspires.ftc.teamcode.utils.LogUtil;
 import org.firstinspires.ftc.teamcode.utils.Pose2d;
 import org.firstinspires.ftc.teamcode.utils.RunMode;
 
@@ -34,7 +35,7 @@ public class SpecimenPreloadBlueAuto extends LinearOpMode {
         Globals.autoStartTime = System.currentTimeMillis();
 
         if(enablePreload){
-            score(-Globals.TRACK_WIDTH / 2.0);
+            score(-Globals.ROBOT_WIDTH / 2.0);
         }
 
         if(enableGround){
@@ -64,11 +65,12 @@ public class SpecimenPreloadBlueAuto extends LinearOpMode {
 
         robot = new Robot(hardwareMap);
         robot.setAbortChecker(() -> !isStopRequested());
+        LogUtil.init();
 
         robot.sensors.resetPosAndIMU();
 
         while (opModeInInit() && !isStopRequested()) {
-            robot.sensors.setOdometryPosition( -Globals.TRACK_WIDTH / 2.0, 72.0 - Globals.TRACK_LENGTH / 2.0, Math.PI/2);
+            robot.sensors.setOdometryPosition( -Globals.ROBOT_WIDTH / 2.0, 72.0 - Globals.ROBOT_FORWARD_LENGTH, Math.PI/2);
             robot.deposit.setDepositHeight(0.0);
             robot.updateDepositHeights(true, true);
 

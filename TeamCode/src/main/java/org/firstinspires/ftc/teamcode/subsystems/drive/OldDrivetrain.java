@@ -3,7 +3,7 @@ package org.firstinspires.ftc.teamcode.subsystems.drive;
 import static org.firstinspires.ftc.teamcode.utils.Globals.DRIVETRAIN_ENABLED;
 import static org.firstinspires.ftc.teamcode.utils.Globals.ROBOT_POSITION;
 import static org.firstinspires.ftc.teamcode.utils.Globals.ROBOT_VELOCITY;
-import static org.firstinspires.ftc.teamcode.utils.Globals.TRACK_WIDTH;
+import static org.firstinspires.ftc.teamcode.utils.Globals.ROBOT_WIDTH;
 
 import android.util.Log;
 
@@ -51,10 +51,10 @@ public class OldDrivetrain {
     public State state = State.IDLE;
 
     public PriorityMotor leftFront, leftRear, rightRear, rightFront;
-    private List<PriorityMotor> motors;
+    private final List<PriorityMotor> motors;
 
-    private HardwareQueue hardwareQueue;
-    private Sensors sensors;
+    private final HardwareQueue hardwareQueue;
+    private final Sensors sensors;
 
     public Localizer[] localizers;
     public Vision vision;
@@ -161,6 +161,17 @@ public class OldDrivetrain {
 
         for (PriorityMotor m : motors) {
             m.setMinimumPowerToOvercomeKineticFriction(0.195);
+        }
+    }
+
+    public void setHalfMinPowersToOvercomeFriction() {
+        leftFront.setMinimumPowerToOvercomeStaticFriction(minPowersToOvercomeFriction[0] / 2);
+        leftRear.setMinimumPowerToOvercomeStaticFriction(minPowersToOvercomeFriction[1] / 2);
+        rightRear.setMinimumPowerToOvercomeStaticFriction(minPowersToOvercomeFriction[2] / 2);
+        rightFront.setMinimumPowerToOvercomeStaticFriction(minPowersToOvercomeFriction[3] / 2);
+
+        for (PriorityMotor m : motors) {
+            m.setMinimumPowerToOvercomeKineticFriction(0.195 / 2);
         }
     }
 
@@ -290,7 +301,7 @@ public class OldDrivetrain {
                     targetFwd *= 0.3;
                 }
 
-                double targetTurn = ((3.88193 * Math.exp(-3.94484 * Math.abs(targetFwd)) + 0.725107) * (TRACK_WIDTH)/ radius) * targetFwd;
+                double targetTurn = ((3.88193 * Math.exp(-3.94484 * Math.abs(targetFwd)) + 0.725107) * (ROBOT_WIDTH)/ radius) * targetFwd;
 
                 double centripetal = centripetalTune * targetFwd * targetFwd / radius;
 
@@ -370,11 +381,15 @@ public class OldDrivetrain {
                 state = State.WAIT_AT_POINT;
                 break;
             case WAIT_AT_POINT:
-                if (!atPointThresholds(finalAdjustment ? finalXThreshold : xThreshold, finalAdjustment ? finalYThreshold : yThreshold, finalAdjustment ? finalTurnThreshold: turnThreshold) || !(moveNear && atPoint())) {
-                    resetIntegrals();
-                    state = State.GO_TO_POINT;
-                }else if(moveNear && !atHeading()){
-                    state = State.ADJUST;
+                if (moveNear) {
+                    if (!atHeading()) {
+                        state = State.ADJUST;
+                    }
+                } else {
+                    if (!atPointThresholds(finalAdjustment ? finalXThreshold : xThreshold, finalAdjustment ? finalYThreshold : yThreshold, finalAdjustment ? finalTurnThreshold: turnThreshold) || !(moveNear && atPoint())) {
+                        resetIntegrals();
+                        state = State.GO_TO_POINT;
+                    }
                 }
                 break;
             case DRIVE:
@@ -391,14 +406,14 @@ public class OldDrivetrain {
         // convert error into direction robot is facing
         xError = Math.cos(sensors.getOdometryPosition().heading)*deltaX + Math.sin(sensors.getOdometryPosition().heading)*deltaY;
         yError = -Math.sin(sensors.getOdometryPosition().heading)*deltaX + Math.cos(sensors.getOdometryPosition().heading)*deltaY;
-        turnError = targetPoint.heading -sensors.getOdometryPosition().heading;
+        turnError = targetPoint.heading - sensors.getOdometryPosition().heading;
 
-        if (moveNear){
-            turnError = Math.atan2(xError, yError);
+        if (moveNear) {
+            turnError = Math.atan2(yError, xError);
         }
 
         // make this like, a good value thats not insanely large from the robot oouiiaaeeaoiaaieee ing
-        while(Math.abs(turnError) > Math.PI ){
+        while(Math.abs(turnError) > Math.PI) {
             turnError -= Math.PI * 2 * Math.signum(turnError);
         }
     }
@@ -411,12 +426,20 @@ public class OldDrivetrain {
     public static double yThreshold = 2.0;
     public static double turnThreshold = 4;
 
-    public static double eaThresh = 24.0;
+    public static double eaThresh = 27;
 
     public static PID xPID = new PID(0.025,0.0,0.004);
     public static PID yPID = new PID(0.15,0.0,0.025);
     public static PID turnPID = new PID(0.25,0.0,0.01);
-    public static PID turnEAPID = new PID(0.15, 0.0, 0.0);
+    public static PID turnEAPID = new PID(0.025, 0.0, 0.0015);
+
+    public static PID finalXPID = new PID(0.007, 0.0001,0.00135);
+    public static PID finalYPID = new PID(0.05, 0.0,0.006);
+    public static PID finalTurnPID = new PID(0.025, 0.0013,0.0015);
+
+    public static double finalXThreshold = 0.35;
+    public static double finalYThreshold = 0.35;
+    public static double finalTurnThreshold = 3.0;
 
     double fwd, strafe, turn, turnAdjustThreshold, finalTargetPointDistance;
 
@@ -444,30 +467,27 @@ public class OldDrivetrain {
 //        // turn does not have predictiveError
 //        turnAdjustThreshold = (Math.abs(xError) > xThreshold/2 || Math.abs(yError) > yThreshold/2) ? turnThreshold/3.0 : turnThreshold;
 //        turn = Math.abs(turnError) > Math.toRadians(turnAdjustThreshold)/2? turnPID.update(turnError, -maxPower, maxPower) : 0;
-        if (moveNear && atPoint()) {
-            fwd = 0.0;
-            strafe = 0.0;
-            turn = turnEAPID.update(turnError, -maxPower, maxPower);
-        } else {
-            fwd = xPID.update(xError, -maxPower, maxPower);
-            strafe = yPID.update(yError, -maxPower, maxPower);
-            turn = turnPID.update(turnError, -maxPower, maxPower);
+        fwd = xPID.update(xError - (moveNear ? eaThresh / 2 : 0), -maxPower, maxPower);
+        strafe = yPID.update(yError, -maxPower, maxPower);
+        turn = turnPID.update(turnError, -maxPower, maxPower);
+        if (moveNear) {
+            strafe *= 0.25;
+            if (atPoint()) {
+                setHalfMinPowersToOvercomeFriction();
+                fwd = 0.0;
+                strafe = 0.0;
+                turn = Math.abs(turnError) > Math.toRadians(finalTurnThreshold) / 2 ? turnEAPID.update(turnError, -maxPower, maxPower) : 0;
+            } else {
+                setMinPowersToOvercomeFriction();
+            }
         }
-
+        TelemetryUtil.packet.put("TURN", turn);
         Vector2 move = new Vector2(fwd, strafe) /*new Vector2(0, 0)*/;
         setMoveVector(move, turn);
 
         TelemetryUtil.packet.put("fwd", fwd);
         TelemetryUtil.packet.put("strafe", strafe);
     }
-
-    public static PID finalXPID = new PID(0.007, 0.0001,0.00135);
-    public static PID finalYPID = new PID(0.05, 0.0,0.006);
-    public static PID finalTurnPID = new PID(0.025, 0.0013,0.0015);
-
-    public static double finalXThreshold = 0.35;
-    public static double finalYThreshold = 0.35;
-    public static double finalTurnThreshold = 3.0;
 
     public void finalAdjustment() {
         double fwd = Math.abs(xError) > finalXThreshold/2 ? finalXPID.update(xError, -maxPower, maxPower) : 0;
@@ -482,9 +502,16 @@ public class OldDrivetrain {
         this.finalAdjustment = finalAdjustment;
     }
 
-    public boolean atPoint () {
+    boolean prevAtPoint = false;
+    public boolean atPoint() {
         if (moveNear) {
-            return xError * xError + yError * yError <= eaThresh * eaThresh;
+            boolean at = xError * xError + yError * yError <= Math.pow(eaThresh + (prevAtPoint ? 3 : 0), 2);
+            //TelemetryUtil.packet.put("at point", (prevAtPoint ? "prev" : "new") + (at ? " at" : " not"));
+            prevAtPoint = at;
+            return at;
+        } else {
+            prevAtPoint = false;
+            //TelemetryUtil.packet.put("at point", "no near");
         }
 
         if (finalAdjustment && state != State.GO_TO_POINT) {
@@ -502,13 +529,14 @@ public class OldDrivetrain {
     }
 
     private boolean atHeading(){
-        return Math.abs(yError) < 1.0 && Math.abs(turnError) <= Math.toRadians(90);
+        return Math.abs(yError) <= 0.5 && Math.abs(turnError) <= Math.toRadians(90);
     }
 
     public void resetIntegrals() {
         xPID.resetIntegral();
         yPID.resetIntegral();
         turnPID.resetIntegral();
+        turnEAPID.resetIntegral();
         finalTurnPID.resetIntegral();
     }
 
@@ -526,6 +554,7 @@ public class OldDrivetrain {
         this.finalAdjustment = finalAdjustment;
         this.stop = stop;
         this.maxPower = Math.abs(maxPower);
+        this.moveNear = false;
         finalTargetPoint = targetPoint;
 
         if (targetPoint.x != lastTargetPoint.x || targetPoint.y != lastTargetPoint.y || targetPoint.heading != lastTargetPoint.heading) { // if we set a new target point we reset integral
@@ -638,7 +667,7 @@ public class OldDrivetrain {
         return turnError;
     }
 
-    private double intakeOffset = 9.0;
+    private final double intakeOffset = 9.0;
     public double getExtension(){
         return xError - intakeOffset;
     }
@@ -672,8 +701,8 @@ public class OldDrivetrain {
         Canvas canvas = TelemetryUtil.packet.fieldOverlay();
 
         DashboardUtil.drawRobot(canvas, targetPoint, "#ff00ff");
-        canvas.setStroke("red");
-        canvas.strokeCircle(targetPoint.x, targetPoint.y, xThreshold);
+        //canvas.setStroke("red");
+        //canvas.strokeCircle(targetPoint.x, targetPoint.y, xThreshold);
 
         if (path != null) {
             Pose2d last = path.poses.get(0);

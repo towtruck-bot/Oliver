@@ -9,7 +9,6 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.teamcode.sensors.Sensors;
 import org.firstinspires.ftc.teamcode.subsystems.deposit.Deposit;
-import org.firstinspires.ftc.teamcode.subsystems.drive.Drivetrain;
 import org.firstinspires.ftc.teamcode.subsystems.drive.OldDrivetrain;
 import org.firstinspires.ftc.teamcode.subsystems.hang.Hang;
 import org.firstinspires.ftc.teamcode.subsystems.intake.ClawIntake;
@@ -18,6 +17,7 @@ import org.firstinspires.ftc.teamcode.utils.Globals;
 import org.firstinspires.ftc.teamcode.utils.LogUtil;
 import org.firstinspires.ftc.teamcode.utils.Pose2d;
 import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
+import org.firstinspires.ftc.teamcode.utils.Utils;
 import org.firstinspires.ftc.teamcode.utils.priority.HardwareQueue;
 import org.firstinspires.ftc.teamcode.vision.Vision;
 
@@ -336,17 +336,21 @@ public class Robot {
 
         do {
             update();
-            if (drivetrain.state == OldDrivetrain.State.WAIT_AT_POINT) { /* Should use drivetrain.state == Drivetrain.DriveState.WAIT_AT_POINT*/
+            if (drivetrain.state != OldDrivetrain.State.GO_TO_POINT) { /* Should use drivetrain.state == Drivetrain.DriveState.WAIT_AT_POINT*/
                 clawIntake.setIntakeTargetPos(drivetrain.getExtension());
+                clawIntake.setClawRotation(Utils.headingClip(pose.heading - sensors.getOdometryPosition().heading));
+                //TelemetryUtil.packet.put("auto aim", drivetrain.getExtension());
 
-                if(clawIntake.isExtensionAtTarget()){
+                if (clawIntake.isExtensionAtTarget()) {
                     clawIntake.grab(true);
                 }
             } else if (Math.abs(drivetrain.getTurnError()) < Math.toRadians(30)) {
+                //TelemetryUtil.packet.put("auto aim", -1);
                 clawIntake.setIntakeTargetPos(12.0);
             }
         } while (((boolean) this.abortChecker.call()) && (func == null || (boolean) func.call()) && System.currentTimeMillis() - start <= 5000 && !(clawIntake.hasSample() && clawIntake.grabFinished()));
 
+        clawIntake.grab(true);
         setNextState(NextState.DONE);
     }
 

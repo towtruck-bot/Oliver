@@ -292,7 +292,7 @@ public class Datalogger
 
             try
             {
-                BufferedCsvWriter bufferedCsvWriter = new BufferedCsvWriter(String.format("/sdcard/FIRST/java/src/Datalogs/%s.txt", filename));
+                BufferedCsvWriter bufferedCsvWriter = new BufferedCsvWriter(String.format("/sdcard/FIRST/Datalogs/%s.csv", filename));
                 return new Datalogger(bufferedCsvWriter, fields);
             }
             catch (IOException e)

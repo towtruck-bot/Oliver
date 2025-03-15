@@ -153,11 +153,6 @@ public class Drivetrain {
                 break;
             case ADJUST:
                 setMinPowersToOvercomeFriction();
-
-                // Idea of this state is to allow the intake to extend while adjusting for any heading errors
-                // Need to set new target values based on calculations of current position to determine new heading (write calculation method)
-                calculateTargetHeading();
-
                 goToPoint();
 
                 if(!atPoint()){
@@ -175,11 +170,9 @@ public class Drivetrain {
                 break;
             case WAIT_AT_POINT:
                 if (!atPoint()) {
-                    if (moveNear) {
-                        state = DriveState.ADJUST;
-                    } else {
-                        state = DriveState.GO_TO_POINT;
-                    }
+                    state = DriveState.GO_TO_POINT;
+                }else if(moveNear && !atHeading()){
+                    state = DriveState.ADJUST;
                 }
                 break;
             case DRIVE:
@@ -198,26 +191,27 @@ public class Drivetrain {
         yError = -Math.sin(sensors.getOdometryPosition().heading) * deltaX + Math.cos(sensors.getOdometryPosition().heading) * deltaY;
         turnError = targetPoint.heading-sensors.getOdometryPosition().heading;
 
+        if (moveNear){
+            turnError = Math.atan2(xError, yError);
+        }
+
         while (Math.abs(turnError) > Math.PI ) {
             turnError -= Math.PI * 2 * Math.signum(turnError);
         }
     }
-
+    /*
     private void calculateTargetHeading(){
-        Pose2d curr = sensors.getOdometryPosition();
-        double dx = targetPoint.x - curr.x;
-        double dy = targetPoint.y - curr.y;
-
-        targetPoint.heading = Math.atan2(dy, dx) - Math.signum(dy) == -1 ? Math.PI : 0;
+        targetPoint.heading = Math.atan2(xError, yError);
         robot.clawIntake.setClawRotation(3 * Math.PI / 2 - targetPoint.heading);
     }
+     */
 
     private double maxPower;
     private boolean stop = false, slowDown = false, moveNear = false, adjust = false;
 
-    public static PID xPID = new PID(0.2,0.0,0.0);
-    public static PID yPID = new PID(0.2,0.0,0.0);
-    public static PID turnPID = new PID(0.2,0.0,0.0);
+    public static PID xPID = new PID(0.025,0.0,0.004);
+    public static PID yPID = new PID(0.15,0.0,0.025);
+    public static PID turnPID = new PID(0.25,0.0,0.01);
     public static PID turnEAPID = new PID(0.15, 0.0, 0.0);
 
     public static double xThreshold = 2.0;
@@ -253,9 +247,8 @@ public class Drivetrain {
         return Math.abs(xError) < xThreshold && Math.abs(yError) < yThreshold && Math.abs(turnError) < turnThreshold;
     }
 
-    private double intakeOffset = 3.0;
     private boolean atHeading(){
-        return (xError - eaThresh + intakeOffset) * (xError - eaThresh + intakeOffset) + yError * yError <= 2 * 2;
+        return Math.abs(yError) < 1.0 && Math.abs(turnError) <= Math.toRadians(90);
     }
 
     private void resetIntegrals() {
@@ -345,15 +338,7 @@ public class Drivetrain {
         this.stop = stop;
         this.maxPower = Math.abs(maxPower);
 
-        if(moveNear && (targetPoint.x != lastTargetPoint.x || targetPoint.y != lastTargetPoint.y)){
-            this.targetPoint = new Pose2d (targetPoint.x, targetPoint.y);
-            calculateTargetHeading();
-            lastTargetPoint = targetPoint;
-
-            resetIntegrals();
-
-            state = DriveState.GO_TO_POINT;
-        }else if (targetPoint.x != lastTargetPoint.x || targetPoint.y != lastTargetPoint.y || targetPoint.heading != lastTargetPoint.heading) {
+        if (targetPoint.x != lastTargetPoint.x || targetPoint.y != lastTargetPoint.y || targetPoint.heading != lastTargetPoint.heading) {
             this.targetPoint = targetPoint;
             lastTargetPoint = targetPoint;
 
@@ -399,13 +384,9 @@ public class Drivetrain {
         sensors.setOdometryPosition(pose2d);
     }
 
-    public double getOptimalHeading(){
-        return targetPoint.heading;
-    }
-
+    private double intakeOffset = 9.0;
     public double getExtension(){
-        Pose2d curr = sensors.getOdometryPosition();
-        return Math.sqrt((targetPoint.x - curr.x) * (targetPoint.x - curr.x) + (targetPoint.y - curr.y) * (targetPoint.y - curr.y));
+        return xError - intakeOffset;
     }
 
     public void setEAThresh(double t){

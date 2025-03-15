@@ -41,6 +41,7 @@ public class OldDrivetrain {
     public enum State {
         FOLLOW_SPLINE,
         GO_TO_POINT,
+        ADJUST,
         DRIVE,
         FINAL_ADJUSTMENT,
         BRAKE,
@@ -327,6 +328,10 @@ public class OldDrivetrain {
                 PIDF();
 
                 if(atPoint()) {
+                    if(moveNear){
+                        state = State.ADJUST;
+                    }
+
                     if (finalAdjustment) {
                         finalTurnPID.resetIntegral();
                         perfectHeadingTimeStart = System.currentTimeMillis();
@@ -334,6 +339,18 @@ public class OldDrivetrain {
                     }else {
                         state = State.BRAKE;
                     }
+                }
+                break;
+            case ADJUST:
+                setMinPowersToOvercomeFriction();
+                PIDF();
+
+                if(!atPoint()){
+                    state = State.GO_TO_POINT;
+                }
+
+                if(atHeading()){
+                    state = State.BRAKE;
                 }
                 break;
             case FINAL_ADJUSTMENT:
@@ -353,9 +370,11 @@ public class OldDrivetrain {
                 state = State.WAIT_AT_POINT;
                 break;
             case WAIT_AT_POINT:
-                if (!atPointThresholds(finalAdjustment ? finalXThreshold : xThreshold, finalAdjustment ? finalYThreshold : yThreshold, finalAdjustment ? finalTurnThreshold: turnThreshold)) {
+                if (!atPointThresholds(finalAdjustment ? finalXThreshold : xThreshold, finalAdjustment ? finalYThreshold : yThreshold, finalAdjustment ? finalTurnThreshold: turnThreshold) || !(moveNear && atPoint())) {
                     resetIntegrals();
                     state = State.GO_TO_POINT;
+                }else if(moveNear && !atHeading()){
+                    state = State.ADJUST;
                 }
                 break;
             case DRIVE:
@@ -374,6 +393,10 @@ public class OldDrivetrain {
         yError = -Math.sin(sensors.getOdometryPosition().heading)*deltaX + Math.cos(sensors.getOdometryPosition().heading)*deltaY;
         turnError = targetPoint.heading -sensors.getOdometryPosition().heading;
 
+        if (moveNear){
+            turnError = Math.atan2(xError, yError);
+        }
+
         // make this like, a good value thats not insanely large from the robot oouiiaaeeaoiaaieee ing
         while(Math.abs(turnError) > Math.PI ){
             turnError -= Math.PI * 2 * Math.signum(turnError);
@@ -388,9 +411,12 @@ public class OldDrivetrain {
     public static double yThreshold = 2.0;
     public static double turnThreshold = 4;
 
+    public static double eaThresh = 24.0;
+
     public static PID xPID = new PID(0.025,0.0,0.004);
     public static PID yPID = new PID(0.15,0.0,0.025);
     public static PID turnPID = new PID(0.25,0.0,0.01);
+    public static PID turnEAPID = new PID(0.15, 0.0, 0.0);
 
     double fwd, strafe, turn, turnAdjustThreshold, finalTargetPointDistance;
 
@@ -418,9 +444,15 @@ public class OldDrivetrain {
 //        // turn does not have predictiveError
 //        turnAdjustThreshold = (Math.abs(xError) > xThreshold/2 || Math.abs(yError) > yThreshold/2) ? turnThreshold/3.0 : turnThreshold;
 //        turn = Math.abs(turnError) > Math.toRadians(turnAdjustThreshold)/2? turnPID.update(turnError, -maxPower, maxPower) : 0;
-        fwd = xPID.update(xError, -maxPower, maxPower);
-        strafe = yPID.update(yError, -maxPower, maxPower);
-        turn = turnPID.update(turnError, -maxPower, maxPower);
+        if (moveNear && atPoint()) {
+            fwd = 0.0;
+            strafe = 0.0;
+            turn = turnEAPID.update(turnError, -maxPower, maxPower);
+        } else {
+            fwd = xPID.update(xError, -maxPower, maxPower);
+            strafe = yPID.update(yError, -maxPower, maxPower);
+            turn = turnPID.update(turnError, -maxPower, maxPower);
+        }
 
         Vector2 move = new Vector2(fwd, strafe) /*new Vector2(0, 0)*/;
         setMoveVector(move, turn);
@@ -446,37 +478,15 @@ public class OldDrivetrain {
         setMoveVector(move, turn);
     }
 
-    public boolean isBusy() {
-        return state != State.WAIT_AT_POINT && state != State.IDLE;
-    }
-
-    public void stopAllMotors() {
-        for (PriorityMotor motor : motors) {
-            motor.setTargetPower(0);
-        }
-    }
-
-    public void goToPoint(Pose2d targetPoint, boolean finalAdjustment, boolean stop, double maxPower) {
-        this.finalAdjustment = finalAdjustment;
-        this.stop = stop;
-        this.maxPower = Math.abs(maxPower);
-        finalTargetPoint = targetPoint;
-
-        if (targetPoint.x != lastTargetPoint.x || targetPoint.y != lastTargetPoint.y || targetPoint.heading != lastTargetPoint.heading) { // if we set a new target point we reset integral
-            this.targetPoint = targetPoint;
-            lastTargetPoint = targetPoint;
-
-            resetIntegrals();
-
-            state = State.GO_TO_POINT;
-        }
-    }
-
     public void setFinalAdjustment(boolean finalAdjustment) {
         this.finalAdjustment = finalAdjustment;
     }
 
     public boolean atPoint () {
+        if (moveNear) {
+            return xError * xError + yError * yError <= eaThresh * eaThresh;
+        }
+
         if (finalAdjustment && state != State.GO_TO_POINT) {
             return Math.abs(xError) < xThreshold && Math.abs(yError) < yThreshold && Math.abs(turnError) < Math.toRadians(finalTurnThreshold);
         }
@@ -489,6 +499,10 @@ public class OldDrivetrain {
 
     public boolean atPointThresholds (double xThresh, double yThresh, double headingThresh) {
         return Math.abs(xError) < xThresh && Math.abs(yError) < yThresh && Math.abs(turnError) < Math.toRadians(headingThresh);
+    }
+
+    private boolean atHeading(){
+        return Math.abs(yError) < 1.0 && Math.abs(turnError) <= Math.toRadians(90);
     }
 
     public void resetIntegrals() {
@@ -507,6 +521,39 @@ public class OldDrivetrain {
     }
 
     public double getMaxPower() {return maxPower;}
+
+    public void goToPoint(Pose2d targetPoint, boolean finalAdjustment, boolean stop, double maxPower) {
+        this.finalAdjustment = finalAdjustment;
+        this.stop = stop;
+        this.maxPower = Math.abs(maxPower);
+        finalTargetPoint = targetPoint;
+
+        if (targetPoint.x != lastTargetPoint.x || targetPoint.y != lastTargetPoint.y || targetPoint.heading != lastTargetPoint.heading) { // if we set a new target point we reset integral
+            this.targetPoint = targetPoint;
+            lastTargetPoint = targetPoint;
+
+            resetIntegrals();
+
+            state = State.GO_TO_POINT;
+        }
+    }
+
+    private boolean moveNear = false;
+    public void goToPoint(Pose2d targetPoint, boolean moveNear, boolean slowDown, boolean stop, double maxPower){
+        this.moveNear = moveNear;
+        this.slowDown = slowDown;
+        this.stop = stop;
+        this.maxPower = Math.abs(maxPower);
+
+        if (targetPoint.x != lastTargetPoint.x || targetPoint.y != lastTargetPoint.y || targetPoint.heading != lastTargetPoint.heading) {
+            this.targetPoint = targetPoint;
+            lastTargetPoint = targetPoint;
+
+            resetIntegrals();
+
+            state = State.GO_TO_POINT; /*should use state = Drivetrain.DriveState.GO_TO_POINT*/
+        }
+    }
 
     Pose2d finalTargetPoint;
 
@@ -546,6 +593,12 @@ public class OldDrivetrain {
         rightFront.setTargetPowerSmooth(rf);
     }
 
+    public void stopAllMotors() {
+        for (PriorityMotor motor : motors) {
+            motor.setTargetPower(0);
+        }
+    }
+
     public void normalizeArray(double[] arr) {
         double largest = 1;
         for (int i = 0; i < arr.length; i++) {
@@ -581,12 +634,25 @@ public class OldDrivetrain {
         return 0.7 * Math.tan(0.96 * value);
     }
 
+    public double getTurnError(){
+        return turnError;
+    }
+
+    private double intakeOffset = 9.0;
+    public double getExtension(){
+        return xError - intakeOffset;
+    }
+
     public Pose2d getPoseEstimate() {
         return ROBOT_POSITION;
     }
 
     public void setPoseEstimate(Pose2d pose2d) {
         sensors.setOdometryPosition(pose2d);
+    }
+
+    public boolean isBusy() {
+        return state != State.WAIT_AT_POINT && state != State.IDLE;
     }
 
     public void updateTelemetry() {
@@ -620,7 +686,7 @@ public class OldDrivetrain {
     }
 
     // CURRENTLY UNUSED v
-
+/*
 //    public void setBreakFollowingThresholds(Pose2d thresholds) {
 //        xThreshold = thresholds.getX();
 //        yThreshold = thresholds.getY();
@@ -696,4 +762,5 @@ public class OldDrivetrain {
 //        }
 //        setMoveVector(drive,turn);
 //    }
+ */
 }

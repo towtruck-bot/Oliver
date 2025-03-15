@@ -578,7 +578,7 @@ public class OldDrivetrain {
     }
 
     public double smoothControls(double value) {
-        return 0.5*Math.tan(1.12*value);
+        return 0.7 * Math.tan(0.96 * value);
     }
 
     public Pose2d getPoseEstimate() {
@@ -589,7 +589,7 @@ public class OldDrivetrain {
         sensors.setOdometryPosition(pose2d);
     }
 
-    public void updateTelemetry () {
+    public void updateTelemetry() {
         TelemetryUtil.packet.put("Drivetrain State", state);
         LogUtil.driveState.set(state.toString());
 

@@ -153,10 +153,10 @@ public class Teleop extends LinearOpMode {
             if (gamepad1.dpad_left) { --hangLeftDir; ++hangRightDir; }
             if (gamepad1.dpad_right) { ++hangLeftDir; --hangRightDir; }
             //}
-            if (-gamepad2.right_stick_y >= triggerThresh) ++hangLeftDir;
-            if (-gamepad2.right_stick_y <= -triggerThresh) --hangLeftDir;
-            if (-gamepad2.left_stick_y >= triggerThresh) ++hangRightDir;
-            if (-gamepad2.left_stick_y <= -triggerThresh) --hangRightDir;
+            if (-gamepad2.left_stick_y >= triggerThresh) ++hangLeftDir;
+            if (-gamepad2.left_stick_y <= -triggerThresh) --hangLeftDir;
+            if (-gamepad2.right_stick_y >= triggerThresh) ++hangRightDir;
+            if (-gamepad2.right_stick_y <= -triggerThresh) --hangRightDir;
             if (gamepad2.y) { ++hangLeftDir; ++hangRightDir; }
             if (gamepad2.a) { --hangLeftDir; --hangRightDir; }
             if (hangLeftDir > 0) robot.hang.leftUp();
@@ -172,9 +172,11 @@ public class Teleop extends LinearOpMode {
 
             if (gamepad2.right_trigger >= 0.7) {
                 robot.deposit.hangMode = Deposit.HangMode.PULL;
-            } else if (gamepad2.left_trigger >= 0.7) {
+            } else if (gamepad2.left_trigger >= 0.7 || gamepad1.touchpad) {
                 robot.deposit.hangMode = Deposit.HangMode.OUT;
             }
+
+            if (gamepad1.back || gamepad2.back) robot.clawIntake.forcePullIn();
 
             telemetry.addData("speciMode", speciMode);
             telemetry.addData("high", high);

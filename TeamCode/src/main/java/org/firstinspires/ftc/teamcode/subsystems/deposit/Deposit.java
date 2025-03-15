@@ -66,14 +66,16 @@ public class Deposit {
     // grabbing positions, holdGrab -> off the wall, grabRetract --> moving with a specimen
     // specimen chamber positions
     public static double speciLSY = 19.4;
-    public static double  speciHRad = 2.79, speciHClawRad = -1.46, speciHY = 19.69 ;
+    public static double  speciHRad = 2.5, speciHClawRad = -1.5, speciHY = 20 ;
     // TODO: ^ These values look about fine tbh, just had to reverse the sign of the claw. Need to test
 
     private long currentTime = -1;
     private long sampleReleaseTime = -1;
-    public static long sampleReleaseDuration = 250;
+    private long specimenReleaseTime = -1;
+    public static int sampleReleaseDuration = 300;
+    public static int specimenReleaseDuration = 500;
     private long grabStartTime = -1;
-    public static long transferBufferDuration = 200;
+    public static int transferBufferDuration = 200;
 
     private boolean high = true;
 
@@ -160,6 +162,7 @@ public class Deposit {
                 moveToWithRad(sampleRad, targetY);
                 arm.setClawRotation(sampleClawRad, 1.0);
                 this.sampleReleaseTime = this.currentTime;
+
                 break;
             case SAMPLE_RELEASE:
                 moveToWithRad(sampleRad, targetY);
@@ -174,7 +177,7 @@ public class Deposit {
                 moveToWithRad(0, targetY);
                 arm.setClawRotation(0, 1.0);
 
-                if(arm.armRotation.getCurrentAngle() <= Math.toRadians(90)){
+                if (arm.armRotation.getCurrentAngle() <= Math.toRadians(90)) {
                     state = State.RETRACT;
                 }
                 break;
@@ -189,10 +192,9 @@ public class Deposit {
             case OUTTAKE_RELEASE:
                 moveToWithRad(outtakeRad, outtakeY);
                 arm.setClawRotation(outtakeClawRad, 1.0);
-
                 arm.sampleOpen();
 
-                if(arm.clawFinished()){
+                if (arm.clawFinished()) {
                     state = State.RETRACT;
                 }
                 break;
@@ -200,7 +202,7 @@ public class Deposit {
                 moveToWithRad(specimenGrabRad, holdY);
                 arm.setClawRotation(specimenGrabClawRad, 1.0);
 
-                if(arm.inPosition() && slides.inPosition(1)){
+                if (arm.inPosition() && slides.inPosition(1)) {
                     state = State.GRAB_WAIT;
                     arm.speciOpen();
                 }
@@ -214,7 +216,7 @@ public class Deposit {
                 arm.setClawRotation(specimenGrabClawRad, 1.0);
                 arm.clawClose();
 
-                if(arm.clawFinished()){
+                if (arm.clawFinished()) {
                     state = State.GRAB_RETRACT;
                 }
                 break;
@@ -222,7 +224,7 @@ public class Deposit {
                 moveToWithRad(specimenConfirmRad, holdY);
                 arm.setClawRotation(specimenConfirmClawRad, 1.0);
 
-                if(arm.inPosition()){
+                if (arm.inPosition()) {
                     state = State.GRAB_HOLD;
                 }
                 break;
@@ -230,23 +232,26 @@ public class Deposit {
                 moveToWithRad(specimenConfirmRad, holdY);
                 arm.setClawRotation(specimenConfirmClawRad, 1.0);
                 targetY = speciHY;
+
                 break;
             case SPECI_RAISE:
                 moveToWithRad(speciHRad, targetY);
                 arm.setClawRotation(speciHClawRad, 1.0);
 
-                if(arm.inPosition() && arm.clawFinished()){
+                if (arm.inPosition() && arm.clawFinished()) {
                     state = State.SPECI_DEPOSIT;
                 }
                 break;
             case SPECI_DEPOSIT:
                 moveToWithRad(speciHRad, targetY);
                 arm.setClawRotation(speciHClawRad, 1.0);
+                this.specimenReleaseTime = this.currentTime;
+
                 break;
             case RELEASE:
                 arm.speciOpen();
 
-                if(arm.clawFinished()){
+                if (arm.clawFinished() && this.currentTime >= this.specimenReleaseTime + specimenReleaseDuration * 1e6) {
                     state = State.RETRACT;
                 }
                 break;
@@ -263,6 +268,17 @@ public class Deposit {
 
         slides.update();
 
+        if (hangMode == HangMode.PULL) {
+            slides.setTargetPowerFORCED(-1.0);
+            targetY = slides.getLength() - 0.5;
+        } else if (hangMode == HangMode.OUT) {
+            slides.setTargetPowerFORCED(0.7);
+            targetY = slides.getLength() + 0.5;
+        }
+        if (hangMode != HangMode.OFF) {
+            state = State.SPECI_DEPOSIT;
+        }
+
         TelemetryUtil.packet.put("Deposit.state", this.state);
         LogUtil.depositState.set(this.state.toString());
         TelemetryUtil.packet.put("Deposit.targetY", this.targetY);
@@ -271,15 +287,7 @@ public class Deposit {
         TelemetryUtil.packet.put("Deposit: Claw inPosition", arm.clawFinished());
         TelemetryUtil.packet.put("Deposit: Hanging", hangMode);
 
-        if (hangMode == HangMode.PULL) {
-            slides.setTargetPowerFORCED(-1.0);
-            targetY = slides.getLength();
-            hangMode = HangMode.OFF;
-        } else if (hangMode == HangMode.OUT) {
-            slides.setTargetPowerFORCED(0.7);
-            targetY = slides.getLength();
-            hangMode = HangMode.OFF;
-        }
+        hangMode = HangMode.OFF;
     }
 
     public void moveToWithRad(double armTargetRad, double targetY){

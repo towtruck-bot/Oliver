@@ -35,7 +35,9 @@ public class ClawIntake {
     public static PID extendoPID = new PID(0.15, 0.05, 0.009);
     public static double slidesTolerance = 0.8;
     public static double slidesDeadZone = 0.2;
-    public static double slidesForcePullPow = -0.2;
+    public static double slidesKeepInPow = -0.2;
+    public static double slidesForcePullPow = -0.5;
+    private boolean forcePull = false;
 
     public static double intakeHoverAngle = -1.7;
     public static double intakeFlipConfirmAngle = -1.555;
@@ -275,9 +277,14 @@ public class ClawIntake {
             if (this.isExtensionAtTarget(slidesDeadZone)) {
                 extendoPID.update(0, -1.0, 1.0);
                 extendoPID.resetIntegral();
-                pow = this.extendoTargetPos <= slidesTolerance && this.extendoCurrentPos >= 0.0 ? slidesForcePullPow : 0;
+                pow = this.extendoTargetPos <= slidesTolerance && this.extendoCurrentPos >= 0.0 ? slidesKeepInPow : 0;
             } else {
                 pow = extendoPID.update(this.extendoTargetPos - this.extendoCurrentPos, -0.7, 0.7);
+            }
+
+            if (forcePull) {
+                pow = slidesForcePullPow;
+                forcePull = false;
             }
 
             this.intakeExtensionMotor.setTargetPower(pow);
@@ -288,6 +295,8 @@ public class ClawIntake {
         LogUtil.extendoTargetPos.set(this.extendoTargetPos);
         //TelemetryUtil.packet.put("ClawIntake.extendoCurrentPos", this.extendoCurrentPos);
     }
+
+    public void forcePullIn() { forcePull = true; }
 
     public boolean isExtensionAtTarget() { return this.isExtensionAtTarget(slidesTolerance); }
 

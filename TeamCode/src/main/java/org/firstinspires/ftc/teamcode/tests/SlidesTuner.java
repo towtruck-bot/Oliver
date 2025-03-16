@@ -26,7 +26,8 @@ public class SlidesTuner extends LinearOpMode {
         waitForStart();
 
         while(!isStopRequested()){
-            slides.setTargetLength(targetSlidesHeight);
+            robot.deposit.holdSlides = true;
+            robot.deposit.setDepositHeight(targetSlidesHeight);
 
             TelemetryUtil.packet.put("Slides: Error", targetSlidesHeight - slides.getLength());
             TelemetryUtil.packet.put("Slides: Position", slides.getLength());
@@ -34,8 +35,6 @@ public class SlidesTuner extends LinearOpMode {
             TelemetryUtil.packet.put("motor check0", motor.getCurrentPosition());
             TelemetryUtil.packet.put("motor check1", motor1.getCurrentPosition());
 
-
-            slides.update();
             robot.update();
         }
     }

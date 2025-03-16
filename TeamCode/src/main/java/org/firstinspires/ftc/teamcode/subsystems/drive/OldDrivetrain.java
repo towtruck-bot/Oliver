@@ -437,8 +437,8 @@ public class OldDrivetrain {
     public static PID finalYPID = new PID(0.05, 0.0,0.006);
     public static PID finalTurnPID = new PID(0.025, 0.0013,0.0015);
 
-    public static double finalXThreshold = 0.35;
-    public static double finalYThreshold = 0.35;
+    public static double finalXThreshold = 0.4;
+    public static double finalYThreshold = 0.4;
     public static double finalTurnThreshold = 3.0;
 
     double fwd, strafe, turn, turnAdjustThreshold, finalTargetPointDistance;
@@ -528,7 +528,7 @@ public class OldDrivetrain {
         return Math.abs(xError) < xThresh && Math.abs(yError) < yThresh && Math.abs(turnError) < Math.toRadians(headingThresh);
     }
 
-    private double lateralIntakeThresh = 0.5, lateralOuttakeThresh = 5.0;
+    public static double lateralIntakeThresh = 0.5, lateralOuttakeThresh = 3.0;
     private boolean atHeading(){
         return Math.abs(yError) <= (willGrab ? lateralIntakeThresh : lateralOuttakeThresh) && Math.abs(turnError) <= Math.toRadians(90);
     }

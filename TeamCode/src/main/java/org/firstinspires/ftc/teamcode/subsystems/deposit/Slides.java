@@ -17,10 +17,10 @@ import org.firstinspires.ftc.teamcode.utils.priority.PriorityMotor;
 @Config
 public class Slides {
     public static double maxVel = 1.6528571428571428;
-    public static double kP = 2;
+    public static double kP = 1.5;
     public static double kA = 20;
-    public static double kStatic = 0.05;
-    public static double minPower = 0.19;
+    public static double kStatic = 0.09;
+    public static double minPower = 0.35;
     public static double minPowerThresh = 0.5;
     public static double forceDownPower = -0.38;
     public static double forceDownThresh = 5;

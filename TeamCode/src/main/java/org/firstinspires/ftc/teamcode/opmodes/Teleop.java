@@ -153,10 +153,10 @@ public class Teleop extends LinearOpMode {
             if (gamepad1.dpad_left) { --hangLeftDir; ++hangRightDir; }
             if (gamepad1.dpad_right) { ++hangLeftDir; --hangRightDir; }
             //}
-            if (-gamepad2.left_stick_y >= triggerThresh) ++hangLeftDir;
-            if (-gamepad2.left_stick_y <= -triggerThresh) --hangLeftDir;
-            if (-gamepad2.right_stick_y >= triggerThresh) ++hangRightDir;
-            if (-gamepad2.right_stick_y <= -triggerThresh) --hangRightDir;
+            if (-gamepad2.right_stick_y >= triggerThresh) ++hangLeftDir;
+            if (-gamepad2.right_stick_y <= -triggerThresh) --hangLeftDir;
+            if (-gamepad2.left_stick_y >= triggerThresh) ++hangRightDir;
+            if (-gamepad2.left_stick_y <= -triggerThresh) --hangRightDir;
             if (gamepad2.y) { ++hangLeftDir; ++hangRightDir; }
             if (gamepad2.a) { --hangLeftDir; --hangRightDir; }
             if (hangLeftDir > 0) robot.hang.leftUp();

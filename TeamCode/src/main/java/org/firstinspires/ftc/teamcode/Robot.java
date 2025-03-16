@@ -349,7 +349,9 @@ public class Robot {
                 //TelemetryUtil.packet.put("auto aim", -1);
                 clawIntake.setIntakeTargetPos(12.0);
             }
-        } while (((boolean) this.abortChecker.call()) && (func == null || (boolean) func.call()) && System.currentTimeMillis() - start <= 5000 && !(clawIntake.hasSample() && clawIntake.grabFinished()));
+        } while (((boolean) this.abortChecker.call()) && (func == null || (boolean) func.call()) && System.currentTimeMillis() - start <= 5000 && !(
+            grab ? clawIntake.hasSample() && clawIntake.grabFinished() : !clawIntake.hasSample() && clawIntake.dropFinished()
+        ));
 
         clawIntake.grab(grab);
         setNextState(NextState.DONE);

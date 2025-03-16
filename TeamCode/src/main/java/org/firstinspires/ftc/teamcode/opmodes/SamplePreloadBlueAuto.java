@@ -69,9 +69,6 @@ public class SamplePreloadBlueAuto extends LinearOpMode {
 
         while (opModeInInit() && !isStopRequested()) {
             robot.sensors.setOdometryPosition(48.0 - Globals.ROBOT_WIDTH / 2.0, 72.0 - Globals.ROBOT_FORWARD_LENGTH, Math.PI/2);
-            robot.deposit.setDepositHeight(0.0);
-            //robot.deposit.finishSpecimenGrab();
-            //robot.deposit.state = Deposit.State.HOLD;
             robot.updateDepositHeights(false, true);
 
             robot.update();

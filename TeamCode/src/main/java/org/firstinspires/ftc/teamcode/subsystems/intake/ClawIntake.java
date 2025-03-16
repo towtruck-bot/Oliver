@@ -36,7 +36,7 @@ public class ClawIntake {
     public static double slidesTolerance = 0.9;
     public static double slidesDeadZone = 0.2;
     public static double slidesKeepInPow = -0.2;
-    public static double slidesForcePullPow = -0.5;
+    public static double slidesForcePullPow = -0.8;
     private boolean forcePull = false;
 
     public static double intakeHoverAngle = -1.7;
@@ -85,7 +85,7 @@ public class ClawIntake {
                 new Servo[] {robot.hardwareMap.get(Servo.class, "intakeFlipServo")},
                 "intakeFlipServo",
                 nPriorityServo.ServoType.HITEC,
-                0.0, 0.69, 0.685,
+                0.0, 0.695, 0.69,
                 new boolean[] {false},
                 1.0, 5.0
         );
@@ -141,8 +141,7 @@ public class ClawIntake {
                 this.claw.setTargetAngle(this.grab ? clawCloseAngle : clawOpenAngle);
                 this.extendoTargetPos = this.intakeSetTargetPos;
                 if (this.isExtensionAtTarget()) {
-                    this.clawIntakeState = ClawIntakeState.ALIGN;
-                    this.grab = false;
+                    this.clawIntakeState = this.grab ? ClawIntakeState.CONFIRM : ClawIntakeState.ALIGN;
                     this.intakeLight.setState(true);
                 }
                 break;
@@ -230,8 +229,12 @@ public class ClawIntake {
         grab = closed;
     }
 
-    public boolean grabFinished(){
+    public boolean grabFinished() {
         return clawIntakeState == ClawIntakeState.CONFIRM;
+    }
+
+    public boolean dropFinished() {
+        return clawIntakeState == ClawIntakeState.ALIGN;
     }
 
     public void extend() {

@@ -328,21 +328,22 @@ public class Robot {
         } while (((boolean) this.abortChecker.call()) && (func == null || (boolean) func.call()) && System.currentTimeMillis() - start <= 5000 && drivetrain.isBusy());
     }
 
-    public void goToPointWithIntake(Pose2d pose, Func func, boolean moveNear, boolean slowDown, boolean stop, double maxPower) {
+    public void goToPointWithIntake(Pose2d pose, Func func, boolean moveNear, boolean slowDown, boolean stop, double maxPower, boolean grab) {
         long start = System.currentTimeMillis();
-        drivetrain.goToPoint(pose, moveNear, slowDown, stop, maxPower);
+        drivetrain.goToPoint(pose, moveNear, slowDown, stop, maxPower, grab);
         setNextState(NextState.INTAKE_SAMPLE);
         clawIntake.setIntakeTargetPos(12.0);
 
         do {
             update();
+            clawIntake.grab(!grab);
             if (drivetrain.state != OldDrivetrain.State.GO_TO_POINT) { /* Should use drivetrain.state == Drivetrain.DriveState.WAIT_AT_POINT*/
                 clawIntake.setIntakeTargetPos(drivetrain.getExtension());
                 clawIntake.setClawRotation(Utils.headingClip(pose.heading - sensors.getOdometryPosition().heading));
                 //TelemetryUtil.packet.put("auto aim", drivetrain.getExtension());
 
                 if (clawIntake.isExtensionAtTarget()) {
-                    clawIntake.grab(true);
+                    clawIntake.grab(grab);
                 }
             } else if (Math.abs(drivetrain.getTurnError()) < Math.toRadians(30)) {
                 //TelemetryUtil.packet.put("auto aim", -1);
@@ -350,7 +351,7 @@ public class Robot {
             }
         } while (((boolean) this.abortChecker.call()) && (func == null || (boolean) func.call()) && System.currentTimeMillis() - start <= 5000 && !(clawIntake.hasSample() && clawIntake.grabFinished()));
 
-        clawIntake.grab(true);
+        clawIntake.grab(grab);
         setNextState(NextState.DONE);
     }
 

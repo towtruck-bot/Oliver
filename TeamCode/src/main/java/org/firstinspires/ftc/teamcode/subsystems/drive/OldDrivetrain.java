@@ -528,8 +528,9 @@ public class OldDrivetrain {
         return Math.abs(xError) < xThresh && Math.abs(yError) < yThresh && Math.abs(turnError) < Math.toRadians(headingThresh);
     }
 
+    private double lateralIntakeThresh = 0.5, lateralOuttakeThresh = 5.0;
     private boolean atHeading(){
-        return Math.abs(yError) <= 0.5 && Math.abs(turnError) <= Math.toRadians(90);
+        return Math.abs(yError) <= (willGrab ? lateralIntakeThresh : lateralOuttakeThresh) && Math.abs(turnError) <= Math.toRadians(90);
     }
 
     public void resetIntegrals() {
@@ -555,6 +556,7 @@ public class OldDrivetrain {
         this.stop = stop;
         this.maxPower = Math.abs(maxPower);
         this.moveNear = false;
+        willGrab = false;
         finalTargetPoint = targetPoint;
 
         if (targetPoint.x != lastTargetPoint.x || targetPoint.y != lastTargetPoint.y || targetPoint.heading != lastTargetPoint.heading) { // if we set a new target point we reset integral
@@ -567,12 +569,13 @@ public class OldDrivetrain {
         }
     }
 
-    private boolean moveNear = false;
-    public void goToPoint(Pose2d targetPoint, boolean moveNear, boolean slowDown, boolean stop, double maxPower){
+    private boolean moveNear = false, willGrab = false;
+    public void goToPoint(Pose2d targetPoint, boolean moveNear, boolean slowDown, boolean stop, double maxPower, boolean grab){
         this.moveNear = moveNear;
         this.slowDown = slowDown;
         this.stop = stop;
         this.maxPower = Math.abs(maxPower);
+        willGrab = grab;
 
         if (targetPoint.x != lastTargetPoint.x || targetPoint.y != lastTargetPoint.y || targetPoint.heading != lastTargetPoint.heading) {
             this.targetPoint = targetPoint;

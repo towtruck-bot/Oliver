@@ -128,7 +128,7 @@ public class SamplePreloadBlueAuto extends LinearOpMode {
         // retract
         robot.setNextState(Robot.NextState.DONE);
  */
-        robot.goToPointWithIntake(new Pose2d(bx, by, Math.toRadians(-90)), null, true, false, true, 0.9);
+        robot.goToPointWithIntake(new Pose2d(bx, by, Math.toRadians(-90)), null, true, false, true, 0.9, true);
         //robot.waitWhile(() -> { return !robot.clawIntake.isRetracted(); });
     }
 

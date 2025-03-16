@@ -19,12 +19,8 @@ public class SpecimenPreloadBlueAuto extends LinearOpMode {
 
     public static boolean enablePreload = true, enableGround = true, enableScore = true;
 
-    public static double gx = -60.0, gy = 52.25, cy = 56.0;
-    public static double g1e = 15.95, g1h = -1.976;
-    public static double g2e = 13.7, g2h = -Math.PI / 2;
-    public static double g3e = 15.95, g3h = -1.165;
-
-    public static double setupX = -36.5, setupY = 63.9;
+    public static double ox = -56.0, oy = 64.0;
+    public static double setupX = -38, setupY = 63.9;
     public static double baseScoreX = -5.9, baseScoreY = 41.45, scoreY = 28.75, backUpX = -8, backUpY = 40.0;
 
     public static double[] targetX = new double[] {0.0, 2.5, 5.0, 7.5, 10.0};
@@ -93,57 +89,24 @@ public class SpecimenPreloadBlueAuto extends LinearOpMode {
         robot.goToPoint(new Pose2d(backUpX, backUpY, Math.PI), null, false, false, 0.95);
     }
 
+    public static double s1x = -49.5, s2x = -60.0, s3x = -69.5;
+    public static double sy = 26.0;
+
     public void move3Ground(){
-//        robot.goToPoint(new Pose2d(-24.0, gy, -Math.PI / 2), null, true, false, 0.95);
-//        robot.goToPoint(new Pose2d(gx, gy, -Math.PI / 2), null, false, true, 0.95);
-
-        robot.goToPoint(new Pose2d(gx, gy, -Math.PI / 2), null, false, true, 0.95);
-
-        Log.i("AUTO", "start 1");
-        pickUp(g2e, g2h);
-        chuckOut();
-        Log.i("AUTO", "end 1");
-
-        Log.i("AUTO", "start 2");
-        pickUp(g1e, g1h);
-        chuckOut();
-        Log.i("AUTO", "end 2");
-
-        Log.i("AUTO", "start 3");
-        pickUp(g3e, g3h);
-        chuckOut();
-        Log.i("AUTO", "end 3");
-    }
-
-    public void pickUp(double ge, double gh){
-        robot.goToPoint(new Pose2d(gx, gy, gh), null, true, true, 0.95);
-
-        robot.setIntakeExtension(ge);
-        robot.setNextState(Robot.NextState.INTAKE_SAMPLE);
-
-        robot.waitWhile(() -> !robot.clawIntake.isExtended());
-
-        // buffer time between extension and grab
-        robot.waitFor(275);
-
-        // grab
-        robot.grab(true);
-        robot.waitWhile(() -> !robot.clawIntake.grabFinished());
-
+        robot.goToPointWithIntake(new Pose2d(s1x, sy, -Math.PI / 2), null, true, false, true, 0.95, true);
         robot.setNextState(Robot.NextState.DONE);
-        robot.waitWhile(() -> robot.getState() != Robot.RobotState.SAMPLE_READY);
-    }
-
-    public void chuckOut(){
-        robot.goToPoint(new Pose2d(gx, cy, -Math.PI / 2), null, false, false, 0.95);
-        Log.i("AUTO", "reached 1");
-        // Outtake
+        robot.goToPointWithIntake(new Pose2d(ox, oy, Math.PI / 2), null, true, false, true, 0.95, false);
         robot.setNextState(Robot.NextState.DONE);
-        Log.i("AUTO", "reached 2");
 
-        robot.waitWhile(() -> !robot.deposit.isOuttakeDone());
-        Log.i("AUTO", "reached 3");
+        robot.goToPointWithIntake(new Pose2d(s2x, sy, -Math.PI / 2), null, true, false, true, 0.95, true);
+        robot.setNextState(Robot.NextState.DONE);
+        robot.goToPointWithIntake(new Pose2d(ox, oy, Math.PI / 2), null, true, false, true, 0.95, false);
+        robot.setNextState(Robot.NextState.DONE);
 
+        robot.goToPointWithIntake(new Pose2d(s3x, sy, -Math.PI / 2), null, true, false, true, 0.95, true);
+        robot.setNextState(Robot.NextState.DONE);
+        robot.goToPointWithIntake(new Pose2d(ox, oy, Math.PI / 2), null, true, false, true, 0.95, false);
+        robot.setNextState(Robot.NextState.DONE);
     }
 
     public void grabAndSetUp(double offset){

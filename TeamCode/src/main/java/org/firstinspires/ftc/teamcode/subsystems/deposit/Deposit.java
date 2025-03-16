@@ -66,14 +66,14 @@ public class Deposit {
     // grabbing positions, holdGrab -> off the wall, grabRetract --> moving with a specimen
     // specimen chamber positions
     public static double speciLSY = 19.4;
-    public static double  speciHRad = 2.5, speciHClawRad = -1.5, speciHY = 20 ;
+    public static double  speciHRad = 2.5, speciHClawRad = -1.5, speciHY = 19;
     // TODO: ^ These values look about fine tbh, just had to reverse the sign of the claw. Need to test
 
     private long currentTime = -1;
     private long sampleReleaseTime = -1;
     private long specimenReleaseTime = -1;
     public static int sampleReleaseDuration = 300;
-    public static int specimenReleaseDuration = 500;
+    public static int specimenReleaseDuration = 700;
     private long grabStartTime = -1;
     public static int transferBufferDuration = 200;
 

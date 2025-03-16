@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 
 import org.firstinspires.ftc.teamcode.Robot;
+import org.firstinspires.ftc.teamcode.subsystems.deposit.Deposit;
 import org.firstinspires.ftc.teamcode.subsystems.deposit.Slides;
 import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 
@@ -27,6 +28,7 @@ public class SlidesTuner extends LinearOpMode {
 
         while(!isStopRequested()){
             robot.deposit.holdSlides = true;
+            robot.deposit.state = Deposit.State.TEST;
             robot.deposit.setDepositHeight(targetSlidesHeight);
 
             TelemetryUtil.packet.put("Slides: Error", targetSlidesHeight - slides.getLength());

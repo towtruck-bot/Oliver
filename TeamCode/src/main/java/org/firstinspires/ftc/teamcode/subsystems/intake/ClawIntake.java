@@ -35,13 +35,13 @@ public class ClawIntake {
     public static PID extendoPID = new PID(0.2, 0.05, 0.009);
     public static double slidesTolerance = 0.9;
     public static double slidesDeadZone = 0.2;
-    public static double slidesKeepInPow = -0.15;
+    public static double slidesKeepInPow = -0.25;
     public static double slidesForcePullPow = -0.8;
     private boolean forcePull = false;
 
-    public static double intakeHoverAngle = -1.7;
-    public static double intakeFlipConfirmAngle = -1.555;
-    public static double intakeFlipUpAngle = -0.955;
+    public static double intakeHoverAngle = -1.6;
+    public static double intakeFlipConfirmAngle = -1.55;
+    public static double intakeFlipUpAngle = -0.95;
     public static double intakeFlipGrabAngle = -1.955;
     public static double intakeFlipBackAngle = -0.355;
 

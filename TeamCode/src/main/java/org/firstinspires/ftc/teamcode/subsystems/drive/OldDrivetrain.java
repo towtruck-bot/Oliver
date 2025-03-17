@@ -338,7 +338,7 @@ public class OldDrivetrain {
                 setMinPowersToOvercomeFriction();
                 PIDF();
 
-                if(atPoint()) {
+                if (atPoint()) {
                     if(moveNear){
                         state = State.ADJUST;
                     }
@@ -347,7 +347,7 @@ public class OldDrivetrain {
                         finalTurnPID.resetIntegral();
                         perfectHeadingTimeStart = System.currentTimeMillis();
                         state = State.FINAL_ADJUSTMENT;
-                    }else {
+                    } else {
                         state = State.BRAKE;
                     }
                 }
@@ -356,11 +356,11 @@ public class OldDrivetrain {
                 setMinPowersToOvercomeFriction();
                 PIDF();
 
-                if(!atPoint()){
+                if (!atPoint()) {
                     state = State.GO_TO_POINT;
                 }
 
-                if(atHeading()){
+                if (atHeading()) {
                     state = State.BRAKE;
                 }
                 break;
@@ -378,7 +378,7 @@ public class OldDrivetrain {
             case BRAKE:
                 stopAllMotors();
                 slowDown = false;
-                state = State.IDLE;
+                state = State.WAIT_AT_POINT;
                 break;
             case WAIT_AT_POINT:
                 if (moveNear) {
@@ -542,7 +542,7 @@ public class OldDrivetrain {
     }
 
     public static double lateralIntakeThresh = 0.5, lateralOuttakeThresh = 3.0;
-    private boolean atHeading(){
+    private boolean atHeading() {
         return Math.abs(yError) <= (willGrab ? lateralIntakeThresh : lateralOuttakeThresh) && Math.abs(turnError) <= Math.toRadians(90);
     }
 

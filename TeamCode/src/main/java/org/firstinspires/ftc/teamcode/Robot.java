@@ -342,7 +342,7 @@ public class Robot {
                 clawIntake.setClawRotation(Utils.headingClip(pose.heading - sensors.getOdometryPosition().heading));
                 //TelemetryUtil.packet.put("auto aim", drivetrain.getExtension());
 
-                if (clawIntake.isExtensionAtTarget()) {
+                if (clawIntake.isExtensionAtTarget() && drivetrain.state == OldDrivetrain.State.WAIT_AT_POINT) {
                     clawIntake.grab(grab);
                 }
             } else if (Math.abs(drivetrain.getTurnError()) < Math.toRadians(30)) {

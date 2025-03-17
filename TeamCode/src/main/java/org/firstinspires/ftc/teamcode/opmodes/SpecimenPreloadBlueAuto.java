@@ -18,8 +18,8 @@ public class SpecimenPreloadBlueAuto extends LinearOpMode {
 
     public static boolean enablePreload = true, enableGround = true, enableScore = true;
 
-    public static double g1x = -46.0, g2x = -56.0, g3x = -63.5;
-    public static double yPre = 13.5, yPush = 55;
+    public static double g1x = -47, g2x = -57, g3x = -63.5;
+    public static double yPre = 16, yPush = 55;
     public static double setupX = -37, setupY = 64.3;
     public static double shift = 3.742, baseScoreX = -2, baseScoreY = 42, scoreY = 25.85;
 
@@ -79,11 +79,11 @@ public class SpecimenPreloadBlueAuto extends LinearOpMode {
         robot.waitWhile(() -> !robot.deposit.readyToRam());
         // ^Wait for fully raised slides and arm at correct angle^
 
-        robot.drivetrain.slidesUp =true;
-
+        robot.drivetrain.slidesUp = true;
         OldDrivetrain.xThreshold = 1.75;
         OldDrivetrain.yThreshold = 1.75;
         OldDrivetrain.turnThreshold = 5;
+
         // Ram forward
         robot.goToPoint(new Pose2d(offset, scoreY, Math.PI/2), null, false, false, 1.0);
         robot.waitFor(150);
@@ -91,9 +91,11 @@ public class SpecimenPreloadBlueAuto extends LinearOpMode {
         OldDrivetrain.xThreshold = 4;
         OldDrivetrain.yThreshold = 4;
         OldDrivetrain.turnThreshold = 4;
+
         // Release + backup
         robot.setNextState(Robot.NextState.DONE);
         robot.goToPoint(new Pose2d(baseScoreX, baseScoreY, Math.PI/2), null, false, false, 1.0);
+
         robot.drivetrain.slidesUp = false;
     }
 
@@ -106,8 +108,7 @@ public class SpecimenPreloadBlueAuto extends LinearOpMode {
 
         robot.drivetrain.slidesUp = false;
 
-
-        robot.goToPoint(new Pose2d(-36.0, 38.0, Math.PI / 2.0), null, false, false, 1.0);
+        robot.goToPoint(new Pose2d(-36.0, baseScoreY, Math.PI / 2.0), null, false, false, 1.0);
         robot.goToPoint(new Pose2d(-36.0, yPre, Math.PI / 2.0), null, false, false, 1.0);
         robot.goToPoint(new Pose2d(g1x, yPre, Math.PI / 2.0), null, false, false, 1.0);
 
@@ -127,6 +128,7 @@ public class SpecimenPreloadBlueAuto extends LinearOpMode {
 
         // Deliver ground3
         robot.goToPoint(new Pose2d(g3x, yPush, Math.PI / 2.0), null, false, true, 1.0);
+        robot.goToPoint(new Pose2d(g3x + 6, yPush - 3, Math.PI / 2.0), null, false, true, 1.0);
     }
 
     public void grabAndSetUp(double offset) {

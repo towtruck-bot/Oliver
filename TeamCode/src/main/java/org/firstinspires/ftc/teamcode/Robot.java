@@ -342,14 +342,16 @@ public class Robot {
                 clawIntake.setClawRotation(Utils.headingClip(pose.heading - sensors.getOdometryPosition().heading));
                 //TelemetryUtil.packet.put("auto aim", drivetrain.getExtension());
 
-                if (clawIntake.isExtensionAtTarget()) {
+                if (clawIntake.isExtensionAtTarget() && drivetrain.state == OldDrivetrain.State.WAIT_AT_POINT) {
                     clawIntake.grab(grab);
                 }
             } else if (Math.abs(drivetrain.getTurnError()) < Math.toRadians(30)) {
                 //TelemetryUtil.packet.put("auto aim", -1);
                 clawIntake.setIntakeTargetPos(12.0);
             }
-        } while (((boolean) this.abortChecker.call()) && (func == null || (boolean) func.call()) && System.currentTimeMillis() - start <= 5000 && !(clawIntake.hasSample() && clawIntake.grabFinished()));
+        } while (((boolean) this.abortChecker.call()) && (func == null || (boolean) func.call()) && System.currentTimeMillis() - start <= 5000 && !(
+            grab ? clawIntake.hasSample() && clawIntake.grabFinished() : !clawIntake.hasSample() && clawIntake.dropFinished()
+        ));
 
         clawIntake.grab(grab);
         setNextState(NextState.DONE);

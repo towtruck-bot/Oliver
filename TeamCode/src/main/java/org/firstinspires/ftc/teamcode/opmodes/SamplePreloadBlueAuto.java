@@ -17,7 +17,7 @@ public class SamplePreloadBlueAuto extends LinearOpMode {
 
     public static boolean enableg1 = true, enableg2 = true, enableg3 = true, enabler = true;
 
-    public static double by = 26, bx1 = 49.5, bx2 = 60, bx3 = 69.5;
+    public static double by = 26, bx1 = 49.5, bx2 = 59.5, bx3 = 69.5;
     public static double fx1 = 36, fy1 = 12, fh1 = Math.PI;
     public static double fx = 20, fy = 12, fh = Math.PI;
     public static double sx = 57, sy = 57, sh = Math.toRadians(225);
@@ -69,9 +69,6 @@ public class SamplePreloadBlueAuto extends LinearOpMode {
 
         while (opModeInInit() && !isStopRequested()) {
             robot.sensors.setOdometryPosition(48.0 - Globals.ROBOT_WIDTH / 2.0, 72.0 - Globals.ROBOT_FORWARD_LENGTH, Math.PI/2);
-            robot.deposit.setDepositHeight(0.0);
-            //robot.deposit.finishSpecimenGrab();
-            //robot.deposit.state = Deposit.State.HOLD;
             robot.updateDepositHeights(false, true);
 
             robot.update();

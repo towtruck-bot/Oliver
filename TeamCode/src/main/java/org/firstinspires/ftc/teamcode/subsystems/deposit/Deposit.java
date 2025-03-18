@@ -55,18 +55,18 @@ public class Deposit {
     // prepare for transfer positions
     public static double intakeWaitRad = 0.4, intakeWaitY = 0.0, intakeWaitClawRad = 1.235;
     // transfer positions, move in to grab
-    public static double intakeRad = 0.0266, intakeY = 0.0, intakeClawRad = 1.4;
+    public static double intakeRad = 0.1, intakeY = 0.0, intakeClawRad = 1.4;
     // moving positions with a sample
     public static double sampleHoldRad = 0.0, holdY = 0.0, sampleHoldClawRad = -Math.PI / 2;
-    public static double specimenGrabRad = 0.0, specimenGrabClawRad = 0.0, specimenConfirmRad = Math.toRadians(40), specimenConfirmClawRad = Math.toRadians(40);
+    public static double specimenGrabRad = 0.04, specimenGrabClawRad = 0.0, specimenConfirmRad = Math.toRadians(40), specimenConfirmClawRad = Math.toRadians(40);
     // sample basket positions
     public static double sampleLY = 16.75, sampleHY = 31, sampleRaiseRad = Math.toRadians(90), sampleDepositRad = 2.2, sampleDepositClawRad = -0.2;
     // outtake positions, drop behind robot
     public static double outtakeRad = Math.toRadians(180), outtakeY = 0.0, outtakeClawRad = 0.0;
     // grabbing positions, holdGrab -> off the wall, grabRetract --> moving with a specimen
     // specimen chamber positions
-    public static double speciLSY = 19.4;
-    public static double  speciHRad = 2.5, speciHClawRad = -1.5, speciHY = 19;
+    public static double speciLSY = 18.4;
+    public static double  speciHRad = 2.5, speciHClawRad = -1.5, speciHY = 18.6;
     // TODO: ^ These values look about fine tbh, just had to reverse the sign of the claw. Need to test
 
     private long currentTime = -1;
@@ -275,7 +275,7 @@ public class Deposit {
         slides.update();
 
         if (hangMode == HangMode.PULL) {
-            slides.setTargetPowerFORCED(-1.0);
+            slides.setTargetPowerFORCED(-0.9);
             targetY = slides.getLength() - 0.5;
         } else if (hangMode == HangMode.OUT) {
             slides.setTargetPowerFORCED(0.7);

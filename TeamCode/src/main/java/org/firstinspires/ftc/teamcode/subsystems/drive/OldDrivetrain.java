@@ -338,7 +338,7 @@ public class OldDrivetrain {
                 setMinPowersToOvercomeFriction();
                 PIDF();
 
-                if(atPoint()) {
+                if (atPoint()) {
                     if(moveNear){
                         state = State.ADJUST;
                     }
@@ -347,7 +347,7 @@ public class OldDrivetrain {
                         finalTurnPID.resetIntegral();
                         perfectHeadingTimeStart = System.currentTimeMillis();
                         state = State.FINAL_ADJUSTMENT;
-                    }else {
+                    } else {
                         state = State.BRAKE;
                     }
                 }
@@ -356,11 +356,11 @@ public class OldDrivetrain {
                 setMinPowersToOvercomeFriction();
                 PIDF();
 
-                if(!atPoint()){
+                if (!atPoint()) {
                     state = State.GO_TO_POINT;
                 }
 
-                if(atHeading()){
+                if (atHeading()) {
                     state = State.BRAKE;
                 }
                 break;
@@ -428,17 +428,23 @@ public class OldDrivetrain {
 
     public static double eaThresh = 27;
 
-    public static PID xPID = new PID(0.025,0.0,0.004);
-    public static PID yPID = new PID(0.15,0.0,0.025);
+    public static PID xPID = new PID(0.0225,0.0,0.003);
+    public static PID yPID = new PID(0.1,0.0,0.015);
     public static PID turnPID = new PID(0.25,0.0,0.01);
     public static PID turnEAPID = new PID(0.025, 0.0, 0.0015);
 
-    public static PID finalXPID = new PID(0.007, 0.0001,0.00135);
-    public static PID finalYPID = new PID(0.05, 0.0,0.006);
-    public static PID finalTurnPID = new PID(0.025, 0.0013,0.0015);
+    public static PID finalXPID = new PID(0.007, 0.0001,0.0012);
+    public static PID finalYPID = new PID(0.05, 0.0,0.005);
+    public static PID finalTurnPID = new PID(0.025, 0.0013,0.001);
 
-    public static double finalXThreshold = 0.35;
-    public static double finalYThreshold = 0.35;
+    public boolean slidesUp = false;
+
+    public static PID slidesUpXPID = new PID(0.015, 0, 0.002); //PIDs for when the slides are up
+    public static PID slidesUpYPID = new PID(0.04, 0, 0);
+    public static PID slidesUpTurnPID = new PID(0.2, 0, 0.01);
+
+    public static double finalXThreshold = 0.4;
+    public static double finalYThreshold = 0.4;
     public static double finalTurnThreshold = 3.0;
 
     double fwd, strafe, turn, turnAdjustThreshold, finalTargetPointDistance;
@@ -467,9 +473,16 @@ public class OldDrivetrain {
 //        // turn does not have predictiveError
 //        turnAdjustThreshold = (Math.abs(xError) > xThreshold/2 || Math.abs(yError) > yThreshold/2) ? turnThreshold/3.0 : turnThreshold;
 //        turn = Math.abs(turnError) > Math.toRadians(turnAdjustThreshold)/2? turnPID.update(turnError, -maxPower, maxPower) : 0;
-        fwd = xPID.update(xError - (moveNear ? eaThresh / 2 : 0), -maxPower, maxPower);
-        strafe = yPID.update(yError, -maxPower, maxPower);
-        turn = turnPID.update(turnError, -maxPower, maxPower);
+        if (slidesUp) { //if the slides are up, use the up PIDs
+            fwd = slidesUpXPID.update(xError - (moveNear ? eaThresh / 2 : 0), -maxPower, maxPower);
+            strafe = slidesUpYPID.update(yError, -maxPower, maxPower);
+            turn = slidesUpTurnPID.update(turnError, -maxPower, maxPower);
+        }
+        else {
+            fwd = xPID.update(xError - (moveNear ? eaThresh / 2 : 0), -maxPower, maxPower);
+            strafe = yPID.update(yError, -maxPower, maxPower);
+            turn = turnPID.update(turnError, -maxPower, maxPower);
+        }
         if (moveNear) {
             strafe *= 0.25;
             if (atPoint()) {
@@ -528,8 +541,8 @@ public class OldDrivetrain {
         return Math.abs(xError) < xThresh && Math.abs(yError) < yThresh && Math.abs(turnError) < Math.toRadians(headingThresh);
     }
 
-    private double lateralIntakeThresh = 0.5, lateralOuttakeThresh = 5.0;
-    private boolean atHeading(){
+    public static double lateralIntakeThresh = 0.5, lateralOuttakeThresh = 3.0;
+    private boolean atHeading() {
         return Math.abs(yError) <= (willGrab ? lateralIntakeThresh : lateralOuttakeThresh) && Math.abs(turnError) <= Math.toRadians(90);
     }
 

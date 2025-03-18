@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.Robot;
+import org.firstinspires.ftc.teamcode.subsystems.deposit.Deposit;
 import org.firstinspires.ftc.teamcode.subsystems.drive.Drivetrain;
 import org.firstinspires.ftc.teamcode.subsystems.drive.OldDrivetrain;
 import org.firstinspires.ftc.teamcode.utils.Pose2d;
@@ -25,6 +26,8 @@ public class GoToPointTester extends LinearOpMode {
 
         while (!isStopRequested()) {
             if(goTo) {
+                robot.deposit.slides.setTargetLength(18);
+                robot.deposit.state = Deposit.State.TEST;
                 robot.drivetrain.goToPoint(new Pose2d(x, y, Math.toRadians(h)), finalAdjustment, stop, 1.0);
                 robot.clawIntake.setIntakeTargetPos(0.0);
                 goTo = !goTo;

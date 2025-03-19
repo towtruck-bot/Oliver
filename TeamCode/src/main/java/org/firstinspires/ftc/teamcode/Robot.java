@@ -10,6 +10,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.teamcode.sensors.Sensors;
 import org.firstinspires.ftc.teamcode.subsystems.deposit.Deposit;
 import org.firstinspires.ftc.teamcode.subsystems.drive.OldDrivetrain;
+import org.firstinspires.ftc.teamcode.subsystems.drive.Spline;
 import org.firstinspires.ftc.teamcode.subsystems.hang.Hang;
 import org.firstinspires.ftc.teamcode.subsystems.intake.ClawIntake;
 import org.firstinspires.ftc.teamcode.utils.Func;
@@ -357,17 +358,17 @@ public class Robot {
         setNextState(NextState.DONE);
     }
 
-//    public void followSpline(Spline spline, Func func) {
-//        long start = System.currentTimeMillis();
-//        drivetrain.setPath(spline);
-//        drivetrain.state = OldDrivetrain.State.GO_TO_POINT;
-//        drivetrain.setMaxPower(1);
-//        update();
-//
-//        do {
-//            update();
-//        } while (((boolean) this.abortChecker.call()) && (func == null || (boolean) func.call()) && System.currentTimeMillis() - start <= 10000 && drivetrain.isBusy());
-//    }
+    public void followSpline(Spline spline, Func func) {
+        long start = System.currentTimeMillis();
+        drivetrain.setPath(spline);
+        drivetrain.state = OldDrivetrain.State.GO_TO_POINT;
+        drivetrain.setMaxPower(1);
+        update();
+
+        do {
+            update();
+        } while (((boolean) this.abortChecker.call()) && (func == null || (boolean) func.call()) && System.currentTimeMillis() - start <= 10000 && drivetrain.isBusy());
+    }
 
     public void setIntakeExtension(double target){
         clawIntake.setIntakeTargetPos(target);

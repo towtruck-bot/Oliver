@@ -62,6 +62,7 @@ public class OldDrivetrain {
 
     public boolean slow = false;
     public static double slowSpeed = 0.4;
+    public static double pval = 1.5;
 
     public OldDrivetrain(Vision vision, Robot robot) {
         HardwareMap hardwareMap = robot.hardwareMap;
@@ -294,14 +295,14 @@ public class OldDrivetrain {
                     canvas.strokeCircle(estimate.x - radius * Math.sin(estimate.heading), estimate.y + radius * Math.cos(estimate.heading), Math.abs(radius));
                 }
 
-                double speed = 0.25 + 0.75 * Math.min(Math.abs(radius), 200)/200.0;
+                double speed = 0.70 + 0.30 * Math.min(Math.abs(radius), 200)/200.0;
 
                 double targetFwd = maxPower*speed*Math.signum(xError);
                 if (slowDown) {
                     targetFwd *= 0.3;
                 }
-
-                double targetTurn = ((3.88193 * Math.exp(-3.94484 * Math.abs(targetFwd)) + 0.725107) * (ROBOT_WIDTH)/ radius) * targetFwd;
+                //3.88193
+                double targetTurn = ((pval * Math.exp(-3.94484 * Math.abs(targetFwd)) + 0.725107) * (ROBOT_WIDTH)/ radius) * targetFwd;
 
                 double centripetal = centripetalTune * targetFwd * targetFwd / radius;
 
@@ -426,7 +427,7 @@ public class OldDrivetrain {
     public static double yThreshold = 2.0;
     public static double turnThreshold = 4;
 
-    public static double eaThresh = 27;
+    public static double eaThresh = 32;
 
     public static PID xPID = new PID(0.0225,0.0,0.003);
     public static PID yPID = new PID(0.1,0.0,0.015);
@@ -541,7 +542,7 @@ public class OldDrivetrain {
         return Math.abs(xError) < xThresh && Math.abs(yError) < yThresh && Math.abs(turnError) < Math.toRadians(headingThresh);
     }
 
-    public static double lateralIntakeThresh = 0.5, lateralOuttakeThresh = 3.0;
+    public static double lateralIntakeThresh = 0.3, lateralOuttakeThresh = 3.0;
     private boolean atHeading() {
         return Math.abs(yError) <= (willGrab ? lateralIntakeThresh : lateralOuttakeThresh) && Math.abs(turnError) <= Math.toRadians(90);
     }
@@ -685,6 +686,15 @@ public class OldDrivetrain {
 
     private final double intakeOffset = 9.0;
     public double getExtension(){
+        return xError - intakeOffset;
+    }
+
+    public double calcExtension(Pose2d start, Pose2d target){
+        double deltaX = (target.x - start.x);
+        double deltaY = (target.y - start.y);
+        double angle = Math.atan2(deltaY, deltaX);
+        // convert error into direction robot is facing
+        xError = Math.cos(angle)*deltaX + Math.sin(angle)*deltaY;
         return xError - intakeOffset;
     }
 

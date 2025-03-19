@@ -121,7 +121,7 @@ public class Deposit {
                 arm.setClawRotation(intakeClawRad, 1.0);
                 arm.speciOpen();
 
-                if(arm.inPosition() && slides.inPosition(1)){ // Need to figure out this threshold better
+                if(arm.inPosition() && slides.inPosition(1)){
                     state = State.TRANSFER_CLOSE;
                     arm.clawClose();
                     this.grabStartTime = this.currentTime;
@@ -163,15 +163,13 @@ public class Deposit {
             case SAMPLE_WAIT:
                 moveToWithRad(sampleDepositRad, targetY);
                 arm.setClawRotation(sampleDepositClawRad, 1.0);
-                this.sampleReleaseTime = this.currentTime;
-
                 break;
             case SAMPLE_RELEASE:
                 moveToWithRad(sampleDepositRad, targetY);
                 arm.setClawRotation(sampleDepositClawRad, 1.0);
                 arm.sampleOpen();
 
-                if (arm.clawFinished() && this.currentTime >= this.sampleReleaseTime + sampleReleaseDuration * 1e6) {
+                if (arm.clawFinished()) {
                     state = State.SAMPLE_FINISH;
                 }
                 break;

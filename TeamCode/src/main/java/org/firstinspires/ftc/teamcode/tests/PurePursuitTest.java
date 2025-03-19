@@ -16,6 +16,7 @@ public class PurePursuitTest extends LinearOpMode {
         Robot robot = new Robot(hardwareMap);
 
         robot.drivetrain.setPoseEstimate(new Pose2d(0, 0, 0));
+        robot.setAbortChecker(() -> !isStopRequested());
 
         Spline path = new Spline(0, 0,0, 3);
         path.addPoint(40, 30, Math.PI/2);
@@ -23,8 +24,8 @@ public class PurePursuitTest extends LinearOpMode {
 
         waitForStart();
 
-//        robot.drivetrain.setStop(true);
-//        robot.drivetrain.setFinalAdjustment(true);
-//        robot.followSpline(path, this::opModeIsActive);
+        robot.drivetrain.setStop(true);
+        robot.drivetrain.setFinalAdjustment(true);
+        robot.followSpline(path, this::opModeIsActive);
     }
 }

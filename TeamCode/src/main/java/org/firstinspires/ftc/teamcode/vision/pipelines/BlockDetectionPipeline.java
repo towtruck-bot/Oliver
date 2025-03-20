@@ -68,7 +68,7 @@ class ConfigThresholdValue {
 
 @Config
 public class BlockDetectionPipeline extends OpenCvPipeline {
-    enum BlockColor {
+    public enum BlockColor {
         RED,
         BLUE,
         YELLOW
@@ -94,7 +94,7 @@ public class BlockDetectionPipeline extends OpenCvPipeline {
     }
     public static ReturnVal returnVal = ReturnVal.INPUT;
 
-    public BlockDetectionPipeline(boolean verbose, BlockColor b) {
+    public BlockDetectionPipeline(BlockColor b, boolean verbose) {
         this.verbose = verbose;
         if (verbose)
             packet = new TelemetryPacket();
@@ -110,7 +110,7 @@ public class BlockDetectionPipeline extends OpenCvPipeline {
     }
 
     public BlockDetectionPipeline(BlockColor b) {
-        this(false, b);
+        this(b, false);
     }
 
     @Override

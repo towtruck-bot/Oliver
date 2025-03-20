@@ -29,7 +29,7 @@ public class QuickAndDirtyCamera extends LinearOpMode {
             hardwareMap.get(WebcamName.class, "Webcam 1"),
             cameraMonitorViewId
         );
-        camera.setPipeline(new BlockDetectionPipeline(true));
+        camera.setPipeline(new BlockDetectionPipeline(BlockDetectionPipeline.BlockColor.RED, true));
 
         waitForStart();
 

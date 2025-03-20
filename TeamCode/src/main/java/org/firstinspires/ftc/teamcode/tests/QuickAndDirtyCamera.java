@@ -1,6 +1,6 @@
 package org.firstinspires.ftc.teamcode.tests;
 
-/*import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -29,7 +29,7 @@ public class QuickAndDirtyCamera extends LinearOpMode {
             hardwareMap.get(WebcamName.class, "Webcam 1"),
             cameraMonitorViewId
         );
-        camera.setPipeline(new BlockDetectionPipeline());
+        camera.setPipeline(new BlockDetectionPipeline(true));
 
         waitForStart();
 
@@ -41,7 +41,7 @@ public class QuickAndDirtyCamera extends LinearOpMode {
 
             @Override
             public void onError(int errorCode) {
-                RobotLog.e("[VISION]", "Error code: " + errorCode);
+                RobotLog.e("[VISION] " + " Error code: " + errorCode);
             }
         });
 
@@ -55,4 +55,3 @@ public class QuickAndDirtyCamera extends LinearOpMode {
         }
     }
 }
-*/

@@ -425,7 +425,7 @@ public class OldDrivetrain {
 
     public static double xThreshold = 2.0;
     public static double yThreshold = 2.0;
-    public static double turnThreshold = 4;
+    public static double turnThreshold = 5;
 
     public static double eaThresh = 32;
 

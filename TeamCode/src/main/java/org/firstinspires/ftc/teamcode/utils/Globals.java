@@ -18,6 +18,7 @@ public class Globals {
     public static boolean DRIVETRAIN_ENABLED = true;
     public static double ROBOT_WIDTH = 12;
     public static double ROBOT_FORWARD_LENGTH = 7;
+    public static double ROBOT_REVERSE_LENGTH = 6;
     public static double MIN_MOTOR_POWER_TO_OVERCOME_FRICTION = 0.1;
     public static double MAX_HEADING_SPEED = 9.046897651154636;
     public static double MAX_X_SPEED = 86.14575569046524;

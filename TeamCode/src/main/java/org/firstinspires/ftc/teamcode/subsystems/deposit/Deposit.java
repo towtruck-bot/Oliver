@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.subsystems.deposit;
 import android.util.Log;
 
 import com.acmerobotics.dashboard.config.Config;
+import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.utils.Globals;
@@ -55,12 +56,12 @@ public class Deposit {
     // prepare for transfer positions
     public static double intakeWaitRad = 0.4, intakeWaitY = 0.0, intakeWaitClawRad = 1.235;
     // transfer positions, move in to grab
-    public static double intakeRad = 0.1, intakeY = 0.0, intakeClawRad = 1.4;
+    public static double intakeRad = 0.1118, intakeY = 0.0, intakeClawRad = 1.7354;
     // moving positions with a sample
     public static double sampleHoldRad = 0.0, holdY = 0.0, sampleHoldClawRad = -Math.PI / 2;
     public static double specimenGrabRad = 0.04, specimenGrabClawRad = 0.0, specimenConfirmRad = Math.toRadians(40), specimenConfirmClawRad = Math.toRadians(40);
     // sample basket positions
-    public static double sampleLY = 16.75, sampleHY = 31, sampleRaiseRad = Math.toRadians(90), sampleDepositRad = 2.2, sampleDepositClawRad = -0.2;
+    public static double sampleLY = 16.75, sampleHY = 32.5, sampleRaiseRad = Math.toRadians(90), sampleDepositRad = 2.2, sampleDepositClawRad = -0.2;
     // outtake positions, drop behind robot
     public static double outtakeRad = Math.toRadians(180), outtakeY = 0.0, outtakeClawRad = 0.0;
     // grabbing positions, holdGrab -> off the wall, grabRetract --> moving with a specimen
@@ -78,6 +79,8 @@ public class Deposit {
     public static int transferBufferDuration = 200;
 
     private boolean high = true;
+
+    private boolean upBuf = false;
 
     public enum HangMode {
         OUT,
@@ -138,7 +141,11 @@ public class Deposit {
                 }
                 break;
             case TRANSFER_FINISH:
-                moveToWithRad(sampleHoldRad, holdY);
+                if (upBuf)
+                    moveToWithRad(sampleHoldRad, Slides.maxSlidesHeight / 2);
+                else
+
+                    moveToWithRad(sampleHoldRad, holdY);
                 arm.setClawRotation(sampleHoldClawRad, 1.0);
                 arm.clawClose();
 
@@ -147,7 +154,11 @@ public class Deposit {
                 }
                 break;
             case HOLD:
-                moveToWithRad(sampleHoldRad, holdY);
+                if (upBuf)
+                    moveToWithRad(sampleHoldRad, Slides.maxSlidesHeight / 2);
+                else
+                    moveToWithRad(sampleHoldRad, holdY);
+
                 arm.setClawRotation(sampleHoldClawRad, 1.0);
                 arm.clawClose();
                 break;
@@ -309,6 +320,11 @@ public class Deposit {
         this.targetY = Utils.minMaxClip(target, 0.0, Slides.maxSlidesHeight);
     }
 
+    // Tells the slides preemptively to go up as soon as it is in a state to do so
+    public void bufferUpwards() {
+        upBuf = true;
+    }
+
     public void setDepositHeightLowSample(){
         targetY = sampleLY;
         high = false;
@@ -348,6 +364,7 @@ public class Deposit {
     }
 
     public void startSampleDeposit() {
+        upBuf = false;
         Log.i("FSM", this.state + ", startSampleDeposit()");
         if (state == State.HOLD) state = State.SAMPLE_RAISE;
     }

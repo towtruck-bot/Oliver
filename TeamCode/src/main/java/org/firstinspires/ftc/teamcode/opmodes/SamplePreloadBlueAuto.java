@@ -5,10 +5,9 @@ import android.util.Log;
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.teamcode.Robot;
-import org.firstinspires.ftc.teamcode.subsystems.drive.OldDrivetrain;
-import org.firstinspires.ftc.teamcode.subsystems.drive.Spline;
 import org.firstinspires.ftc.teamcode.utils.Globals;
 import org.firstinspires.ftc.teamcode.utils.LogUtil;
 import org.firstinspires.ftc.teamcode.utils.Pose2d;
@@ -21,18 +20,140 @@ public class SamplePreloadBlueAuto extends LinearOpMode {
 
     public static boolean enableg1 = true, enableg2 = true, enableg3 = true, enabler = true;
 
-    public static double by = 26, bx1 = 49.5, bx2 = 59.5, bx3 = 69.5;
-    public static double fx1 = 36, fy1 = 12, fh1 = Math.PI;
-    public static double fx = 20, fy = 12, fh = Math.PI;
-    public static double sx = 62, sy = 52, sh = Math.toRadians(235);
+    // Block positions
+    public static double by1 = 26.3, bx1 = 49.5, bx2 = 59.7, by2 = 27, bx3 = 69.5, by3 = 26.8;
+
+    // GP depo positions
+    public static double dx1 = 63.5, dy1 = 54;
+    public static double dx2 = 64.5, dy2 = 54;
+    public static double dx3 = 63.5, dy3 = 55;
 
     public void runOpMode(){
-        doInitialization();
+        Globals.isRed = false;
+        Globals.RUNMODE = RunMode.AUTO;
+        Globals.hasSamplePreload = true;
+        Globals.hasSpecimenPreload = false;
+
+        robot = new Robot(hardwareMap);
+        robot.setAbortChecker(() -> !isStopRequested());
+        LogUtil.init();
+
+        robot.sensors.resetPosAndIMU();
+
+        while (opModeInInit() && !isStopRequested()) {
+            //robot.sensors.setOdometryPosition(48.0 - Globals.ROBOT_WIDTH / 2.0, 72.0 - Globals.ROBOT_FORWARD_LENGTH, Math.PI/2);
+            robot.sensors.setOdometryPosition(48.0 - Globals.ROBOT_REVERSE_LENGTH, 72.0 - Globals.ROBOT_WIDTH / 2, Math.PI);
+            robot.updateDepositHeights(false, true);
+
+            robot.update();
+        }
 
         Globals.autoStartTime = System.currentTimeMillis();
 
-        scorePreload();
-        groundOne();
+
+        // Preload
+        robot.deposit.startSampleDeposit();
+        robot.goToPoint(
+            new Pose2d(dx1, dy1, Math.atan2(by1 - dy1, bx1 - dx1)),
+            () -> !(robot.drivetrain.targetPoint.getDistanceFromPoint(robot.sensors.getOdometryPosition()) < 10),
+            false,
+            true,
+            1.0
+        );
+        robot.clawIntake.setIntakeTargetPos(robot.drivetrain.calcExtension(new Pose2d(dx1, dy1), new Pose2d(bx1, by1)));
+        robot.clawIntake.extend();
+        robot.waitWhile(() -> robot.drivetrain.isBusy() || !robot.deposit.isSampleUp());
+
+        robot.deposit.finishSampleDeposit();
+        robot.waitWhile(() -> !robot.deposit.isSampleDepositDone());
+
+
+        // Depo 1
+        robot.waitWhile(() -> !robot.clawIntake.isExtended());
+        robot.clawIntake.grab(true);
+        robot.waitWhile(() -> !robot.clawIntake.grabFinished());
+        // Go to under bucket
+        robot.drivetrain.goToPoint(
+            new Pose2d(dx2, dy2, Math.atan2(by2 - dy2, bx2 - dx2)),
+            false,
+            true,
+            1.0
+        );
+        robot.clawIntake.retract();
+        robot.deposit.bufferUpwards();
+        robot.deposit.prepareTransfer();
+        robot.waitWhile(() -> !robot.clawIntake.isRetracted());
+
+        robot.deposit.startTransfer();
+
+
+        robot.waitWhile(() -> !robot.deposit.isSampleReady());
+        robot.deposit.startSampleDeposit();
+        robot.clawIntake.setIntakeTargetPos(robot.drivetrain.calcExtension(new Pose2d(dx2, dy2), new Pose2d(bx2, by2)));
+        robot.clawIntake.extend();
+        robot.waitWhile(() -> robot.drivetrain.isBusy() || !robot.deposit.isSampleUp());
+        robot.deposit.finishSampleDeposit();
+        robot.waitWhile(() -> !robot.deposit.isSampleDepositDone());
+
+
+        // Depo 2
+        robot.waitWhile(() -> !robot.clawIntake.isExtended());
+        robot.clawIntake.grab(true);
+        robot.waitWhile(() -> !robot.clawIntake.grabFinished());
+        robot.drivetrain.goToPoint(
+            new Pose2d(dx3, dy3, Math.toRadians(260)),
+            false,
+            true,
+            1.0
+        );
+        robot.clawIntake.retract();
+        robot.deposit.bufferUpwards();
+        robot.deposit.prepareTransfer();
+        robot.waitWhile(() -> !robot.clawIntake.isRetracted());
+
+        robot.deposit.startTransfer();
+
+
+        robot.waitWhile(() -> !robot.deposit.isSampleReady());
+        robot.deposit.startSampleDeposit();
+        robot.clawIntake.setIntakeTargetPos(robot.drivetrain.calcExtension(new Pose2d(dx3, dy3), new Pose2d(bx3, by3)));
+        robot.clawIntake.extend();
+        robot.waitWhile(() -> robot.drivetrain.isBusy() || !robot.deposit.isSampleUp());
+        robot.deposit.finishSampleDeposit();
+        robot.waitWhile(() -> !robot.deposit.isSampleDepositDone());
+
+        // Depo 4
+        robot.goToPoint(
+            new Pose2d(dx3, dy3, Math.atan2(by3 - dy3, bx3 - dx3)),
+            () -> !(robot.drivetrain.targetPoint.getDistanceFromPoint(robot.sensors.getOdometryPosition()) < 7),
+            false,
+            true,
+            1.0
+        );
+        robot.waitWhile(() -> !robot.clawIntake.isExtended() || robot.drivetrain.isBusy());
+        robot.clawIntake.grab(true);
+        robot.waitWhile(() -> !robot.clawIntake.grabFinished());
+        robot.drivetrain.goToPoint(
+            new Pose2d(dx3, dy3, Math.toRadians(260)),
+            false,
+            true,
+            1.0
+        );
+        robot.clawIntake.retract();
+        robot.deposit.bufferUpwards();
+        robot.deposit.prepareTransfer();
+        robot.waitWhile(() -> !robot.clawIntake.isRetracted());
+
+        robot.deposit.startTransfer();
+        robot.waitWhile(() -> !robot.deposit.isSampleReady());
+
+        robot.deposit.startSampleDeposit();
+        robot.waitWhile(() -> robot.drivetrain.isBusy() || !robot.deposit.isSampleUp());
+        robot.deposit.finishSampleDeposit();
+        robot.waitWhile(() -> !robot.deposit.isSampleDepositDone());
+
+        RobotLog.i("Auto total time: " + (System.currentTimeMillis() - Globals.autoStartTime));
+
 //        moveToBelowBucket();
 //        initialMove();
 //        score();
@@ -62,7 +183,7 @@ public class SamplePreloadBlueAuto extends LinearOpMode {
 //        }
     }
 
-    public void doInitialization() {
+    /*public void doInitialization() {
         Globals.isRed = false;
         Globals.RUNMODE = RunMode.AUTO;
         Globals.hasSamplePreload = true;
@@ -89,24 +210,27 @@ public class SamplePreloadBlueAuto extends LinearOpMode {
         robot.clawIntake.setIntakeTargetPos(robot.drivetrain.calcExtension(new Pose2d(65, 54), new Pose2d(bx1, by)));
 
         double old = OldDrivetrain.finalTurnThreshold;
-        OldDrivetrain.finalTurnThreshold = 1;
+        //OldDrivetrain.finalTurnThreshold = 3;
         robot.goToPoint(
             new Pose2d(65, 54, Math.atan2(by - 54, bx1 - 65)), () ->
-            !(robot.drivetrain.targetPoint.getDistanceFromPoint(robot.sensors.getOdometryPosition()) < 3),
-            true,
+            !(robot.drivetrain.targetPoint.getDistanceFromPoint(robot.sensors.getOdometryPosition()) < 7),
+            false,
             true,
             1.0
         );
         robot.clawIntake.extend();
-        robot.waitWhile(() -> !robot.drivetrain.isBusy() && !robot.deposit.isSampleUp());
-        OldDrivetrain.finalTurnThreshold = old;
+        robot.waitWhile(() -> robot.drivetrain.isBusy() || !robot.deposit.isSampleUp());
+        //OldDrivetrain.finalTurnThreshold = old;
 
         robot.deposit.finishSampleDeposit();
         robot.waitWhile(() -> !robot.deposit.isSampleDepositDone());
     }
 
     public void groundOne(){
-        robot.goToPointWithIntake(new Pose2d(bx1, by), null, true, false, false, 1.0, true);
+        //robot.goToPointWithIntake(new Pose2d(bx1, by), null, true, false, false, 1.0, true);
+        robot.waitWhile(() -> !robot.clawIntake.isExtended());
+        robot.clawIntake.grab(true);
+        robot.waitWhile(() -> !robot.clawIntake.grabFinished());
         robot.clawIntake.retract();
         robot.waitWhile(() -> !robot.clawIntake.isRetracted());
 
@@ -157,5 +281,5 @@ public class SamplePreloadBlueAuto extends LinearOpMode {
         robot.deposit.setDepositHeight(9.6);
         robot.goToPoint(new Pose2d(fx, fy, fh), null, true, true, 0.9);
         robot.waitWhile(() -> true);
-    }
+    }*/
 }

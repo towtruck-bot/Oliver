@@ -28,7 +28,7 @@ public class Intake {
     public static double intakeHoverAngle = -1.2438;
     public static double intakeFlipGrabAngle = -1.3214;
     public static double intakeFlipConfirmAngle = -0.9506;
-    public static double intakeFlipBackAngle = 0.0169;
+    public static double intakeFlipBackAngle = -0.3607;
 
     public Intake(Robot robot){
         this.robot = robot;

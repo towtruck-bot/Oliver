@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.ExposureControl;
 import org.firstinspires.ftc.teamcode.vision.pipelines.BlockDetectionPipeline;
 import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
@@ -15,10 +16,11 @@ import org.openftc.easyopencv.OpenCvWebcam;
 
 @TeleOp
 public class QuickAndDirtyCamera extends LinearOpMode {
-    private OpenCvCamera camera;
+    private OpenCvWebcam camera;
 
     @Override
     public void runOpMode() throws InterruptedException {
+        FtcDashboard.getInstance().setTelemetryTransmissionInterval(25);
         final int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier(
             "cameraMonitorViewId",
             "id",
@@ -36,7 +38,9 @@ public class QuickAndDirtyCamera extends LinearOpMode {
         camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
             @Override
             public void onOpened() {
-                FtcDashboard.getInstance().startCameraStream(camera, 0);
+                camera.getExposureControl().setMode(ExposureControl.Mode.Manual);
+                camera.startStreaming(320, 240);
+                FtcDashboard.getInstance().startCameraStream(camera, 60);
             }
 
             @Override

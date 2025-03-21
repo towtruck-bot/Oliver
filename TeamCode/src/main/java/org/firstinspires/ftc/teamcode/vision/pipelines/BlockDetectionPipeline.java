@@ -4,20 +4,23 @@ import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.config.ValueProvider;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
+import com.qualcomm.robotcore.util.RobotLog;
 
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
+import org.opencv.core.MatOfPoint2f;
+import org.opencv.core.Point;
 import org.opencv.core.Rect;
+import org.opencv.core.RotatedRect;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 import org.openftc.easyopencv.OpenCvPipeline;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
-import java.util.List;
 
 // This is a crappy bundle class
 class ConfigThresholdValue {
@@ -40,23 +43,23 @@ class ConfigThresholdValue {
         FtcDashboard.getInstance().addConfigVariable(BlockDetectionPipeline.class.getName(), name + "1", new ValueProvider<Integer>() {
             @Override
             public Integer get() {
-                return (int) val.val[0];
+                return (int) val.val[1];
             }
 
             @Override
             public void set(Integer value) {
-                val.val[0] = value.doubleValue();
+                val.val[1] = value.doubleValue();
             }
         });
         FtcDashboard.getInstance().addConfigVariable(BlockDetectionPipeline.class.getName(), name + "2", new ValueProvider<Integer>() {
             @Override
             public Integer get() {
-                return (int) val.val[0];
+                return (int) val.val[2];
             }
 
             @Override
             public void set(Integer value) {
-                val.val[0] = value.doubleValue();
+                val.val[2] = value.doubleValue();
             }
         });
     }
@@ -77,15 +80,16 @@ public class BlockDetectionPipeline extends OpenCvPipeline {
     private final boolean verbose;
     private int pp1 = 0, pp2 = 1;
     private Mat[] post = new Mat[2]; // Postprocessing
-    private Mat mask = new Mat();
+    private Mat boundingRects;
+    private Mat mask;
     private long s = 0;
     private TelemetryPacket packet;
-    private ConfigThresholdValue redL;
-    private ConfigThresholdValue redH;
-    private ConfigThresholdValue blueL;
-    private ConfigThresholdValue blueH;
-    private ConfigThresholdValue yellowL;
-    private ConfigThresholdValue yellowH;
+    private final ConfigThresholdValue redL;
+    private final ConfigThresholdValue redH;
+    private final ConfigThresholdValue blueL;
+    private final ConfigThresholdValue blueH;
+    private final ConfigThresholdValue yellowL;
+    private final ConfigThresholdValue yellowH;
     private BlockColor b;
     enum ReturnVal {
         MASK,
@@ -93,14 +97,24 @@ public class BlockDetectionPipeline extends OpenCvPipeline {
         RECT
     }
     public static ReturnVal returnVal = ReturnVal.INPUT;
+    private Size imageSize;
+    public static double processingSizeMul = 0.5;
+    private LinkedList<MatOfPoint> detections = new LinkedList<>();
+    private Size processingSize;
+    private Mat trashbuf = new Mat();
+    private MatOfPoint2f rotated = new MatOfPoint2f();
+
+    // Detected values
+    private Point center = new Point();
+    private double angle = 0;
 
     public BlockDetectionPipeline(BlockColor b, boolean verbose) {
         this.verbose = verbose;
         if (verbose)
             packet = new TelemetryPacket();
 
-        redL = new ConfigThresholdValue("redL", 0, 0, 0);
-        redH = new ConfigThresholdValue("redH", 0, 0, 0);
+        redL = new ConfigThresholdValue("redL", 30, 168, 70);
+        redH = new ConfigThresholdValue("redH", 130, 255, 170);
         blueL = new ConfigThresholdValue("blueL", 0, 0, 0);
         blueH = new ConfigThresholdValue("blueH", 0, 0, 0);
         yellowL = new ConfigThresholdValue("yellowL", 0, 0, 0);
@@ -115,10 +129,14 @@ public class BlockDetectionPipeline extends OpenCvPipeline {
 
     @Override
     public void init(Mat ff) {
+        imageSize = ff.size();
+        processingSize = new Size((int) (imageSize.width * processingSizeMul), (int) (imageSize.height / processingSizeMul));
         post = new Mat[] {
-            new Mat(),
-            new Mat()
+            new Mat(processingSize, CvType.CV_16F),
+            new Mat(processingSize, CvType.CV_16F)
         };
+        mask = new Mat(processingSize, CvType.CV_16F);
+        boundingRects = new Mat(processingSize, CvType.CV_16F);
     }
 
     @Override
@@ -126,9 +144,7 @@ public class BlockDetectionPipeline extends OpenCvPipeline {
         // Postprocessing
         s = System.currentTimeMillis();
 
-        input.convertTo(post[pp1], CvType.CV_8U);
-        Imgproc.resize(post[pp1], post[pp2], new Size(320, 240));
-        switchBuffers();
+        Imgproc.resize(input, post[pp1], imageSize, processingSizeMul, processingSizeMul, Imgproc.INTER_LINEAR);
         Imgproc.cvtColor(post[pp1], post[pp2], Imgproc.COLOR_RGB2YCrCb);
         switchBuffers();
 
@@ -148,36 +164,73 @@ public class BlockDetectionPipeline extends OpenCvPipeline {
         switchBuffers();
 
         if (returnVal == ReturnVal.MASK)
-            mask = post[pp1].clone();
+            post[pp1].copyTo(mask);
+
+        log("Postprocess time", (System.currentTimeMillis() - s) + "ms");
+
+        s = System.currentTimeMillis();
 
         // Now get the largest blob
-        LinkedList<MatOfPoint> detected = new LinkedList<>();
-        // Imgproc.findContours(post[pp1], ); TODO
+        detections.clear();
+        Imgproc.findContours(post[pp1], detections, trashbuf, Imgproc.RETR_CCOMP, Imgproc.CHAIN_APPROX_SIMPLE);
 
-        log("Postprocess frame time: " + (System.currentTimeMillis() - s) + "ms");
+        Rect largest = null;
+        MatOfPoint largestContour = null;
+        for (MatOfPoint c : detections) {
+            Rect r = Imgproc.boundingRect(c);
+
+            if (largest == null || r.area() > largest.area()) {
+                largest = r;
+                largestContour = c;
+            }
+        }
+
+        if (largest != null) {
+            rotated.fromArray(largestContour.toArray());
+            RotatedRect r = Imgproc.minAreaRect(rotated);
+            center = r.center;
+            angle = r.angle;
+
+            log("Block angle", angle + "");
+            log("Block x", center.x + "");
+            log("Block y", center.y + "");
+            RobotLog.i("UNIQUE MESSAGE " + angle);
+        }
+
+        log("Data extract time", + (System.currentTimeMillis() - s) + "ms");
+
+        if (returnVal == ReturnVal.RECT) {
+            input.copyTo(boundingRects);
+            if (largest != null) {
+                Imgproc.rectangle(boundingRects, largest, new Scalar(255, 0, 0), 2);
+                Imgproc.circle(boundingRects, center, 5, new Scalar(0, 255, 0));
+            }
+        }
+
+        if (verbose) {
+            FtcDashboard.getInstance().sendTelemetryPacket(packet);
+            packet = new TelemetryPacket();
+        }
+
 
         switch (returnVal) {
             case INPUT:
-            case RECT:
             default:
                 return input;
             case MASK:
                 return mask;
+            case RECT:
+                return boundingRects;
         }
     }
 
-    private void log(String text) {
+    private void log(String key, String text) {
         if (verbose)
-            packet.put("[VISION::BlockDetectionPipeline]", text);
+            packet.put("[VISION::BlockDetectionPipeline] " + key, text);
     }
 
     private void switchBuffers() {
-        if (pp1 == 1) {
-            pp1--;
-            pp2++;
-        } else {
-            pp1++;
-            pp2--;
-        }
+        pp1 ^= 1;
+        pp2 ^= 1;
     }
 }

@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.teamcode.Robot;
+import org.firstinspires.ftc.teamcode.subsystems.drive.Spline;
 import org.firstinspires.ftc.teamcode.utils.Globals;
 import org.firstinspires.ftc.teamcode.utils.LogUtil;
 import org.firstinspires.ftc.teamcode.utils.Pose2d;
@@ -27,6 +28,7 @@ public class SamplePreloadBlueAuto extends LinearOpMode {
     public static double dx1 = 63.5, dy1 = 54;
     public static double dx2 = 64.5, dy2 = 54;
     public static double dx3 = 63.5, dy3 = 55;
+    public static double dx4 = 63.5, dy4 = 54;
 
     public void runOpMode(){
         Globals.isRed = false;
@@ -49,7 +51,6 @@ public class SamplePreloadBlueAuto extends LinearOpMode {
         }
 
         Globals.autoStartTime = System.currentTimeMillis();
-
 
         // Preload
         robot.deposit.startSampleDeposit();
@@ -152,7 +153,57 @@ public class SamplePreloadBlueAuto extends LinearOpMode {
         robot.deposit.finishSampleDeposit();
         robot.waitWhile(() -> !robot.deposit.isSampleDepositDone());
 
+        // Depo 5, 6, 7
+        for(int cycle = 1; cycle <= 3; cycle++) {
+            // Spline to submersible
+            robot.drivetrain.setPath(new Spline(
+                            new Pose2d(52.0, 24.0, -Math.PI / 2),
+                            4
+                    )
+                            .addPoint(new Pose2d(30.5, 14.0, Math.PI))
+            );
+
+            // Pre-extension
+            robot.setIntakeExtension(12.0);
+            // Wait for last point to extend
+            robot.waitWhile(() -> !(robot.drivetrain.getPath().poses.size() - 1 == robot.drivetrain.pathIndex));
+            robot.clawIntake.extend();
+            robot.waitWhile(() -> robot.drivetrain.isBusy());
+
+            // phony vision
+            double extension = 15.0; // Pretend this is the result of vision calculations
+            robot.setIntakeExtension(extension);
+            robot.clawIntake.extend();
+            robot.waitWhile(() -> !robot.clawIntake.isExtensionAtTarget());
+
+            // Grab at intended position
+            robot.grab(true);
+            robot.clawIntake.grab(true);
+            robot.waitWhile(() -> !robot.clawIntake.grabFinished());
+
+            // Go to bottom of high bucket to deposit
+            robot.drivetrain.goToPoint(
+                    new Pose2d(dx4, dy4, Math.atan2(dy4 - 72.0, dx4 - 72.0) + Math.PI),
+                    true,
+                    true,
+                    1.0);
+            robot.clawIntake.retract();
+            robot.deposit.bufferUpwards();
+            robot.deposit.prepareTransfer();
+            robot.waitWhile(() -> !robot.clawIntake.isRetracted());
+
+            // Transfer
+            robot.deposit.startTransfer();
+            robot.waitWhile(() -> !robot.deposit.isSampleReady());
+
+            // Raise and deposit when at point
+            robot.deposit.startSampleDeposit();
+            robot.waitWhile(() -> robot.drivetrain.isBusy() || !robot.deposit.isSampleUp());
+            robot.deposit.finishSampleDeposit();
+            robot.waitWhile(() -> !robot.deposit.isSampleDepositDone());
+        }
         RobotLog.i("Auto total time: " + (System.currentTimeMillis() - Globals.autoStartTime));
+    }
 
 //        moveToBelowBucket();
 //        initialMove();
@@ -181,7 +232,6 @@ public class SamplePreloadBlueAuto extends LinearOpMode {
 //        } else {
 //            robot.waitWhile(() -> !robot.deposit.isRetractDone());
 //        }
-    }
 
     /*public void doInitialization() {
         Globals.isRed = false;

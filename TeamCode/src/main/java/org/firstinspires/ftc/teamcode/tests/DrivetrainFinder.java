@@ -9,7 +9,6 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.subsystems.drive.Drivetrain;
-import org.firstinspires.ftc.teamcode.subsystems.drive.OldDrivetrain;
 import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 import org.firstinspires.ftc.teamcode.utils.priority.PriorityMotor;
 
@@ -21,7 +20,7 @@ public class DrivetrainFinder extends LinearOpMode {
 
     public void runOpMode() throws InterruptedException {
         Robot robot = new Robot(hardwareMap);
-        OldDrivetrain drivetrain = robot.drivetrain;
+        Drivetrain drivetrain = robot.drivetrain;
 
         waitForStart();
 

@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.teamcode.Robot;
+import org.firstinspires.ftc.teamcode.subsystems.drive.Drivetrain;
 import org.firstinspires.ftc.teamcode.subsystems.drive.Spline;
 import org.firstinspires.ftc.teamcode.utils.Globals;
 import org.firstinspires.ftc.teamcode.utils.LogUtil;
@@ -22,7 +23,7 @@ public class SamplePreloadBlueAuto extends LinearOpMode {
     public static boolean enableg1 = true, enableg2 = true, enableg3 = true, enabler = true;
 
     // Block positions
-    public static double by1 = 26.3, bx1 = 49.5, bx2 = 59.7, by2 = 27, bx3 = 69.5, by3 = 26.8;
+    public static double by1 = 26.3, bx1 = 49.5, bx2 = 59.7, by2 = 27.4, bx3 = 69.5, by3 = 26.8;
 
     // GP depo positions
     public static double dx1 = 63.5, dy1 = 54;
@@ -56,7 +57,7 @@ public class SamplePreloadBlueAuto extends LinearOpMode {
         robot.deposit.startSampleDeposit();
         robot.goToPoint(
             new Pose2d(dx1, dy1, Math.atan2(by1 - dy1, bx1 - dx1)),
-            () -> !(robot.drivetrain.targetPoint.getDistanceFromPoint(robot.sensors.getOdometryPosition()) < 10),
+            () -> !(robot.drivetrain.targetPoint.getDistanceFromPoint(robot.sensors.getOdometryPosition()) < 12),
             false,
             true,
             1.0
@@ -153,28 +154,34 @@ public class SamplePreloadBlueAuto extends LinearOpMode {
         robot.deposit.finishSampleDeposit();
         robot.waitWhile(() -> !robot.deposit.isSampleDepositDone());
 
+        RobotLog.i("Auto total time: " + (System.currentTimeMillis() - Globals.autoStartTime));
+
         // Depo 5, 6, 7
         for(int cycle = 1; cycle <= 3; cycle++) {
             // Spline to submersible
-            robot.drivetrain.setPath(new Spline(
-                            new Pose2d(52.0, 24.0, -Math.PI / 2),
-                            4
-                    )
-                            .addPoint(new Pose2d(30.5, 14.0, Math.PI))
+            robot.drivetrain.setFinalAdjustment(false);
+            robot.drivetrain.setPath(
+                new Spline(new Pose2d(52.0, 24.0, -Math.PI / 2),4)
+                    .addPoint(new Pose2d(35.5, 14.0, Math.PI))
             );
+            robot.drivetrain.state = Drivetrain.State.FOLLOW_SPLINE;
 
             // Pre-extension
+            robot.waitWhile(() -> robot.sensors.getOdometryPosition().getDistanceFromPoint(robot.drivetrain.getPath().getLastPoint()) < 15);
             robot.setIntakeExtension(12.0);
-            // Wait for last point to extend
-            robot.waitWhile(() -> !(robot.drivetrain.getPath().poses.size() - 1 == robot.drivetrain.pathIndex));
             robot.clawIntake.extend();
-            robot.waitWhile(() -> robot.drivetrain.isBusy());
+            // robot.waitWhile(() -> robot.drivetrain.isBusy());
 
             // phony vision
-            double extension = 15.0; // Pretend this is the result of vision calculations
-            robot.setIntakeExtension(extension);
+            robot.drivetrain.goToPoint(new Pose2d(0, 0), true, true, true, 1.0, false);
             robot.clawIntake.extend();
-            robot.waitWhile(() -> !robot.clawIntake.isExtensionAtTarget());
+            while (!robot.clawIntake.isExtensionAtTarget()) {
+                robot.clawIntake.setIntakeTargetPos(robot.drivetrain.calcExtension(robot.sensors.getOdometryPosition(), new Pose2d(0, 0)));
+                robot.update();
+            }
+
+            robot.drivetrain.targetPoint = robot.sensors.getOdometryPosition();
+            robot.drivetrain.state = Drivetrain.State.WAIT_AT_POINT;
 
             // Grab at intended position
             robot.grab(true);
@@ -182,11 +189,17 @@ public class SamplePreloadBlueAuto extends LinearOpMode {
             robot.waitWhile(() -> !robot.clawIntake.grabFinished());
 
             // Go to bottom of high bucket to deposit
-            robot.drivetrain.goToPoint(
-                    new Pose2d(dx4, dy4, Math.atan2(dy4 - 72.0, dx4 - 72.0) + Math.PI),
-                    true,
-                    true,
-                    1.0);
+//            robot.drivetrain.goToPoint(
+//                    new Pose2d(dx4, dy4, Math.atan2(dy4 - 72.0, dx4 - 72.0) + Math.PI),
+//                    true,
+//                    true,
+//                    1.0);
+            robot.drivetrain.setFinalAdjustment(false);
+            robot.drivetrain.setPath(
+                new Spline(new Pose2d(52.0, 24.0, Math.PI),4)
+                    .addPoint(new Pose2d(dx3, dy3, Math.toRadians(260)))
+            );
+            robot.drivetrain.state = Drivetrain.State.FOLLOW_SPLINE;
             robot.clawIntake.retract();
             robot.deposit.bufferUpwards();
             robot.deposit.prepareTransfer();
@@ -198,11 +211,12 @@ public class SamplePreloadBlueAuto extends LinearOpMode {
 
             // Raise and deposit when at point
             robot.deposit.startSampleDeposit();
-            robot.waitWhile(() -> robot.drivetrain.isBusy() || !robot.deposit.isSampleUp());
+            robot.waitWhile(() -> robot.drivetrain.isBusy());
+            robot.drivetrain.goToPoint(new Pose2d(dx3, dy3, Math.toRadians(260)), false, false, 1.0);
+            robot.waitWhile(() -> !robot.deposit.isSampleUp());
             robot.deposit.finishSampleDeposit();
             robot.waitWhile(() -> !robot.deposit.isSampleDepositDone());
         }
-        RobotLog.i("Auto total time: " + (System.currentTimeMillis() - Globals.autoStartTime));
     }
 
 //        moveToBelowBucket();

@@ -358,7 +358,7 @@ public class Robot {
         setNextState(NextState.DONE);
     }
 
-    public void followSpline(Spline spline, boolean extendBeforeLastPoint, Func func) {
+    public void followSpline(Spline spline, Func func) {
         long start = System.currentTimeMillis();
         drivetrain.setPath(spline);
         drivetrain.state = Drivetrain.State.FOLLOW_SPLINE;

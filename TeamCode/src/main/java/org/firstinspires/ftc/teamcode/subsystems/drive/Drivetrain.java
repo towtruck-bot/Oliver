@@ -419,7 +419,7 @@ public class Drivetrain {
         }
     }
 
-    boolean finalAdjustment = false;
+    public boolean finalAdjustment = false;
     boolean stop = true;
     double maxPower = 1.0;
 

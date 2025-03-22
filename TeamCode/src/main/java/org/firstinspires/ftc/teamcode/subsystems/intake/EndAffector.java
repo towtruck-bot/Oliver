@@ -1,23 +1,26 @@
 package org.firstinspires.ftc.teamcode.subsystems.intake;
 
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.utils.Globals;
+import org.firstinspires.ftc.teamcode.utils.Pose2d;
+import org.firstinspires.ftc.teamcode.utils.priority.PriorityMotor;
 import org.firstinspires.ftc.teamcode.utils.priority.nPriorityServo;
+
+import java.util.Locale;
 
 public class EndAffector {
     private final Robot robot;
     public final Extendo intakeExtension;
-    private final nPriorityServo flipServo, clawRotation, claw;
+    private final nPriorityServo flipServo, clawRotation, claw, turretArm, turretRotation;
 
-    private double targetRotation, targetLength;
+    private double targetLength, targetAngle, targetRotation, turretAngle, turretRot;
 
     private boolean closed;
     public static double clawOpenAngle = 0.592;
     public static double clawCloseAngle = 1.0859;
-
-    private double targetX, targetY;
 
     public EndAffector(Robot robot){
         this.robot = robot;
@@ -26,64 +29,119 @@ public class EndAffector {
 
         flipServo = new nPriorityServo(
                 new Servo[] {robot.hardwareMap.get(Servo.class, "intakeFlipServo")},
-                "flipServo",
+                "intakeFlipServo",
                 nPriorityServo.ServoType.HITEC,
-                0, 0.69, 0.69,
+                0.0, 0.695, 0.69,
                 new boolean[] {false},
                 1.0, 5.0
         );
         robot.hardwareQueue.addDevice(flipServo);
 
-        clawRotation = new nPriorityServo(
-                new Servo[] {robot.hardwareMap.get(Servo.class, "intakeClawRotation")},
-                "clawRotation",
-                nPriorityServo.ServoType.AXON_MINI,
-                0.343,0.894,0.629,
-                new boolean[] {false},
-                1, 5
-        );
-        robot.hardwareQueue.addDevice(clawRotation);
-
         claw = new nPriorityServo(
                 new Servo[] {robot.hardwareMap.get(Servo.class, "intakeClaw")},
                 "intakeClaw",
                 nPriorityServo.ServoType.AXON_MINI,
-                0.474, 0.749, 0.47,
+                0.46, 0.75, 0.47,
                 new boolean[] {false},
                 1.0, 5
         );
         robot.hardwareQueue.addDevice(claw);
 
+        clawRotation = new nPriorityServo(
+                new Servo[] {robot.hardwareMap.get(Servo.class, "intakeClawRotation")},
+                "intakeClawRotation",
+                nPriorityServo.ServoType.AXON_MINI,
+                0.06,0.67,0.37,
+                new boolean[] {false},
+                1, 5
+        );
+        robot.hardwareQueue.addDevice(clawRotation);
+
+        turretArm = new nPriorityServo(
+                new Servo[] {robot.hardwareMap.get(Servo.class, "turretArm")},
+                "turretArm",
+                nPriorityServo.ServoType.AXON_MINI,
+                0.0, 1.0, 0.5,
+                new boolean[] {false},
+                1.0, 5
+        );
+        robot.hardwareQueue.addDevice(turretArm);
+
+        turretRotation = new nPriorityServo(
+                new Servo[] {robot.hardwareMap.get(Servo.class, "turretRotation")},
+                "turretRotation",
+                nPriorityServo.ServoType.AXON_MINI,
+                0.0, 1.0, 0.5,
+                new boolean[] {false},
+                1.0, 5
+        );
+        robot.hardwareQueue.addDevice(turretRotation);
+
         claw.setTargetAngle(clawOpenAngle, 1.0);
 
-        targetRotation = 0.0;
         targetLength = 0.0;
-
-
-        if (Globals.hasSamplePreload) {
-            targetX = 49.0;
-            targetY = 26.0;
-        } else {
-            targetX = -49.0;
-            targetY = 26.0;
-        }
+        targetAngle = 0.0;
+        targetRotation = 0.0;
+        turretAngle = 0.0;
+        turretRot = 0.0;
 
         closed = false;
     }
 
     public void update() {
+        intakeExtension.setTargetLength(targetLength);
         intakeExtension.update();
+
+        flipServo.setTargetAngle(targetAngle);
+        clawRotation.setTargetAngle(targetRotation);
+
+        turretArm.setTargetAngle(turretAngle);
+        turretRotation.setTargetAngle(turretRot);
     }
 
-    public void extend(double extension, double flip, double rotation) {
-        intakeExtension.setTargetLength(extension);
-        flipServo.setTargetAngle(flip, 1.0);
-        clawRotation.setTargetAngle(rotation, 1.0);
+    // Target is given in robot centric coordinates
+    private double radius = 4.0, turretLength = 5.0;
+    public void intakeAt(Pose2d target){
+        double xError = target.x;
+        double yError = target.y;
+
+        if(Math.abs(yError) < radius){
+            targetLength = xError - 9.0 - Math.sqrt(turretLength * turretLength - yError * yError);
+            turretAngle = yError < turretLength ? Math.asin(yError / turretLength) : targetAngle;
+        }
     }
 
     public void setClawState(boolean closed) {
         this.closed = closed;
-        this.claw.setTargetAngle(this.closed ? clawCloseAngle : clawOpenAngle, 1.0);
+        claw.setTargetAngle(this.closed ? clawCloseAngle : clawOpenAngle, 1.0);
+    }
+
+    public void setIntakeExtension(double t){
+        targetLength = t;
+    }
+
+    public void setIntakeAngle(double t){
+        targetAngle = t;
+    }
+
+    public void setIntakeRotation(double t){
+        targetRotation = t;
+    }
+
+    public void setTurretAngle(double t){
+        turretAngle = t;
+    }
+
+    public void setTurretRot(double t){
+        turretRot = t;
+    }
+
+    public double getIntakeAngle(){
+        return flipServo.getCurrentAngle();
+    }
+
+    public double getIntakeRotation(){
+        return clawRotation.getCurrentAngle();
     }
 
     public boolean isClosed(){
@@ -104,5 +162,9 @@ public class EndAffector {
 
     public boolean rotInPosition(){
         return clawRotation.inPosition();
+    }
+
+    public boolean grabInPosition(){
+        return claw.inPosition();
     }
 }

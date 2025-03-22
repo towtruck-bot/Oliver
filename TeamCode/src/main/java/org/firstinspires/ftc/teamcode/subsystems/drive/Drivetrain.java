@@ -699,6 +699,21 @@ public class Drivetrain {
         return xError - intakeOffset;
     }
 
+    public double calcExtension(Pose2d target){
+        double deltaX = target.x - robot.sensors.getOdometryPosition().x;
+        double deltaY = target.y - robot.sensors.getOdometryPosition().y;
+        double angle = Math.atan2(deltaY, deltaX);
+
+        xError = Math.cos(angle)*deltaX + Math.sin(angle)*deltaY;
+        yError = Math.sin(angle) * deltaX + Math.cos(angle)*deltaY;
+
+        if(Math.abs(yError) < 5.0 && xError > 0){
+            return xError;
+        }else{
+            return 0.0;
+        }
+    }
+
     public Pose2d getPoseEstimate() {
         return ROBOT_POSITION;
     }

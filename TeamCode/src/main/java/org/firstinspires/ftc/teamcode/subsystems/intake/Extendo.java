@@ -26,6 +26,11 @@ public class Extendo {
     public static double tollerance = 0.4;
     public static double slidesForcePullPow = -0.2;
 
+    public static double slidesTolerance = 0.9;
+    public static double slidesDeadZone = 0.2;
+    public static double slidesKeepInPow = -0.25;
+    private boolean forcePull = false;
+
     public Extendo(Robot robot){
         this.robot = robot;
 

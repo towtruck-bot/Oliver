@@ -41,6 +41,7 @@ public class nClawIntake {
         RETRACT,
         HOLD,
         READY,
+        TRANSFER,
         TEST
     }
 
@@ -178,16 +179,16 @@ public class nClawIntake {
                 }
                 break;
             case HOLD:
-                // hold in transfer position
-                endAffector.setIntakeExtension(intakeTransferLen);
-                endAffector.setIntakeRotation(intakeTransferRot);
-                endAffector.setTurretAngle(turretTransferAngle);
-                endAffector.setTurretAngle(turretTransferRot);
+                // tucked in with sample
+                endAffector.setIntakeExtension(0.0);
+                endAffector.setIntakeRotation(intakeStartRot);
+                endAffector.setTurretAngle(turretStartAngle);
+                endAffector.setTurretAngle(turretStartRot);
 
                 endAffector.setClawState(true);
                 break;
             case READY:
-                // hold in start position
+                // hold in start position, everything tucked in while moving so defense can be played. no sample ver
                 endAffector.setIntakeExtension(0.0);
                 endAffector.setIntakeExtension(intakeSetTargetPos);
                 endAffector.setIntakeRotation(intakeStartRot);
@@ -195,6 +196,15 @@ public class nClawIntake {
                 endAffector.setTurretAngle(turretStartRot);
 
                 endAffector.setClawState(false);
+                break;
+            case TRANSFER:
+                // hold in transfer position
+                endAffector.setIntakeExtension(intakeTransferLen);
+                endAffector.setIntakeRotation(intakeTransferRot);
+                endAffector.setTurretAngle(turretTransferAngle);
+                endAffector.setTurretAngle(turretTransferRot);
+
+                endAffector.setClawState(true);
                 break;
             case TEST:
                 endAffector.setIntakeExtension(intakeSetTargetPos);

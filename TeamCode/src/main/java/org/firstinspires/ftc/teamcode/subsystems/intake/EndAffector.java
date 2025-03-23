@@ -1,7 +1,5 @@
 package org.firstinspires.ftc.teamcode.subsystems.intake;
 
-import static org.firstinspires.ftc.teamcode.subsystems.intake.nClawIntake.intakeGrabAngle;
-
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 

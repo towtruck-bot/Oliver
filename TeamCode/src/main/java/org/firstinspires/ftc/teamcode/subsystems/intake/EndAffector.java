@@ -16,28 +16,18 @@ import java.util.Locale;
 public class EndAffector {
     private final Robot robot;
     public final Extendo intakeExtension;
-    private final nPriorityServo flipServo, clawRotation, claw, turretArm, turretRotation;
+    private final nPriorityServo clawRotation, claw, turretArm, turretRotation;
 
-    private double targetLength, targetAngle, targetRotation, turretAngle, turretRot;
+    private double targetLength, targetRotation, turretAngle, turretRot;
 
     private boolean closed;
-    public static double clawOpenAngle = 0.592;
-    public static double clawCloseAngle = 1.0859;
+    public static double clawOpenAngle = 0.2634;
+    public static double clawCloseAngle = 1.4;
 
     public EndAffector(Robot robot){
         this.robot = robot;
 
         intakeExtension = new Extendo(robot);
-
-        flipServo = new nPriorityServo(
-                new Servo[] {robot.hardwareMap.get(Servo.class, "intakeFlipServo")},
-                "intakeFlipServo",
-                nPriorityServo.ServoType.HITEC,
-                0.0, 0.695, 0.69,
-                new boolean[] {false},
-                1.0, 5.0
-        );
-        robot.hardwareQueue.addDevice(flipServo);
 
         claw = new nPriorityServo(
                 new Servo[] {robot.hardwareMap.get(Servo.class, "intakeClaw")},
@@ -82,7 +72,6 @@ public class EndAffector {
         claw.setTargetAngle(clawOpenAngle, 1.0);
 
         targetLength = 0.0;
-        targetAngle = 0.0;
         targetRotation = 0.0;
         turretAngle = 0.0;
         turretRot = 0.0;
@@ -94,7 +83,6 @@ public class EndAffector {
         intakeExtension.setTargetLength(targetLength);
         intakeExtension.update();
 
-        flipServo.setTargetAngle(targetAngle);
         clawRotation.setTargetAngle(targetRotation);
 
         turretArm.setTargetAngle(turretAngle);
@@ -109,9 +97,8 @@ public class EndAffector {
 
         if(Math.abs(yError) < radius){
             targetLength = xError - 9.0 - Math.sqrt(turretLength * turretLength - yError * yError);
-            targetAngle = intakeGrabAngle;
             targetRotation = target.heading;
-            turretAngle = yError < turretLength ? Math.asin(yError / turretLength) : targetAngle;
+            turretAngle = yError < turretLength ? Math.asin(yError / turretLength) : turretAngle;
             turretRot = Math.atan2(yError, xError - targetLength);
         }
     }
@@ -123,10 +110,6 @@ public class EndAffector {
 
     public void setIntakeExtension(double t){
         targetLength = t;
-    }
-
-    public void setIntakeAngle(double t){
-        targetAngle = t;
     }
 
     public void setIntakeRotation(double t){
@@ -141,10 +124,6 @@ public class EndAffector {
         turretRot = t;
     }
 
-    public double getIntakeAngle(){
-        return flipServo.getCurrentAngle();
-    }
-
     public double getIntakeRotation(){
         return clawRotation.getCurrentAngle();
     }
@@ -154,15 +133,11 @@ public class EndAffector {
     }
 
     public boolean inPosition(){
-        return intakeExtension.inPosition() && flipServo.inPosition() && clawRotation.inPosition();
+        return intakeExtension.inPosition() && clawRotation.inPosition() && turretArm.inPosition() && turretRotation.inPosition();
     }
 
     public boolean extendoInPosition(){
         return intakeExtension.inPosition();
-    }
-
-    public boolean flipInPosition(){
-        return flipServo.inPosition();
     }
 
     public boolean rotInPosition(){
@@ -175,5 +150,9 @@ public class EndAffector {
 
     public boolean turretRotInPosition(){
         return turretRotation.inPosition();
+    }
+
+    public boolean turretAngInPosition(){
+        return turretArm.inPosition();
     }
 }

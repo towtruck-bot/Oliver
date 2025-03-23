@@ -94,7 +94,7 @@ public class LLBlockDetectionPostProcessor {
 
             double x = cr.getTargetXPixels() * inchesConversionRatioX;
             double y = cr.getTargetYPixels() * inchesConversionRatioY;
-            double heading = blockPos.heading;
+            double heading = blockPos.heading - pDelta.heading;
             // Attempt to update heading value with the new value
             List<List<Double>> corners = cr.getTargetCorners();
             if (corners.size() == 4) { // I don't care enough to get this to work with stupid detections

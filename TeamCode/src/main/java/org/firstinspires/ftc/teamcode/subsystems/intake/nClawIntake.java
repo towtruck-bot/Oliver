@@ -12,6 +12,7 @@ import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.utils.Globals;
 import org.firstinspires.ftc.teamcode.utils.LogUtil;
 import org.firstinspires.ftc.teamcode.utils.PID;
+import org.firstinspires.ftc.teamcode.utils.Pose2d;
 import org.firstinspires.ftc.teamcode.utils.RunMode;
 import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 import org.firstinspires.ftc.teamcode.utils.Utils;
@@ -28,10 +29,11 @@ public class nClawIntake {
 
     private double intakeSetTargetPos;
 
-    public static double intakeStartAngle, intakeSearchAngle, intakeTransferAngle;
+    public static double intakeStartAngle, intakeSearchAngle, intakeGrabAngle, intakeTransferAngle;
     public static double intakeStartRot, intakeSearchRot, intakeTransferRot;
     public static double turretStartAngle, turretSearchAngle = Math.toRadians(40), turretTransferAngle;
     public static double turretStartRot, turretSearchRot, turretTransferRot;
+    public static double intakeTransferLen;
 
     public static double intakeHoverAngle = -1.6;
     public static double intakeFlipConfirmAngle = -1.55;
@@ -54,6 +56,7 @@ public class nClawIntake {
         LOWER,
         GRAB_CLOSE,
         CONFIRM,
+        RETRACT_BUFFER,
         RETRACT,
         HOLD,
         READY,
@@ -110,8 +113,8 @@ public class nClawIntake {
                 break;
             case ALIGN:
                 endAffector.setIntakeExtension(intakeSetTargetPos);
-                endAffector.setIntakeAngle(intakeHoverAngle);
-                endAffector.setIntakeRotation(clawRotationAlignAngle);
+                endAffector.setIntakeAngle(intakeSearchAngle);
+                endAffector.setIntakeRotation(intakeSearchRot);
                 endAffector.setTurretAngle(turretSearchAngle);
                 endAffector.setTurretRot(turretSearchRot);
 
@@ -121,9 +124,7 @@ public class nClawIntake {
                 }
                 break;
             case LOWER:
-                endAffector.setIntakeExtension(intakeSetTargetPos);
-                endAffector.setIntakeAngle(intakeFlipGrabAngle);
-                endAffector.setIntakeRotation(clawRotationAlignAngle);
+                endAffector.intakeAt(new Pose2d(0, 0, 0));
                 endAffector.setClawState(false);
 
                 if (endAffector.flipInPosition()){
@@ -131,9 +132,7 @@ public class nClawIntake {
                 }
                 break;
             case GRAB_CLOSE:
-                endAffector.setIntakeExtension(intakeSetTargetPos);
-                endAffector.setIntakeAngle(intakeFlipGrabAngle);
-                endAffector.setIntakeRotation(clawRotationAlignAngle);
+                endAffector.intakeAt(new Pose2d(0, 0, 0));
                 endAffector.setClawState(true);
 
                 if (endAffector.grabInPosition()) {
@@ -142,18 +141,34 @@ public class nClawIntake {
                 break;
             case CONFIRM:
                 endAffector.setIntakeExtension(intakeSetTargetPos);
-                endAffector.setIntakeAngle(intakeFlipConfirmAngle);
-                endAffector.setIntakeRotation(clawRotationAlignAngle);
+                endAffector.setIntakeAngle(intakeTransferAngle);
+                endAffector.setIntakeRotation(intakeTransferRot);
+                endAffector.setTurretAngle(turretTransferAngle);
+                endAffector.setTurretAngle(turretTransferRot);
                 endAffector.setClawState(true);
 
                 if (!this.grab) {
                     clawIntakeState = nClawIntakeState.ALIGN;
                 }
                 break;
+            case RETRACT_BUFFER:
+                endAffector.setIntakeExtension(intakeTransferLen + 4.0);
+                endAffector.setIntakeAngle(intakeTransferAngle);
+                endAffector.setIntakeRotation(intakeTransferRot);
+                endAffector.setTurretAngle(turretTransferAngle);
+                endAffector.setTurretAngle(turretTransferRot);
+                endAffector.setClawState(grab);
+
+                if(endAffector.turretRotInPosition()){
+                    clawIntakeState = grab ? nClawIntakeState.HOLD : nClawIntakeState.READY;
+                }
+                break;
             case RETRACT:
                 endAffector.setIntakeExtension(intakeSetTargetPos);
-                endAffector.setIntakeAngle(intakeFlipUpAngle);
-                endAffector.setIntakeRotation(clawRotationDefaultAngle);
+                endAffector.setIntakeAngle(intakeTransferAngle);
+                endAffector.setIntakeRotation(intakeTransferRot);
+                endAffector.setTurretAngle(turretTransferAngle);
+                endAffector.setTurretAngle(turretTransferRot);
                 endAffector.setClawState(grab);
 
                 this.intakeLight.setState(false);
@@ -164,15 +179,20 @@ public class nClawIntake {
                 }
                 break;
             case HOLD:
-                endAffector.setIntakeExtension(0.0);
-                endAffector.setIntakeAngle(intakeFlipBackAngle);
-                endAffector.setIntakeRotation(clawRotationDefaultAngle);
+                endAffector.setIntakeExtension(intakeTransferLen);
+                endAffector.setIntakeAngle(intakeTransferAngle);
+                endAffector.setIntakeRotation(intakeTransferRot);
+                endAffector.setTurretAngle(turretTransferAngle);
+                endAffector.setTurretAngle(turretTransferRot);
                 endAffector.setClawState(true);
                 break;
             case READY:
                 endAffector.setIntakeExtension(0.0);
-                endAffector.setIntakeAngle(intakeFlipBackAngle);
-                endAffector.setIntakeRotation(clawRotationDefaultAngle);
+                endAffector.setIntakeExtension(intakeSetTargetPos);
+                endAffector.setIntakeAngle(intakeStartAngle);
+                endAffector.setIntakeRotation(intakeStartRot);
+                endAffector.setTurretAngle(turretStartAngle);
+                endAffector.setTurretAngle(turretStartRot);
                 endAffector.setClawState(false);
                 break;
             case TEST:
@@ -233,7 +253,7 @@ public class nClawIntake {
     }
 
     public void setIntakeTargetPos(double targetPos) {
-        this.intakeSetTargetPos = Utils.minMaxClip(targetPos, 1, 24);
+        this.intakeSetTargetPos = Utils.minMaxClip(targetPos, 1, 19);
     }
 
     public double getIntakeTargetPos() {

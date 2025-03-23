@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.subsystems.intake;
 
+import static org.firstinspires.ftc.teamcode.subsystems.intake.nClawIntake.intakeGrabAngle;
+
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 
@@ -107,7 +109,10 @@ public class EndAffector {
 
         if(Math.abs(yError) < radius){
             targetLength = xError - 9.0 - Math.sqrt(turretLength * turretLength - yError * yError);
+            targetAngle = intakeGrabAngle;
+            targetRotation = target.heading;
             turretAngle = yError < turretLength ? Math.asin(yError / turretLength) : targetAngle;
+            turretRot = Math.atan2(yError, xError - targetLength);
         }
     }
 
@@ -166,5 +171,9 @@ public class EndAffector {
 
     public boolean grabInPosition(){
         return claw.inPosition();
+    }
+
+    public boolean turretRotInPosition(){
+        return turretRotation.inPosition();
     }
 }

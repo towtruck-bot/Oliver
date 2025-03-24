@@ -70,6 +70,7 @@ public class nClawIntake {
         switch (clawIntakeState) {
             case START_EXTEND:
                 // Pre-rotate the turret + claw servos
+                intakeSetTargetPos = 4.0;
                 endAffector.setIntakeExtension(intakeSetTargetPos);
                 endAffector.setIntakeRotation(intakeSearchRot);
                 endAffector.setTurretAngle(turretPreAngle);
@@ -84,6 +85,7 @@ public class nClawIntake {
                 break;
             case FULL_EXTEND:
                 // Fully extend + rotate to search positions
+                intakeSetTargetPos = 12.0;
                 endAffector.setIntakeExtension(intakeSetTargetPos);
                 endAffector.setIntakeRotation(intakeStartRot);
                 endAffector.setTurretAngle(turretSearchAngle);
@@ -99,6 +101,7 @@ public class nClawIntake {
                 break;
             case SEARCH:
                 // Begin Serach, just hold positions
+                intakeSetTargetPos = 12.0;
                 endAffector.setIntakeExtension(intakeSetTargetPos);
                 endAffector.setIntakeRotation(intakeSearchRot);
                 endAffector.setTurretAngle(turretSearchAngle);

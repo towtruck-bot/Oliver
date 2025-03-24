@@ -51,7 +51,7 @@ public class EndAffector {
                 new Servo[] {robot.hardwareMap.get(Servo.class, "turretArm")},
                 "turretArm",
                 nPriorityServo.ServoType.AXON_MINI,
-                0.0, 1.0, 0.5,
+                0.0, 0.9, 0.0,
                 new boolean[] {false},
                 1.0, 5
         );
@@ -61,7 +61,7 @@ public class EndAffector {
                 new Servo[] {robot.hardwareMap.get(Servo.class, "turretRotation")},
                 "turretRotation",
                 nPriorityServo.ServoType.AXON_MINI,
-                0.0, 1.0, 0.5,
+                0.0, 0.79, 0.233,
                 new boolean[] {false},
                 1.0, 5
         );

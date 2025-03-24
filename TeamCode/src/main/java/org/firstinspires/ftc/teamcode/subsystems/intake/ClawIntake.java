@@ -83,7 +83,7 @@ public class ClawIntake {
         robot.hardwareQueue.addDevice(intakeExtensionMotor);
 
         intakeFlipServo = new nPriorityServo(
-                new Servo[] {robot.hardwareMap.get(Servo.class, "intakeFlipServo")},
+                new Servo[] {robot.hardwareMap.get(Servo.class, "turretArm")},
                 "intakeFlipServo",
                 nPriorityServo.ServoType.HITEC,
                 0.0, 0.695, 0.69,

@@ -84,7 +84,7 @@ public class LLBlockDetectionPostProcessor {
         );
 
         // Update based on ONLY change in robot position
-        if (result == null || result.getStaleness() < 100 || result.getColorResults().isEmpty()) {
+        if (result == null || result.getStaleness() > 100 || result.getColorResults().isEmpty()) {
             blockPos.x = pNewBlockPose.x;
             blockPos.y = pNewBlockPose.y;
             blockPos.heading = blockPos.heading - pDelta.heading; // Is this right??
@@ -119,6 +119,7 @@ public class LLBlockDetectionPostProcessor {
 
                 // Theoredical angle of the longest dist the block should be 23.1985905 degrees
                 heading = Math.atan2(longest0.y - longest1.y, longest0.x - longest1.x) - Math.toRadians(23.1985905);
+
             }
 
             // If robot is moving very fast then it will only use drivetrain translational values to calculate new block pos

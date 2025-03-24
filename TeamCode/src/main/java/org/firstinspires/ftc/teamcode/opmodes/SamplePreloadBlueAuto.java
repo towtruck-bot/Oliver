@@ -68,7 +68,7 @@ public class SamplePreloadBlueAuto extends LinearOpMode {
         robot.sensors.resetPosAndIMU();
 
         while (opModeInInit() && !isStopRequested()) {
-            robot.sensors.setOdometryPosition(48.0 - Globals.ROBOT_WIDTH / 2.0, 72.0 - Globals.ROBOT_FORWARD_LENGTH, Math.PI/2);
+            robot.sensors.setOdometryPosition(48.0 - Globals.ROBOT_WIDTH / 2.0, 72.0 - Globals.ROBOT_FORWARD_LENGTH, Math.PI);
             robot.updateDepositHeights(false, true);
 
             robot.update();
@@ -76,13 +76,13 @@ public class SamplePreloadBlueAuto extends LinearOpMode {
     }
 
     public void moveToBelowBucket() {
-        // robot current state, SAMPLE_READY
-        robot.goToPoint(new Pose2d(sx, sy, sh), null, false, true, 0.9);
-        robot.waitWhile(() -> !robot.clawIntake.isRetracted());
-
         // raise slides
         robot.updateDepositHeights(false, true);
         robot.setNextState(Robot.NextState.DEPOSIT);
+
+        // robot current state, SAMPLE_READY
+        robot.goToPoint(new Pose2d(sx, sy, sh), null, false, true, 0.9);
+        robot.waitWhile(() -> !robot.clawIntake.isRetracted());
 
         // wait for full raise
         robot.waitWhile(() -> !robot.deposit.isSampleUp());

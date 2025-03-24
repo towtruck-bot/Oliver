@@ -36,25 +36,25 @@ public class LimelightTest extends LinearOpMode {
             /*
              * Starts polling for data.
              */
+            limelight.setPollRateHz(100); // This sets how often we ask Limelight for data (100 times per second)
+
             limelight.start();
             LLResult result = limelight.getLatestResult();
-            if (result !=null) {
-                if (result.isValid()) {
-                    double tx = result.getTx(); // How far left or right the target is (degrees)
-                    double ty = result.getTy(); // How far up or down the target is (degrees)
-                    double ta = result.getTa(); // How big the target looks (0%-100% of the image)
-
-                    telemetry.addData("Target X", tx);
-                    telemetry.addData("Target Y", ty);
-                    telemetry.addData("Target Area", ta);
-
-
-
+            if (result != null && result.isValid()) {
+                List<LLResultTypes.ColorResult> colorTargets = result.getColorResults();
+                for (LLResultTypes.ColorResult colorTarget : colorTargets) {
+                    double x = colorTarget.getTargetXDegrees(); // Where it is (left-right)
+                    double y = colorTarget.getTargetYDegrees(); // Where it is (up-down)
+                    double area = colorTarget.getTargetArea(); // size (0-100)
+                    List<List<Double>> targetCorners = colorTarget.getTargetCorners();
+                    telemetry.addData("X Degrees", x);
+                    telemetry.addData("Y Degrees", y);
+                    telemetry.addData("area", area);
+                    telemetry.addData("target corners", targetCorners);
                 }
+            } else {
+                telemetry.addData("Limelight", "No Targets");
             }
-            else
-                telemetry.addData("result:  ", "null");
-
             telemetry.update();
         }
     }

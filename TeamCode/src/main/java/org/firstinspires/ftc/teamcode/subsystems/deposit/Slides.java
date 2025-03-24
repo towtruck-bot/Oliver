@@ -20,6 +20,7 @@ public class Slides {
     public static double kP = 1;
     public static double kA = 20;
     public static double kStatic = 0.14;
+    public static double kStaticRamp = (0.5 - kStatic)/30;
     public static double minPower = 0.3;
     public static double minPowerThresh = 0.5;
     public static double forceDownPower = -0.3;
@@ -92,7 +93,7 @@ public class Slides {
         if (targetLength <= 0.5 && length <= forceDownThresh) { // force down
             return length <= 0.5 ? forceDownPower / 2 : forceDownPower;
         }
-        return (error * (maxVel / kA)) * kP + kStatic + ((Math.abs(error) > minPowerThresh) ? minPower * Math.signum(error) : 0);
+        return (error * (maxVel / kA)) * kP + kStatic + kStaticRamp * targetLength + ((Math.abs(error) > minPowerThresh) ? minPower * Math.signum(error) : 0);
     }
 
     public boolean manualMode = false;

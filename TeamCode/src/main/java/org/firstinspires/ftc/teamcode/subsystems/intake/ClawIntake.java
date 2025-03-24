@@ -26,6 +26,7 @@ public class ClawIntake {
     public final nPriorityServo intakeFlipServo;
     public final nPriorityServo claw;
     public final nPriorityServo clawRotation;
+
     private final DigitalChannel intakeLight;
 
     private double extendoTargetPos;

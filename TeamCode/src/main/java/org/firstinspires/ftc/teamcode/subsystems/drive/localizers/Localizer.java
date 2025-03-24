@@ -4,7 +4,7 @@ import com.acmerobotics.dashboard.canvas.Canvas;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.teamcode.sensors.Sensors;
-import org.firstinspires.ftc.teamcode.subsystems.drive.OldDrivetrain;
+import org.firstinspires.ftc.teamcode.subsystems.drive.Drivetrain;
 import org.firstinspires.ftc.teamcode.utils.DashboardUtil;
 import org.firstinspires.ftc.teamcode.utils.Encoder;
 import org.firstinspires.ftc.teamcode.utils.MovingAverage;
@@ -16,7 +16,7 @@ import java.util.ArrayList;
 
 public class Localizer {
     protected Sensors sensors;
-    protected OldDrivetrain drivetrain;
+    protected Drivetrain drivetrain;
 
     public Encoder[] encoders;
     protected long lastTime = System.nanoTime();
@@ -47,7 +47,7 @@ public class Localizer {
     protected String color;
     protected String expectedColor;
 
-    public Localizer(HardwareMap hardwareMap, Sensors sensors, OldDrivetrain drivetrain, String color, String expectedColor) {
+    public Localizer(HardwareMap hardwareMap, Sensors sensors, Drivetrain drivetrain, String color, String expectedColor) {
         this.sensors = sensors;
         this.drivetrain = drivetrain;
         this.color = color;

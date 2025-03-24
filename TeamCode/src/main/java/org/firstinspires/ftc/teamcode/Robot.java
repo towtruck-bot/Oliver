@@ -9,7 +9,8 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.teamcode.sensors.Sensors;
 import org.firstinspires.ftc.teamcode.subsystems.deposit.Deposit;
-import org.firstinspires.ftc.teamcode.subsystems.drive.OldDrivetrain;
+import org.firstinspires.ftc.teamcode.subsystems.drive.Drivetrain;
+import org.firstinspires.ftc.teamcode.subsystems.drive.Spline;
 import org.firstinspires.ftc.teamcode.subsystems.hang.Hang;
 import org.firstinspires.ftc.teamcode.subsystems.intake.ClawIntake;
 import org.firstinspires.ftc.teamcode.utils.Func;
@@ -25,7 +26,7 @@ public class Robot {
     public final HardwareMap hardwareMap;
     public final HardwareQueue hardwareQueue;
     public final Sensors sensors;
-    public final OldDrivetrain drivetrain;
+    public final Drivetrain drivetrain;
     public final ClawIntake clawIntake;
     // public final Intake intake;
     public final Deposit deposit;
@@ -79,7 +80,7 @@ public class Robot {
         sensors = new Sensors(this);
         clawIntake = new ClawIntake(this);
         // intake = new Intake(this);
-        drivetrain = new OldDrivetrain(this);
+        drivetrain = new Drivetrain(this);
         deposit = new Deposit(this);
         hang = new Hang(this);
 
@@ -337,12 +338,12 @@ public class Robot {
         do {
             update();
             clawIntake.grab(!grab);
-            if (drivetrain.state != OldDrivetrain.State.GO_TO_POINT) { /* Should use drivetrain.state == Drivetrain.DriveState.WAIT_AT_POINT*/
+            if (drivetrain.state != Drivetrain.State.GO_TO_POINT) { /* Should use drivetrain.state == Drivetrain.DriveState.WAIT_AT_POINT*/
                 clawIntake.setIntakeTargetPos(drivetrain.getExtension());
                 clawIntake.setClawRotation(Utils.headingClip(pose.heading - sensors.getOdometryPosition().heading));
                 //TelemetryUtil.packet.put("auto aim", drivetrain.getExtension());
 
-                if (clawIntake.isExtensionAtTarget() && drivetrain.state == OldDrivetrain.State.WAIT_AT_POINT) {
+                if (clawIntake.isExtensionAtTarget() && drivetrain.state == Drivetrain.State.WAIT_AT_POINT) {
                     clawIntake.grab(grab);
                 }
             } else if (Math.abs(drivetrain.getTurnError()) < Math.toRadians(30)) {
@@ -357,17 +358,17 @@ public class Robot {
         setNextState(NextState.DONE);
     }
 
-//    public void followSpline(Spline spline, Func func) {
-//        long start = System.currentTimeMillis();
-//        drivetrain.setPath(spline);
-//        drivetrain.state = OldDrivetrain.State.GO_TO_POINT;
-//        drivetrain.setMaxPower(1);
-//        update();
-//
-//        do {
-//            update();
-//        } while (((boolean) this.abortChecker.call()) && (func == null || (boolean) func.call()) && System.currentTimeMillis() - start <= 10000 && drivetrain.isBusy());
-//    }
+    public void followSpline(Spline spline, Func func) {
+        long start = System.currentTimeMillis();
+        drivetrain.setPath(spline);
+        drivetrain.state = Drivetrain.State.FOLLOW_SPLINE;
+        drivetrain.setMaxPower(1);
+        update();
+
+        do {
+            update();
+        } while (((boolean) this.abortChecker.call()) && (func == null || (boolean) func.call()) && System.currentTimeMillis() - start <= 10000 && drivetrain.isBusy());
+    }
 
     public void setIntakeExtension(double target){
         clawIntake.setIntakeTargetPos(target);

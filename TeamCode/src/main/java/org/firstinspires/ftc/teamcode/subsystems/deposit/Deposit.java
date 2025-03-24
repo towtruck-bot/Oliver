@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.subsystems.deposit;
 import android.util.Log;
 
 import com.acmerobotics.dashboard.config.Config;
+import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.utils.Globals;
@@ -55,12 +56,12 @@ public class Deposit {
     // prepare for transfer positions
     public static double intakeWaitRad = 0.4, intakeWaitY = 0.0, intakeWaitClawRad = 1.235;
     // transfer positions, move in to grab
-    public static double intakeRad = 0.1, intakeY = 0.0, intakeClawRad = 1.4;
+    public static double intakeRad = 0.1118, intakeY = 0.0, intakeClawRad = 1.7354;
     // moving positions with a sample
     public static double sampleHoldRad = 0.0, holdY = 0.0, sampleHoldClawRad = -Math.PI / 2;
     public static double specimenGrabRad = 0.04, specimenGrabClawRad = 0.0, specimenConfirmRad = Math.toRadians(40), specimenConfirmClawRad = Math.toRadians(40);
     // sample basket positions
-    public static double sampleLY = 16.75, sampleHY = 31, sampleRaiseRad = Math.toRadians(90), sampleDepositRad = 2.2, sampleDepositClawRad = -0.2;
+    public static double sampleLY = 16.75, sampleHY = 32.5, sampleRaiseRad = Math.toRadians(90), sampleDepositRad = 2.2, sampleDepositClawRad = -0.2;
     // outtake positions, drop behind robot
     public static double outtakeRad = Math.toRadians(180), outtakeY = 0.0, outtakeClawRad = 0.0;
     // grabbing positions, holdGrab -> off the wall, grabRetract --> moving with a specimen
@@ -78,6 +79,8 @@ public class Deposit {
     public static int transferBufferDuration = 200;
 
     private boolean high = true;
+
+    private boolean upBuf = false;
 
     public enum HangMode {
         OUT,
@@ -121,7 +124,7 @@ public class Deposit {
                 arm.setClawRotation(intakeClawRad, 1.0);
                 arm.speciOpen();
 
-                if(arm.inPosition() && slides.inPosition(1)){ // Need to figure out this threshold better
+                if(arm.inPosition() && slides.inPosition(1)){
                     state = State.TRANSFER_CLOSE;
                     arm.clawClose();
                     this.grabStartTime = this.currentTime;
@@ -138,7 +141,11 @@ public class Deposit {
                 }
                 break;
             case TRANSFER_FINISH:
-                moveToWithRad(sampleHoldRad, holdY);
+                if (upBuf)
+                    moveToWithRad(sampleHoldRad, Slides.maxSlidesHeight / 2);
+                else
+
+                    moveToWithRad(sampleHoldRad, holdY);
                 arm.setClawRotation(sampleHoldClawRad, 1.0);
                 arm.clawClose();
 
@@ -147,7 +154,11 @@ public class Deposit {
                 }
                 break;
             case HOLD:
-                moveToWithRad(sampleHoldRad, holdY);
+                if (upBuf)
+                    moveToWithRad(sampleHoldRad, Slides.maxSlidesHeight / 2);
+                else
+                    moveToWithRad(sampleHoldRad, holdY);
+
                 arm.setClawRotation(sampleHoldClawRad, 1.0);
                 arm.clawClose();
                 break;
@@ -163,15 +174,13 @@ public class Deposit {
             case SAMPLE_WAIT:
                 moveToWithRad(sampleDepositRad, targetY);
                 arm.setClawRotation(sampleDepositClawRad, 1.0);
-                this.sampleReleaseTime = this.currentTime;
-
                 break;
             case SAMPLE_RELEASE:
                 moveToWithRad(sampleDepositRad, targetY);
                 arm.setClawRotation(sampleDepositClawRad, 1.0);
                 arm.sampleOpen();
 
-                if (arm.clawFinished() && this.currentTime >= this.sampleReleaseTime + sampleReleaseDuration * 1e6) {
+                if (arm.clawFinished()) {
                     state = State.SAMPLE_FINISH;
                 }
                 break;
@@ -311,6 +320,11 @@ public class Deposit {
         this.targetY = Utils.minMaxClip(target, 0.0, Slides.maxSlidesHeight);
     }
 
+    // Tells the slides preemptively to go up as soon as it is in a state to do so
+    public void bufferUpwards() {
+        upBuf = true;
+    }
+
     public void setDepositHeightLowSample(){
         targetY = sampleLY;
         high = false;
@@ -350,6 +364,7 @@ public class Deposit {
     }
 
     public void startSampleDeposit() {
+        upBuf = false;
         Log.i("FSM", this.state + ", startSampleDeposit()");
         if (state == State.HOLD) state = State.SAMPLE_RAISE;
     }

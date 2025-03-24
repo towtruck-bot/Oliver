@@ -83,4 +83,8 @@ public class Vector2 {
         Vector2 temp = Vector2.rotate(new Vector2(vx,vy), angle);
         return new Vector2(temp.x+x, temp.y+y);
     }
+
+    public static double distance(Vector2 v0, Vector2 v1) {
+        return Math.sqrt(Math.pow(v0.x - v1.x, 2) + Math.pow(v0.y - v1.y, 2));
+    }
 }

@@ -5,7 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.Robot;
-import org.firstinspires.ftc.teamcode.subsystems.drive.OldDrivetrain;
+import org.firstinspires.ftc.teamcode.subsystems.drive.Drivetrain;
 import org.firstinspires.ftc.teamcode.utils.Globals;
 import org.firstinspires.ftc.teamcode.utils.LogUtil;
 import org.firstinspires.ftc.teamcode.utils.Pose2d;
@@ -80,17 +80,17 @@ public class SpecimenPreloadBlueAuto extends LinearOpMode {
         // ^Wait for fully raised slides and arm at correct angle^
 
         robot.drivetrain.slidesUp = true;
-        OldDrivetrain.xThreshold = 1.75;
-        OldDrivetrain.yThreshold = 1.75;
-        OldDrivetrain.turnThreshold = 5;
+        Drivetrain.xThreshold = 1.75;
+        Drivetrain.yThreshold = 1.75;
+        Drivetrain.turnThreshold = 5;
 
         // Ram forward
         robot.goToPoint(new Pose2d(offset, scoreY, Math.PI/2), null, false, false, 1.0);
         robot.waitFor(150);
 
-        OldDrivetrain.xThreshold = 4;
-        OldDrivetrain.yThreshold = 4;
-        OldDrivetrain.turnThreshold = 4;
+        Drivetrain.xThreshold = 4;
+        Drivetrain.yThreshold = 4;
+        Drivetrain.turnThreshold = 4;
 
         // Release + backup
         robot.setNextState(Robot.NextState.DONE);
@@ -102,9 +102,9 @@ public class SpecimenPreloadBlueAuto extends LinearOpMode {
     public void move3Ground() {
         // Pre-position ground1
         // TODO: Switch to a spline once they are re-tuned
-        OldDrivetrain.xThreshold = 2;
-        OldDrivetrain.yThreshold = 2;
-        OldDrivetrain.turnThreshold = 4;
+        Drivetrain.xThreshold = 2;
+        Drivetrain.yThreshold = 2;
+        Drivetrain.turnThreshold = 4;
 
         robot.drivetrain.slidesUp = false;
 
@@ -133,15 +133,15 @@ public class SpecimenPreloadBlueAuto extends LinearOpMode {
 
     public void grabAndSetUp(double offset) {
         // Pre-position
-        OldDrivetrain.xThreshold = 4;
-        OldDrivetrain.yThreshold = 4;
-        OldDrivetrain.turnThreshold = 4;
+        Drivetrain.xThreshold = 4;
+        Drivetrain.yThreshold = 4;
+        Drivetrain.turnThreshold = 4;
         robot.drivetrain.slidesUp = false;
         robot.goToPoint(new Pose2d(setupX + 3.0, setupY - 6.0, Math.PI / 2.0), null, false, false, 1.0);
 
-        OldDrivetrain.xThreshold = 1.75;
-        OldDrivetrain.yThreshold = 1.75;
-        OldDrivetrain.turnThreshold = 4;
+        Drivetrain.xThreshold = 1.75;
+        Drivetrain.yThreshold = 1.75;
+        Drivetrain.turnThreshold = 4;
         // Prepare to grab
         robot.setNextState(Robot.NextState.GRAB_SPECIMEN);
         robot.goToPoint(new Pose2d(setupX, setupY, Math.PI / 2.0), null, true, true, 0.8);
@@ -153,9 +153,9 @@ public class SpecimenPreloadBlueAuto extends LinearOpMode {
         robot.setNextState(Robot.NextState.DEPOSIT);
         robot.drivetrain.slidesUp = true;
 
-        OldDrivetrain.xThreshold = 4;
-        OldDrivetrain.yThreshold = 4;
-        OldDrivetrain.turnThreshold = 4;
+        Drivetrain.xThreshold = 4;
+        Drivetrain.yThreshold = 4;
+        Drivetrain.turnThreshold = 4;
         // Move to setup
         // Offset is used such that the specimen wont clip on each other
         robot.goToPoint(new Pose2d(offset, baseScoreY, Math.PI / 2.0), null, false, false, 1.0);

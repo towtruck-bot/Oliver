@@ -13,6 +13,7 @@ import org.firstinspires.ftc.teamcode.subsystems.drive.Drivetrain;
 import org.firstinspires.ftc.teamcode.subsystems.drive.Spline;
 import org.firstinspires.ftc.teamcode.subsystems.hang.Hang;
 import org.firstinspires.ftc.teamcode.subsystems.intake.ClawIntake;
+import org.firstinspires.ftc.teamcode.subsystems.intake.nClawIntake;
 import org.firstinspires.ftc.teamcode.utils.Func;
 import org.firstinspires.ftc.teamcode.utils.Globals;
 import org.firstinspires.ftc.teamcode.utils.LogUtil;
@@ -28,6 +29,7 @@ public class Robot {
     public final Sensors sensors;
     public final Drivetrain drivetrain;
     public final ClawIntake clawIntake;
+    public final nClawIntake nclawIntake;
     // public final Intake intake;
     public final Deposit deposit;
     public final Hang hang;
@@ -79,6 +81,7 @@ public class Robot {
 
         sensors = new Sensors(this);
         clawIntake = new ClawIntake(this);
+        nclawIntake = new nClawIntake(this);
         // intake = new Intake(this);
         drivetrain = new Drivetrain(this);
         deposit = new Deposit(this);

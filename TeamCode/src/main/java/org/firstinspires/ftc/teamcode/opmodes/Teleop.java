@@ -166,9 +166,9 @@ public class Teleop extends LinearOpMode {
             else if (hangRightDir < 0) robot.hang.rightReverse();
             else robot.hang.rightOff();
 
-            if (gamepad2.right_bumper) robot.hang.l3Pull();
-            else if (gamepad2.left_bumper) robot.hang.l3Up();
-            else robot.hang.l3Off();
+//            if (gamepad2.right_bumper) robot.hang.l3Pull();
+//            else if (gamepad2.left_bumper) robot.hang.l3Up();
+//            else robot.hang.l3Off();
 
             if (gamepad2.right_trigger >= 0.7) {
                 robot.deposit.hangMode = Deposit.HangMode.PULL;

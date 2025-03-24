@@ -70,7 +70,7 @@ public class nClawIntake {
         switch (clawIntakeState) {
             case START_EXTEND:
                 // Pre-rotate the turret + claw servos
-                intakeSetTargetPos = 4.0;
+                intakeSetTargetPos = 6.0;
                 endAffector.setIntakeExtension(intakeSetTargetPos);
                 endAffector.setIntakeRotation(intakeSearchRot);
                 endAffector.setTurretAngle(turretPreAngle);
@@ -154,8 +154,8 @@ public class nClawIntake {
                 }
                 break;
             case RETRACT_BUFFER:
-                // begin retraction upon being prompted, have a 4in buffer should be enough for swinging stuff around
-                endAffector.setIntakeExtension(intakeTransferLen + 4.0);
+                // begin retraction upon being prompted, have a 6in buffer should be enough for swinging stuff around
+                endAffector.setIntakeExtension(intakeTransferLen + 6.0);
                 endAffector.setIntakeRotation(intakeTransferRot);
                 endAffector.setTurretAngle(turretTransferAngle);
                 endAffector.setTurretAngle(turretTransferRot);
@@ -170,9 +170,9 @@ public class nClawIntake {
             case RETRACT:
                 // full retract into transfer
                 endAffector.setIntakeExtension(intakeSetTargetPos);
-                endAffector.setIntakeRotation(intakeTransferRot);
-                endAffector.setTurretAngle(turretTransferAngle);
-                endAffector.setTurretAngle(turretTransferRot);
+                endAffector.setIntakeRotation(intakeStartRot);
+                endAffector.setTurretAngle(turretStartAngle);
+                endAffector.setTurretAngle(turretStartRot);
 
                 endAffector.setClawState(grab);
 

@@ -101,6 +101,7 @@ public class Robot {
         this.sensors.update();
 
         this.clawIntake.update();
+        nclawIntake.update();
         // intake.update();
         this.drivetrain.update();
         this.deposit.update();

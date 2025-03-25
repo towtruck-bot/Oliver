@@ -20,7 +20,7 @@ public class Sensors {
 
     private int slidesEncoder;
     private double slidesVel;
-    public static double slidesInchesPerTick = 35.0 / 1990;
+    public static double slidesInchesPerTick = 35.3 / 1950;
 
     private int extendoEncoder;
     public static double extendoInchesPerTick = 0.04293545803;
@@ -42,9 +42,9 @@ public class Sensors {
     public void update(){
         odometry.update();
 
-        slidesEncoder = ((PriorityMotor) robot.hardwareQueue.getDevice("slidesMotor")).motor[0].getCurrentPosition();
-        slidesVel = ((PriorityMotor) robot.hardwareQueue.getDevice("slidesMotor")).motor[0].getVelocity();
-        extendoEncoder = ((PriorityMotor) robot.hardwareQueue.getDevice("intakeExtensionMotor")).motor[0].getCurrentPosition();
+        slidesEncoder = ((PriorityMotor) robot.hardwareQueue.getDevice("leftRear")).motor[0].getCurrentPosition() * -1;
+        slidesVel = ((PriorityMotor) robot.hardwareQueue.getDevice("leftRear")).motor[0].getVelocity() * -1;
+        extendoEncoder = ((PriorityMotor) robot.hardwareQueue.getDevice("rightFront")).motor[0].getCurrentPosition();
 
         if (System.currentTimeMillis() - lastVoltageUpdatedTime > voltageUpdateTime) {
             voltage = robot.hardwareMap.voltageSensor.iterator().next().getVoltage();
@@ -92,7 +92,7 @@ public class Sensors {
     }
 
     public double getSlidesVel(){
-        return slidesEncoder * slidesVel;
+        return slidesVel * slidesInchesPerTick;
     }
 
     public double getExtendoPos(){

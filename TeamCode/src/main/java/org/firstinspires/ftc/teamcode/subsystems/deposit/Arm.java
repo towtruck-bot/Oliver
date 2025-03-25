@@ -36,7 +36,7 @@ public class Arm {
         clawRotation = new nPriorityServo(
                 new Servo[] {robot.hardwareMap.get(Servo.class, "clawRotation")},
                 "clawRotation",
-                nPriorityServo.ServoType.AXON_MINI,
+                nPriorityServo.ServoType.AXON_MAX,
                 0,
                 1.0,
                 0.5,

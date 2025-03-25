@@ -15,11 +15,14 @@ import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 @Config
 public class SlidesTuner extends LinearOpMode {
     public static double targetSlidesHeight = 0.0;
+    private static double largestVel = 0;
+    public static boolean powerMode = false;
+    public static double power = 0;
 
     public void runOpMode(){
         Robot robot = new Robot(hardwareMap);
-        DcMotorEx motor = hardwareMap.get(DcMotorEx.class, "slidesMotor0");
 
+        DcMotorEx motor = hardwareMap.get(DcMotorEx.class, "slidesMotor0");
         DcMotorEx motor1 = hardwareMap.get(DcMotorEx.class, "slidesMotor1");
 
         Slides slides = new Slides(robot);
@@ -27,9 +30,20 @@ public class SlidesTuner extends LinearOpMode {
         waitForStart();
 
         while(!isStopRequested()){
-            robot.deposit.holdSlides = true;
-            robot.deposit.state = Deposit.State.TEST;
-            robot.deposit.setDepositHeight(targetSlidesHeight);
+            if (!powerMode) {
+                robot.deposit.holdSlides = true;
+                robot.deposit.state = Deposit.State.TEST;
+                robot.deposit.setDepositHeight(targetSlidesHeight);
+            } else {
+                robot.deposit.slides.slidesMotors.setPowerForced(power);
+                if (Math.abs(robot.sensors.getSlidesVel()) > largestVel)
+                    largestVel = Math.abs(robot.sensors.getSlidesVel());
+                TelemetryUtil.packet.put("Slides vel", robot.sensors.getSlidesVel());
+                TelemetryUtil.packet.put("Slides: largestVel", largestVel);
+                TelemetryUtil.sendTelemetry();
+                robot.sensors.update();
+                continue;
+            }
 
             TelemetryUtil.packet.put("Slides: Error", targetSlidesHeight - slides.getLength());
             TelemetryUtil.packet.put("Slides: Position", slides.getLength());

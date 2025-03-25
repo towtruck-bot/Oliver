@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.subsystems.intake;
 
 import android.util.Log;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 
@@ -13,23 +14,19 @@ import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 import org.firstinspires.ftc.teamcode.utils.Utils;
 import org.firstinspires.ftc.teamcode.utils.priority.PriorityMotor;
 
+@Config
 public class Extendo {
-    public static double maxExtendoLength = 27.0;
+    public static double maxExtendoLength = 19.0;
 
     private final Robot robot;
     public PriorityMotor extendoMotor;
     private final DcMotorEx m;
 
-    private double extendoCurrentPos;
+    private double extendoCurrentPos = 0.0;
     private double targetLength = 0.0;
-    public static PID extendoPID = new PID(0.15, 0.05, 0.008);
+    public static PID extendoPID = new PID(0.2, 0, 0.001);
     public static double tollerance = 0.4;
     public static double slidesForcePullPow = -0.2;
-
-    public static double slidesTolerance = 0.9;
-    public static double slidesDeadZone = 0.2;
-    public static double slidesKeepInPow = -0.25;
-    private boolean forcePull = false;
 
     public Extendo(Robot robot){
         this.robot = robot;
@@ -59,15 +56,16 @@ public class Extendo {
                 extendoPID.resetIntegral();
                 pow = this.targetLength <= tollerance && this.extendoCurrentPos > 0.0 ? slidesForcePullPow : 0;
             } else {
-                pow = extendoPID.update(this.targetLength - this.extendoCurrentPos, -0.7, 0.7);
+                pow = extendoPID.update(this.targetLength - this.extendoCurrentPos, -1.0, 1.0);
             }
 
             this.extendoMotor.setTargetPower(pow);
         }
 
-        TelemetryUtil.packet.put("ClawIntake extendo power", pow);
-        TelemetryUtil.packet.put("ClawIntake.extendoTargetPos", this.targetLength);
-        TelemetryUtil.packet.put("ClawIntake.extendoCurrentPos", this.extendoCurrentPos);
+        TelemetryUtil.packet.put("Extendo Power", pow);
+        TelemetryUtil.packet.put("Extendo Target Length", targetLength);
+        TelemetryUtil.packet.put("Extendo Current Length", extendoCurrentPos);
+        TelemetryUtil.packet.put("Extendo inPosition", this.inPosition());
     }
 
     public void setTargetLength(double l){

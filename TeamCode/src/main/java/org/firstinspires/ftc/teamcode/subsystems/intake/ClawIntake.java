@@ -22,12 +22,12 @@ import org.firstinspires.ftc.teamcode.utils.priority.nPriorityServo;
 public class ClawIntake {
     private final Robot robot;
 
-    public final PriorityMotor intakeExtensionMotor;
-    public final nPriorityServo intakeFlipServo;
-    public final nPriorityServo claw;
-    public final nPriorityServo clawRotation;
+    public PriorityMotor intakeExtensionMotor;
+    public nPriorityServo intakeFlipServo;
+    public nPriorityServo claw;
+    public nPriorityServo clawRotation;
 
-    private final DigitalChannel intakeLight;
+    private DigitalChannel intakeLight;
 
     private double extendoTargetPos;
     private double intakeSetTargetPos;
@@ -68,53 +68,53 @@ public class ClawIntake {
     }
 
     public ClawIntakeState clawIntakeState = ClawIntakeState.READY;
-    private final DcMotorEx m;
+    private DcMotorEx m;
 
     public ClawIntake(Robot robot) {
         this.robot = robot;
 
-        m = robot.hardwareMap.get(DcMotorEx.class, "intakeExtensionMotor");
-
-        intakeExtensionMotor = new PriorityMotor(
-                robot.hardwareMap.get(DcMotorEx.class, "intakeExtensionMotor"),
-                "intakeExtensionMotor",
-                1, 5, robot.sensors
-        );
-        robot.hardwareQueue.addDevice(intakeExtensionMotor);
-
-        intakeFlipServo = new nPriorityServo(
-                new Servo[] {robot.hardwareMap.get(Servo.class, "turretArm")},
-                "intakeFlipServo",
-                nPriorityServo.ServoType.HITEC,
-                0.0, 0.695, 0.69,
-                new boolean[] {false},
-                1.0, 5.0
-        );
-        robot.hardwareQueue.addDevice(intakeFlipServo);
-
-        claw = new nPriorityServo(
-                new Servo[] {robot.hardwareMap.get(Servo.class, "intakeClaw")},
-                "intakeClaw",
-                nPriorityServo.ServoType.AXON_MINI,
-                0.46, 0.75, 0.47,
-                new boolean[] {false},
-                1.0, 5
-        );
-        robot.hardwareQueue.addDevice(claw);
-
-        clawRotation = new nPriorityServo(
-                new Servo[] {robot.hardwareMap.get(Servo.class, "intakeClawRotation")},
-                "intakeClawRotation",
-                nPriorityServo.ServoType.AXON_MINI,
-                0.06,0.67,0.37,
-                new boolean[] {false},
-                1, 5
-        );
-        robot.hardwareQueue.addDevice(clawRotation);
-
-        intakeLight = robot.hardwareMap.get(DigitalChannel.class, "intakeLight");
-        intakeLight.setMode(DigitalChannel.Mode.OUTPUT);
-        intakeLight.setState(false);
+//        m = robot.hardwareMap.get(DcMotorEx.class, "intakeExtensionMotor");
+//
+//        intakeExtensionMotor = new PriorityMotor(
+//                robot.hardwareMap.get(DcMotorEx.class, "intakeExtensionMotor"),
+//                "intakeExtensionMotor",
+//                1, 5, robot.sensors
+//        );
+//        robot.hardwareQueue.addDevice(intakeExtensionMotor);
+//
+//        intakeFlipServo = new nPriorityServo(
+//                new Servo[] {robot.hardwareMap.get(Servo.class, "turretArm")},
+//                "intakeFlipServo",
+//                nPriorityServo.ServoType.HITEC,
+//                0.0, 0.695, 0.69,
+//                new boolean[] {false},
+//                1.0, 5.0
+//        );
+//        robot.hardwareQueue.addDevice(intakeFlipServo);
+//
+//        claw = new nPriorityServo(
+//                new Servo[] {robot.hardwareMap.get(Servo.class, "intakeClaw")},
+//                "intakeClaw",
+//                nPriorityServo.ServoType.AXON_MINI,
+//                0.46, 0.75, 0.47,
+//                new boolean[] {false},
+//                1.0, 5
+//        );
+//        robot.hardwareQueue.addDevice(claw);
+//
+//        clawRotation = new nPriorityServo(
+//                new Servo[] {robot.hardwareMap.get(Servo.class, "intakeClawRotation")},
+//                "intakeClawRotation",
+//                nPriorityServo.ServoType.AXON_MINI,
+//                0.06,0.67,0.37,
+//                new boolean[] {false},
+//                1, 5
+//        );
+//        robot.hardwareQueue.addDevice(clawRotation);
+//
+//        intakeLight = robot.hardwareMap.get(DigitalChannel.class, "intakeLight");
+//        intakeLight.setMode(DigitalChannel.Mode.OUTPUT);
+//        intakeLight.setState(false);
 
         if (Globals.RUNMODE != RunMode.TELEOP) {
             resetExtendoEncoders();
@@ -125,92 +125,92 @@ public class ClawIntake {
 
     //general update for entire class
     public void update() {
-        updateExtendo();
-
-        switch (clawIntakeState) {
-            case START_EXTEND: // clawRotation goes up
-                this.intakeFlipServo.setTargetAngle(intakeFlipUpAngle);
-                this.clawRotation.setTargetAngle(clawRotationDefaultAngle);
-                this.claw.setTargetAngle(this.grab ? clawCloseAngle : clawOpenAngle);
-                this.extendoTargetPos = 0;
-                this.clawRotationAlignAngle = clawRotationDefaultAngle;
-                if (this.intakeFlipServo.inPosition()) this.clawIntakeState = ClawIntakeState.FINISH_EXTEND;
-                break;
-            case FINISH_EXTEND:
-                this.intakeFlipServo.setTargetAngle(intakeFlipUpAngle);
-                this.clawRotation.setTargetAngle(clawRotationDefaultAngle);
-                this.claw.setTargetAngle(this.grab ? clawCloseAngle : clawOpenAngle);
-                this.extendoTargetPos = this.intakeSetTargetPos;
-                if (this.isExtensionAtTarget()) {
-                    this.clawIntakeState = this.grab ? ClawIntakeState.CONFIRM : ClawIntakeState.ALIGN;
-                    this.intakeLight.setState(true);
-                }
-                break;
-            case ALIGN:
-                this.intakeFlipServo.setTargetAngle(intakeHoverAngle);
-                this.clawRotation.setTargetAngle(clawRotationAlignAngle);
-                this.claw.setTargetAngle(clawOpenAngle);
-                this.extendoTargetPos = this.intakeSetTargetPos;
-                if (this.grab && this.clawRotation.inPosition()) this.clawIntakeState = ClawIntakeState.LOWER;
-                break;
-            case LOWER:
-                this.intakeFlipServo.setTargetAngle(intakeFlipGrabAngle);
-                this.clawRotation.setTargetAngle(this.clawRotationAlignAngle);
-                this.claw.setTargetAngle(clawOpenAngle);
-                this.extendoTargetPos = this.intakeSetTargetPos;
-                if (this.intakeFlipServo.inPosition())
-                    this.clawIntakeState = ClawIntakeState.GRAB_CLOSE;
-                break;
-            case GRAB_CLOSE:
-                this.intakeFlipServo.setTargetAngle(intakeFlipGrabAngle);
-                this.clawRotation.setTargetAngle(this.clawRotationAlignAngle);
-                this.claw.setTargetAngle(clawCloseAngle);
-                this.extendoTargetPos = this.intakeSetTargetPos;
-                if (this.claw.inPosition()) this.clawIntakeState = ClawIntakeState.CONFIRM;
-                break;
-            case CONFIRM:
-                this.intakeFlipServo.setTargetAngle(intakeFlipConfirmAngle);
-                this.clawRotation.setTargetAngle(this.clawRotationAlignAngle);
-                this.claw.setTargetAngle(clawCloseAngle);
-                this.extendoTargetPos = this.intakeSetTargetPos;
-                if (!this.grab) this.clawIntakeState = ClawIntakeState.ALIGN;
-                break;
-            case RETRACT:
-                this.intakeFlipServo.setTargetAngle(intakeFlipUpAngle);
-                this.clawRotation.setTargetAngle(clawRotationDefaultAngle);
-                this.claw.setTargetAngle(this.grab ? clawCloseAngle : clawOpenAngle);
-                this.extendoTargetPos = 0;
-                this.intakeLight.setState(false);
-                if (this.isExtensionAtTarget()) {
-                    this.intakeFlipServo.setTargetAngle(intakeFlipBackAngle);
-                    this.clawIntakeState = this.grab ? ClawIntakeState.HOLD : ClawIntakeState.READY;
-                }
-                break;
-            case HOLD:
-                this.intakeFlipServo.setTargetAngle(intakeFlipBackAngle);
-                this.clawRotation.setTargetAngle(clawRotationDefaultAngle);
-                this.claw.setTargetAngle(clawCloseAngle);
-                this.extendoTargetPos = 0;
-                break;
-            case READY:
-                this.intakeFlipServo.setTargetAngle(intakeFlipBackAngle);
-                this.clawRotation.setTargetAngle(clawRotationDefaultAngle);
-                this.claw.setTargetAngle(clawOpenAngle);
-                this.extendoTargetPos = 0;
-                break;
-            case TEST:
-                extendoTargetPos = intakeSetTargetPos;
-                break;
-        }
-
-        TelemetryUtil.packet.put("ClawIntake.clawRotationAlignAngle", clawRotationAlignAngle);
-        LogUtil.intakeClawRotationAngle.set(clawRotationAlignAngle);
-        TelemetryUtil.packet.put("ClawIntake.grab", grab);
-        LogUtil.intakeClawGrab.set(grab);
-        TelemetryUtil.packet.put("ClawIntake intakeFlipServo angle", intakeFlipServo.getCurrentAngle());
-        TelemetryUtil.packet.put("ClawIntake clawRotation angle", clawRotation.getCurrentAngle());
-        TelemetryUtil.packet.put("ClawIntake State", this.clawIntakeState);
-        LogUtil.intakeState.set(this.clawIntakeState.toString());
+//        updateExtendo();
+//
+//        switch (clawIntakeState) {
+//            case START_EXTEND: // clawRotation goes up
+//                this.intakeFlipServo.setTargetAngle(intakeFlipUpAngle);
+//                this.clawRotation.setTargetAngle(clawRotationDefaultAngle);
+//                this.claw.setTargetAngle(this.grab ? clawCloseAngle : clawOpenAngle);
+//                this.extendoTargetPos = 0;
+//                this.clawRotationAlignAngle = clawRotationDefaultAngle;
+//                if (this.intakeFlipServo.inPosition()) this.clawIntakeState = ClawIntakeState.FINISH_EXTEND;
+//                break;
+//            case FINISH_EXTEND:
+//                this.intakeFlipServo.setTargetAngle(intakeFlipUpAngle);
+//                this.clawRotation.setTargetAngle(clawRotationDefaultAngle);
+//                this.claw.setTargetAngle(this.grab ? clawCloseAngle : clawOpenAngle);
+//                this.extendoTargetPos = this.intakeSetTargetPos;
+//                if (this.isExtensionAtTarget()) {
+//                    this.clawIntakeState = this.grab ? ClawIntakeState.CONFIRM : ClawIntakeState.ALIGN;
+//                    this.intakeLight.setState(true);
+//                }
+//                break;
+//            case ALIGN:
+//                this.intakeFlipServo.setTargetAngle(intakeHoverAngle);
+//                this.clawRotation.setTargetAngle(clawRotationAlignAngle);
+//                this.claw.setTargetAngle(clawOpenAngle);
+//                this.extendoTargetPos = this.intakeSetTargetPos;
+//                if (this.grab && this.clawRotation.inPosition()) this.clawIntakeState = ClawIntakeState.LOWER;
+//                break;
+//            case LOWER:
+//                this.intakeFlipServo.setTargetAngle(intakeFlipGrabAngle);
+//                this.clawRotation.setTargetAngle(this.clawRotationAlignAngle);
+//                this.claw.setTargetAngle(clawOpenAngle);
+//                this.extendoTargetPos = this.intakeSetTargetPos;
+//                if (this.intakeFlipServo.inPosition())
+//                    this.clawIntakeState = ClawIntakeState.GRAB_CLOSE;
+//                break;
+//            case GRAB_CLOSE:
+//                this.intakeFlipServo.setTargetAngle(intakeFlipGrabAngle);
+//                this.clawRotation.setTargetAngle(this.clawRotationAlignAngle);
+//                this.claw.setTargetAngle(clawCloseAngle);
+//                this.extendoTargetPos = this.intakeSetTargetPos;
+//                if (this.claw.inPosition()) this.clawIntakeState = ClawIntakeState.CONFIRM;
+//                break;
+//            case CONFIRM:
+//                this.intakeFlipServo.setTargetAngle(intakeFlipConfirmAngle);
+//                this.clawRotation.setTargetAngle(this.clawRotationAlignAngle);
+//                this.claw.setTargetAngle(clawCloseAngle);
+//                this.extendoTargetPos = this.intakeSetTargetPos;
+//                if (!this.grab) this.clawIntakeState = ClawIntakeState.ALIGN;
+//                break;
+//            case RETRACT:
+//                this.intakeFlipServo.setTargetAngle(intakeFlipUpAngle);
+//                this.clawRotation.setTargetAngle(clawRotationDefaultAngle);
+//                this.claw.setTargetAngle(this.grab ? clawCloseAngle : clawOpenAngle);
+//                this.extendoTargetPos = 0;
+//                this.intakeLight.setState(false);
+//                if (this.isExtensionAtTarget()) {
+//                    this.intakeFlipServo.setTargetAngle(intakeFlipBackAngle);
+//                    this.clawIntakeState = this.grab ? ClawIntakeState.HOLD : ClawIntakeState.READY;
+//                }
+//                break;
+//            case HOLD:
+//                this.intakeFlipServo.setTargetAngle(intakeFlipBackAngle);
+//                this.clawRotation.setTargetAngle(clawRotationDefaultAngle);
+//                this.claw.setTargetAngle(clawCloseAngle);
+//                this.extendoTargetPos = 0;
+//                break;
+//            case READY:
+//                this.intakeFlipServo.setTargetAngle(intakeFlipBackAngle);
+//                this.clawRotation.setTargetAngle(clawRotationDefaultAngle);
+//                this.claw.setTargetAngle(clawOpenAngle);
+//                this.extendoTargetPos = 0;
+//                break;
+//            case TEST:
+//                extendoTargetPos = intakeSetTargetPos;
+//                break;
+//        }
+//
+//        TelemetryUtil.packet.put("ClawIntake.clawRotationAlignAngle", clawRotationAlignAngle);
+//        LogUtil.intakeClawRotationAngle.set(clawRotationAlignAngle);
+//        TelemetryUtil.packet.put("ClawIntake.grab", grab);
+//        LogUtil.intakeClawGrab.set(grab);
+//        TelemetryUtil.packet.put("ClawIntake intakeFlipServo angle", intakeFlipServo.getCurrentAngle());
+//        TelemetryUtil.packet.put("ClawIntake clawRotation angle", clawRotation.getCurrentAngle());
+//        TelemetryUtil.packet.put("ClawIntake State", this.clawIntakeState);
+//        LogUtil.intakeState.set(this.clawIntakeState.toString());
     }
 
     public void setClawRotation(double angle) {

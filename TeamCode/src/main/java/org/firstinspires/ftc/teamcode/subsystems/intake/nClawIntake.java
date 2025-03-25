@@ -25,11 +25,12 @@ public class nClawIntake {
 
     // turretBufferAng -> angle that allows for any rotation to occur with the turret still inside the robot. use in any retract/extend states
 
-    public static double intakeTransferRot = 0.0;
-    public static double turretBufferAng, turretRetractedAng, turretSearchAng, turretTransferAng;
-    public static double turretStartRot = 0.0, turretPreRot = Math.toRadians(15), turretSearchRot = Math.toRadians(180), turretTransferRot = 0.0;
+    public static double intakeTransferRot = 0.0, intakeGrabRot = 0.0;
+    public static double turretBufferAng, turretRetractedAng, turretSearchAng, turretTransferAng, turretGrabAng = -Math.toRadians(15);
+    public static double turretPreRot = Math.toRadians(15), turretSearchRot = Math.toRadians(180), turretTransferRot = 0.0;
 
     private boolean grab = false;
+    private boolean useCamera = true;
 
     public enum nClawIntakeState {
         START_EXTEND,
@@ -96,7 +97,7 @@ public class nClawIntake {
 
                 // Wait for full extension and turret in position before starting search
                 if (endAffector.extendoInPosition() && endAffector.turretRotInPosition()) {
-                    clawIntakeState = this.grab ? nClawIntakeState.CONFIRM : nClawIntakeState.SEARCH;
+                    clawIntakeState = useCamera ? nClawIntakeState.LOWER : nClawIntakeState.SEARCH;
                     intakeLight.setState(true);
                 }
                 break;
@@ -116,7 +117,14 @@ public class nClawIntake {
                 break;
             case LOWER:
                 // intakeAt method should hopefully calculate new extension, new turretAngle + Rotation, and move in to grab
-                intakeAt();
+                if(useCamera){
+                    intakeAt();
+                }else{
+                    endAffector.setIntakeExtension(intakeSetTargetPos);
+                    endAffector.setIntakeRotation(intakeGrabRot);
+                    endAffector.setTurretAngle(turretGrabAng);
+                    endAffector.setTurretRot(turretSearchRot);
+                }
 
                 endAffector.setClawState(false);
 
@@ -233,18 +241,22 @@ public class nClawIntake {
         updateTelemetry();
     }
 
-//    public void setClawRotation(double angle) {
-//        if (angle > 1.7) {
-//            angle = -1.7;
-//        } else if (angle < -1.7){
-//            angle = 1.7;
-//        }
-//        intakeGrabRot = angle;
-//    }
+    public void setCamera(boolean use){
+        useCamera = use;
+    }
 
-//    public double getClawRotAngle() {
-//        return intakeGrabRot;
-//    }
+    public void setClawRotation(double angle) {
+        if (angle > 1.7) {
+            angle = -1.7;
+        } else if (angle < -1.7){
+            angle = 1.7;
+        }
+        intakeGrabRot = angle;
+    }
+
+    public double getClawRotAngle() {
+        return intakeGrabRot;
+    }
 
     private Pose2d target;
     public void setTargetPose(Pose2d t){

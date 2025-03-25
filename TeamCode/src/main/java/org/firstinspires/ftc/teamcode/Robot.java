@@ -128,85 +128,85 @@ public class Robot {
     ^-<< {DEPOSIT_SPECIMEN} << SPECIMEN_READY >>-----^^
 */
 
-//    private void robotFSM() {
-//        long currentTime = System.nanoTime();
-//        boolean wasClicked = this.lastClickTime != -1 && currentTime - this.lastClickTime <= bufferClickDuration * 1e6;
-//
-//        switch (this.state) {
-//            case IDLE:
-//                if (this.prevState != RobotState.IDLE) this.deposit.retract();
-//                if (wasClicked) {
-//                    if (this.nextState == NextState.INTAKE_SAMPLE) this.state = RobotState.INTAKE_SAMPLE;
-//                    else if (this.nextState == NextState.GRAB_SPECIMEN) this.state = RobotState.GRAB_SPECIMEN;
-//                    this.lastClickTime = -1;
-//                }
-//                break;
-//            case INTAKE_SAMPLE:
-//                if (this.prevState != RobotState.INTAKE_SAMPLE) {
-//                    this.clawIntake.extend();
-//                    this.deposit.prepareTransfer();
-//                }
-//                if (this.clawIntake.isRetracted()) {
-//                    if (this.clawIntake.hasSample()) this.state = RobotState.SAMPLE_READY;
-//                    else this.state = RobotState.IDLE;
-//                } else if (wasClicked && this.nextState == NextState.DONE) {
-//                    this.clawIntake.retract();
-//                    this.lastClickTime = -1;
-//                }
-//                break;
-//            case SAMPLE_READY:
-//                if (wasClicked) {
-//                    if (this.nextState == NextState.INTAKE_SAMPLE) state = RobotState.INTAKE_SAMPLE;
-//                    else if (this.nextState == NextState.DEPOSIT) state = RobotState.TRANSFER;
-//                    else if (this.nextState == NextState.DONE) state = RobotState.TRANSFER;
-//                    lastClickTime = -1;
-//                }
-//                break;
-//            case TRANSFER:
-//                if (this.prevState != RobotState.TRANSFER) this.deposit.startTransfer();
-//                if (this.deposit.isSampleReady()) this.state = this.nextState == NextState.DONE ? RobotState.OUTTAKE : RobotState.DEPOSIT_BUCKET;
-//                break;
-//            case DEPOSIT_BUCKET:
-//                if (prevState != RobotState.DEPOSIT_BUCKET) deposit.startSampleDeposit();
-//                if (deposit.isSampleDepositDone()) state = RobotState.IDLE;
-//                else if (wasClicked && this.nextState == NextState.DONE) {
-//                    deposit.finishSampleDeposit();
-//                    lastClickTime = -1;
-//                }
-//                break;
-//            case OUTTAKE:
-//                if (this.prevState != RobotState.OUTTAKE) this.deposit.startOuttake();
-//                if (this.deposit.isOuttakeDone()) this.state = RobotState.IDLE;
-//                break;
-//            case GRAB_SPECIMEN:
-//                if (this.prevState != RobotState.GRAB_SPECIMEN) this.deposit.startSpecimenGrab();
-//                if (this.deposit.isSpecimenReady()) this.state = RobotState.SPECIMEN_READY;
-//                else if (wasClicked) {
-//                    if (this.nextState == NextState.DONE) this.state = RobotState.IDLE;
-//                    else if (this.nextState == NextState.GRAB_SPECIMEN) this.deposit.finishSpecimenGrab();
-//                    this.lastClickTime = -1;
-//                }
-//                break;
-//            case SPECIMEN_READY:
-//                if (wasClicked) {
-//                    if (this.nextState == NextState.DONE) this.state = RobotState.OUTTAKE;
-//                    else if (this.nextState == NextState.DEPOSIT) this.state = RobotState.DEPOSIT_SPECIMEN;
-//                    else if (this.nextState == NextState.GRAB_SPECIMEN) this.state = RobotState.GRAB_SPECIMEN;
-//                    this.lastClickTime = -1;
-//                }
-//                break;
-//            case DEPOSIT_SPECIMEN:
-//                if (this.prevState != RobotState.DEPOSIT_SPECIMEN) this.deposit.startSpecimenDeposit();
-//                if (this.deposit.isSpecimenDepositDone()) this.state = RobotState.IDLE;
-//                else if ((wasClicked) && this.nextState == NextState.DONE) {
-//                    this.deposit.finishSpecimenDeposit();
-//                    this.lastClickTime = -1;
-//                }
-//                break;
-//        }
-//        prevState = prevState1;
-//        prevState1 = state;
-//    }
+    private void robotFSM() {
+        long currentTime = System.nanoTime();
+        boolean wasClicked = this.lastClickTime != -1 && currentTime - this.lastClickTime <= bufferClickDuration * 1e6;
+
+        switch (this.state) {
+            case IDLE:
+                if (this.prevState != RobotState.IDLE) this.deposit.retract();
+                if (wasClicked) {
+                    if (this.nextState == NextState.INTAKE_SAMPLE) this.state = RobotState.INTAKE_SAMPLE;
+                    else if (this.nextState == NextState.GRAB_SPECIMEN) this.state = RobotState.GRAB_SPECIMEN;
+                    this.lastClickTime = -1;
+                }
+                break;
+            case INTAKE_SAMPLE:
+                if (this.prevState != RobotState.INTAKE_SAMPLE) {
+                    this.clawIntake.extend();
+                    this.deposit.prepareTransfer();
+                }
+                if (this.clawIntake.isRetracted()) {
+                    if (this.clawIntake.hasSample()) this.state = RobotState.SAMPLE_READY;
+                    else this.state = RobotState.IDLE;
+                } else if (wasClicked && this.nextState == NextState.DONE) {
+                    this.clawIntake.retract();
+                    this.lastClickTime = -1;
+                }
+                break;
+            case SAMPLE_READY:
+                if (wasClicked) {
+                    if (this.nextState == NextState.INTAKE_SAMPLE) state = RobotState.INTAKE_SAMPLE;
+                    else if (this.nextState == NextState.DEPOSIT) state = RobotState.TRANSFER;
+                    else if (this.nextState == NextState.DONE) state = RobotState.TRANSFER;
+                    lastClickTime = -1;
+                }
+                break;
+            case TRANSFER:
+                if (this.prevState != RobotState.TRANSFER) this.deposit.startTransfer();
+                if (this.deposit.isSampleReady()) this.state = this.nextState == NextState.DONE ? RobotState.OUTTAKE : RobotState.DEPOSIT_BUCKET;
+                break;
+            case DEPOSIT_BUCKET:
+                if (prevState != RobotState.DEPOSIT_BUCKET) deposit.startSampleDeposit();
+                if (deposit.isSampleDepositDone()) state = RobotState.IDLE;
+                else if (wasClicked && this.nextState == NextState.DONE) {
+                    deposit.finishSampleDeposit();
+                    lastClickTime = -1;
+                }
+                break;
+            case OUTTAKE:
+                if (this.prevState != RobotState.OUTTAKE) this.deposit.startOuttake();
+                if (this.deposit.isOuttakeDone()) this.state = RobotState.IDLE;
+                break;
+            case GRAB_SPECIMEN:
+                if (this.prevState != RobotState.GRAB_SPECIMEN) this.deposit.startSpecimenGrab();
+                if (this.deposit.isSpecimenReady()) this.state = RobotState.SPECIMEN_READY;
+                else if (wasClicked) {
+                    if (this.nextState == NextState.DONE) this.state = RobotState.IDLE;
+                    else if (this.nextState == NextState.GRAB_SPECIMEN) this.deposit.finishSpecimenGrab();
+                    this.lastClickTime = -1;
+                }
+                break;
+            case SPECIMEN_READY:
+                if (wasClicked) {
+                    if (this.nextState == NextState.DONE) this.state = RobotState.OUTTAKE;
+                    else if (this.nextState == NextState.DEPOSIT) this.state = RobotState.DEPOSIT_SPECIMEN;
+                    else if (this.nextState == NextState.GRAB_SPECIMEN) this.state = RobotState.GRAB_SPECIMEN;
+                    this.lastClickTime = -1;
+                }
+                break;
+            case DEPOSIT_SPECIMEN:
+                if (this.prevState != RobotState.DEPOSIT_SPECIMEN) this.deposit.startSpecimenDeposit();
+                if (this.deposit.isSpecimenDepositDone()) this.state = RobotState.IDLE;
+                else if ((wasClicked) && this.nextState == NextState.DONE) {
+                    this.deposit.finishSpecimenDeposit();
+                    this.lastClickTime = -1;
+                }
+                break;
+        }
+        prevState = prevState1;
+        prevState1 = state;
+    }
 
     /**
      * Gets the Robot FSM's state. -- Daniel

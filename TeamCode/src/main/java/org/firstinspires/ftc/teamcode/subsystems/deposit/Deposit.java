@@ -45,25 +45,22 @@ public class Deposit {
     public final Slides slides;
     public final Arm arm;
 
-    /// x values are measured from the base of the arm
-    //// y values are measured from the ground
-    //// intake is positive x direction
-
-    //private final double baseHeight = 10.75;
-
-    // y is measured from slides 0
-
     // prepare for transfer positions
-    public static double intakeWaitRad = 0.4, intakeWaitY = 0.0, intakeWaitClawRad = 1.235;
+    public static double intakeWaitRad = -Math.toRadians(45), intakeWaitY = 7.0, intakeWaitClawRad = 0;
+
     // transfer positions, move in to grab
-    public static double intakeRad = 0.1118, intakeY = 0.0, intakeClawRad = 1.7354;
+    public static double intakeRad = -Math.toRadians(45), intakeY = 5.0, intakeClawRad = 0.0;
+
     // moving positions with a sample
     public static double sampleHoldRad = 0.0, holdY = 0.0, sampleHoldClawRad = -Math.PI / 2;
     public static double specimenGrabRad = 0.04, specimenGrabClawRad = 0.0, specimenConfirmRad = Math.toRadians(40), specimenConfirmClawRad = Math.toRadians(40);
+
     // sample basket positions
     public static double sampleLY = 16.75, sampleHY = 32.5, sampleRaiseRad = Math.toRadians(90), sampleDepositRad = 2.2, sampleDepositClawRad = -0.2;
+
     // outtake positions, drop behind robot
     public static double outtakeRad = Math.toRadians(180), outtakeY = 0.0, outtakeClawRad = 0.0;
+
     // grabbing positions, holdGrab -> off the wall, grabRetract --> moving with a specimen
     // specimen chamber positions
     public static double speciLSY = 18.4;
@@ -71,7 +68,6 @@ public class Deposit {
     // TODO: ^ These values look about fine tbh, just had to reverse the sign of the claw. Need to test
 
     private long currentTime = -1;
-    private long sampleReleaseTime = -1;
     private long specimenReleaseTime = -1;
     public static int sampleReleaseDuration = 300;
     public static int specimenReleaseDuration = 700;
@@ -144,8 +140,8 @@ public class Deposit {
                 if (upBuf)
                     moveToWithRad(sampleHoldRad, Slides.maxSlidesHeight / 2);
                 else
-
                     moveToWithRad(sampleHoldRad, holdY);
+
                 arm.setClawRotation(sampleHoldClawRad, 1.0);
                 arm.clawClose();
 

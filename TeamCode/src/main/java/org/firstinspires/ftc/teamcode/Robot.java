@@ -94,7 +94,7 @@ public class Robot {
     public void update() {
         START_LOOP();
         this.updateSubsystems();
-        //this.updateTelemetry();
+        this.updateTelemetry();
     }
 
     private void updateSubsystems() {
@@ -104,7 +104,7 @@ public class Robot {
         nclawIntake.update();
         // intake.update();
         this.drivetrain.update();
-        this.deposit.update();
+        //this.deposit.update();
         this.hang.update();
 
         //this.robotFSM();

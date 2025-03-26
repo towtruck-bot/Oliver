@@ -11,7 +11,7 @@ import org.firstinspires.ftc.teamcode.utils.priority.PriorityMotor;
 public class Hang {
     private final PriorityCRServo leftServo;
     private final PriorityCRServo rightServo;
-    private final PriorityMotor hangMotor;
+    public final PriorityMotor hangMotor;
 
     public Hang(Robot robot) {
         CRServo leftHang = robot.hardwareMap.get(CRServo.class, "leftHang");

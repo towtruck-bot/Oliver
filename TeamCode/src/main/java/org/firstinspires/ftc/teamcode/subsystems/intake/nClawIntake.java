@@ -2,6 +2,8 @@ package org.firstinspires.ftc.teamcode.subsystems.intake;
 
 import android.util.Log;
 
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.canvas.Canvas;
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
 
@@ -21,17 +23,19 @@ public class nClawIntake {
 
     private final DigitalChannel intakeLight;
 
-    private double intakeSetTargetPos;
+    private double intakeSetTargetPos = 0;
 
     // turretBufferAng -> angle that allows for any rotation to occur with the turret still inside the robot. use in any retract/extend states
 
     public static double intakeTransferRot = 0.0, intakeGrabRot = 0.0;
-    public static double turretBufferAng = Math.toRadians(75), turretRetractedAng = Math.toRadians(125), turretSearchAng = Math.toRadians(45), turretTransferAng = Math.toRadians(60), turretGrabAng = -Math.toRadians(15);
-    public static double turretPreRot = Math.toRadians(15), turretSearchRot = Math.toRadians(180), turretTransferRot = 0.0, turretGrabRot = 0.0;
+    public static double turretBufferAng = 1.2506, turretRetractedAng = 1.8, turretSearchAng = 2.0393, turretTransferAng = Math.toRadians(60), turretGrabAng = -Math.toRadians(15);
+    public static double turretPreRot = 2.7415, turretSearchRot = 0, turretTransferRot = 2.9651, turretGrabRot = 0.0;
+    public static double bufferMinExtension = 3;
 
     private boolean grab = false;
     private boolean useCamera = true;
     private boolean prepareTransfer = false, completeTransfer = false;
+    private Pose2d target;
 
     public enum nClawIntakeState {
         START_EXTEND,
@@ -64,7 +68,9 @@ public class nClawIntake {
             resetExtendoEncoders();
         }
 
-        this.intakeSetTargetPos = 15;
+        intakeSetTargetPos = 15;
+
+        target = new Pose2d(0, 0, 0);
     }
 
     //general update for entire class
@@ -74,11 +80,10 @@ public class nClawIntake {
         switch (clawIntakeState) {
             case START_EXTEND:
                 // Pre-rotate the turret + claw servos
-                intakeSetTargetPos = 2.0;
-                endAffector.setIntakeExtension(intakeSetTargetPos);
+                endAffector.setIntakeExtension(bufferMinExtension);
                 endAffector.setTurretAngle(turretBufferAng);
                 endAffector.setTurretRot(turretPreRot);
-                endAffector.setIntakeRotation(intakeTransferRot);
+                endAffector.setIntakeRotation(target.heading);
 
                 endAffector.setClawState(grab);
 
@@ -92,7 +97,7 @@ public class nClawIntake {
                 endAffector.setIntakeExtension(intakeSetTargetPos);
                 endAffector.setTurretAngle(turretSearchAng);
                 endAffector.setTurretRot(turretSearchRot);
-                endAffector.setIntakeRotation(intakeTransferRot);
+                endAffector.setIntakeRotation(target.heading);
 
                 endAffector.setClawState(grab);
 
@@ -105,7 +110,7 @@ public class nClawIntake {
             case SEARCH:
                 // Begin Serach, just hold positions
                 endAffector.setIntakeExtension(intakeSetTargetPos);
-                endAffector.setIntakeRotation(intakeTransferRot);
+                endAffector.setIntakeRotation(target.heading);
                 endAffector.setTurretAngle(turretSearchAng);
                 endAffector.setTurretRot(turretSearchRot);
 
@@ -297,7 +302,6 @@ public class nClawIntake {
         return intakeGrabRot;
     }
 
-    private Pose2d target;
     public void setTargetPose(Pose2d t){
         target = t.clone();
     }
@@ -345,7 +349,7 @@ public class nClawIntake {
         return clawIntakeState == nClawIntakeState.SEARCH;
     }
 
-    public void setIntakeTargetPos(double targetPos) {
+    public void setIntakeLength(double targetPos) {
         this.intakeSetTargetPos = Utils.minMaxClip(targetPos, 1, 19);
     }
 

@@ -17,6 +17,8 @@ public class SlidesTuner extends LinearOpMode {
     public static double targetSlidesHeight = 0.0;
     private static double largestVel = 0;
     public static boolean powerMode = false;
+    public static boolean hangMotor = false;
+    public static double hangMotorPower = 0;
     public static double power = 0;
 
     public void runOpMode(){
@@ -43,6 +45,10 @@ public class SlidesTuner extends LinearOpMode {
                 TelemetryUtil.sendTelemetry();
                 robot.sensors.update();
                 continue;
+            }
+
+            if (hangMotor) {
+                robot.hang.hangMotor.setTargetPower(hangMotorPower);
             }
 
             TelemetryUtil.packet.put("Slides: Error", targetSlidesHeight - slides.getLength());

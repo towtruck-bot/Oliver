@@ -3,7 +3,6 @@ package org.firstinspires.ftc.teamcode.subsystems.deposit;
 import android.util.Log;
 
 import com.acmerobotics.dashboard.config.Config;
-import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.utils.Globals;
@@ -88,15 +87,15 @@ public class Deposit {
 
     public Deposit(Robot robot){
         this.robot = robot;
-        this.slides = new Slides(this.robot);
 
+        slides = new Slides(this.robot);
         arm = new Arm(this.robot);
 
         state = Globals.hasSpecimenPreload ? State.GRAB_HOLD : Globals.hasSamplePreload ? State.HOLD : State.RETRACT;
     }
 
     public void update(){
-        this.currentTime = System.nanoTime();
+        currentTime = System.nanoTime();
 
         switch (state) {
             case IDLE:
@@ -107,7 +106,7 @@ public class Deposit {
                 arm.setClawRotation(intakeWaitClawRad, 1.0);
                 arm.sampleOpen();
 
-                if(arm.inPosition() && slides.inPosition(1) && arm.clawFinished()){
+                if(arm.inPosition() && slides.inPosition(1) && arm.clawInPosition()){
                     state = State.TRANSFER_WAIT;
                 }
                 break;
@@ -131,7 +130,7 @@ public class Deposit {
                 arm.setClawRotation(intakeClawRad, 1.0);
                 arm.clawClose();
 
-                if (arm.clawFinished() && this.currentTime - this.grabStartTime >= transferBufferDuration * 1e6) {
+                if (arm.clawInPosition() && this.currentTime - this.grabStartTime >= transferBufferDuration * 1e6) {
                     state = State.TRANSFER_FINISH;
                     robot.clawIntake.release();
                 }
@@ -176,7 +175,7 @@ public class Deposit {
                 arm.setClawRotation(sampleDepositClawRad, 1.0);
                 arm.sampleOpen();
 
-                if (arm.clawFinished()) {
+                if (arm.clawInPosition()) {
                     state = State.SAMPLE_FINISH;
                 }
                 break;
@@ -201,7 +200,7 @@ public class Deposit {
                 arm.setClawRotation(outtakeClawRad, 1.0);
                 arm.sampleOpen();
 
-                if (arm.clawFinished()) {
+                if (arm.clawInPosition()) {
                     state = State.RETRACT;
                 }
                 break;
@@ -223,7 +222,7 @@ public class Deposit {
                 arm.setClawRotation(specimenGrabClawRad, 1.0);
                 arm.clawClose();
 
-                if (arm.clawFinished()) {
+                if (arm.clawInPosition()) {
                     state = State.GRAB_RETRACT;
                 }
                 break;
@@ -245,7 +244,7 @@ public class Deposit {
                 moveToWithRad(speciHRad, targetY);
                 arm.setClawRotation(speciHClawRad, 1.0);
 
-                if (arm.inPosition() && arm.clawFinished()) {
+                if (arm.inPosition() && arm.clawInPosition()) {
                     state = State.SPECI_DEPOSIT;
                 }
                 break;
@@ -258,7 +257,7 @@ public class Deposit {
             case RELEASE:
                 arm.speciOpen();
 
-                if (arm.clawFinished() && this.currentTime >= this.specimenReleaseTime + specimenReleaseDuration * 1e6) {
+                if (arm.clawInPosition() && this.currentTime >= this.specimenReleaseTime + specimenReleaseDuration * 1e6) {
                     state = State.RETRACT;
                 }
                 break;
@@ -293,7 +292,7 @@ public class Deposit {
         TelemetryUtil.packet.put("Deposit.targetY", this.targetY);
         TelemetryUtil.packet.put("Deposit: Arm inPosition", arm.inPosition());
         TelemetryUtil.packet.put("Deposit: Slides inPosition", slides.inPosition(0.5));
-        TelemetryUtil.packet.put("Deposit: Claw inPosition", arm.clawFinished());
+        TelemetryUtil.packet.put("Deposit: Claw inPosition", arm.clawInPosition());
         TelemetryUtil.packet.put("Deposit: Hanging", hangMode);
 
         hangMode = HangMode.OFF;

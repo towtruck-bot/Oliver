@@ -26,7 +26,7 @@ public class Arm {
                 nPriorityServo.ServoType.AXON_MINI,
                 0.309,
                 1.0,
-                0.913,
+                0.87,
                 new boolean[] {false, true},
                 1.0,
                 2.0
@@ -84,7 +84,9 @@ public class Arm {
         return armRotation.inPosition() && clawRotation.inPosition();
     }
 
-    public boolean clawFinished(){
+    public boolean clawInPosition(){
         return clawGrip.inPosition();
     }
+
+    public boolean armInPosition() { return armRotation.inPosition(); }
 }

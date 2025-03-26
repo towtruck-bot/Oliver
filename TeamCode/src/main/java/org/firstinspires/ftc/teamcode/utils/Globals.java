@@ -13,6 +13,7 @@ public class Globals {
     public static boolean hasSpecimenPreload = false;
     public static boolean hasSamplePreload = false;
     public static long autoStartTime = -1;
+    public static boolean autoHang = true;
     public static boolean gotBloodyAnnihilated = false; // STOP DELETEING THIS FOR GODS SAKE
     // drivetrain
     public static boolean DRIVETRAIN_ENABLED = true;

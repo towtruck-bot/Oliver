@@ -4,311 +4,287 @@ import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.utils.Utils;
 
 public class nDeposit {
-    public enum nDepositState{
+    public enum State {
         IDLE,
-        TRANSFER_PREP,
         TRANSFER_WAIT,
-        TRANSFER_GRAB,
         TRANSFER_FINISH,
         HOLD,
         SAMPLE_RAISE,
+        SAMPLE_WAIT,
         SAMPLE_DEPOSIT,
-        SAMPLE_RETRACT,
         OUTTAKE,
-        GRAB,
-        GRAB_FINISH,
+        SPECIMEN_INTAKE_WAIT,
+        SPECIMEN_GRAB,
         SPECIMEN_RAISE,
         SPECIMEN_DEPOSIT,
         RETRACT
-    };
-    nDepositState ndepositState = nDepositState.IDLE;
+    }
 
-    public enum HangState{
+    ;
+    public State state = State.IDLE;
+
+    public enum HangState {
         OUT,
         PULL,
         OFF
-    };
+    }
+
+    ;
     public HangState hangState = HangState.OFF;
-    public boolean holdSlides = false;
 
     private Robot robot;
     private Slides slides;
     private Arm arm;
 
     // TODO: All values below (v) are estimates and may not scale correctly with the 0 positions. Make sure to tune!
-    public static double transferArm = Math.toRadians(-45), transferClaw = 0.0, transferPrepY = 7.0, transferY = 5.0;
+    public static double transferArm = Math.toRadians(-45), transferClaw = 0.0, transferY = 0;
     public static double holdArm = Math.toRadians(90), holdClaw = 0.0, holdY = 0.0;
-    public static double sampleArm = Math.toRadians(150), sampleClaw = Math.toRadians(30), sampleY = 32.5, sampleRetract = Math.toRadians(90);
+    public static double raiseArmBufferRotation = - Math.PI / 2,  sampleArm = Math.toRadians(150), sampleClaw = Math.toRadians(30), sampleY = 32.5;
     public static double outtakeArm = Math.toRadians(135), outtakeClaw = Math.toRadians(45), outtakeY = 0.0;
-    public static double grabArm = Math.toRadians(180.0), grabClaw = 0.0, grabY = 0.0;
-    public static double speciArm = Math.toRadians(30.0), speciClaw = Math.toRadians(-50.0), speciY = 18.6;
+    public static double specimenIntakeArm = 0, specimenIntakeClaw = 0, specimenIntakeY = 0;
+    public static double specimenDepositArm = Math.toRadians(30.0), specimenDepositClaw = Math.toRadians(-50.0), specimenDepositY = 18.6;
 
-    private boolean prepare = false, transfer = false, deposit = false, sample = false, outtake = false, grab = false, speci = false;
+    private boolean requestFinishTransfer = false,
+                    releaseRequested = false,
+                    sampleDepositRequested = false,
+                    outtakeRequested = false,
+                    grab = false,
+                    specimenDepositRequested = false,
+                    transferRequested = false,
+                    specimenIntakeRequested = false,
+                    grabRequested = false;
 
-    private double targetY = 0.0;
-
-    public nDeposit(Robot robot){
+    public nDeposit(Robot robot) {
         this.robot = robot;
 
-        slides = new Slides(this.robot);
-        arm = new Arm(this.robot);
+        slides = new Slides(robot);
+        arm = new Arm(robot);
     }
 
-    public void update(){
+    public void update() {
         slides.update();
 
-        switch(ndepositState){
+        switch (state) {
             case IDLE:
-                movePoses();
+                moveToHoldPoses();
 
-                if(prepare){
-                    ndepositState = nDepositState.TRANSFER_PREP;
-                    prepare = false;
+                if (transferRequested) {
+                    state = State.TRANSFER_WAIT;
+                    transferRequested = false;
                 }
-                break;
-            case TRANSFER_PREP:
-                slides.setTargetLength(targetY);
-                arm.setArmRotation(transferArm, 1.0);
-                arm.setClawRotation(transferClaw, 1.0);
-
-                arm.sampleOpen();
-
-                if(arm.inPosition() && slides.inPosition(1.0)){
-                    ndepositState = nDepositState.TRANSFER_WAIT;
+                if (specimenIntakeRequested) {
+                    state = State.SPECIMEN_INTAKE_WAIT;
+                    specimenIntakeRequested = false;
                 }
                 break;
             case TRANSFER_WAIT:
-                if(transfer){
-                    ndepositState = nDepositState.TRANSFER_GRAB;
-                    transfer = false;
-                }
-                break;
-            case TRANSFER_GRAB:
-                slides.setTargetLength(targetY);
+                slides.setTargetLength(transferY);
                 arm.setArmRotation(transferArm, 1.0);
                 arm.setClawRotation(transferClaw, 1.0);
 
                 arm.sampleOpen();
 
-                if(arm.inPosition() && slides.inPosition(0.5)){
-                    ndepositState = nDepositState.TRANSFER_FINISH;
+                if (arm.inPosition() && slides.inPosition(1.0) && requestFinishTransfer) {
+                    state = State.TRANSFER_FINISH;
+                    robot.nclawIntake.finishTransfer(); // Just to make sure you're not being stupid - Eric
+                    requestFinishTransfer = false;
                 }
+
                 break;
             case TRANSFER_FINISH:
-                slides.setTargetLength(targetY);
+                // Grab the thing
+                slides.setTargetLength(transferY);
                 arm.setArmRotation(transferArm, 1.0);
                 arm.setClawRotation(transferClaw, 1.0);
 
                 arm.clawClose();
 
-                if(arm.clawInPosition()){
-                    ndepositState = nDepositState.HOLD;
-                    robot.nclawIntake.confirmTransfer();
+                if (arm.clawInPosition()) {
+                    state = State.HOLD;
                 }
                 break;
             case HOLD:
-                movePoses();
+                moveToHoldPoses();
 
-                if(sample){
-                    ndepositState = nDepositState.SAMPLE_RAISE;
-                    sample = false;
+                if (sampleDepositRequested) {
+                    state = State.SAMPLE_RAISE;
+                    sampleDepositRequested = false;
                 }
 
-                if(outtake){
-                    ndepositState = nDepositState.OUTTAKE;
-                    outtake = false;
+                if (outtakeRequested) {
+                    state = State.OUTTAKE;
+                    outtakeRequested = false;
                 }
 
-                if(speci){
-                    ndepositState = nDepositState.SPECIMEN_RAISE;
-                    speci = false;
+                if (specimenDepositRequested) {
+                    state = State.SPECIMEN_RAISE;
+                    specimenDepositRequested = false;
                 }
                 break;
             case SAMPLE_RAISE:
-                slides.setTargetLength(targetY);
+                slides.setTargetLength(sampleY);
+                arm.setArmRotation(raiseArmBufferRotation, 1.0);
+                arm.setClawRotation(sampleClaw, 1.0);
+
+                arm.clawClose();
+
+                if (arm.inPosition()) {
+                    state = State.SAMPLE_WAIT;
+                }
+                break;
+            case SAMPLE_WAIT:
+                slides.setTargetLength(sampleY);
                 arm.setArmRotation(sampleArm, 1.0);
                 arm.setClawRotation(sampleClaw, 1.0);
 
                 arm.clawClose();
 
-                if(arm.inPosition() && slides.inPosition(1.0) && deposit){
-                    ndepositState = nDepositState.SAMPLE_DEPOSIT;
-                    deposit = false;
+                if (arm.inPosition() && slides.inPosition(1.0) && releaseRequested) {
+                    state = State.SAMPLE_DEPOSIT;
+                    releaseRequested = false;
                 }
                 break;
             case SAMPLE_DEPOSIT:
-                slides.setTargetLength(targetY);
+                slides.setTargetLength(sampleY);
                 arm.setArmRotation(sampleArm, 1.0);
                 arm.setClawRotation(sampleClaw, 1.0);
 
                 arm.sampleOpen();
 
-                if(arm.clawInPosition()){
-                    ndepositState = nDepositState.SAMPLE_RETRACT;
-                }
-                break;
-            case SAMPLE_RETRACT:
-                slides.setTargetLength(targetY);
-                arm.setArmRotation(sampleRetract, 1.0);
-                arm.setClawRotation(holdClaw, 1.0);
-
-                if(arm.armInPosition()){
-                    ndepositState = nDepositState.RETRACT;
+                if (arm.clawInPosition()) {
+                    state = State.RETRACT;
                 }
                 break;
             case OUTTAKE:
-                slides.setTargetLength(targetY);
+                // I don't know what the hell outtake does and why it like instantly pops the thing off but I trust its useful - Eric
+                slides.setTargetLength(outtakeY);
                 arm.setArmRotation(outtakeArm, 1.0);
                 arm.setClawRotation(outtakeClaw, 1.0);
 
-                if(arm.inPosition()){
-                    ndepositState = nDepositState.IDLE;
+                if (arm.inPosition()) {
+                    state = State.IDLE;
                     arm.sampleOpen();
                 }
                 break;
-            case GRAB:
-                slides.setTargetLength(targetY);
-                arm.setArmRotation(grabArm, 1.0);
-                arm.setClawRotation(grabClaw, 1.0);
+            case SPECIMEN_INTAKE_WAIT:
+                slides.setTargetLength(specimenIntakeY);
+                arm.setArmRotation(specimenIntakeArm, 1.0);
+                arm.setClawRotation(specimenIntakeClaw, 1.0);
 
                 arm.sampleOpen();
 
-                if(grab){
-                    ndepositState = nDepositState.GRAB_FINISH;
+                if (slides.inPosition(1.0) && arm.inPosition() && grabRequested) {
+                    state = State.SPECIMEN_GRAB;
                     grab = false;
                 }
-                break;
-            case GRAB_FINISH:
-                slides.setTargetLength(targetY);
-                arm.setArmRotation(grabArm, 1.0);
-                arm.setClawRotation(grabClaw, 1.0);
+            case SPECIMEN_GRAB:
+                slides.setTargetLength(specimenIntakeY);
+                arm.setArmRotation(specimenIntakeArm, 1.0);
+                arm.setClawRotation(specimenIntakeClaw, 1.0);
 
                 arm.clawClose();
 
-                if(arm.clawInPosition()){
-                    ndepositState = nDepositState.HOLD;
+                if (arm.clawInPosition()) {
+                    state = State.HOLD;
+                    grab = false;
                 }
                 break;
             case SPECIMEN_RAISE:
-                slides.setTargetLength(targetY);
-                arm.setArmRotation(speciArm, 1.0);
-                arm.setClawRotation(speciClaw, 1.0);
+                slides.setTargetLength(specimenDepositY);
+                arm.setArmRotation(specimenDepositArm, 1.0);
+                arm.setClawRotation(specimenDepositClaw, 1.0);
 
-                if(arm.inPosition() && slides.inPosition(0.5) && deposit){
-                    ndepositState = nDepositState.SPECIMEN_DEPOSIT;
-                    deposit = false;
+                if (arm.inPosition() && slides.inPosition(0.5) && releaseRequested) {
+                    state = State.SPECIMEN_DEPOSIT;
+                    releaseRequested = false;
                 }
                 break;
             case SPECIMEN_DEPOSIT:
-                slides.setTargetLength(targetY);
-                arm.setArmRotation(speciArm, 1.0);
-                arm.setClawRotation(speciClaw, 1.0);
+                slides.setTargetLength(specimenDepositY);
+                arm.setArmRotation(specimenDepositArm, 1.0);
+                arm.setClawRotation(specimenDepositClaw, 1.0);
 
                 arm.sampleOpen();
 
-                if(arm.clawInPosition()){
-                    ndepositState = nDepositState.RETRACT;
+                if (arm.clawInPosition()) {
+                    state = State.RETRACT;
                 }
                 break;
             case RETRACT:
-                movePoses();
+                moveToHoldPoses();
 
-                if(arm.inPosition() && slides.inPosition(0.5)){
-                    ndepositState = nDepositState.IDLE;
+                if (arm.inPosition() && slides.inPosition(0.5)) {
+                    state = State.IDLE;
                 }
                 break;
         }
 
-        if(holdSlides){
-            slides.setTargetLength(targetY);
-        }
-
-        if(hangState == HangState.PULL){
+        if (hangState == HangState.PULL) {
             slides.setTargetPowerFORCED(-0.9);
-            targetY = slides.getLength() - 0.5;
-        }else if(hangState == HangState.OUT){
+        } else if (hangState == HangState.OUT) {
             slides.setTargetPowerFORCED(0.7);
-            targetY = slides.getLength() + 0.5;
         }
-
-        if(hangState != HangState.OFF){
-            holdSlides = true;
-        }
-
-        hangState = HangState.OFF;
     }
 
-    public void setDepositHeight(double l){
-        targetY = Utils.minMaxClip(l, 0.0, Slides.maxSlidesHeight);
+    public void setSampleHeight(double l) {
+        sampleY = Utils.minMaxClip(l, 0.0, Slides.maxSlidesHeight);
     }
 
-    public void movePoses(){
+    private void moveToHoldPoses() {
         slides.setTargetLength(holdY);
         arm.setArmRotation(holdArm, 1.0);
         arm.setClawRotation(holdClaw, 1.0);
     }
 
-    public void prepareTransfer(){
-        if(ndepositState == nDepositState.IDLE){
-            prepare = true;
-            targetY = transferPrepY;
+    public void startTransfer() {
+        transferRequested = true;
+    }
+
+    public boolean isTransferFinished() {
+        return state == State.HOLD;
+    }
+
+    public void outtake() {
+        if (state == State.HOLD)
+            outtakeRequested = true;
+    }
+
+    public boolean isOuttakeDone() {
+        return state == State.HOLD;
+    }
+
+    public void grab() {
+        grabRequested = true;
+    }
+
+    public boolean isGrabDone() {
+        return state == State.HOLD;
+    }
+
+    public void sampleDeposit() {
+        sampleDepositRequested = true;
+    }
+
+    public void startSpecimenDeposit() {
+        if (state == State.HOLD)
+            specimenDepositRequested = true;
+    }
+
+    public void startSpecimenIntake() {
+        specimenIntakeRequested = true;
+    }
+
+    public void deposit() {
+        if (state == State.SAMPLE_RAISE || state == State.SPECIMEN_RAISE) {
+            releaseRequested = true;
         }
     }
 
-    public void startTransfer(){
-        if(ndepositState == nDepositState.TRANSFER_WAIT){
-            transfer = true;
-            targetY = transferY;
-        }
+    public boolean isDepositFinished() {
+        return state == State.IDLE;
     }
 
-    public boolean isTransferFinished(){
-        return ndepositState == nDepositState.HOLD;
-    }
-
-    public void outtake(){
-        if(ndepositState == nDepositState.HOLD){
-            outtake = true;
-            targetY = outtakeY;
-        }
-    }
-
-    public boolean isOuttakeDone(){
-        return ndepositState == nDepositState.HOLD;
-    }
-
-    public void grab(){
-        if(ndepositState == nDepositState.GRAB){
-            grab = true;
-            targetY = grabY;
-        }
-    }
-
-    public boolean isGrabDone(){
-        return ndepositState == nDepositState.HOLD;
-    }
-
-    public void sampleDeposit(){
-        if(ndepositState == nDepositState.HOLD){
-            sample = true;
-            targetY = sampleY;
-        }
-    }
-
-    public void speciDeposit(){
-        if(ndepositState == nDepositState.HOLD){
-            speci = true;
-            targetY = speciY;
-        }
-    }
-
-    public void deposit(){
-        if(ndepositState == nDepositState.SAMPLE_RAISE || ndepositState == nDepositState.SPECIMEN_RAISE){
-            deposit = true;
-        }
-    }
-
-    public boolean isDepositFinished(){
-        return ndepositState == nDepositState.IDLE;
+    public boolean isTransferReady() {
+        return state == State.TRANSFER_WAIT && arm.inPosition() && slides.inPosition(0.6);
     }
 }

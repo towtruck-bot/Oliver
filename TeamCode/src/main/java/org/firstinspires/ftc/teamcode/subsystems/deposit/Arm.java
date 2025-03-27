@@ -24,9 +24,9 @@ public class Arm {
                 new Servo[] {robot.hardwareMap.get(Servo.class, "armRotationL"), robot.hardwareMap.get(Servo.class, "armRotationR")},
                 "armRotation",
                 nPriorityServo.ServoType.AXON_MINI,
-                0.309,
+                0.34,
                 1.0,
-                0.913,
+                0.89,
                 new boolean[] {false, true},
                 1.0,
                 2.0
@@ -36,10 +36,10 @@ public class Arm {
         clawRotation = new nPriorityServo(
                 new Servo[] {robot.hardwareMap.get(Servo.class, "clawRotation")},
                 "clawRotation",
-                nPriorityServo.ServoType.AXON_MINI,
+                nPriorityServo.ServoType.AXON_MAX,
                 0,
-                1.0,
-                0.5,
+                0.67,
+                0.32,
                 new boolean[] {true},
                 1.0,
                 2.0
@@ -84,7 +84,9 @@ public class Arm {
         return armRotation.inPosition() && clawRotation.inPosition();
     }
 
-    public boolean clawFinished(){
+    public boolean clawInPosition(){
         return clawGrip.inPosition();
     }
+
+    public boolean armInPosition() { return armRotation.inPosition(); }
 }

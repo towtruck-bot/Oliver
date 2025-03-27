@@ -9,6 +9,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.teamcode.sensors.Sensors;
 import org.firstinspires.ftc.teamcode.subsystems.deposit.Deposit;
+import org.firstinspires.ftc.teamcode.subsystems.deposit.nDeposit;
 import org.firstinspires.ftc.teamcode.subsystems.drive.Drivetrain;
 import org.firstinspires.ftc.teamcode.subsystems.drive.Spline;
 import org.firstinspires.ftc.teamcode.subsystems.hang.Hang;
@@ -30,6 +31,7 @@ public class Robot {
     public final Drivetrain drivetrain;
     public final ClawIntake clawIntake;
     public final nClawIntake nclawIntake;
+    public final nDeposit ndeposit;
     // public final Intake intake;
     public final Deposit deposit;
     public final Hang hang;
@@ -85,6 +87,7 @@ public class Robot {
         // intake = new Intake(this);
         drivetrain = new Drivetrain(this);
         deposit = new Deposit(this);
+        ndeposit = new nDeposit(this);
         hang = new Hang(this);
 
         TelemetryUtil.setup();
@@ -100,15 +103,17 @@ public class Robot {
     private void updateSubsystems() {
         this.sensors.update();
 
-        this.clawIntake.update();
+        //this.clawIntake.update();
+        nclawIntake.update();
         // intake.update();
-        this.drivetrain.update();
-        this.deposit.update();
-        this.hang.update();
+        drivetrain.update();
+        //this.deposit.update();
+        //ndeposit.update();
+        hang.update();
 
-        this.robotFSM();
+        //this.robotFSM();
 
-        this.hardwareQueue.update();
+        hardwareQueue.update();
     }
 
 /* Main Robot FSM diagram: "robot_fsm_v2.png" https://drive.google.com/drive/folders/1sDZOtl4i8u25d1JrAI3fPGEy5iU4Kujq?usp=sharing

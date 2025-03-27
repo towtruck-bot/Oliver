@@ -12,20 +12,21 @@ import org.firstinspires.ftc.teamcode.utils.Globals;
 import org.firstinspires.ftc.teamcode.utils.LogUtil;
 import org.firstinspires.ftc.teamcode.utils.RunMode;
 import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
+import org.firstinspires.ftc.teamcode.utils.Utils;
 import org.firstinspires.ftc.teamcode.utils.priority.PriorityMotor;
 
 @Config
 public class Slides {
-    public static double maxVel = 1.6528571428571428;
-    public static double kP = 1;
-    public static double kA = 20;
-    public static double kStatic = 0.14;
-    public static double kStaticRamp = (0.5 - kStatic)/30;
+    public static double maxVel = 55.75589743589743;
+    public static double kP = 0.8;
+    public static double kA = 46;
+    public static double kStatic = 0.08;
+    public static double kStaticRamp = (0.5 - kStatic)/35.3;
     public static double minPower = 0.3;
-    public static double minPowerThresh = 0.5;
-    public static double forceDownPower = -0.3;
+    public static double minPowerThresh = 2;
+    public static double forceDownPower = -0.5;
     public static double forceDownThresh = 5;
-    public static double maxSlidesHeight = 33.5;
+    public static double maxSlidesHeight = 35.3;
 
     public final PriorityMotor slidesMotors;
     private final Robot robot;
@@ -43,13 +44,13 @@ public class Slides {
         m1 = robot.hardwareMap.get(DcMotorEx.class, "slidesMotor0");
         m2 = robot.hardwareMap.get(DcMotorEx.class, "slidesMotor1");
 
-        m2.setDirection(DcMotorSimple.Direction.REVERSE);
+        // m2.setDirection(DcMotorSimple.Direction.REVERSE);
 
         if (Globals.RUNMODE != RunMode.TELEOP) {
             resetSlidesEncoders();
         }
 
-        slidesMotors = new PriorityMotor(new DcMotorEx[] {m1, m2}, "slidesMotor", 3, 5, new double[] {1, 1}, robot.sensors);
+        slidesMotors = new PriorityMotor(new DcMotorEx[] {m1, m2}, "slidesMotor", 3, 5, new double[] {1, -1}, robot.sensors);
         robot.hardwareQueue.addDevice(slidesMotors);
     }
 
@@ -112,7 +113,7 @@ public class Slides {
     }
 
     public void setTargetLength(double length) {
-        targetLength = Math.max(Math.min(length, maxSlidesHeight),0);
+        targetLength = Utils.minMaxClip(length, 0, maxSlidesHeight);
     }
 
     public void setTargetPowerFORCED(double power) {
@@ -129,7 +130,9 @@ public class Slides {
     }
 
     public boolean inPosition(double threshold) {
-        if (targetLength <= threshold) return length <= threshold;
+        if (targetLength <= threshold) {
+            return length <= threshold;
+        }
         return Math.abs(targetLength - length) <= threshold;
     }
 

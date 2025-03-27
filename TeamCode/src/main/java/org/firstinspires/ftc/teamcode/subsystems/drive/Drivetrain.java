@@ -107,41 +107,6 @@ public class Drivetrain {
 //        setMinPowersToOvercomeFriction();
     }
 
-    public void configureMotors(){
-        for (PriorityMotor motor : motors) {
-            MotorConfigurationType motorConfigurationType = motor.motor[0].getMotorType().clone();
-            motorConfigurationType.setAchieveableMaxRPMFraction(1.0);
-            motor.motor[0].setMotorType(motorConfigurationType);
-
-            hardwareQueue.addDevice(motor);
-        }
-
-        setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-
-        leftFront.motor[0].setDirection(DcMotor.Direction.REVERSE);
-        leftRear.motor[0].setDirection(DcMotor.Direction.REVERSE);
-    }
-
-    public void setMode(DcMotor.RunMode runMode) {
-        for (PriorityMotor motor : motors) {
-            motor.motor[0].setMode(runMode);
-        }
-    }
-
-    public void setZeroPowerBehavior(DcMotor.ZeroPowerBehavior zeroPowerBehavior) {
-        for (PriorityMotor motor : motors) {
-            motor.motor[0].setZeroPowerBehavior(zeroPowerBehavior);
-        }
-    }
-
-    public void resetSlidesMotorRightFront() {
-        Log.e("RESETTTING", "*****RESTETING RIGHT FRONT *************");
-
-        rightFront.motor[0].setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        rightFront.motor[0].setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-    }
-
     public Drivetrain(Robot robot) {
         this(null, robot);
     }
@@ -401,7 +366,7 @@ public class Drivetrain {
         }
     }
 
-    public void calculateErrors() {
+    private void calculateErrors() {
         double deltaX = (targetPoint.x - sensors.getOdometryPosition().x);
         double deltaY = (targetPoint.y - sensors.getOdometryPosition().y);
 
@@ -421,6 +386,7 @@ public class Drivetrain {
     }
 
     public boolean finalAdjustment = false;
+    private boolean moveNear = false, willGrab = false;
     boolean stop = true;
     double maxPower = 1.0;
 
@@ -451,7 +417,7 @@ public class Drivetrain {
 
     double fwd, strafe, turn, turnAdjustThreshold, finalTargetPointDistance;
 
-    public void PIDF() {
+    private void PIDF() {
 //        double globalExpectedXError = (targetPoint.x - localizers[0].expected.x);
 //        double globalExpectedYError = (targetPoint.y - localizers[0].expected.y);
 //
@@ -504,7 +470,7 @@ public class Drivetrain {
         TelemetryUtil.packet.put("strafe", strafe);
     }
 
-    public void finalAdjustment() {
+    private void finalAdjustment() {
         double fwd = Math.abs(xError) > finalXThreshold/2 ? finalXPID.update(xError, -maxPower, maxPower) : 0;
         double strafe = Math.abs(yError) > finalYThreshold/2 ? finalYPID.update(yError, -maxPower, maxPower) : 0;
         double turn = Math.abs(turnError) > Math.toRadians(finalTurnThreshold)/2 ? finalTurnPID.update(turnError, -maxPower, maxPower) : 0;
@@ -513,12 +479,8 @@ public class Drivetrain {
         setMoveVector(move, turn);
     }
 
-    public void setFinalAdjustment(boolean finalAdjustment) {
-        this.finalAdjustment = finalAdjustment;
-    }
-
     boolean prevAtPoint = false;
-    public boolean atPoint() {
+    private boolean atPoint() {
         if (moveNear) {
             boolean at = xError * xError + yError * yError <= Math.pow(eaThresh + (prevAtPoint ? 3 : 0), 2);
             //TelemetryUtil.packet.put("at point", (prevAtPoint ? "prev" : "new") + (at ? " at" : " not"));
@@ -539,7 +501,7 @@ public class Drivetrain {
         return Math.abs(xError) < xThreshold && Math.abs(yError) < yThreshold && Math.abs(turnError) < Math.toRadians(turnThreshold);
     }
 
-    public boolean atPointThresholds (double xThresh, double yThresh, double headingThresh) {
+    private boolean atPointThresholds (double xThresh, double yThresh, double headingThresh) {
         return Math.abs(xError) < xThresh && Math.abs(yError) < yThresh && Math.abs(turnError) < Math.toRadians(headingThresh);
     }
 
@@ -556,66 +518,8 @@ public class Drivetrain {
         finalTurnPID.resetIntegral();
     }
 
-    public void setStop(boolean stop) {
-        this.stop = stop;
-    }
 
-    public void setMaxPower(double maxPower) {
-        this.maxPower = Math.abs(maxPower);
-    }
 
-    public double getMaxPower() {return maxPower;}
-
-    public void goToPoint(Pose2d targetPoint, boolean finalAdjustment, boolean stop, double maxPower) {
-        this.finalAdjustment = finalAdjustment;
-        this.stop = stop;
-        this.maxPower = Math.abs(maxPower);
-        this.moveNear = false;
-        willGrab = false;
-        finalTargetPoint = targetPoint;
-
-        if (targetPoint.x != lastTargetPoint.x || targetPoint.y != lastTargetPoint.y || targetPoint.heading != lastTargetPoint.heading) { // if we set a new target point we reset integral
-            this.targetPoint = targetPoint;
-            lastTargetPoint = targetPoint;
-
-            resetIntegrals();
-
-            state = State.GO_TO_POINT;
-        }
-    }
-
-    private boolean moveNear = false, willGrab = false;
-    public void goToPoint(Pose2d targetPoint, boolean moveNear, boolean slowDown, boolean stop, double maxPower, boolean grab){
-        this.moveNear = moveNear;
-        this.slowDown = slowDown;
-        this.stop = stop;
-        this.maxPower = Math.abs(maxPower);
-        willGrab = grab;
-
-        if (targetPoint.x != lastTargetPoint.x || targetPoint.y != lastTargetPoint.y || targetPoint.heading != lastTargetPoint.heading) {
-            this.targetPoint = targetPoint;
-            lastTargetPoint = targetPoint;
-
-            resetIntegrals();
-
-            state = State.GO_TO_POINT; /*should use state = Drivetrain.DriveState.GO_TO_POINT*/
-        }
-    }
-
-    Pose2d finalTargetPoint;
-
-    public Spline getPath() {
-        return path;
-    }
-
-    public void setPath(Spline path) {
-        pathIndex = 0;
-        this.path = path;
-
-        if (path != null) {
-            finalTargetPoint = path.poses.get(path.poses.size()-1);
-        }
-    }
 
     public void setMoveVector(Vector2 moveVector, double turn) {
         double[] powers = {
@@ -656,6 +560,42 @@ public class Drivetrain {
         }
     }
 
+    // Drive Methods
+    public void goToPoint(Pose2d targetPoint, boolean finalAdjustment, boolean stop, double maxPower) {
+        this.finalAdjustment = finalAdjustment;
+        this.stop = stop;
+        this.maxPower = Math.abs(maxPower);
+        this.moveNear = false;
+        willGrab = false;
+        finalTargetPoint = targetPoint;
+
+        if (targetPoint.x != lastTargetPoint.x || targetPoint.y != lastTargetPoint.y || targetPoint.heading != lastTargetPoint.heading) { // if we set a new target point we reset integral
+            this.targetPoint = targetPoint;
+            lastTargetPoint = targetPoint;
+
+            resetIntegrals();
+
+            state = State.GO_TO_POINT;
+        }
+    }
+
+    public void goToPoint(Pose2d targetPoint, boolean moveNear, boolean slowDown, boolean stop, double maxPower, boolean grab){
+        this.moveNear = moveNear;
+        this.slowDown = slowDown;
+        this.stop = stop;
+        this.maxPower = Math.abs(maxPower);
+        willGrab = grab;
+
+        if (targetPoint.x != lastTargetPoint.x || targetPoint.y != lastTargetPoint.y || targetPoint.heading != lastTargetPoint.heading) {
+            this.targetPoint = targetPoint;
+            lastTargetPoint = targetPoint;
+
+            resetIntegrals();
+
+            state = State.GO_TO_POINT; /*should use state = Drivetrain.DriveState.GO_TO_POINT*/
+        }
+    }
+    // TeleOp
     public void drive(Gamepad gamepad) {
         resetMinPowersToOvercomeFriction();
         state = State.DRIVE;
@@ -681,6 +621,7 @@ public class Drivetrain {
         return 0.7 * Math.tan(0.96 * value);
     }
 
+    // Getters & Setters
     public double getTurnError(){
         return turnError;
     }
@@ -688,6 +629,41 @@ public class Drivetrain {
     private final double intakeOffset = 9.0;
     public double getExtension(){
         return xError - intakeOffset;
+    }
+
+    Pose2d finalTargetPoint;
+    public Spline getPath() {
+        return path;
+    }
+    public void setPath(Spline path) {
+        pathIndex = 0;
+        this.path = path;
+
+        if (path != null) {
+            finalTargetPoint = path.poses.get(path.poses.size()-1);
+        }
+    }
+
+    public void setFinalAdjustment(boolean finalAdjustment) {
+        this.finalAdjustment = finalAdjustment;
+    }
+
+    public void setStop(boolean stop) {
+        this.stop = stop;
+    }
+
+    public void setMaxPower(double maxPower) {
+        this.maxPower = Math.abs(maxPower);
+    }
+
+    public double getMaxPower() {return maxPower;}
+
+    public Pose2d getPoseEstimate() {
+        return ROBOT_POSITION;
+    }
+
+    public void setPoseEstimate(Pose2d pose2d) {
+        sensors.setOdometryPosition(pose2d);
     }
 
     public double calcExtension(Pose2d start, Pose2d target){
@@ -699,31 +675,43 @@ public class Drivetrain {
         return xError - intakeOffset;
     }
 
-    public double calcExtension(Pose2d target){
-        double deltaX = target.x - robot.sensors.getOdometryPosition().x;
-        double deltaY = target.y - robot.sensors.getOdometryPosition().y;
-        double angle = Math.atan2(deltaY, deltaX);
+    public boolean isBusy() {
+        return state != State.WAIT_AT_POINT && state != State.IDLE;
+    }
 
-        xError = Math.cos(angle)*deltaX + Math.sin(angle)*deltaY;
-        yError = Math.sin(angle) * deltaX + Math.cos(angle)*deltaY;
+    public void configureMotors(){
+        for (PriorityMotor motor : motors) {
+            MotorConfigurationType motorConfigurationType = motor.motor[0].getMotorType().clone();
+            motorConfigurationType.setAchieveableMaxRPMFraction(1.0);
+            motor.motor[0].setMotorType(motorConfigurationType);
 
-        if(Math.abs(yError) < 5.0 && xError > 0){
-            return xError;
-        }else{
-            return 0.0;
+            hardwareQueue.addDevice(motor);
+        }
+
+        setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        leftFront.motor[0].setDirection(DcMotor.Direction.REVERSE);
+        leftRear.motor[0].setDirection(DcMotor.Direction.REVERSE);
+    }
+
+    public void setMode(DcMotor.RunMode runMode) {
+        for (PriorityMotor motor : motors) {
+            motor.motor[0].setMode(runMode);
         }
     }
 
-    public Pose2d getPoseEstimate() {
-        return ROBOT_POSITION;
+    public void setZeroPowerBehavior(DcMotor.ZeroPowerBehavior zeroPowerBehavior) {
+        for (PriorityMotor motor : motors) {
+            motor.motor[0].setZeroPowerBehavior(zeroPowerBehavior);
+        }
     }
 
-    public void setPoseEstimate(Pose2d pose2d) {
-        sensors.setOdometryPosition(pose2d);
-    }
+    public void resetSlidesMotorRightFront() {
+        Log.e("RESETTTING", "*****RESTETING RIGHT FRONT *************");
 
-    public boolean isBusy() {
-        return state != State.WAIT_AT_POINT && state != State.IDLE;
+        rightFront.motor[0].setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        rightFront.motor[0].setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
 
     public void updateTelemetry() {
@@ -758,80 +746,80 @@ public class Drivetrain {
 
     // CURRENTLY UNUSED v
 /*
-//    public void setBreakFollowingThresholds(Pose2d thresholds) {
-//        xThreshold = thresholds.getX();
-//        yThreshold = thresholds.getY();
-//        turnThreshold = thresholds.getHeading();
-//    }
+    public void setBreakFollowingThresholds(Pose2d thresholds) {
+        xThreshold = thresholds.getX();
+        yThreshold = thresholds.getY();
+        turnThreshold = thresholds.getHeading();
+    }
 
-//    public void updateLocalizer() {
-//`        for (Localizer l : localizers) {
-//            l.updateEncoders(sensors.getOdometryPosition());
-//            l.update();
-//        }
-//        //oldLocalizer.update();`
-//    }
+    public void updateLocalizer() {
+`        for (Localizer l : localizers) {
+            l.updateEncoders(sensors.getOdometryPosition());
+            l.update();
+        }
+        //oldLocalizer.update();`
+    }
 
-//    public void forceStopAllMotors() {
-//        for (PriorityMotor motor : motors) {
-//            motor.setPowerForced(0.0);
-//        }
-//    }
+    public void forceStopAllMotors() {
+        for (PriorityMotor motor : motors) {
+            motor.setPowerForced(0.0);
+        }
+    }
 
-//    public void feedforward() {
-//        targetForwardPower = Math.min(Math.pow(Math.abs(xError)/xSlowdown, 2),1.0)*Math.signum(xError);
-//        targetStrafePower = Math.min(Math.pow(Math.abs(yError)/ySlowdown, 0.5),1.0)*Math.signum(yError);
-//        targetTurnPower = Math.min(Math.pow(Math.abs(turnError)/Math.toRadians(turnSlowdown), 2),1.0)*Math.signum(turnError);
-//
-//        double fwd = Math.abs(xError) > xThreshold/2 ? targetForwardPower + kAccelX*(targetForwardPower - ROBOT_VELOCITY.x/(Globals.MAX_X_SPEED*(12/sensors.getVoltage()))) : 0;
-//        double strafe = Math.abs(yError) > yThreshold/2 ? targetStrafePower + kAccelY*(targetStrafePower - ROBOT_VELOCITY.y/(Globals.MAX_Y_SPEED*(12/sensors.getVoltage()))) : 0;
-//        double turn = Math.abs(turnError) > Math.toRadians(turnThreshold/2) ? targetTurnPower + kAccelTurn*(targetTurnPower - ROBOT_VELOCITY.heading/(Globals.MAX_HEADING_SPEED*(12/sensors.getVoltage()))) : 0;
-//
-//        setMinPowersToOvercomeFriction();
-//
-//        // electronic braking (turn off min power to overcome friction if we are braking)
-//        if (Math.abs(xError) < xBrakingDistanceThreshold && Math.abs(ROBOT_VELOCITY.x) > xBrakingSpeedThreshold) {
-//            fwd = xBrakingPower * Math.signum(xError);
+    public void feedforward() {
+        targetForwardPower = Math.min(Math.pow(Math.abs(xError)/xSlowdown, 2),1.0)*Math.signum(xError);
+        targetStrafePower = Math.min(Math.pow(Math.abs(yError)/ySlowdown, 0.5),1.0)*Math.signum(yError);
+        targetTurnPower = Math.min(Math.pow(Math.abs(turnError)/Math.toRadians(turnSlowdown), 2),1.0)*Math.signum(turnError);
+
+        double fwd = Math.abs(xError) > xThreshold/2 ? targetForwardPower + kAccelX*(targetForwardPower - ROBOT_VELOCITY.x/(Globals.MAX_X_SPEED*(12/sensors.getVoltage()))) : 0;
+        double strafe = Math.abs(yError) > yThreshold/2 ? targetStrafePower + kAccelY*(targetStrafePower - ROBOT_VELOCITY.y/(Globals.MAX_Y_SPEED*(12/sensors.getVoltage()))) : 0;
+        double turn = Math.abs(turnError) > Math.toRadians(turnThreshold/2) ? targetTurnPower + kAccelTurn*(targetTurnPower - ROBOT_VELOCITY.heading/(Globals.MAX_HEADING_SPEED*(12/sensors.getVoltage()))) : 0;
+
+        setMinPowersToOvercomeFriction();
+
+        // electronic braking (turn off min power to overcome friction if we are braking)
+        if (Math.abs(xError) < xBrakingDistanceThreshold && Math.abs(ROBOT_VELOCITY.x) > xBrakingSpeedThreshold) {
+            fwd = xBrakingPower * Math.signum(xError);
+            resetMinPowersToOvercomeFriction();
+        }
+//        if (Math.abs(yError) < yBrakingDistanceThreshold && Math.abs(ROBOT_VELOCITY.y) > yBrakingSpeedThreshold) {
+//            strafe = yBrakingPower * Math.signum(yError);
 //            resetMinPowersToOvercomeFriction();
 //        }
-////        if (Math.abs(yError) < yBrakingDistanceThreshold && Math.abs(ROBOT_VELOCITY.y) > yBrakingSpeedThreshold) {
-////            strafe = yBrakingPower * Math.signum(yError);
-////            resetMinPowersToOvercomeFriction();
-////        }
-//        if (Math.abs(turnError) < Math.toRadians(turnBrakingAngleThreshold) && Math.abs(ROBOT_VELOCITY.heading) > Math.toRadians(turnBrakingSpeedThreshold)) {
-//            turn = turnBrakingPower * Math.signum(turnError);
-//            resetMinPowersToOvercomeFriction();
-//        }
-//
-//        Vector2 move = new Vector2(fwd, strafe);
-//        setMoveVector(move, turn);
-//    }
+        if (Math.abs(turnError) < Math.toRadians(turnBrakingAngleThreshold) && Math.abs(ROBOT_VELOCITY.heading) > Math.toRadians(turnBrakingSpeedThreshold)) {
+            turn = turnBrakingPower * Math.signum(turnError);
+            resetMinPowersToOvercomeFriction();
+        }
 
-//    public static PID rotateTeleopPID = new PID(1.0,0.,0.01);
-//
-//    public void rotate(Gamepad gamepad, double heading, double threshold, double maxPower) {
-//        if (heading != lastTargetPoint.heading) { // if we set a new target point we reset integral
-//            this.targetPoint = new Pose2d(localizers[0].x, localizers[0].y, Math.toRadians(heading));
-//            this.maxPower = Math.abs(maxPower);
-//
-//            lastTargetPoint = targetPoint;
-//
-//            resetIntegrals();
-//        }
-//
-//        state = State.DRIVE;
-//
-//        double forward = smoothControls(gamepad.left_stick_y);
-//        double strafe = smoothControls(gamepad.left_stick_x);
-//        double turn = Math.abs(turnError) > Math.toRadians(threshold)? rotateTeleopPID.update(turnError, -maxPower, maxPower) : 0;
-//
-//        Log.e("turn", turn + "");
-//
-//        Vector2 drive = new Vector2(forward,strafe);
-//        if (drive.mag() <= 0.05){
-//            drive.mul(0);
-//        }
-//        setMoveVector(drive,turn);
-//    }
+        Vector2 move = new Vector2(fwd, strafe);
+        setMoveVector(move, turn);
+    }
+
+    public static PID rotateTeleopPID = new PID(1.0,0.,0.01);
+
+    public void rotate(Gamepad gamepad, double heading, double threshold, double maxPower) {
+        if (heading != lastTargetPoint.heading) { // if we set a new target point we reset integral
+            this.targetPoint = new Pose2d(localizers[0].x, localizers[0].y, Math.toRadians(heading));
+            this.maxPower = Math.abs(maxPower);
+
+            lastTargetPoint = targetPoint;
+
+            resetIntegrals();
+        }
+
+        state = State.DRIVE;
+
+        double forward = smoothControls(gamepad.left_stick_y);
+        double strafe = smoothControls(gamepad.left_stick_x);
+        double turn = Math.abs(turnError) > Math.toRadians(threshold)? rotateTeleopPID.update(turnError, -maxPower, maxPower) : 0;
+
+        Log.e("turn", turn + "");
+
+        Vector2 drive = new Vector2(forward,strafe);
+        if (drive.mag() <= 0.05){
+            drive.mul(0);
+        }
+        setMoveVector(drive,turn);
+    }
  */
 }

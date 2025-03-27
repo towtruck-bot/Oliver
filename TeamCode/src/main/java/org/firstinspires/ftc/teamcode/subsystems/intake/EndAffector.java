@@ -1,5 +1,8 @@
 package org.firstinspires.ftc.teamcode.subsystems.intake;
 
+import android.util.Log;
+
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 
@@ -11,6 +14,7 @@ import org.firstinspires.ftc.teamcode.utils.priority.nPriorityServo;
 
 import java.util.Locale;
 
+@Config
 public class EndAffector {
     private final Robot robot;
     public final Extendo intakeExtension;
@@ -19,8 +23,8 @@ public class EndAffector {
     private double targetLength, targetRotation, turretAngle, turretRot;
 
     private boolean closed;
-    public static double clawOpenAngle = 0.2634;
-    public static double clawCloseAngle = 1.4;
+    public static double clawOpenAngle = 0.0958;
+    public static double clawCloseAngle = 1.219;
 
     public EndAffector(Robot robot){
         this.robot = robot;
@@ -60,7 +64,7 @@ public class EndAffector {
         turretRotation = new nPriorityServo(
                 new Servo[] {robot.hardwareMap.get(Servo.class, "turretRotation")},
                 "turretRotation",
-                nPriorityServo.ServoType.AXON_MINI,
+                nPriorityServo.ServoType.HITEC,
                 0.0, 0.79, 0.233,
                 new boolean[] {false},
                 1.0, 5
@@ -88,16 +92,18 @@ public class EndAffector {
     }
 
     // Target is given in robot centric coordinates
-    private double radius = 4.0, turretLength = 5.0;
+    public static double turretLength = 7.5;
+    public static double extendoOffset = 4;
     public void intakeAt(Pose2d target){
         double xError = target.x;
         double yError = target.y;
 
-        if(Math.abs(yError) < radius){
-            targetLength = xError - 9.0 - Math.sqrt(turretLength * turretLength - yError * yError);
+        if(Math.abs(yError) < turretLength){
+            targetLength = xError - extendoOffset - Math.sqrt(turretLength * turretLength - yError * yError);
             targetRotation = target.heading;
-            turretAngle = yError < turretLength ? Math.asin(yError / turretLength) : turretAngle;
-            turretRot = Math.atan2(yError, xError - targetLength);
+            turretAngle = 4.56;
+            //turretAngle = yError < turretLength ? Math.asin(yError / turretLength) : turretAngle + (2.6395 - Math.PI / 2);
+            turretRot = Math.atan2(yError, Math.sqrt(turretLength * turretLength - yError * yError));
         }
     }
 

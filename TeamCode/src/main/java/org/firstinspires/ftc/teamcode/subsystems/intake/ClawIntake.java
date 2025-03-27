@@ -22,12 +22,12 @@ import org.firstinspires.ftc.teamcode.utils.priority.nPriorityServo;
 public class ClawIntake {
     private final Robot robot;
 
-    public final PriorityMotor intakeExtensionMotor;
-    public final nPriorityServo intakeFlipServo;
-    public final nPriorityServo claw;
-    public final nPriorityServo clawRotation;
+    public PriorityMotor intakeExtensionMotor;
+    public nPriorityServo intakeFlipServo;
+    public nPriorityServo claw;
+    public nPriorityServo clawRotation;
 
-    private final DigitalChannel intakeLight;
+    private DigitalChannel intakeLight;
 
     private double extendoTargetPos;
     private double intakeSetTargetPos;
@@ -68,7 +68,7 @@ public class ClawIntake {
     }
 
     public ClawIntakeState clawIntakeState = ClawIntakeState.READY;
-    private final DcMotorEx m;
+    private DcMotorEx m;
 
     public ClawIntake(Robot robot) {
         this.robot = robot;
@@ -80,7 +80,7 @@ public class ClawIntake {
                 "intakeExtensionMotor",
                 1, 5, robot.sensors
         );
-        robot.hardwareQueue.addDevice(intakeExtensionMotor);
+        //robot.hardwareQueue.addDevice(intakeExtensionMotor);
 
         intakeFlipServo = new nPriorityServo(
                 new Servo[] {robot.hardwareMap.get(Servo.class, "turretArm")},
@@ -90,7 +90,7 @@ public class ClawIntake {
                 new boolean[] {false},
                 1.0, 5.0
         );
-        robot.hardwareQueue.addDevice(intakeFlipServo);
+        //robot.hardwareQueue.addDevice(intakeFlipServo);
 
         claw = new nPriorityServo(
                 new Servo[] {robot.hardwareMap.get(Servo.class, "intakeClaw")},
@@ -100,7 +100,7 @@ public class ClawIntake {
                 new boolean[] {false},
                 1.0, 5
         );
-        robot.hardwareQueue.addDevice(claw);
+        //robot.hardwareQueue.addDevice(claw);
 
         clawRotation = new nPriorityServo(
                 new Servo[] {robot.hardwareMap.get(Servo.class, "intakeClawRotation")},
@@ -110,7 +110,7 @@ public class ClawIntake {
                 new boolean[] {false},
                 1, 5
         );
-        robot.hardwareQueue.addDevice(clawRotation);
+        //robot.hardwareQueue.addDevice(clawRotation);
 
         intakeLight = robot.hardwareMap.get(DigitalChannel.class, "intakeLight");
         intakeLight.setMode(DigitalChannel.Mode.OUTPUT);

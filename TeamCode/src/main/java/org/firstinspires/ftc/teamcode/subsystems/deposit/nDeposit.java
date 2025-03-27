@@ -1,278 +1,290 @@
-//package org.firstinspires.ftc.teamcode.subsystems.deposit;
-//
-//import org.firstinspires.ftc.teamcode.Robot;
-//import org.firstinspires.ftc.teamcode.utils.Globals;
-//
-//public class nDeposit {
-//    public enum State{
-//        IDLE,
-//        TRANSFER_WAIT_ARM,
-//        TRANSFER_WAIT_CLAW,
-//        TRANSFER_WAIT,
-//        TRANSFER_GRAB,
-//        TRANSFER_CLOSE,
-//        TRANSFER_FINISH,
-//        HOLD,
-//        SAMPLE_RAISE,
-//        SAMPLE_CLAW,
-//        SAMPLE_WAIT,
-//        SAMPLE_DEPOSIT,
-//        OUTTAKE_MOVE,
-//        OUTTAKE_RELEASE,
-//        GRAB_MOVE,
-//        GRAB_WAIT,
-//        GRAB,
-//        GRAB_RETRACT,
-//        SPECI_RAISE,
-//        SPECI_WAIT,
-//        SPECI_DEPOSIT,
-//        RELEASE,
-//        RETRACT
-//    };
-//
-//    public State state;
-//
-//    private Robot robot;
-//    private Slides slides;
-//    private nArm arm;
-//
-//    // x values are measured from the base of the arm
-//    // y values are measured from the ground
-//    // intake is positive x direction
-//
-//    //TODO: Retune servos
-//
-//    private final double baseHeight = 10.75; //TODO: Get more accurate measurement
-//    private final double intakeWaitX = arm.armLength * Math.cos(Math.PI / 12), intakeWaitY = baseHeight * Math.sin(Math.PI / 12), intakeX = arm.armLength, intakeY = baseHeight; //TODO: Get more accurate intake locations
-//    private final double holdX = arm.armLength, holdY = 0.0;
-//    private final double sampleX = -1.3, sampleLY = 26.0, sampleHY = 44.6;
-//    private final double outtakeX = arm.armLength, outtakeY = baseHeight;
-//    private final double speciX = -5.9, speciLSY = 13.5, speciLEY = 15.4, speciHSY = 27.6, speciHEY = 29.6;
-//
-//    public nDeposit(Robot robot){
-//        this.robot = robot;
-//        this.slides = new Slides(robot);
-//
-//        arm = new nArm(robot);
-//
-//        state = Globals.hasSpecimenPreload ? State.HOLD : State.IDLE;
-//    }
-//
-//    public void update(){
-//        switch(state){
-//            case IDLE:
-//                break;
-//            case TRANSFER_WAIT_ARM:
-//                moveTo(intakeWaitX, intakeWaitY);
-//
-//                if(arm.inPosition() && slides.inPosition(0.5)){
-//                    state = State.TRANSFER_WAIT_CLAW;
-//                }
-//                break;
-//            case TRANSFER_WAIT_CLAW:
-//                arm.setClawRotation(-Math.PI / 2.0, 1.0); //TODO: Fine tune this
-//                arm.sampleOpen();
-//
-//                if(arm.inPosition() && arm.clawFinished()){
-//                    state = State.TRANSFER_WAIT;
-//                }
-//                break;
-//            case TRANSFER_WAIT:
-//                break;
-//            case TRANSFER_GRAB:
-//                moveTo(intakeX, intakeY);
-//
-//                if(arm.inPosition() && slides.inPosition(0.5)){
-//                    state = State.TRANSFER_CLOSE;
-//                }
-//                break;
-//            case TRANSFER_CLOSE:
-//                arm.sampleClose();
-//
-//                if(arm.clawFinished()){
-//                    state = State.TRANSFER_FINISH;
-//                }
-//                break;
-//            case TRANSFER_FINISH:
-//                moveTo(holdX, holdY);
-//
-//                if(arm.inPosition()){
-//                    state = State.HOLD;
-//                }
-//                break;
-//            case HOLD:
-//                break;
-//            case SAMPLE_RAISE:
-//                moveTo(sampleX, sampleHY);
-//
-//                if(arm.inPosition() && slides.inPosition(0.5)){
-//                    state = State.SAMPLE_CLAW;
-//                }
-//                break;
-//            case SAMPLE_CLAW:
-//                arm.setClawRotation(Math.PI - arm.armRotation.getCurrentAngle(), 1.0);
-//
-//                if(arm.inPosition()){
-//                    state = State.SAMPLE_WAIT;
-//                }
-//                break;
-//            case SAMPLE_WAIT:
-//                break;
-//            case SAMPLE_DEPOSIT:
-//                arm.sampleOpen();
-//
-//                if(arm.clawFinished()){
-//                    state = State.RETRACT;
-//                }
-//                break;
-//            case OUTTAKE_MOVE:
-//                moveTo(outtakeX, outtakeY);
-//
-//                if(arm.inPosition() && slides.inPosition(0.5)){
-//                    state = State.OUTTAKE_RELEASE;
-//                }
-//                break;
-//            case OUTTAKE_RELEASE:
-//                arm.sampleOpen();
-//
-//                if(arm.clawFinished()){
-//                    state = State.HOLD;
-//                }
-//                break;
-//            case GRAB_MOVE:
-//                moveTo(outtakeX, outtakeY);
-//                arm.setClawRotation(0, 1.0);
-//                arm.speciOpen();
-//
-//                if(arm.inPosition() && slides.inPosition(0.5) && arm.clawFinished()){
-//                    state = State.GRAB;
-//                }
-//                break;
-//            case GRAB_WAIT:
-//                break;
-//            case GRAB:
-//                arm.speciClose();
-//
-//                if(arm.clawFinished()){
-//                    state = State.GRAB_RETRACT;
-//                }
-//                break;
-//            case GRAB_RETRACT:
-//                moveTo(holdX, holdY);
-//
-//                if(arm.inPosition()){
-//                    state = State.HOLD;
-//                }
-//                break;
-//            case SPECI_RAISE:
-//                moveTo(speciX, speciHSY);
-//                arm.setClawRotation(Math.PI - arm.armRotation.getCurrentAngle(), 1.0);
-//
-//                if(arm.inPosition() && slides.inPosition(0.5)){
-//                    state = State.SPECI_WAIT;
-//                }
-//                break;
-//            case SPECI_WAIT:
-//                break;
-//            case SPECI_DEPOSIT:
-//                moveTo(speciX, speciHEY);
-//
-//                if(arm.inPosition() && slides.inPosition(0.5)){
-//                    state = State.RELEASE;
-//                }
-//                break;
-//            case RELEASE:
-//                arm.speciOpen();
-//
-//                if(arm.clawFinished()){
-//                    state = State.RETRACT;
-//                }
-//                break;
-//            case RETRACT:
-//                moveToStart();
-//
-//                if(arm.inPosition() && slides.inPosition(0.5)){
-//                    state = State.IDLE;
-//                }
-//                break;
-//        }
-//    }
-//
-//    //TODO: Presumes intake direction parallel to ground is 0 radians, need to figure out how deal with negative angle. offsets?
-//    public void moveTo(double targetX, double targetY){
-//        double armTargetRad = Math.acos(targetX/arm.armLength);
-//        double slidesTargetLength = Math.max(targetY - baseHeight - arm.armLength * Math.sin(armTargetRad), 0.0);
-//
-//        arm.setArmRotation(armTargetRad, 1.0);
-//        slides.setTargetLength(slidesTargetLength);
-//    }
-//
-//    public void moveToStart(){
-//        arm.setArmRotation(0.0, 1.0);
-//        slides.setTargetLength(0.0);
-//    }
-//
-//    public void prepareTransfer() {
-//        state = State.TRANSFER_WAIT_ARM;
-//    }
-//
-//    public void startTransfer() {
-//        state = State.TRANSFER_GRAB;
-//    }
-//
-//    public boolean isSampleReady() {
-//        return state == State.HOLD;
-//    }
-//
-//    public void startSampleDeposit() {
-//        state = State.SAMPLE_RAISE;
-//    }
-//
-//    public void finishSampleDeposit() {
-//        state = State.SAMPLE_DEPOSIT;
-//    }
-//
-//    public boolean isSampleDepositDone() {
-//        return state == State.IDLE;
-//    }
-//
-//    public void startOuttake() {
-//        state = State.OUTTAKE_MOVE;
-//    }
-//
-//    public boolean isOuttakeDone() {
-//        return state == State.HOLD;
-//    }
-//
-//    public void grabSpecimen() {
-//        state = State.GRAB_MOVE;
-//    }
-//
-//    public void finishSpecimenGrab() {
-//        state = State.GRAB;
-//    }
-//
-//    public boolean isSpecimenReady() {
-//        return state == State.HOLD;
-//    }
-//
-//    public void startSpecimenDeposit() {
-//        state = State.SPECI_RAISE;
-//    }
-//
-//    public void finishSpecimenDeposit() {
-//        state = State.SPECI_DEPOSIT;
-//    }
-//
-//    public boolean isSpecimenDepositDone() {
-//        return state == State.IDLE;
-//    }
-//
-//    public void retract() {
-//        state = State.RETRACT;
-//    }
-//
-//    public boolean isRetractDone(){
-//        return state == State.IDLE;
-//    }
-//}
+package org.firstinspires.ftc.teamcode.subsystems.deposit;
+
+import org.firstinspires.ftc.teamcode.Robot;
+import org.firstinspires.ftc.teamcode.utils.Utils;
+
+public class nDeposit {
+    public enum State {
+        IDLE,
+        TRANSFER_WAIT,
+        TRANSFER_FINISH,
+        HOLD,
+        SAMPLE_RAISE,
+        SAMPLE_WAIT,
+        SAMPLE_DEPOSIT,
+        OUTTAKE,
+        SPECIMEN_INTAKE_WAIT,
+        SPECIMEN_GRAB,
+        SPECIMEN_RAISE,
+        SPECIMEN_DEPOSIT,
+        RETRACT
+    }
+
+    ;
+    public State state = State.IDLE;
+
+    public enum HangState {
+        OUT,
+        PULL,
+        OFF
+    }
+
+    ;
+    public HangState hangState = HangState.OFF;
+
+    private Robot robot;
+    private Slides slides;
+    private Arm arm;
+
+    // TODO: All values below (v) are estimates and may not scale correctly with the 0 positions. Make sure to tune!
+    public static double transferArm = Math.toRadians(-45), transferClaw = 0.0, transferY = 0;
+    public static double holdArm = Math.toRadians(90), holdClaw = 0.0, holdY = 0.0;
+    public static double raiseArmBufferRotation = - Math.PI / 2,  sampleArm = Math.toRadians(150), sampleClaw = Math.toRadians(30), sampleY = 32.5;
+    public static double outtakeArm = Math.toRadians(135), outtakeClaw = Math.toRadians(45), outtakeY = 0.0;
+    public static double specimenIntakeArm = 0, specimenIntakeClaw = 0, specimenIntakeY = 0;
+    public static double specimenDepositArm = Math.toRadians(30.0), specimenDepositClaw = Math.toRadians(-50.0), specimenDepositY = 18.6;
+
+    private boolean requestFinishTransfer = false,
+                    releaseRequested = false,
+                    sampleDepositRequested = false,
+                    outtakeRequested = false,
+                    grab = false,
+                    specimenDepositRequested = false,
+                    transferRequested = false,
+                    specimenIntakeRequested = false,
+                    grabRequested = false;
+
+    public nDeposit(Robot robot) {
+        this.robot = robot;
+
+        slides = new Slides(robot);
+        arm = new Arm(robot);
+    }
+
+    public void update() {
+        slides.update();
+
+        switch (state) {
+            case IDLE:
+                moveToHoldPoses();
+
+                if (transferRequested) {
+                    state = State.TRANSFER_WAIT;
+                    transferRequested = false;
+                }
+                if (specimenIntakeRequested) {
+                    state = State.SPECIMEN_INTAKE_WAIT;
+                    specimenIntakeRequested = false;
+                }
+                break;
+            case TRANSFER_WAIT:
+                slides.setTargetLength(transferY);
+                arm.setArmRotation(transferArm, 1.0);
+                arm.setClawRotation(transferClaw, 1.0);
+
+                arm.sampleOpen();
+
+                if (arm.inPosition() && slides.inPosition(1.0) && requestFinishTransfer) {
+                    state = State.TRANSFER_FINISH;
+                    robot.nclawIntake.finishTransfer(); // Just to make sure you're not being stupid - Eric
+                    requestFinishTransfer = false;
+                }
+
+                break;
+            case TRANSFER_FINISH:
+                // Grab the thing
+                slides.setTargetLength(transferY);
+                arm.setArmRotation(transferArm, 1.0);
+                arm.setClawRotation(transferClaw, 1.0);
+
+                arm.clawClose();
+
+                if (arm.clawInPosition()) {
+                    state = State.HOLD;
+                }
+                break;
+            case HOLD:
+                moveToHoldPoses();
+
+                if (sampleDepositRequested) {
+                    state = State.SAMPLE_RAISE;
+                    sampleDepositRequested = false;
+                }
+
+                if (outtakeRequested) {
+                    state = State.OUTTAKE;
+                    outtakeRequested = false;
+                }
+
+                if (specimenDepositRequested) {
+                    state = State.SPECIMEN_RAISE;
+                    specimenDepositRequested = false;
+                }
+                break;
+            case SAMPLE_RAISE:
+                slides.setTargetLength(sampleY);
+                arm.setArmRotation(raiseArmBufferRotation, 1.0);
+                arm.setClawRotation(sampleClaw, 1.0);
+
+                arm.clawClose();
+
+                if (arm.inPosition()) {
+                    state = State.SAMPLE_WAIT;
+                }
+                break;
+            case SAMPLE_WAIT:
+                slides.setTargetLength(sampleY);
+                arm.setArmRotation(sampleArm, 1.0);
+                arm.setClawRotation(sampleClaw, 1.0);
+
+                arm.clawClose();
+
+                if (arm.inPosition() && slides.inPosition(1.0) && releaseRequested) {
+                    state = State.SAMPLE_DEPOSIT;
+                    releaseRequested = false;
+                }
+                break;
+            case SAMPLE_DEPOSIT:
+                slides.setTargetLength(sampleY);
+                arm.setArmRotation(sampleArm, 1.0);
+                arm.setClawRotation(sampleClaw, 1.0);
+
+                arm.sampleOpen();
+
+                if (arm.clawInPosition()) {
+                    state = State.RETRACT;
+                }
+                break;
+            case OUTTAKE:
+                // I don't know what the hell outtake does and why it like instantly pops the thing off but I trust its useful - Eric
+                slides.setTargetLength(outtakeY);
+                arm.setArmRotation(outtakeArm, 1.0);
+                arm.setClawRotation(outtakeClaw, 1.0);
+
+                if (arm.inPosition()) {
+                    state = State.IDLE;
+                    arm.sampleOpen();
+                }
+                break;
+            case SPECIMEN_INTAKE_WAIT:
+                slides.setTargetLength(specimenIntakeY);
+                arm.setArmRotation(specimenIntakeArm, 1.0);
+                arm.setClawRotation(specimenIntakeClaw, 1.0);
+
+                arm.sampleOpen();
+
+                if (slides.inPosition(1.0) && arm.inPosition() && grabRequested) {
+                    state = State.SPECIMEN_GRAB;
+                    grab = false;
+                }
+            case SPECIMEN_GRAB:
+                slides.setTargetLength(specimenIntakeY);
+                arm.setArmRotation(specimenIntakeArm, 1.0);
+                arm.setClawRotation(specimenIntakeClaw, 1.0);
+
+                arm.clawClose();
+
+                if (arm.clawInPosition()) {
+                    state = State.HOLD;
+                    grab = false;
+                }
+                break;
+            case SPECIMEN_RAISE:
+                slides.setTargetLength(specimenDepositY);
+                arm.setArmRotation(specimenDepositArm, 1.0);
+                arm.setClawRotation(specimenDepositClaw, 1.0);
+
+                if (arm.inPosition() && slides.inPosition(0.5) && releaseRequested) {
+                    state = State.SPECIMEN_DEPOSIT;
+                    releaseRequested = false;
+                }
+                break;
+            case SPECIMEN_DEPOSIT:
+                slides.setTargetLength(specimenDepositY);
+                arm.setArmRotation(specimenDepositArm, 1.0);
+                arm.setClawRotation(specimenDepositClaw, 1.0);
+
+                arm.sampleOpen();
+
+                if (arm.clawInPosition()) {
+                    state = State.RETRACT;
+                }
+                break;
+            case RETRACT:
+                moveToHoldPoses();
+
+                if (arm.inPosition() && slides.inPosition(0.5)) {
+                    state = State.IDLE;
+                }
+                break;
+        }
+
+        if (hangState == HangState.PULL) {
+            slides.setTargetPowerFORCED(-0.9);
+        } else if (hangState == HangState.OUT) {
+            slides.setTargetPowerFORCED(0.7);
+        }
+    }
+
+    public void setSampleHeight(double l) {
+        sampleY = Utils.minMaxClip(l, 0.0, Slides.maxSlidesHeight);
+    }
+
+    private void moveToHoldPoses() {
+        slides.setTargetLength(holdY);
+        arm.setArmRotation(holdArm, 1.0);
+        arm.setClawRotation(holdClaw, 1.0);
+    }
+
+    public void startTransfer() {
+        transferRequested = true;
+    }
+
+    public boolean isTransferFinished() {
+        return state == State.HOLD;
+    }
+
+    public void outtake() {
+        if (state == State.HOLD)
+            outtakeRequested = true;
+    }
+
+    public boolean isOuttakeDone() {
+        return state == State.HOLD;
+    }
+
+    public void grab() {
+        grabRequested = true;
+    }
+
+    public boolean isGrabDone() {
+        return state == State.HOLD;
+    }
+
+    public void sampleDeposit() {
+        sampleDepositRequested = true;
+    }
+
+    public void startSpecimenDeposit() {
+        if (state == State.HOLD)
+            specimenDepositRequested = true;
+    }
+
+    public void startSpecimenIntake() {
+        specimenIntakeRequested = true;
+    }
+
+    public void deposit() {
+        if (state == State.SAMPLE_RAISE || state == State.SPECIMEN_RAISE) {
+            releaseRequested = true;
+        }
+    }
+
+    public boolean isDepositFinished() {
+        return state == State.IDLE;
+    }
+
+    public boolean isTransferReady() {
+        return state == State.TRANSFER_WAIT && arm.inPosition() && slides.inPosition(0.6);
+    }
+}

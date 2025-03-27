@@ -16,7 +16,7 @@ public class ExtendoTuner extends LinearOpMode {
 
     public void runOpMode(){
         Robot robot = new Robot(hardwareMap);
-        robot.nclawIntake.clawIntakeState = nClawIntake.nClawIntakeState.TEST;
+        robot.nclawIntake.state = nClawIntake.State.TEST;
 
         Globals.TESTING_DISABLE_CONTROL = false;
 

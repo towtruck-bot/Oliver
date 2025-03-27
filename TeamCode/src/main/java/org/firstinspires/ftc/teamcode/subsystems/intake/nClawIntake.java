@@ -2,8 +2,6 @@ package org.firstinspires.ftc.teamcode.subsystems.intake;
 
 import android.util.Log;
 
-import com.acmerobotics.dashboard.FtcDashboard;
-import com.acmerobotics.dashboard.canvas.Canvas;
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
 
@@ -27,33 +25,34 @@ public class nClawIntake {
 
     // turretBufferAng -> angle that allows for any rotation to occur with the turret still inside the robot. use in any retract/extend states
 
-    public static double intakeTransferRot = 0.0, intakeGrabRot = 0.0;
-    public static double turretBufferAng = 1.2506, turretRetractedAng = 1.8, turretSearchAng = 2.0393, turretTransferAng = Math.toRadians(60), turretGrabAng = -Math.toRadians(15);
+    public static double intakeTransferRot = 0, intakeGrabRot = 0.0;
+    public static double turretBufferAng = 1.2506, turretRetractedAng = 2.7, turretSearchAng = Math.PI, turretTransferAng = 0.133, turretGrabAng = -Math.toRadians(15);
     public static double turretPreRot = 2.7415, turretSearchRot = 0, turretTransferRot = 2.9651, turretGrabRot = 0.0;
+    public static double turretPastSidePlatesRot = 1;
     public static double bufferMinExtension = 3;
 
     private boolean grab = false;
+    private boolean sampleStatus = false;
     private boolean useCamera = true;
-    private boolean prepareTransfer = false, completeTransfer = false;
+    private boolean completeTransfer = false;
     private Pose2d target;
 
-    public enum nClawIntakeState {
+    public enum State {
         START_EXTEND,
+        MID_EXTEND,
         FULL_EXTEND,
         SEARCH,
         LOWER,
         GRAB_CLOSE,
-        CONFIRM,
-        RETRACT_BUFFER,
+        START_RETRACT,
         RETRACT,
-        HOLD,
         READY,
         TRANSFER_WAIT,
         TRANSFER_END,
         TEST
     }
 
-    public nClawIntakeState clawIntakeState = nClawIntakeState.READY;
+    public State state = State.READY;
 
     public nClawIntake(Robot robot) {
         this.robot = robot;
@@ -77,7 +76,7 @@ public class nClawIntake {
     public void update() {
         endAffector.update();
 
-        switch (clawIntakeState) {
+        switch (state) {
             case START_EXTEND:
                 // Pre-rotate the turret + claw servos
                 endAffector.setIntakeExtension(bufferMinExtension);
@@ -89,8 +88,21 @@ public class nClawIntake {
 
                 // Wait for extension past certain length or for the buffer ang to be reached, meaning we can full send rotation
                 if (endAffector.extendoInPosition() || endAffector.turretAngInPosition()) {
-                    clawIntakeState = nClawIntakeState.FULL_EXTEND;
+                    if (intakeSetTargetPos > bufferMinExtension)
+                        state = State.FULL_EXTEND;
+                    else
+                        state = State.MID_EXTEND;
                 }
+                break;
+            case MID_EXTEND:
+                // Get past the side plates so if our target position is less than min extension we won't clip
+                endAffector.setIntakeExtension(bufferMinExtension);
+                endAffector.setTurretAngle(turretBufferAng);
+                endAffector.setTurretRot(turretPastSidePlatesRot);
+                endAffector.setIntakeRotation(target.heading);
+
+                if (endAffector.turretAngInPosition())
+                    state = State.FULL_EXTEND;
                 break;
             case FULL_EXTEND:
                 // Fully extend + rotate to search positions
@@ -103,7 +115,7 @@ public class nClawIntake {
 
                 // Wait for full extension and turret in position before starting search
                 if (endAffector.extendoInPosition() && endAffector.turretRotInPosition()) {
-                    clawIntakeState = useCamera ? nClawIntakeState.SEARCH : nClawIntakeState.LOWER;
+                    state = useCamera ? State.SEARCH : State.LOWER;
                     intakeLight.setState(true);
                 }
                 break;
@@ -117,14 +129,14 @@ public class nClawIntake {
                 endAffector.setClawState(false);
 
                 // Use grab as a flag for whether or not a block has been found
-                if (this.grab && endAffector.rotInPosition()) {
-                    clawIntakeState = nClawIntakeState.LOWER;
+                if (grab && endAffector.rotInPosition()) {
+                    state = State.LOWER;
                 }
                 break;
             case LOWER:
                 // intakeAt method should hopefully calculate new extension, new turretAngle + Rotation, and move in to grab
                 if(useCamera){
-                    intakeAt();
+                    endAffector.intakeAt(target);
                 }else{
                     endAffector.setIntakeExtension(intakeSetTargetPos);
                     endAffector.setIntakeRotation(intakeGrabRot);
@@ -136,13 +148,13 @@ public class nClawIntake {
 
                 // everything in position before grabbing
                 if (endAffector.inPosition()){
-                    clawIntakeState = nClawIntakeState.GRAB_CLOSE;
+                    state = State.GRAB_CLOSE;
                 }
                 break;
             case GRAB_CLOSE:
-                // hold prev position
+                // Grab the block and wait for a confirmtion that we have the block
                 if(useCamera){
-                    intakeAt();
+                    endAffector.intakeAt(target);
                 }else{
                     endAffector.setIntakeExtension(intakeSetTargetPos);
                     endAffector.setIntakeRotation(intakeGrabRot);
@@ -154,38 +166,25 @@ public class nClawIntake {
                 endAffector.setClawState(true);
 
                 // begin retract once grab finished
-                if (endAffector.grabInPosition()) {
-                    clawIntakeState = nClawIntakeState.CONFIRM;
-                }
+                if (sampleStatus)
+                    state = State.START_RETRACT;
                 break;
-            case CONFIRM:
-                // begin moving into transfer position while holding same extendo
-                // keeping this maybe so in teleop drivers can try again if grab missed
-                // or somehow got wrong color
-                endAffector.setIntakeExtension(intakeSetTargetPos);
+            case START_RETRACT:
+                // Get the arm in a proper angle for a full retract
+                endAffector.setIntakeExtension(bufferMinExtension);
                 endAffector.setIntakeRotation(intakeTransferRot);
                 endAffector.setTurretAngle(turretBufferAng);
-                endAffector.setTurretRot(turretTransferRot);
+                endAffector.setTurretRot(turretPastSidePlatesRot);
 
                 endAffector.setClawState(true);
 
                 // if grab failed go back to search
-                if (!this.grab) {
-                    clawIntakeState = nClawIntakeState.SEARCH;
-                }
-                break;
-            case RETRACT_BUFFER:
-                // begin retraction upon being prompted, have a 6in buffer should be enough for swinging stuff around
-                endAffector.setIntakeExtension(2.0);
-                endAffector.setIntakeRotation(intakeTransferRot);
-                endAffector.setTurretAngle(turretBufferAng);
-                endAffector.setTurretRot(turretTransferRot);
-
-                endAffector.setClawState(grab);
-
-                // once turret is in place we can safe retract
-                if(endAffector.turretAngInPosition()){
-                    clawIntakeState = nClawIntakeState.RETRACT;
+                if (endAffector.turretAngInPosition()) {
+                    // If we have a sample, transfer otherwise just retract into it
+                    if (sampleStatus)
+                        state = State.TRANSFER_WAIT;
+                    else
+                        state = State.RETRACT;
                 }
                 break;
             case RETRACT:
@@ -195,11 +194,11 @@ public class nClawIntake {
                 endAffector.setTurretAngle(turretRetractedAng);
                 endAffector.setTurretRot(turretTransferRot);
 
-                endAffector.setClawState(grab);
+                endAffector.setClawState(false);
 
                 // true grab -> holding a sample
                 if (endAffector.extendoInPosition()) {
-                    clawIntakeState = this.grab ? nClawIntakeState.HOLD : nClawIntakeState.READY;
+                    state = State.READY;
                     this.intakeLight.setState(false);
                 }
                 break;
@@ -211,21 +210,6 @@ public class nClawIntake {
                 endAffector.setTurretRot(turretTransferRot);
 
                 endAffector.setClawState(false);
-                break;
-            case HOLD:
-                // tucked in with sample
-                endAffector.setIntakeExtension(0.0);
-                endAffector.setIntakeRotation(intakeTransferRot);
-                endAffector.setTurretAngle(turretRetractedAng);
-                endAffector.setTurretRot(turretTransferRot);
-
-                endAffector.setClawState(true);
-
-                // Prepare transfer can only be set true in HOLD, used to send intake turret into transfer position
-                if(prepareTransfer){
-                    clawIntakeState = nClawIntakeState.TRANSFER_WAIT;
-                    prepareTransfer = false;
-                }
                 break;
             case TRANSFER_WAIT:
                 // hold in transfer position
@@ -240,22 +224,23 @@ public class nClawIntake {
                 // used to release intake grip on sample, should be called in deposit after the deposit has a firm grip
                 // TODO: check endAffector.inPosition()
                 if(endAffector.inPosition() && completeTransfer){
-                    clawIntakeState = nClawIntakeState.TRANSFER_END;
+                    state = State.TRANSFER_END;
                     completeTransfer = false;
+                    sampleStatus = false;
                 }
                 break;
             case TRANSFER_END:
                 endAffector.setIntakeExtension(0.0);
                 endAffector.setIntakeRotation(intakeTransferRot);
                 endAffector.setTurretAngle(turretTransferAng);
-                endAffector.setTurretAngle(turretTransferRot);
+                endAffector.setTurretRot(turretTransferRot);
 
                 endAffector.setClawState(false);
 
                 // once the grab is finished, send back to RETRACT. false grab changes from HOLD to READY
                 // no need to worry about whacking stuff b/c both states require rotation to be in the turretTransferRot value
                 if(endAffector.grabInPosition()){
-                    clawIntakeState = nClawIntakeState.RETRACT;
+                    state = State.RETRACT;
                     grab = false;
                 }
                 break;
@@ -268,26 +253,19 @@ public class nClawIntake {
         updateTelemetry();
     }
 
+    public void useCamera(boolean val) {
+        useCamera = val;
+    }
+
     // TODO: Determine minMaxClips for setters
     public void setTurretGrabRot(double t){
         turretGrabRot = t;
     }
 
-    public void setCamera(boolean use){
-        useCamera = use;
+    public void confirmTransfer() {
+        completeTransfer = state == State.TRANSFER_WAIT;
     }
 
-    public void prepareIntakeTransfer(){
-        if(clawIntakeState == nClawIntakeState.HOLD){
-            prepareTransfer = true;
-        }
-    }
-
-    public void completeIntakeTransfer(){
-        if(clawIntakeState == nClawIntakeState.TRANSFER_WAIT){
-            completeTransfer = true;
-        }
-    }
 
     public void setClawRotation(double angle) {
         if (angle > 1.7) {
@@ -306,48 +284,48 @@ public class nClawIntake {
         target = t.clone();
     }
 
-    private void intakeAt(){
-        endAffector.intakeAt(target);
-    }
-
     public void extend() {
-        if (this.clawIntakeState == nClawIntakeState.READY || this.clawIntakeState == nClawIntakeState.HOLD)
-            this.clawIntakeState = nClawIntakeState.START_EXTEND;
+        if (this.state == State.READY)
+            this.state = State.START_EXTEND;
     }
 
     public boolean isExtended() {
-        return this.clawIntakeState == nClawIntakeState.SEARCH || this.clawIntakeState == nClawIntakeState.LOWER
-                || this.clawIntakeState == nClawIntakeState.GRAB_CLOSE || this.clawIntakeState == nClawIntakeState.CONFIRM;
+        return state == State.SEARCH || state == State.LOWER || state == State.GRAB_CLOSE;
     }
 
     public void retract() {
-        this.clawIntakeState = nClawIntakeState.RETRACT;
+        this.state = State.START_RETRACT;
     }
 
     public boolean isRetracted() {
-        return (this.clawIntakeState == nClawIntakeState.HOLD || this.clawIntakeState == nClawIntakeState.READY);
+        return state == State.READY;
     }
 
     public void grab(boolean closed) {
         grab = closed;
+        if (!grab)
+            state = State.SEARCH;
     }
 
-    public boolean hasSample() { return this.grab; }
-
-    public boolean grabFinished() {
-        return clawIntakeState == nClawIntakeState.CONFIRM;
+    // Confirm pickup
+    public void confirmGrab() {
+        sampleStatus = true;
     }
 
-    public void release() {
-        if (this.clawIntakeState == nClawIntakeState.HOLD) {
-            this.clawIntakeState = nClawIntakeState.READY;
+    public boolean hasSample() {
+        return sampleStatus;
+    }
+
+    /*public void release() {
+        if (this.state == State.HOLD) {
+            this.state = State.READY;
             grab = false;
         }
-    }
+    }*/
 
-    public boolean dropFinished() {
-        return clawIntakeState == nClawIntakeState.SEARCH;
-    }
+    //public boolean dropFinished() {
+    //    return state == State.SEARCH;
+    //}
 
     public void setIntakeLength(double targetPos) {
         this.intakeSetTargetPos = Utils.minMaxClip(targetPos, 1, 19);
@@ -365,8 +343,8 @@ public class nClawIntake {
         TelemetryUtil.packet.put("ClawIntake.grab", grab);
         LogUtil.intakeClawGrab.set(grab);
         TelemetryUtil.packet.put("ClawIntake clawRotation angle", endAffector.getIntakeRotation());
-        TelemetryUtil.packet.put("ClawIntake State", this.clawIntakeState);
-        LogUtil.intakeState.set(this.clawIntakeState.toString());
+        TelemetryUtil.packet.put("ClawIntake State", this.state);
+        LogUtil.intakeState.set(this.state.toString());
     }
 
     public void resetExtendoEncoders() {

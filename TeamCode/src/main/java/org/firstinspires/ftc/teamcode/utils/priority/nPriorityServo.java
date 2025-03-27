@@ -20,7 +20,7 @@ public class nPriorityServo extends PriorityDevice {
         AMAZON(0.2122065908, Math.toRadians(60) / 0.13),
         PRO_MODELER(0.32698, Math.toRadians(60) / 0.139),
         JX(0.3183098862, Math.toRadians(60) / 0.12),
-        HITEC(0.2966648, 5.6403953024772129);
+        HITEC(0.2966648, 2.822787368421053);
 
         public final double positionPerRadian;
         public final double speed;

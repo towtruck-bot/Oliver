@@ -103,7 +103,7 @@ public class nDeposit {
 
                 if(arm.clawInPosition()){
                     ndepositState = nDepositState.HOLD;
-                    robot.nclawIntake.completeIntakeTransfer();
+                    robot.nclawIntake.confirmTransfer();
                 }
                 break;
             case HOLD:

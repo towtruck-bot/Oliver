@@ -100,7 +100,7 @@ public class Robot {
     private void updateSubsystems() {
         this.sensors.update();
 
-        this.clawIntake.update();
+        //this.clawIntake.update();
         nclawIntake.update();
         // intake.update();
         this.drivetrain.update();

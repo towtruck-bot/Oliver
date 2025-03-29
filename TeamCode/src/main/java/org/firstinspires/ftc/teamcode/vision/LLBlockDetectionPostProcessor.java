@@ -1,10 +1,15 @@
 package org.firstinspires.ftc.teamcode.vision;
 
+import android.content.ClipboardManager;
+
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.hardware.limelightvision.LLResultTypes.ColorResult;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
+import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.subsystems.drive.Drivetrain;
 import org.firstinspires.ftc.teamcode.utils.Pose2d;
@@ -32,7 +37,7 @@ public class LLBlockDetectionPostProcessor {
     private Pose2d lastPosition;
     private Robot robot;
     private boolean detecting = false;
-    private boolean firstDetection = true;
+    private Vector2 offset = new Vector2(0, 0);
     public static int pollRate = 100;
     public static double inchesConversionRatioX = 0;
     public static double inchesConversionRatioY = 0;
@@ -89,6 +94,9 @@ public class LLBlockDetectionPostProcessor {
             blockPos.y = pNewBlockPose.y;
             blockPos.heading = blockPos.heading - pDelta.heading; // Is this right??
         } else { // We have a valid result. Now we can update with both change according to dt and change according to limelight
+            // We can use IMU data to do some wackyyy stuff dudeee
+            YawPitchRollAngles angles = result.getBotpose().getOrientation();
+
             // Post processing. Get new block x, y, and heading
             ColorResult cr = result.getColorResults().get(0);
 
@@ -107,7 +115,7 @@ public class LLBlockDetectionPostProcessor {
                 for (List<Double> l0 : corners) {
                     Vector2 p0 = new Vector2(l0.get(0), l0.get(1));
                     for (List<Double> l1 : corners) {
-                        Vector2 p1 = new Vector2(l0.get(0), l0.get(1));
+                        Vector2 p1 = new Vector2(l1.get(0), l1.get(1));
                         double d = Vector2.distance(p0, p1);
                         if (d > dist) {
                             longest0 = p0;
@@ -118,8 +126,10 @@ public class LLBlockDetectionPostProcessor {
                 }
 
                 // Theoredical angle of the longest dist the block should be 23.1985905 degrees
-                heading = Math.atan2(longest0.y - longest1.y, longest0.x - longest1.x) - Math.toRadians(23.1985905);
-
+                heading =
+                        Math.atan2(longest0.y - longest1.y, longest0.x - longest1.x) -
+                        Math.toRadians(23.1985905) -
+                        p.heading + angles.getYaw(AngleUnit.RADIANS);
             }
 
             // If robot is moving very fast then it will only use drivetrain translational values to calculate new block pos
@@ -131,6 +141,10 @@ public class LLBlockDetectionPostProcessor {
 
         // This is fine because detecting turning on would update this value properly
         lastPosition = robot.sensors.getOdometryPosition().clone();
+
+        Vector2 o = Vector2.staticrotate(offset, pDelta.heading);
+        blockPos.x += o.x;
+        blockPos.y += o.y;
     }
 
     /**
@@ -138,7 +152,7 @@ public class LLBlockDetectionPostProcessor {
      */
     public void startDetection() {
         lastPosition = robot.sensors.getOdometryPosition().clone();
-        firstDetection = true;
+        blockPos = new Pose2d(0, 0, 0);
         detecting = true;
     }
 
@@ -158,5 +172,9 @@ public class LLBlockDetectionPostProcessor {
 
     public void setBlock(Block block) {
         ll.pipelineSwitch(block.pipelineIndex);
+    }
+
+    public void setOffset(Vector2 v) {
+        offset = v;
     }
 }

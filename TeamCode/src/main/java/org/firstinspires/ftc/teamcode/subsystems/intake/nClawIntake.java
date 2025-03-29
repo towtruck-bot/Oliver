@@ -17,7 +17,7 @@ import org.firstinspires.ftc.teamcode.utils.Utils;
 public class nClawIntake {
     private final Robot robot;
 
-    private final EndAffector endAffector;
+    private final IntakeTurret intakeTurret;
 
     private final DigitalChannel intakeLight;
 
@@ -25,17 +25,19 @@ public class nClawIntake {
 
     // turretBufferAng -> angle that allows for any rotation to occur with the turret still inside the robot. use in any retract/extend states
 
-    public static double intakeTransferRot = 0, intakeGrabRot = 0.0;
-    public static double turretBufferAng = 1.2506, turretRetractedAng = 2.7, turretSearchAng = Math.PI, turretTransferAng = 0.133, turretGrabAng = -Math.toRadians(15);
-    public static double turretPreRot = 2.7415, turretSearchRot = 0, turretTransferRot = 1.857, turretGrabRot = 0.0;
-    public static double turretPastSidePlatesRot = 1;
-    public static double bufferMinExtension = 7;
+    public static double transferRotation = 0, grabRotation = 0.0;
+    public static double turretBufferAngle = 1.2506, turretRetractedAngle = 2.7, turretSearchAngle = Math.PI, turretTransferAngle = 0.133, turretGrabAngle = -Math.toRadians(15);
+    public static double turretPreRotation = 0.7, turretSearchRotation = 3.14, turretTransferRotation = 0, turretGrabRotation = 0.0;
+    public static double turretPastSidePlatesRotation = 1.7;
+    public static double minExtension = 7;
+    public static double lowerDelay = 250;
 
     private boolean grab = false;
     private boolean sampleStatus = false;
     private boolean useCamera = true;
     private boolean finishTransferRequest = false;
     private Pose2d target;
+    private long lowerStart = 0;
 
     public enum State {
         START_EXTEND,
@@ -57,7 +59,7 @@ public class nClawIntake {
     public nClawIntake(Robot robot) {
         this.robot = robot;
 
-        endAffector = new EndAffector(this.robot);
+        intakeTurret = new IntakeTurret(this.robot);
 
         intakeLight = robot.hardwareMap.get(DigitalChannel.class, "intakeLight");
         intakeLight.setMode(DigitalChannel.Mode.OUTPUT);
@@ -74,21 +76,19 @@ public class nClawIntake {
 
     //general update for entire class
     public void update() {
-        endAffector.update();
-
         switch (state) {
             case START_EXTEND:
                 // Pre-rotate the turret + claw servos
-                endAffector.setIntakeExtension(bufferMinExtension);
-                endAffector.setTurretAngle(turretBufferAng);
-                endAffector.setTurretRot(turretPreRot);
-                endAffector.setIntakeRotation(target.heading);
+                intakeTurret.setIntakeExtension(minExtension);
+                intakeTurret.setTurretArmTarget(turretBufferAngle);
+                intakeTurret.setTurretRotation(turretPreRotation);
+                intakeTurret.setClawRotation(target.heading);
 
-                endAffector.setClawState(grab);
+                intakeTurret.setClawState(grab);
 
                 // Wait for extension past certain length or for the buffer ang to be reached, meaning we can full send rotation
-                if (endAffector.extendoInPosition() || endAffector.turretAngInPosition()) {
-                    if (intakeSetTargetPos > bufferMinExtension)
+                if (intakeTurret.extendoInPosition() || intakeTurret.turretAngInPosition()) {
+                    if (intakeSetTargetPos > minExtension)
                         state = State.FULL_EXTEND;
                     else
                         state = State.MID_EXTEND;
@@ -96,160 +96,170 @@ public class nClawIntake {
                 break;
             case MID_EXTEND:
                 // Get past the side plates so if our target position is less than min extension we won't clip
-                endAffector.setIntakeExtension(bufferMinExtension);
-                endAffector.setTurretAngle(turretBufferAng);
-                endAffector.setTurretRot(turretPastSidePlatesRot);
-                endAffector.setIntakeRotation(target.heading);
+                intakeTurret.setIntakeExtension(minExtension);
+                intakeTurret.setTurretArmTarget(turretBufferAngle);
+                intakeTurret.setTurretRotation(turretPastSidePlatesRotation);
+                intakeTurret.setClawRotation(target.heading);
 
-                if (endAffector.turretAngInPosition())
+                if (intakeTurret.turretAngInPosition())
                     state = State.FULL_EXTEND;
                 break;
             case FULL_EXTEND:
                 // Fully extend + rotate to search positions
-                endAffector.setIntakeExtension(intakeSetTargetPos);
-                endAffector.setTurretAngle(turretSearchAng);
-                endAffector.setTurretRot(turretSearchRot);
-                endAffector.setIntakeRotation(target.heading);
+                intakeTurret.setIntakeExtension(intakeSetTargetPos);
+                intakeTurret.setTurretArmTarget(turretSearchAngle);
+                intakeTurret.setTurretRotation(turretSearchRotation);
+                intakeTurret.setClawRotation(target.heading);
 
-                endAffector.setClawState(grab);
+                intakeTurret.setClawState(grab);
 
                 // Wait for full extension and turret in position before starting search
-                if (endAffector.extendoInPosition() && endAffector.turretRotInPosition()) {
-                    state = useCamera ? State.SEARCH : State.LOWER;
+                if (intakeTurret.extendoInPosition() && intakeTurret.turretRotInPosition()) {
+                    if (useCamera)
+                        state = State.SEARCH;
+                    else {
+                        lowerStart = System.currentTimeMillis();
+                        state = State.LOWER;
+                    }
                     intakeLight.setState(true);
                 }
                 break;
             case SEARCH:
                 // Begin Serach, just hold positions
-                endAffector.setIntakeExtension(intakeSetTargetPos);
-                endAffector.setIntakeRotation(target.heading);
-                endAffector.setTurretAngle(turretSearchAng);
-                endAffector.setTurretRot(turretSearchRot);
+                intakeTurret.setIntakeExtension(intakeSetTargetPos);
+                intakeTurret.setClawRotation(target.heading);
+                intakeTurret.setTurretArmTarget(turretSearchAngle);
+                intakeTurret.setTurretRotation(turretSearchRotation);
 
-                endAffector.setClawState(false);
+                intakeTurret.setClawState(false);
 
                 // Use grab as a flag for whether or not a block has been found
-                if (grab && endAffector.rotInPosition()) {
+                if (grab && intakeTurret.rotInPosition()) {
+                    lowerStart = System.currentTimeMillis();
                     state = State.LOWER;
                 }
                 break;
             case LOWER:
                 // intakeAt method should hopefully calculate new extension, new turretAngle + Rotation, and move in to grab
                 if (useCamera) {
-                    endAffector.intakeAt(target);
+                    intakeTurret.intakeAt(target);
                 } else {
-                    endAffector.setIntakeExtension(intakeSetTargetPos);
-                    endAffector.setIntakeRotation(intakeGrabRot);
-                    endAffector.setTurretAngle(turretGrabAng);
-                    endAffector.setTurretRot(turretGrabRot);
+                    intakeTurret.setIntakeExtension(intakeSetTargetPos);
+                    intakeTurret.setClawRotation(grabRotation);
+                    intakeTurret.setTurretArmTarget(turretGrabAngle);
+                    intakeTurret.setTurretRotation(turretGrabRotation);
                 }
 
-                endAffector.setClawState(false);
+                intakeTurret.setClawState(false);
 
                 // everything in position before grabbing
-                if (endAffector.inPosition()) {
+                if (intakeTurret.inPosition() && intakeTurret.extendoInPosition() && (System.currentTimeMillis() - lowerStart) > lowerDelay) {
                     state = State.GRAB_CLOSE;
                 }
                 break;
             case GRAB_CLOSE:
                 // Grab the block and wait for a confirmtion that we have the block
                 if (useCamera) {
-                    endAffector.intakeAt(target);
+                    intakeTurret.intakeAt(target);
                 } else {
-                    endAffector.setIntakeExtension(intakeSetTargetPos);
-                    endAffector.setIntakeRotation(intakeGrabRot);
-                    endAffector.setTurretAngle(turretGrabAng);
-                    endAffector.setTurretRot(turretGrabRot);
+                    intakeTurret.setIntakeExtension(intakeSetTargetPos);
+                    intakeTurret.setClawRotation(grabRotation);
+                    intakeTurret.setTurretArmTarget(turretGrabAngle);
+                    intakeTurret.setTurretRotation(turretGrabRotation);
                 }
 
                 // grab
-                endAffector.setClawState(true);
+                intakeTurret.setClawState(true);
 
                 // begin retract once grab finished
-                if (sampleStatus)
+                if (sampleStatus) {
                     state = State.START_RETRACT;
+                }
                 break;
             case START_RETRACT:
                 // Get the arm in a proper angle for a full retract
-                endAffector.setIntakeExtension(bufferMinExtension);
-                endAffector.setIntakeRotation(intakeTransferRot);
-                endAffector.setTurretAngle(turretBufferAng);
-                endAffector.setTurretRot(turretPastSidePlatesRot);
+                intakeTurret.setIntakeExtension(minExtension);
+                intakeTurret.setClawRotation(transferRotation);
+                intakeTurret.setTurretArmTarget(turretBufferAngle);
+                intakeTurret.setTurretRotation(turretPastSidePlatesRotation);
 
-                endAffector.setClawState(true);
+                intakeTurret.setClawState(grab);
 
                 // if grab failed go back to search
-                if (endAffector.turretAngInPosition()) {
+                if (intakeTurret.turretAngInPosition()) {
                     // If we have a sample, transfer otherwise just retract into it
                     if (sampleStatus)
                         state = State.TRANSFER_WAIT;
-                    else
+                    else {
                         state = State.RETRACT;
+                        grab = false;
+                    }
                 }
                 break;
             case RETRACT:
                 // full retract into transfer
-                endAffector.setIntakeExtension(0.0);
-                endAffector.setIntakeRotation(intakeTransferRot);
-                endAffector.setTurretAngle(turretRetractedAng);
-                endAffector.setTurretRot(turretTransferRot);
+                intakeTurret.setIntakeExtension(0.0);
+                intakeTurret.setClawRotation(transferRotation);
+                intakeTurret.setTurretArmTarget(turretRetractedAngle);
+                intakeTurret.setTurretRotation(turretTransferRotation);
 
-                endAffector.setClawState(false);
+                intakeTurret.setClawState(false);
 
                 // true grab -> holding a sample
-                if (endAffector.extendoInPosition()) {
+                if (intakeTurret.extendoInPosition()) {
                     state = State.READY;
                     this.intakeLight.setState(false);
                 }
                 break;
             case READY:
                 // hold in start position, everything tucked in while moving so defense can be played. no sample ver
-                endAffector.setIntakeExtension(0.0);
-                endAffector.setIntakeRotation(intakeTransferRot);
-                endAffector.setTurretAngle(turretRetractedAng);
-                endAffector.setTurretRot(turretTransferRot);
+                intakeTurret.setIntakeExtension(0.0);
+                intakeTurret.setClawRotation(transferRotation);
+                intakeTurret.setTurretArmTarget(turretRetractedAngle);
+                intakeTurret.setTurretRotation(turretTransferRotation);
 
-                endAffector.setClawState(false);
+                intakeTurret.setClawState(false);
                 break;
             case TRANSFER_WAIT:
                 // hold in transfer position
-                endAffector.setIntakeExtension(0.0);
-                endAffector.setIntakeRotation(intakeTransferRot);
-                endAffector.setTurretAngle(turretTransferAng);
-                endAffector.setTurretRot(turretTransferRot);
+                intakeTurret.setIntakeExtension(0.0);
+                intakeTurret.setClawRotation(transferRotation);
+                intakeTurret.setTurretArmTarget(turretTransferAngle);
+                intakeTurret.setTurretRotation(turretTransferRotation);
 
-                endAffector.setClawState(true);
+                intakeTurret.setClawState(true);
 
                 // Complete transfer can only be called in TRANSFER_WAIT, must have everything correct
                 // used to release intake grip on sample, should be called in deposit after the deposit has a firm grip
                 // TODO: check endAffector.inPosition()
-                if (endAffector.inPosition() && finishTransferRequest) {
+                if (intakeTurret.inPosition() && finishTransferRequest) {
                     state = State.TRANSFER_END;
                     finishTransferRequest = false;
                     sampleStatus = false;
                 }
                 break;
             case TRANSFER_END:
-                endAffector.setIntakeExtension(0.0);
-                endAffector.setIntakeRotation(intakeTransferRot);
-                endAffector.setTurretAngle(turretTransferAng);
-                endAffector.setTurretRot(turretTransferRot);
+                intakeTurret.setIntakeExtension(0.0);
+                intakeTurret.setClawRotation(transferRotation);
+                intakeTurret.setTurretArmTarget(turretTransferAngle);
+                intakeTurret.setTurretRotation(turretTransferRotation);
 
-                endAffector.setClawState(false);
+                intakeTurret.setClawState(false);
 
                 // once the grab is finished, send back to RETRACT. false grab changes from HOLD to READY
                 // no need to worry about whacking stuff b/c both states require rotation to be in the turretTransferRot value
-                if (endAffector.grabInPosition()) {
+                if (intakeTurret.grabInPosition()) {
                     state = State.RETRACT;
                     grab = false;
                 }
                 break;
 
             case TEST:
-                endAffector.setIntakeExtension(intakeSetTargetPos);
+                intakeTurret.setIntakeExtension(intakeSetTargetPos);
                 break;
         }
 
+        intakeTurret.update();
         updateTelemetry();
     }
 
@@ -259,7 +269,7 @@ public class nClawIntake {
 
     // TODO: Determine minMaxClips for setters
     public void setTurretGrabRot(double t) {
-        turretGrabRot = t;
+        turretGrabRotation = t;
     }
 
     public void finishTransfer() {
@@ -273,11 +283,11 @@ public class nClawIntake {
         } else if (angle < -1.7) {
             angle = 1.7;
         }
-        intakeGrabRot = angle;
+        grabRotation = angle;
     }
 
     public double getClawRotAngle() {
-        return intakeGrabRot;
+        return grabRotation;
     }
 
     public void setTargetPose(Pose2d t) {
@@ -317,7 +327,7 @@ public class nClawIntake {
     }
 
     public boolean isTransferReady() {
-        return endAffector.inPosition() && state == State.TRANSFER_WAIT;
+        return intakeTurret.inPosition() && state == State.TRANSFER_WAIT;
     }
 
     /*public void release() {
@@ -335,6 +345,14 @@ public class nClawIntake {
         this.intakeSetTargetPos = Utils.minMaxClip(targetPos, 1, 19);
     }
 
+    public double getIntakeLength() {
+        return intakeTurret.intakeExtension.getLength();
+    }
+
+    public double getIntakeRelativeToRobot() {
+        return getIntakeLength() + IntakeTurret.extendoOffset;
+    }
+
     public double getIntakeTargetPos() {
         return this.intakeSetTargetPos;
     }
@@ -342,17 +360,17 @@ public class nClawIntake {
 //    public void forcePullIn() { forcePull = true; }
 
     public void updateTelemetry() {
-        TelemetryUtil.packet.put("ClawIntake.clawRotationAlignAngle", intakeGrabRot);
-        LogUtil.intakeClawRotationAngle.set(intakeGrabRot);
+        TelemetryUtil.packet.put("ClawIntake.clawRotationAlignAngle", grabRotation);
+        LogUtil.intakeClawRotationAngle.set(grabRotation);
         TelemetryUtil.packet.put("ClawIntake.grab", grab);
         LogUtil.intakeClawGrab.set(grab);
-        TelemetryUtil.packet.put("ClawIntake clawRotation angle", endAffector.getIntakeRotation());
+        TelemetryUtil.packet.put("ClawIntake clawRotation angle", intakeTurret.getClawRotation());
         TelemetryUtil.packet.put("ClawIntake State", this.state);
         LogUtil.intakeState.set(this.state.toString());
     }
 
     public void resetExtendoEncoders() {
         Log.e("RESETTTING", "RESTETING EXTENDO *************");
-        endAffector.intakeExtension.resetExtendoEncoders();
+        intakeTurret.intakeExtension.resetExtendoEncoders();
     }
 }

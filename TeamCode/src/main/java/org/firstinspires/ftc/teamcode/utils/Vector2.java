@@ -59,10 +59,6 @@ public class Vector2 {
         return String.format("(%f, %f)", x, y);
     }
 
-    public void rotate(double angle) {
-        x = x*Math.cos(angle) + y*Math.sin(angle);
-        y = x*-Math.sin(angle) + y*Math.cos(angle);
-    }
     public static Vector2 rotate(Vector2 vector, double angle) {
         double x = vector.x;
         double y = vector.y;
@@ -86,5 +82,20 @@ public class Vector2 {
 
     public static double distance(Vector2 v0, Vector2 v1) {
         return Math.sqrt(Math.pow(v0.x - v1.x, 2) + Math.pow(v0.y - v1.y, 2));
+    }
+
+    public void rotate(double rad) {
+        double nx = x * Math.cos(rad) - y * Math.sin(rad);
+        double ny = x * Math.sin(rad) + y * Math.cos(rad);
+
+        x = nx;
+        y = ny;
+    }
+
+    public static Vector2 staticrotate(Vector2 v, double rad) {
+        return new Vector2(
+            v.x * Math.cos(rad) - v.y * Math.sin(rad),
+            v.x * Math.sin(rad) + v.y * Math.cos(rad)
+        );
     }
 }

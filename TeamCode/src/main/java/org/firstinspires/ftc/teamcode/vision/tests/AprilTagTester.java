@@ -16,7 +16,7 @@ public class AprilTagTester extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
-        Globals.RUNMODE = RunMode.AUTO;
+        /*Globals.RUNMODE = RunMode.AUTO;
         Globals.isRed = true;
         Vision vision = new Vision(hardwareMap, telemetry, true, false, true);
         Robot robot = new Robot(hardwareMap, vision);
@@ -27,6 +27,6 @@ public class AprilTagTester extends LinearOpMode {
         while (!isStopRequested() && opModeIsActive()) {
             robot.drivetrain.drive(gamepad1);
             robot.update();
-        }
+        }*/
     }
 }

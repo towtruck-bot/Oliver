@@ -36,7 +36,7 @@ public class nClawIntake {
     private boolean sampleStatus = false;
     private boolean useCamera = true;
     private boolean finishTransferRequest = false;
-    private Pose2d target;
+    public Pose2d target;
     private long lowerStart = 0;
 
     public enum State {

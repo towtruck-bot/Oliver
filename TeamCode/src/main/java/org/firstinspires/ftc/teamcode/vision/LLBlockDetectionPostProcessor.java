@@ -42,12 +42,11 @@ public class LLBlockDetectionPostProcessor {
     private Vector2 offset = new Vector2(0, 0);
     private double lowPassError = 0;
     public static int pollRate = 100;
-    private boolean blockDetected = false;
-    private boolean pastFirstDetection = false;
     private int sumDetections = 0;
     public static int maxAngX = 15;
     public static int maxAngY = 15;
-    private double lastAng = 0;
+    private double lastOrientation = Double.MAX_VALUE;
+    private double orientation = Double.MAX_VALUE;
     private double errorX = 0, errorY = 0, errorHeading = 0;
 
     public LLBlockDetectionPostProcessor(Robot robot) {
@@ -82,10 +81,6 @@ public class LLBlockDetectionPostProcessor {
             return;
 
         LLResult result = ll.getLatestResult();
-        if (result == null) {
-            Log.e("Eric's Log", "Crap.");
-            return;
-        }
 
         // Get robot based pose delta
         Pose2d p = robot.sensors.getOdometryPosition();
@@ -96,19 +91,24 @@ public class LLBlockDetectionPostProcessor {
         );
 
 
-        YawPitchRollAngles angles = result.getBotpose().getOrientation();
-        if (!pastFirstDetection)
-            lastAng = angles.getYaw(AngleUnit.RADIANS);
-
-        double deltaAng = lastAng - angles.getYaw(AngleUnit.RADIANS);
+        double deltaAng = lastOrientation - orientation - pDelta.heading;
         Pose2d expectedNewBlockPose = new Pose2d( // Calculated from solely poses
             (blockPos.x - pDelta.x) * Math.cos(deltaAng) - (blockPos.y - pDelta.y) * Math.sin(deltaAng),
             (blockPos.x - pDelta.x) * Math.sin(deltaAng) + (blockPos.y - pDelta.y) * Math.cos(deltaAng),
             blockPos.heading + deltaAng
         );
+        TelemetryUtil.packet.put("Expected X", expectedNewBlockPose.x);
+        TelemetryUtil.packet.put("Expected Y", expectedNewBlockPose.y);
+        TelemetryUtil.packet.put("Expected Heading", expectedNewBlockPose.heading);
+        TelemetryUtil.packet.put("pDelta X", pDelta.x);
+        TelemetryUtil.packet.put("pDelta Y", pDelta.y);
+        TelemetryUtil.packet.put("pDelta Heading", pDelta.heading);
+        TelemetryUtil.packet.put("LL angle", orientation);
+        TelemetryUtil.packet.put("deltaAng", deltaAng);
 
         // Update based on ONLY change in robot position
-        if (result.getStaleness() > 100 ||
+        if (result == null ||
+            result.getStaleness() > 100 ||
             result.getColorResults().isEmpty() ||
             // Clamp
             Math.abs(result.getColorResults().get(0).getTargetXDegrees()) > maxAngX ||
@@ -116,7 +116,6 @@ public class LLBlockDetectionPostProcessor {
 
             blockPos = expectedNewBlockPose.clone();
 
-            blockDetected = false;
             sumDetections = 0;
         } else { // We have a valid result. Now we can update with both change according to dt and change according to limelight
             // Post processing. Get new block x, y, and heading
@@ -169,24 +168,31 @@ public class LLBlockDetectionPostProcessor {
                 // Average the 2 small sides
                 double h1 = AngleUtil.mirroredClipAngleTolerence(Math.atan2(vcorners[l0].y - vcorners[cl0].y, vcorners[l0].x - vcorners[cl0].x), Math.toRadians(20));
                 double h2 = AngleUtil.mirroredClipAngleTolerence(Math.atan2(vcorners[cl1].y - vcorners[l1].y, vcorners[cl1].x - vcorners[l1].x), Math.toRadians(20));
-                heading = (h1 + h2) / 2 - p.heading + angles.getYaw(AngleUnit.RADIANS);
+                heading = (h1 + h2) / 2 - p.heading + deltaAng;
 
-                blockDetected = true;
                 sumDetections++;
-                pastFirstDetection = true;
             }
 
             heading = AngleUtil.mirroredClipAngleTolerence(heading, Math.toRadians(20));
 
             // If robot is moving very fast then it will only use drivetrain translational values to calculate new block pos
-            double weightedAvg = robot.sensors.getVelocity().toVec3().getMag() / Drivetrain.maxVelocity;
+            Vector2 velocityVector = new Vector2(
+                robot.sensors.getVelocity().x,
+                robot.sensors.getVelocity().y
+            );
+            double weightedAvg = velocityVector.mag() / Drivetrain.maxVelocity;
 
             blockPos.x = expectedNewBlockPose.x * weightedAvg + x * (1 - weightedAvg);
             blockPos.y = expectedNewBlockPose.y * weightedAvg + y * (1 - weightedAvg);
             // Low pass filter
             blockPos.heading = blockPos.heading * 0.8 + heading * 0.1 * weightedAvg + expectedNewBlockPose.heading * 0.1 * (1 - weightedAvg);
+            TelemetryUtil.packet.put("weightedAvg", weightedAvg);
+            TelemetryUtil.packet.put("velocity", velocityVector.mag());
 
             // Get the pose error (expected without limelight vs with limelight)
+            errorX = errorX * 0.8 + (blockPos.x - x) * 0.2;
+            errorY = errorY * 0.8 + (blockPos.y - y) * 0.2;
+            errorHeading = errorHeading * 0.8 + (blockPos.heading - heading);
         }
 
         // This is fine because detecting turning on would update this value properly
@@ -195,6 +201,8 @@ public class LLBlockDetectionPostProcessor {
         Vector2 o = Vector2.staticrotate(offset, pDelta.heading);
         blockPos.x += o.x;
         blockPos.y += o.y;
+
+        lastOrientation = orientation;
     }
 
     /**
@@ -204,7 +212,6 @@ public class LLBlockDetectionPostProcessor {
         lastPosition = robot.sensors.getOdometryPosition().clone();
         blockPos = new Pose2d(0, 0, 0);
         detecting = true;
-        pastFirstDetection = false;
         lowPassError = sumDetections = 0;
     }
 
@@ -248,5 +255,24 @@ public class LLBlockDetectionPostProcessor {
 
     public double getLowPassError() {
         return lowPassError;
+    }
+
+    public double getErrorX() {
+        return errorX;
+    }
+
+    public double getErrorY() {
+        return errorY;
+    }
+
+    public double getErrorHeading() {
+        return errorHeading;
+    }
+
+    public void setNewOrientation(double ang) {
+        if (lastOrientation == Double.MAX_VALUE) {
+            lastOrientation = ang;
+        }
+        orientation = ang;
     }
 }

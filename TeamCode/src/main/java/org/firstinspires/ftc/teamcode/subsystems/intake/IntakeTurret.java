@@ -130,6 +130,10 @@ public class IntakeTurret {
         //turretRotationTarget = t;
     }
 
+    public double getTurretRotation() {
+        return turretRotation.getTargetAngle() * (3.524 / Math.PI);
+    }
+
     public double getClawRotation(){
         return clawRotation.getCurrentAngle();
     }

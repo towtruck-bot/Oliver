@@ -17,9 +17,10 @@ import org.firstinspires.ftc.teamcode.utils.Vector2;
 @Config
 public class IntakeWithLL extends LinearOpMode {
     public static double extensionLength = 10;
-    public static boolean restart = false;
+    public static boolean setExtend = false;
+    public static boolean setRetract = false;
     public static boolean setGrab = false;
-    public static boolean grab = true;
+    public static boolean grab = false;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -46,22 +47,28 @@ public class IntakeWithLL extends LinearOpMode {
             c.strokeCircle(blockPos.x, blockPos.y, 3);
             c.strokeLine(blockPos.x, blockPos.y, blockPos.x + 5 * Math.sin(blockPos.heading), blockPos.y + 5 * Math.cos(blockPos.heading));
 
-            if (restart) {
+            if (setExtend) {
                 robot.vision.startDetection();
-                restart = false;
+                robot.nclawIntake.extend();
+                setExtend = false;
+            }
+
+            if (setRetract) {
+                robot.vision.stopDetection();
+                robot.nclawIntake.retract();
+                setRetract = false;
             }
 
             if (setGrab) {
-                robot.nclawIntake.setTargetPose(new Pose2d(blockPos.x, blockPos.y, -blockPos.heading));
+                robot.nclawIntake.setTargetPose(robot.vision.getBlockPos());
                 robot.nclawIntake.grab(grab);
                 setGrab = false;
-                grab = false;
             }
 
-            if (grab)
-                robot.nclawIntake.target.heading = -blockPos.heading;
-
             robot.nclawIntake.setIntakeLength(extensionLength);
+            TelemetryUtil.packet.put("LL xError", robot.vision.getErrorX());
+            TelemetryUtil.packet.put("LL yError", robot.vision.getErrorY());
+            TelemetryUtil.packet.put("LL headingError", robot.vision.getErrorHeading());
 
             robot.update();
         }

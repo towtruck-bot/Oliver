@@ -13,7 +13,7 @@ public class Arm {
 
     public final nPriorityServo armRotation;
     public final nPriorityServo clawRotation;
-    public final nPriorityServo clawGrip;
+    public final nPriorityServo claw;
 
     public static double sampleOpenRad = 0.4, speciOpenRad = 0.25, closeRad = 0.0;
 
@@ -21,8 +21,8 @@ public class Arm {
         this.sensors = robot.sensors;
 
         armRotation = new nPriorityServo(
-                new Servo[] {robot.hardwareMap.get(Servo.class, "armRotationL"), robot.hardwareMap.get(Servo.class, "armRotationR")},
-                "armRotation",
+                new Servo[] {robot.hardwareMap.get(Servo.class, "depositArmRotationL"), robot.hardwareMap.get(Servo.class, "depositArmRotationR")},
+                "depositArmRotation",
                 nPriorityServo.ServoType.AXON_MINI,
                 0.34,
                 1.0,
@@ -34,8 +34,8 @@ public class Arm {
         robot.hardwareQueue.addDevice(armRotation);
 
         clawRotation = new nPriorityServo(
-                new Servo[] {robot.hardwareMap.get(Servo.class, "clawRotation")},
-                "clawRotation",
+                new Servo[] {robot.hardwareMap.get(Servo.class, "depositClawRotation")},
+                "depositClawRotation",
                 nPriorityServo.ServoType.AXON_MAX,
                 0,
                 0.67,
@@ -46,18 +46,18 @@ public class Arm {
         );
         robot.hardwareQueue.addDevice(clawRotation);
 
-        clawGrip = new nPriorityServo(
-                new Servo[] {robot.hardwareMap.get(Servo.class, "clawGrip")},
-                "clawGrip",
+        claw = new nPriorityServo(
+                new Servo[] {robot.hardwareMap.get(Servo.class, "depositClaw")},
+                "depositClaw",
                 nPriorityServo.ServoType.AXON_MINI,
-                0.078,
-                0.155,
-                0.082,
+                0.086,
+                0.146,
+                0.086,
                 new boolean[] {false},
                 1.0,
                 2.0
         );
-        robot.hardwareQueue.addDevice(clawGrip);
+        robot.hardwareQueue.addDevice(claw);
     }
 
     public void setArmRotation(double targetRad, double power){
@@ -69,15 +69,15 @@ public class Arm {
     }
 
     public void sampleOpen(){
-        clawGrip.setTargetAngle(sampleOpenRad, 1.0);
+        claw.setTargetAngle(sampleOpenRad, 1.0);
     }
 
     public void speciOpen(){
-        clawGrip.setTargetAngle(speciOpenRad, 1.0);
+        claw.setTargetAngle(speciOpenRad, 1.0);
     }
 
     public void clawClose(){
-        clawGrip.setTargetAngle(closeRad, 1.0);
+        claw.setTargetAngle(closeRad, 1.0);
     }
 
     public boolean inPosition(){
@@ -85,7 +85,7 @@ public class Arm {
     }
 
     public boolean clawInPosition(){
-        return clawGrip.inPosition();
+        return claw.inPosition();
     }
 
     public boolean armInPosition() { return armRotation.inPosition(); }

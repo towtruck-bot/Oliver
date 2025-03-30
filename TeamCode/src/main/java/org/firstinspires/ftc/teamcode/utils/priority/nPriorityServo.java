@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.utils.Globals;
 import org.firstinspires.ftc.teamcode.utils.RunMode;
+import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 import org.firstinspires.ftc.teamcode.utils.Utils;
 
 public class nPriorityServo extends PriorityDevice {
@@ -20,7 +21,7 @@ public class nPriorityServo extends PriorityDevice {
         AMAZON(0.2122065908, Math.toRadians(60) / 0.13),
         PRO_MODELER(0.32698, Math.toRadians(60) / 0.139),
         JX(0.3183098862, Math.toRadians(60) / 0.12),
-        HITEC(0.2966648, 2.822787368421053);
+        HITEC(0.2966648, 2.8);
 
         public final double positionPerRadian;
         public final double speed;
@@ -78,6 +79,7 @@ public class nPriorityServo extends PriorityDevice {
     }
 
     public boolean inPosition(){
+        //Log.e("ERIC LOG", "inPosition is " + (Math.abs(targetAngle-currentAngle) < Math.toRadians(0.01)) + "");
         return Math.abs(targetAngle-currentAngle) < Math.toRadians(0.01);
     }
 
@@ -159,10 +161,6 @@ public class nPriorityServo extends PriorityDevice {
             first = false;
         }
 
-
-        if (isUpdated)
-            return 0;
-
         // Update the servo internal values
         long currentTime = System.nanoTime();
         double loopTime = ((double) currentTime - lastLoopTime)/1.0E9;
@@ -184,12 +182,16 @@ public class nPriorityServo extends PriorityDevice {
 //        Log.e(this.name + "_currentIntermediateTargetAngle" , currentIntermediateTargetAngle + "");
 
         currentAngle += deltaAngle;
+        TelemetryUtil.packet.put("currentPos " + name, currentAngle);
 
         // Clamp
-        if (Math.abs(deltaAngle) > Math.abs(error))
+        if (Math.abs(error) < Math.abs(deltaAngle))
             currentAngle = targetAngle;
 
         lastLoopTime = currentTime;
+
+        if (isUpdated)
+            return 0;
 
         // Dawg what the hell??
         if (timeRemaining * 1000.0 <= callLengthMillis/2.0) {

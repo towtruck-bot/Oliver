@@ -16,7 +16,7 @@ import org.firstinspires.ftc.teamcode.utils.Pose2d;
 public class nClawIntakeTester extends LinearOpMode {
     public static nClawIntake.State stateDashboard = nClawIntake.State.READY;
     public static boolean setState = false;
-    public static boolean perserveState = true;
+    public static boolean perserveState = false;
     public static double targetX = 0;
     public static double targetY = 0;
     public static double targetHeading = 0;

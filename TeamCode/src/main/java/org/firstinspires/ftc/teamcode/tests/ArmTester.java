@@ -22,7 +22,7 @@ public class ArmTester extends LinearOpMode {
             if(goTo){
                 robot.deposit.moveToWithRad(armTargetRad, targetY);
                 robot.deposit.arm.clawRotation.setTargetAngle(clawRotationRad, 1.0);
-                robot.deposit.arm.clawGrip.setTargetAngle(clawGripRad, 1.0);
+                robot.deposit.arm.claw.setTargetAngle(clawGripRad, 1.0);
                 goTo = !goTo;
             }
 

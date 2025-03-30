@@ -22,6 +22,7 @@ import org.firstinspires.ftc.teamcode.utils.Pose2d;
 import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 import org.firstinspires.ftc.teamcode.utils.Utils;
 import org.firstinspires.ftc.teamcode.utils.priority.HardwareQueue;
+import org.firstinspires.ftc.teamcode.vision.LLBlockDetectionPostProcessor;
 import org.firstinspires.ftc.teamcode.vision.Vision;
 
 public class Robot {
@@ -35,6 +36,7 @@ public class Robot {
     // public final Intake intake;
     public final Deposit deposit;
     public final Hang hang;
+    public final LLBlockDetectionPostProcessor vision;
 
     public enum RobotState {
         RESET,
@@ -64,10 +66,6 @@ public class Robot {
     private Func abortChecker;
 
     public Robot(HardwareMap hardwareMap) {
-        this(hardwareMap, null);
-    }
-
-    public Robot(HardwareMap hardwareMap, Vision vision) {
         this.hardwareMap = hardwareMap;
         this.hardwareQueue = new HardwareQueue();
 
@@ -89,6 +87,8 @@ public class Robot {
         deposit = new Deposit(this);
         ndeposit = new nDeposit(this);
         hang = new Hang(this);
+        vision = new LLBlockDetectionPostProcessor(this);
+        vision.start();
 
         TelemetryUtil.setup();
         LogUtil.reset();
@@ -110,6 +110,7 @@ public class Robot {
         //this.deposit.update();
         //ndeposit.update();
         hang.update();
+        vision.update();
 
         //this.robotFSM();
 

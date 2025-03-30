@@ -15,7 +15,7 @@ public class Arm {
     public final nPriorityServo clawRotation;
     public final nPriorityServo claw;
 
-    public static double sampleOpenRad = 0.4, speciOpenRad = 0.25, closeRad = 0.0;
+    public static double sampleOpenRad = 0.22, speciOpenRad = 0.1011, closeRad = 0.0;
 
     public Arm(Robot robot){
         this.sensors = robot.sensors;
@@ -24,9 +24,9 @@ public class Arm {
                 new Servo[] {robot.hardwareMap.get(Servo.class, "depositArmRotationL"), robot.hardwareMap.get(Servo.class, "depositArmRotationR")},
                 "depositArmRotation",
                 nPriorityServo.ServoType.AXON_MINI,
-                0.34,
+                0.0,
                 1.0,
-                0.89,
+                0.5,
                 new boolean[] {false, true},
                 1.0,
                 2.0

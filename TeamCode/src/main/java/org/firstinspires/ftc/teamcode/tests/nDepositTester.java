@@ -13,7 +13,21 @@ import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 @TeleOp
 @Config
 public class nDepositTester extends LinearOpMode {
+    public static nDeposit.State stateDashboard = nDeposit.State.IDLE;
     public static nDeposit.State state = nDeposit.State.IDLE;
+    public static boolean setState = false, preserveState = false;
+
+    public static boolean coords = false;
+    public static double targetY = 0, targetArm = 0, targetClaw = 0;
+
+    public static boolean setTransferStart = false;
+    public static boolean setTransferFinish = false;
+    public static boolean sampleDepo = false;
+    public static boolean outtake = false;
+    public static boolean speciIntake = false;
+    public static boolean reqGrab = false;
+    public static boolean speciDepo = false;
+    public static boolean release = false;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -21,14 +35,61 @@ public class nDepositTester extends LinearOpMode {
         Robot robot = new Robot(hardwareMap);
 
         waitForStart();
-        //robot.deposit.retract();
 
         while(!isStopRequested()){
-            robot.ndeposit.state = state;
+            if(setState){
+                robot.ndeposit.state = stateDashboard;
+                setState = !setState;
+            }else if(preserveState){
+                robot.ndeposit.state = state;
+            }
 
-            TelemetryUtil.packet.put("current state", robot.ndeposit.state);
+            if(setTransferStart){
+                robot.ndeposit.startTransfer();
+                setTransferStart = !setTransferStart;
+            }
+
+            if(setTransferFinish){
+                robot.ndeposit.finishTransfer();
+                setTransferFinish = !setTransferFinish;
+            }
+
+            if(sampleDepo){
+                robot.ndeposit.startSampleDeposit();
+                sampleDepo = !sampleDepo;
+            }
+
+            if(outtake){
+                robot.ndeposit.outtake();
+                outtake = !outtake;
+            }
+
+            if(speciIntake){
+                robot.ndeposit.startSpecimenIntake();
+                speciIntake = !speciIntake;
+            }
+
+            if(reqGrab){
+                robot.ndeposit.grab();
+                reqGrab = !reqGrab;
+            }
+
+            if(speciDepo){
+                robot.ndeposit.startSpecimenDeposit();
+                speciDepo = !speciDepo;
+            }
+
+            if(release){
+                robot.ndeposit.deposit();
+                release = !release;
+            }
+
+            if(coords){
+                robot.ndeposit.setByCoords(targetArm, targetClaw, targetY);
+            }
 
             robot.update();
+            TelemetryUtil.packet.put("current state", robot.ndeposit.state);
         }
     }
 }

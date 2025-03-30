@@ -19,7 +19,7 @@ public class nClawIntake {
 
     private final IntakeTurret intakeTurret;
 
-    private final DigitalChannel intakeLight;
+    public final DigitalChannel intakeLight;
 
     private double intakeSetTargetPos = 0;
 

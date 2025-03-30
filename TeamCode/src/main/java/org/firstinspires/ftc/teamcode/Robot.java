@@ -33,7 +33,6 @@ public class Robot {
     public final ClawIntake clawIntake;
     public final nClawIntake nclawIntake;
     public final nDeposit ndeposit;
-    // public final Intake intake;
     public final Deposit deposit;
     public final Hang hang;
     public final LLBlockDetectionPostProcessor vision;
@@ -82,7 +81,6 @@ public class Robot {
         sensors = new Sensors(this);
         clawIntake = new ClawIntake(this);
         nclawIntake = new nClawIntake(this);
-        // intake = new Intake(this);
         drivetrain = new Drivetrain(this);
         deposit = new Deposit(this);
         ndeposit = new nDeposit(this);
@@ -105,10 +103,9 @@ public class Robot {
 
         //this.clawIntake.update();
         nclawIntake.update();
-        // intake.update();
         drivetrain.update();
         //this.deposit.update();
-        //ndeposit.update();
+        ndeposit.update();
         hang.update();
         vision.update();
 

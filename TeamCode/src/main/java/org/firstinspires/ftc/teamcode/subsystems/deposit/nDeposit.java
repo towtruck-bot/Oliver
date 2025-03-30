@@ -1,8 +1,12 @@
 package org.firstinspires.ftc.teamcode.subsystems.deposit;
 
+import com.acmerobotics.dashboard.config.Config;
+
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.utils.Utils;
+import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 
+@Config
 public class nDeposit {
     public enum State {
         IDLE,
@@ -17,10 +21,9 @@ public class nDeposit {
         SPECIMEN_GRAB,
         SPECIMEN_RAISE,
         SPECIMEN_DEPOSIT,
-        RETRACT
-    }
-
-    ;
+        RETRACT,
+        TEST
+    };
     public State state = State.IDLE;
 
     public enum HangState {
@@ -37,20 +40,19 @@ public class nDeposit {
     private Arm arm;
 
     // TODO: All values below (v) are estimates and may not scale correctly with the 0 positions. Make sure to tune!
-    public static double transferArm = Math.toRadians(-45), transferClaw = 0.0, transferY = 0;
-    public static double holdArm = Math.toRadians(90), holdClaw = 0.0, holdY = 0.0;
-    public static double raiseArmBufferRotation = - Math.PI / 2,  sampleArm = Math.toRadians(150), sampleClaw = Math.toRadians(30), sampleY = 32.5;
-    public static double outtakeArm = Math.toRadians(135), outtakeClaw = Math.toRadians(45), outtakeY = 0.0;
-    public static double specimenIntakeArm = 0, specimenIntakeClaw = 0, specimenIntakeY = 0;
-    public static double specimenDepositArm = Math.toRadians(30.0), specimenDepositClaw = Math.toRadians(-50.0), specimenDepositY = 18.6;
+    public static double transferArm = -0.4472, transferClaw = -1.7178, transferY = 0;
+    public static double holdArm = -0.889, holdClaw = 0.6477, holdY = 0.0;
+    public static double raiseArmBufferRotation = -1.8472,  sampleArm = -2.9728, sampleClaw = -0.0563, sampleY = 32.5;
+    public static double outtakeArm = -2.9225, outtakeClaw = -0.00169, outtakeY = 0.0;
+    public static double specimenIntakeArm = -2.9278, specimenIntakeClaw = 0.3436, specimenIntakeY = 0;
+    public static double specimenDepositArm = -0.1863, specimenDepositClaw = -1.8022, specimenDepositY = 18.6;
 
     private boolean requestFinishTransfer = false,
+                    transferRequested = false,
                     releaseRequested = false,
                     sampleDepositRequested = false,
                     outtakeRequested = false,
-                    grab = false,
                     specimenDepositRequested = false,
-                    transferRequested = false,
                     specimenIntakeRequested = false,
                     grabRequested = false;
 
@@ -175,7 +177,6 @@ public class nDeposit {
 
                 if (slides.inPosition(1.0) && arm.inPosition() && grabRequested) {
                     state = State.SPECIMEN_GRAB;
-                    grab = false;
                 }
             case SPECIMEN_GRAB:
                 slides.setTargetLength(specimenIntakeY);
@@ -186,7 +187,6 @@ public class nDeposit {
 
                 if (arm.clawInPosition()) {
                     state = State.HOLD;
-                    grab = false;
                 }
                 break;
             case SPECIMEN_RAISE:
@@ -217,6 +217,8 @@ public class nDeposit {
                     state = State.IDLE;
                 }
                 break;
+            case TEST:
+
         }
 
         if (hangState == HangState.PULL) {
@@ -224,6 +226,16 @@ public class nDeposit {
         } else if (hangState == HangState.OUT) {
             slides.setTargetPowerFORCED(0.7);
         }
+
+        TelemetryUtil.packet.put("arm inPosition", arm.armInPosition());
+        TelemetryUtil.packet.put("claw inPosition", arm.clawInPosition());
+        TelemetryUtil.packet.put("slides inPosition", slides.inPosition(1.0));
+    }
+
+    public void setByCoords(double armRad, double clawRad, double slidesHeight){
+        arm.setArmRotation(armRad, 1.0);
+        arm.setClawRotation(clawRad, 1.0);
+        slides.setTargetLength(slidesHeight);
     }
 
     public void setSampleHeight(double l) {
@@ -238,6 +250,10 @@ public class nDeposit {
 
     public void startTransfer() {
         transferRequested = true;
+    }
+
+    public void finishTransfer() {
+        requestFinishTransfer = state == State.TRANSFER_WAIT;
     }
 
     public boolean isTransferFinished() {
@@ -261,8 +277,10 @@ public class nDeposit {
         return state == State.HOLD;
     }
 
-    public void sampleDeposit() {
-        sampleDepositRequested = true;
+    public void startSampleDeposit() {
+        if(state == State.HOLD){
+            sampleDepositRequested = true;
+        }
     }
 
     public void startSpecimenDeposit() {
@@ -275,7 +293,7 @@ public class nDeposit {
     }
 
     public void deposit() {
-        if (state == State.SAMPLE_RAISE || state == State.SPECIMEN_RAISE) {
+        if (state == State.SAMPLE_WAIT || state == State.SPECIMEN_RAISE) {
             releaseRequested = true;
         }
     }

@@ -24,7 +24,7 @@ public class Slides {
     public static double kStaticRamp = (0.5 - kStatic)/35.3;
     public static double minPower = 0.3;
     public static double minPowerThresh = 2;
-    public static double forceDownPower = -0.5;
+    public static double forceDownPower = -0.40;
     public static double forceDownThresh = 5;
     public static double maxSlidesHeight = 35.3;
 
@@ -91,7 +91,7 @@ public class Slides {
         LogUtil.slidesTargetPos.set(targetLength);
         //TelemetryUtil.packet.put("Slides: Length", length);
 
-        if (targetLength <= 0.5 && length <= forceDownThresh) { // force down
+        if (targetLength <= 3 && length <= forceDownThresh && Math.abs(error) > 1) { // force down
             return length <= 0.5 ? forceDownPower / 2 : forceDownPower;
         }
         return (error * (maxVel / kA)) * kP + kStatic + kStaticRamp * targetLength + ((Math.abs(error) > minPowerThresh) ? minPower * Math.signum(error) : 0);

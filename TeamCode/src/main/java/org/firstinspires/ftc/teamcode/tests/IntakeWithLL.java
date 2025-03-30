@@ -4,6 +4,7 @@ import com.acmerobotics.dashboard.canvas.Canvas;
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.utils.Globals;
@@ -17,12 +18,8 @@ import org.firstinspires.ftc.teamcode.utils.Vector2;
 public class IntakeWithLL extends LinearOpMode {
     public static double extensionLength = 10;
     public static boolean restart = false;
-    public static boolean grab = false;
     public static boolean setGrab = false;
-    public static boolean confirm = false;
-    public static boolean finish = false;
-    public static boolean extend = false;
-    private boolean grabbing = false;
+    public static boolean grab = true;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -42,6 +39,7 @@ public class IntakeWithLL extends LinearOpMode {
             TelemetryUtil.packet.put("blockPos.x", blockPos.x);
             TelemetryUtil.packet.put("blockPos.y", blockPos.y);
             TelemetryUtil.packet.put("blockPos.heading", blockPos.heading);
+            RobotLog.e("blockPos.heading " + Math.toDegrees(blockPos.heading));
 
             Canvas c = TelemetryUtil.packet.fieldOverlay();
             c.setStroke("#444400");
@@ -53,27 +51,10 @@ public class IntakeWithLL extends LinearOpMode {
                 restart = false;
             }
 
-            if (robot.vision.concurrentDetections() > 20 && !grabbing) {
+            if (setGrab) {
                 robot.nclawIntake.setTargetPose(robot.vision.getBlockPos());
-                robot.nclawIntake.grab(true);
-                grabbing = true;
-            }
-
-            if (confirm) {
-                robot.nclawIntake.confirmGrab();
-                confirm = false;
-            }
-
-            if (finish) {
-                robot.nclawIntake.finishTransfer();
-                finish = false;
-            }
-
-            if (extend) {
-                robot.nclawIntake.extend();
-                extend = false;
-                grabbing = false;
-                robot.vision.resetConcurrentDetections();
+                robot.nclawIntake.grab(grab);
+                setGrab = false;
             }
 
             robot.nclawIntake.setIntakeLength(extensionLength);

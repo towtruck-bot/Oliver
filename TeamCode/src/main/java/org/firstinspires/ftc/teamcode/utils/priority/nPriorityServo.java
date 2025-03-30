@@ -199,9 +199,6 @@ public class nPriorityServo extends PriorityDevice {
         }
 
         // Ong trust this function.
-        if (currentAngle - targetAngle == 0) {
-            Log.e("beh", "god damnit");
-        }
         double priority = (((currentAngle - targetAngle) != 0) ? basePriority : 0) + Math.abs(targetAngle-currentIntermediateTargetAngle) * (System.nanoTime() - lastUpdateTime)/1000000.0 * priorityScale;
 
         // Yuh that means it just updated. Dont even touch that thing

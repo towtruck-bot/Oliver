@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.teamcode.Robot;
+import org.firstinspires.ftc.teamcode.utils.AngleUtil;
 import org.firstinspires.ftc.teamcode.utils.Globals;
 import org.firstinspires.ftc.teamcode.utils.Pose2d;
 import org.firstinspires.ftc.teamcode.utils.RunMode;
@@ -31,8 +32,9 @@ public class IntakeWithLL extends LinearOpMode {
         robot.nclawIntake.resetExtendoEncoders();
 
         robot.nclawIntake.useCamera(true);
-        robot.nclawIntake.extend();
+        //robot.nclawIntake.extend();
         robot.vision.startDetection();
+        robot.drivetrain.setPoseEstimate(new Pose2d(0, 0, 0));
         while (opModeIsActive()) {
             robot.vision.setOffset(new Vector2(robot.nclawIntake.getIntakeRelativeToRobot(), 0));
             Pose2d blockPos = robot.vision.getBlockPos();
@@ -60,7 +62,11 @@ public class IntakeWithLL extends LinearOpMode {
             }
 
             if (setGrab) {
-                robot.nclawIntake.setTargetPose(robot.vision.getBlockPos());
+                robot.nclawIntake.setTargetPose(new Pose2d(
+                        blockPos.x,
+                        blockPos.y,
+                        AngleUtil.mirroredClipAngleTolerence(-blockPos.heading, Math.toRadians(20))
+                ));
                 robot.nclawIntake.grab(grab);
                 setGrab = false;
             }

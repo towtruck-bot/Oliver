@@ -191,7 +191,7 @@ public class Drivetrain {
     double targetForwardPower = 0;
     double targetStrafePower = 0;
     double targetTurnPower = 0;
-    public static double maxVelocity = 20; // TODO: Tune me!
+    public static double maxVelocity = 78.77995865593925; // TODO: Tune me!
 
     long perfectHeadingTimeStart = System.currentTimeMillis();
 

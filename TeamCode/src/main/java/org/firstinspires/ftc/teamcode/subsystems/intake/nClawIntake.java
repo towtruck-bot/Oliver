@@ -26,7 +26,7 @@ public class nClawIntake {
     // turretBufferAng -> angle that allows for any rotation to occur with the turret still inside the robot. use in any retract/extend states
 
     public static double transferRotation = 0, grabRotation = 0.0;
-    public static double turretBufferAngle = 1.2506, turretRetractedAngle = 2.7, turretSearchAngle = Math.PI, turretTransferAngle = 0.133, turretGrabAngle = -Math.toRadians(15);
+    public static double turretBufferAngle = 1.2506, turretRetractedAngle = 2.7, turretSearchAngle = 2.9, turretTransferAngle = 0.133, turretGrabAngle = -Math.toRadians(15);
     public static double turretPreRotation = 0.7, turretSearchRotation = 3.14, turretTransferRotation = 0, turretGrabRotation = 0.0;
     public static double turretPastSidePlatesRotation = 1.7;
     public static double minExtension = 7;
@@ -260,7 +260,7 @@ public class nClawIntake {
         }
 
         intakeTurret.update();
-        robot.vision.setNewOrientation(intakeTurret.getTurretRotation());
+        robot.vision.setNewOrientation(intakeTurret.getTurretRotation() - Math.PI);
         updateTelemetry();
     }
 

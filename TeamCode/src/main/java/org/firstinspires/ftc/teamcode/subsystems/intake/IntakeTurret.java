@@ -96,13 +96,13 @@ public class IntakeTurret {
         if(Math.abs(yError) < turretLength){
             targetLength = xError - extendoOffset - Math.sqrt(turretLength * turretLength - yError * yError) + stupidConstant/* - yError / turretLength*/;
             //clawRotationTarget = target.heading;
-            setClawRotation(target.heading);
+            setTurretRotation(Math.PI + Math.atan2(yError, Math.sqrt(turretLength * turretLength - yError * yError)));
+            setClawRotation(AngleUtil.mirroredClipAngleTolerence(target.heading - getTurretRotation(), Math.toRadians(20)));
             // I hate you mechanical - Eric
             //turretArmTarget = 4.56;
             setTurretArmTarget(4.56);
             //turretAngle = yError < turretLength ? Math.asin(yError / turretLength) : turretAngle + (2.6395 - Math.PI / 2);
             //turretRotationTarget = Math.PI + Math.atan2(yError, Math.sqrt(turretLength * turretLength - yError * yError));
-            setTurretRotation(Math.PI + Math.atan2(yError, Math.sqrt(turretLength * turretLength - yError * yError)));
         }
     }
 
@@ -131,7 +131,7 @@ public class IntakeTurret {
     }
 
     public double getTurretRotation() {
-        return turretRotation.getTargetAngle() * (3.524 / Math.PI);
+        return turretRotation.getCurrentAngle() / (3.524 / Math.PI);
     }
 
     public double getClawRotation(){

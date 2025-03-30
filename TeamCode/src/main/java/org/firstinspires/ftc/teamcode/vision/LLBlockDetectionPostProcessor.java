@@ -21,8 +21,6 @@ import java.util.List;
 
 @Config
 public class LLBlockDetectionPostProcessor {
-    public static boolean useOnlyExpected = false;
-
     public enum Block {
         YELLOW(0),
         RED(1),
@@ -35,6 +33,7 @@ public class LLBlockDetectionPostProcessor {
         }
     }
 
+    public static boolean useExpected = false;
     private Limelight3A ll;
     private Block block;
     private Pose2d blockPos; // Robot centric vaue
@@ -91,14 +90,22 @@ public class LLBlockDetectionPostProcessor {
             p.y - lastPosition.y,
             p.heading - lastPosition.heading
         );
-
-
-        double deltaAng = lastOrientation - orientation - pDelta.heading;
-        Pose2d expectedNewBlockPose = new Pose2d( // Calculated from solely poses
-            (blockPos.x - pDelta.x) * Math.cos(deltaAng) - (blockPos.y - pDelta.y) * Math.sin(deltaAng),
-            (blockPos.x - pDelta.x) * Math.sin(deltaAng) + (blockPos.y - pDelta.y) * Math.cos(deltaAng),
-            blockPos.heading + deltaAng
+        Pose2d pDeltaRelative = new Pose2d(
+            pDelta.x * Math.cos(p.heading) + pDelta.y * Math.sin(p.heading),
+            -pDelta.x * Math.sin(p.heading) + pDelta.y * Math.cos(p.heading),
+            pDelta.heading
         );
+
+
+        double deltaAng = lastOrientation - orientation - pDeltaRelative.heading;
+        Pose2d expectedNewBlockPose = new Pose2d( // Calculated from solely poses
+            (blockPos.x - pDeltaRelative.x) * Math.cos(deltaAng) + (blockPos.y - pDeltaRelative.y) * Math.sin(deltaAng),
+            (blockPos.x - pDeltaRelative.x) * Math.sin(deltaAng) + (blockPos.y - pDeltaRelative.y) * Math.cos(deltaAng),
+            blockPos.heading + lastOrientation - orientation + pDeltaRelative.heading
+        );
+        TelemetryUtil.packet.put("p.x", p.x);
+        TelemetryUtil.packet.put("p.y", p.y);
+        TelemetryUtil.packet.put("p.heading", p.heading);
         TelemetryUtil.packet.put("Expected X", expectedNewBlockPose.x);
         TelemetryUtil.packet.put("Expected Y", expectedNewBlockPose.y);
         TelemetryUtil.packet.put("Expected Heading", expectedNewBlockPose.heading);
@@ -107,6 +114,7 @@ public class LLBlockDetectionPostProcessor {
         TelemetryUtil.packet.put("pDelta Heading", pDelta.heading);
         TelemetryUtil.packet.put("LL angle", orientation);
         TelemetryUtil.packet.put("deltaAng", deltaAng);
+        TelemetryUtil.packet.put("orientation", orientation);
 
         // Update based on ONLY change in robot position
         if (result == null ||
@@ -126,11 +134,11 @@ public class LLBlockDetectionPostProcessor {
             double x = getInchesX(cr.getTargetYDegrees());
             double y = getInchesY(-cr.getTargetXDegrees());
 
-            Vector2 o = Vector2.staticrotate(offset, pDelta.heading);
+            Vector2 o = Vector2.staticrotate(offset, orientation);
             x += o.x;
             y += o.y;
 
-            double heading = blockPos.heading;// - pDelta.heading;
+            double heading = expectedNewBlockPose.heading;// - pDelta.heading;
             // Attempt to update heading value with the new value
             List<List<Double>> corners = cr.getTargetCorners();
             if (corners.size() == 4) { // I don't care enough to get this to work with stupid detections
@@ -175,7 +183,7 @@ public class LLBlockDetectionPostProcessor {
                 // Average the 2 small sides
                 double h1 = AngleUtil.mirroredClipAngleTolerence(Math.atan2(vcorners[l0].y - vcorners[cl0].y, vcorners[l0].x - vcorners[cl0].x), Math.toRadians(20));
                 double h2 = AngleUtil.mirroredClipAngleTolerence(Math.atan2(vcorners[cl1].y - vcorners[l1].y, vcorners[cl1].x - vcorners[l1].x), Math.toRadians(20));
-                heading = (h1 + h2) / 2 - p.heading + deltaAng;
+                heading = (h1 + h2) / 2 + lastOrientation - orientation;
 
                 sumDetections++;
             }
@@ -189,25 +197,24 @@ public class LLBlockDetectionPostProcessor {
             );
             double weightedAvg = velocityVector.mag() / Drivetrain.maxVelocity;
 
-            //blockPos.x = expectedNewBlockPose.x * weightedAvg + x * (1 - weightedAvg);
-            //blockPos.y = expectedNewBlockPose.y * weightedAvg + y * (1 - weightedAvg);
-            blockPos.x = expectedNewBlockPose.x * 0.5 + x * 0.5;
-            blockPos.y = expectedNewBlockPose.y * 0.5 + y * 0.5;
-            // Low pass filter
-            blockPos.heading = blockPos.heading * 0.8 + heading * 0.1 * weightedAvg + expectedNewBlockPose.heading * 0.1 * (1 - weightedAvg);
+            blockPos.x = expectedNewBlockPose.x * weightedAvg + x * (1 - weightedAvg);
+            blockPos.y = expectedNewBlockPose.y * weightedAvg + y * (1 - weightedAvg);
+            blockPos.heading = expectedNewBlockPose.heading * weightedAvg + heading * (1 - weightedAvg);
+
             TelemetryUtil.packet.put("weightedAvg", weightedAvg);
             TelemetryUtil.packet.put("velocity", velocityVector.mag());
 
             // Get the pose error (expected without limelight vs with limelight)
-            errorX = errorX * 0.8 + (blockPos.x - x) * 0.2;
-            errorY = errorY * 0.8 + (blockPos.y - y) * 0.2;
-            errorHeading = errorHeading * 0.8 + (blockPos.heading - heading);
+            errorX = errorX * 0.2 + (blockPos.x - expectedNewBlockPose.x) * 0.8;
+            errorY = errorY * 0.2 + (blockPos.y - expectedNewBlockPose.y) * 0.8;
+            errorHeading = errorHeading * 0.2 + (blockPos.heading - expectedNewBlockPose.heading) * 0.8;
         }
+
+        if (useExpected)
+            blockPos = expectedNewBlockPose.clone();
 
         // This is fine because detecting turning on would update this value properly
         lastPosition = robot.sensors.getOdometryPosition().clone();
-
-
 
         lastOrientation = orientation;
     }

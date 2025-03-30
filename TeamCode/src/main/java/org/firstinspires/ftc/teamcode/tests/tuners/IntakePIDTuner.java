@@ -12,6 +12,7 @@ import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 
 @TeleOp
 @Config
+@Disabled
 public class IntakePIDTuner extends LinearOpMode {
     public static double targetExtension = 0;
 

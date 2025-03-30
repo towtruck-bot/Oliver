@@ -1,5 +1,8 @@
 package org.firstinspires.ftc.teamcode.vision;
 
+import android.util.Log;
+
+import com.acmerobotics.dashboard.canvas.Canvas;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.hardware.limelightvision.LLResultTypes.ColorResult;
@@ -10,6 +13,7 @@ import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.subsystems.drive.Drivetrain;
 import org.firstinspires.ftc.teamcode.utils.AngleUtil;
 import org.firstinspires.ftc.teamcode.utils.Pose2d;
+import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 import org.firstinspires.ftc.teamcode.utils.Vector2;
 
 import java.util.List;
@@ -111,28 +115,68 @@ public class LLBlockDetectionPostProcessor {
             // Attempt to update heading value with the new value
             List<List<Double>> corners = cr.getTargetCorners();
             if (corners.size() == 4) { // I don't care enough to get this to work with stupid detections
-                // We're working with 4 I'm going to convert this to a data type that isn't bad because I have the time
-                Vector2 longest0 = new Vector2(corners.get(0).get(0), corners.get(0).get(1));
-                Vector2 longest1 = new Vector2(corners.get(1).get(0), corners.get(1).get(1));
-                double dist = Vector2.distance(longest0, longest1);
+                // THIS FORMAT IS SO HORRID I'M SORRY BUT I'M TAKING THE EXTRA STEP TO CHANGE THE FORMAT - Eric
+                Vector2[] vcorners = new Vector2[4];
+                for (int i = 0; i < corners.size(); i++) {
+                    vcorners[i] = new Vector2(corners.get(i).get(0), corners.get(i).get(1));
+                }
 
-                // Whatever its O(n^2) but its like 4 so who cares
-                for (List<Double> l0 : corners) {
-                    Vector2 p0 = new Vector2(l0.get(0), l0.get(1));
-                    for (List<Double> l1 : corners) {
-                        Vector2 p1 = new Vector2(l1.get(0), l1.get(1));
-                        double d = Vector2.distance(p0, p1);
-                        if (d > dist) {
-                            longest0 = p0;
-                            longest1 = p1;
-                            dist = d;
+                // Get the 2 longest
+                int l0 = 0; // nyeh pointer !
+                int l1 = 0;
+                double largestDistance = Vector2.distance(vcorners[l0], vcorners[l1]);
+                for (int i = 0; i < vcorners.length; i++) {
+                    for (int j = i + 1; j < vcorners.length; j++) { // No gaf
+                        double d = Vector2.distance(vcorners[i], vcorners[j]);
+                        if (d >= largestDistance) {
+                            l0 = i;
+                            l1 = j;
+                            largestDistance = d;
                         }
                     }
                 }
+                // Now find out which one is the closest for each
+                int cl0 = -1;
+                int cl1 = -1;
+                double distcl0 = Double.MAX_VALUE;
+                double distcl1 = Double.MAX_VALUE;
+                for (int i = 0; i < vcorners.length; i++) {
+                    double dl0 = Vector2.distance(vcorners[l0], vcorners[i]);
+                    double dl1 = Vector2.distance(vcorners[l1], vcorners[i]);
+                    if (i != l0 && (cl0 == -1 || dl0 < distcl0)) {
+                        cl0 = i;
+                        distcl0 = dl0;
+                    }
+                    if (i != l1 && (cl1 == -1 || dl1 < distcl1)) {
+                        cl1 = i;
+                        distcl1 = dl1;
+                    }
+                }
 
-                // Theoredical angle of the longest dist the block should be 23.1985905 degrees
-                heading = Math.atan2(longest0.y - longest1.y, longest0.x - longest1.x);
-                heading -= Math.toRadians(23.1985905) * Math.signum(heading);
+                //Canvas c = TelemetryUtil.packet.fieldOverlay();
+                //c.setFill("#ff0000");
+                //c.setStroke("#ff0000");
+                //c.fillCircle(getInchesX(vcorners[l0].x), getInchesY(-vcorners[l0].y), 1);
+                //c.fillCircle(getInchesX(vcorners[l1].x), getInchesY(-vcorners[l1].y), 1);
+                //c.strokeLine(getInchesX(vcorners[l0].x), getInchesY(-vcorners[l0].y), getInchesX(vcorners[l1].x), getInchesY(-vcorners[l1].y));
+                //c.setFill("#0000ff");
+                //c.setStroke("#0000ff");
+                //c.strokeLine(getInchesX(vcorners[l0].x), getInchesY(-vcorners[l0].y), getInchesX(vcorners[cl0].x), getInchesY(-vcorners[cl0].y));
+                //c.strokeLine(getInchesX(vcorners[l1].x), getInchesY(-vcorners[l1].y), getInchesX(vcorners[cl1].x), getInchesY(-vcorners[cl1].y));
+                //c.fillCircle(getInchesX(vcorners[cl0].x), getInchesY(-vcorners[cl0].y), 1);
+                //c.fillCircle(getInchesX(vcorners[cl1].x), getInchesY(-vcorners[cl1].y), 1);
+                //Log.e("label1 l0", vcorners[l0].toString());
+                //Log.e("label1 l1", vcorners[l1].toString());
+                //Log.e("label1 cl0", vcorners[cl0].toString());
+                //Log.e("label1 cl1", vcorners[cl1].toString());
+
+                // Average the 2 small sides
+                double h1 = AngleUtil.mirroredClipAngleTolerence(Math.atan2(vcorners[l0].y - vcorners[cl0].y, vcorners[l0].x - vcorners[cl0].x), Math.toRadians(20));
+                double h2 = AngleUtil.mirroredClipAngleTolerence(Math.atan2(vcorners[cl1].y - vcorners[l1].y, vcorners[cl1].x - vcorners[l1].x), Math.toRadians(20));
+                heading = (h1 + h2) / 2 - p.heading + angles.getYaw(AngleUnit.RADIANS);
+                //TelemetryUtil.packet.put("h1 value", Math.toDegrees(h1));
+                //TelemetryUtil.packet.put("h2 value", Math.toDegrees(h2));
+                //TelemetryUtil.packet.put("h avg", Math.toDegrees(heading));
                 /*-
                         p.heading + angles.getYaw(AngleUnit.RADIANS);*/
 
@@ -140,23 +184,14 @@ public class LLBlockDetectionPostProcessor {
                 sumDetections++;
             }
 
+            heading = AngleUtil.mirroredClipAngleTolerence(heading, Math.toRadians(20));
+
             // If robot is moving very fast then it will only use drivetrain translational values to calculate new block pos
             double weightedAvg = robot.sensors.getVelocity().toVec3().getMag() / Drivetrain.maxVelocity;
             blockPos.x = pNewBlockPose.x * weightedAvg + x * (1 - weightedAvg);
             blockPos.y = pNewBlockPose.y * weightedAvg + y * (1 - weightedAvg);
-            blockPos.heading = AngleUtil.clipAngle(heading);//(blockPos.heading - pDelta.heading) * weightedAvg + heading * (1 - weightedAvg);
-
-            while (blockPos.heading > Math.PI / 2) {
-                blockPos.heading -= Math.PI;
-            }
-            while (blockPos.heading < -Math.PI / 2) {
-                blockPos.heading += Math.PI;
-            }
-
-            if (Math.abs(blockPos.heading - Math.PI / 2) < Math.toRadians(35))
-                blockPos.heading = 0;
-            else if (Math.abs(blockPos.heading) < Math.toRadians(35))
-                blockPos.heading = Math.PI / 2;
+            // Low pass filter
+            blockPos.heading = blockPos.heading * 0.8 + heading * 0.2;//(blockPos.heading - pDelta.heading) * weightedAvg + heading * (1 - weightedAvg);
         }
 
         // This is fine because detecting turning on would update this value properly

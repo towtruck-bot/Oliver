@@ -7,4 +7,24 @@ public class AngleUtil {
         }
         return angle;
     }
+
+    public static double mirroredClipAngle(double angle) {
+        while (angle > Math.PI / 2) {
+                angle -= Math.PI;
+            }
+        while (angle < -Math.PI / 2) {
+            angle += Math.PI;
+        }
+        return angle;
+    }
+
+    public static double mirroredClipAngleTolerence(double angle, double t) {
+        while (angle > Math.PI / 2 + t) {
+                angle -= Math.PI;
+            }
+        while (angle < -Math.PI / 2 - t) {
+            angle += Math.PI;
+        }
+        return angle;
+    }
 }

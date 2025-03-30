@@ -21,6 +21,8 @@ import java.util.List;
 
 @Config
 public class LLBlockDetectionPostProcessor {
+    public static boolean useOnlyExpected = false;
+
     public enum Block {
         YELLOW(0),
         RED(1),
@@ -123,6 +125,11 @@ public class LLBlockDetectionPostProcessor {
 
             double x = getInchesX(cr.getTargetYDegrees());
             double y = getInchesY(-cr.getTargetXDegrees());
+
+            Vector2 o = Vector2.staticrotate(offset, pDelta.heading);
+            x += o.x;
+            y += o.y;
+
             double heading = blockPos.heading;// - pDelta.heading;
             // Attempt to update heading value with the new value
             List<List<Double>> corners = cr.getTargetCorners();
@@ -182,8 +189,10 @@ public class LLBlockDetectionPostProcessor {
             );
             double weightedAvg = velocityVector.mag() / Drivetrain.maxVelocity;
 
-            blockPos.x = expectedNewBlockPose.x * weightedAvg + x * (1 - weightedAvg);
-            blockPos.y = expectedNewBlockPose.y * weightedAvg + y * (1 - weightedAvg);
+            //blockPos.x = expectedNewBlockPose.x * weightedAvg + x * (1 - weightedAvg);
+            //blockPos.y = expectedNewBlockPose.y * weightedAvg + y * (1 - weightedAvg);
+            blockPos.x = expectedNewBlockPose.x * 0.5 + x * 0.5;
+            blockPos.y = expectedNewBlockPose.y * 0.5 + y * 0.5;
             // Low pass filter
             blockPos.heading = blockPos.heading * 0.8 + heading * 0.1 * weightedAvg + expectedNewBlockPose.heading * 0.1 * (1 - weightedAvg);
             TelemetryUtil.packet.put("weightedAvg", weightedAvg);
@@ -198,9 +207,7 @@ public class LLBlockDetectionPostProcessor {
         // This is fine because detecting turning on would update this value properly
         lastPosition = robot.sensors.getOdometryPosition().clone();
 
-        Vector2 o = Vector2.staticrotate(offset, pDelta.heading);
-        blockPos.x += o.x;
-        blockPos.y += o.y;
+
 
         lastOrientation = orientation;
     }

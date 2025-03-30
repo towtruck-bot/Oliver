@@ -18,9 +18,7 @@ public class nDeposit {
         SPECIMEN_RAISE,
         SPECIMEN_DEPOSIT,
         RETRACT
-    }
-
-    ;
+    };
     public State state = State.IDLE;
 
     public enum HangState {
@@ -37,12 +35,12 @@ public class nDeposit {
     private Arm arm;
 
     // TODO: All values below (v) are estimates and may not scale correctly with the 0 positions. Make sure to tune!
-    public static double transferArm = Math.toRadians(-45), transferClaw = 0.0, transferY = 0;
-    public static double holdArm = Math.toRadians(90), holdClaw = 0.0, holdY = 0.0;
-    public static double raiseArmBufferRotation = - Math.PI / 2,  sampleArm = Math.toRadians(150), sampleClaw = Math.toRadians(30), sampleY = 32.5;
-    public static double outtakeArm = Math.toRadians(135), outtakeClaw = Math.toRadians(45), outtakeY = 0.0;
-    public static double specimenIntakeArm = 0, specimenIntakeClaw = 0, specimenIntakeY = 0;
-    public static double specimenDepositArm = Math.toRadians(30.0), specimenDepositClaw = Math.toRadians(-50.0), specimenDepositY = 18.6;
+    public static double transferArm = -0.4472, transferClaw = -1.7178, transferY = 0;
+    public static double holdArm = -0.889, holdClaw = 0.6477, holdY = 0.0;
+    public static double raiseArmBufferRotation = -1.8472,  sampleArm = -2.9728, sampleClaw = -0.0563, sampleY = 32.5;
+    public static double outtakeArm = -2.9225, outtakeClaw = -0.00169, outtakeY = 0.0;
+    public static double specimenIntakeArm = -2.9278, specimenIntakeClaw = 0.3436, specimenIntakeY = 0;
+    public static double specimenDepositArm = -0.1863, specimenDepositClaw = -1.8022, specimenDepositY = 18.6;
 
     private boolean requestFinishTransfer = false,
                     releaseRequested = false,

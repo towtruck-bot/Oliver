@@ -52,10 +52,14 @@ public class IntakeWithLL extends LinearOpMode {
             }
 
             if (setGrab) {
-                robot.nclawIntake.setTargetPose(robot.vision.getBlockPos());
+                robot.nclawIntake.setTargetPose(new Pose2d(blockPos.x, blockPos.y, -blockPos.heading));
                 robot.nclawIntake.grab(grab);
                 setGrab = false;
+                grab = false;
             }
+
+            if (grab)
+                robot.nclawIntake.target.heading = -blockPos.heading;
 
             robot.nclawIntake.setIntakeLength(extensionLength);
 

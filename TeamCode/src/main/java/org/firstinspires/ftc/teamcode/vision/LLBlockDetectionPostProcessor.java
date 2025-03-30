@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.vision;
 
 import android.util.Log;
 
+import com.acmerobotics.dashboard.canvas.Canvas;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.hardware.limelightvision.LLResultTypes.ColorResult;
@@ -123,11 +124,11 @@ public class LLBlockDetectionPostProcessor {
                 // Get the 2 longest
                 int l0 = 0; // nyeh pointer !
                 int l1 = 0;
-                double largestDistance = 0;
-                for (int i = 1; i < vcorners.length; i++) {
-                    for (int j = 0; j < vcorners.length; j++) { // No gaf
+                double largestDistance = Vector2.distance(vcorners[l0], vcorners[l1]);
+                for (int i = 0; i < vcorners.length; i++) {
+                    for (int j = i + 1; j < vcorners.length; j++) { // No gaf
                         double d = Vector2.distance(vcorners[i], vcorners[j]);
-                        if (d > largestDistance) {
+                        if (d >= largestDistance) {
                             l0 = i;
                             l1 = j;
                             largestDistance = d;
@@ -142,18 +143,40 @@ public class LLBlockDetectionPostProcessor {
                 for (int i = 0; i < vcorners.length; i++) {
                     double dl0 = Vector2.distance(vcorners[l0], vcorners[i]);
                     double dl1 = Vector2.distance(vcorners[l1], vcorners[i]);
-                    if (i != l0 && (cl0 == -1 || dl0 < distcl0))
+                    if (i != l0 && (cl0 == -1 || dl0 < distcl0)) {
                         cl0 = i;
-                    if (i != l1 && (cl1 == -1 || dl1 < distcl1))
+                        distcl0 = dl0;
+                    }
+                    if (i != l1 && (cl1 == -1 || dl1 < distcl1)) {
                         cl1 = i;
+                        distcl1 = dl1;
+                    }
                 }
 
+                //Canvas c = TelemetryUtil.packet.fieldOverlay();
+                //c.setFill("#ff0000");
+                //c.setStroke("#ff0000");
+                //c.fillCircle(getInchesX(vcorners[l0].x), getInchesY(-vcorners[l0].y), 1);
+                //c.fillCircle(getInchesX(vcorners[l1].x), getInchesY(-vcorners[l1].y), 1);
+                //c.strokeLine(getInchesX(vcorners[l0].x), getInchesY(-vcorners[l0].y), getInchesX(vcorners[l1].x), getInchesY(-vcorners[l1].y));
+                //c.setFill("#0000ff");
+                //c.setStroke("#0000ff");
+                //c.strokeLine(getInchesX(vcorners[l0].x), getInchesY(-vcorners[l0].y), getInchesX(vcorners[cl0].x), getInchesY(-vcorners[cl0].y));
+                //c.strokeLine(getInchesX(vcorners[l1].x), getInchesY(-vcorners[l1].y), getInchesX(vcorners[cl1].x), getInchesY(-vcorners[cl1].y));
+                //c.fillCircle(getInchesX(vcorners[cl0].x), getInchesY(-vcorners[cl0].y), 1);
+                //c.fillCircle(getInchesX(vcorners[cl1].x), getInchesY(-vcorners[cl1].y), 1);
+                //Log.e("label1 l0", vcorners[l0].toString());
+                //Log.e("label1 l1", vcorners[l1].toString());
+                //Log.e("label1 cl0", vcorners[cl0].toString());
+                //Log.e("label1 cl1", vcorners[cl1].toString());
+
                 // Average the 2 small sides
-                double h1 = Math.atan2(vcorners[l0].y - vcorners[cl0].y, vcorners[l0].x - vcorners[cl0].x);
-                double h2 = Math.atan2(vcorners[l1].y - vcorners[cl1].y, vcorners[l1].x - vcorners[cl1].x) + Math.toRadians(270);
-                TelemetryUtil.packet.put("h1 value", Math.toDegrees(h1));
-                TelemetryUtil.packet.put("h2 value", Math.toDegrees(h2));
-                heading = (h1 + h2) / 2;
+                double h1 = AngleUtil.mirroredClipAngleTolerence(Math.atan2(vcorners[l0].y - vcorners[cl0].y, vcorners[l0].x - vcorners[cl0].x), Math.toRadians(20));
+                double h2 = AngleUtil.mirroredClipAngleTolerence(Math.atan2(vcorners[cl1].y - vcorners[l1].y, vcorners[cl1].x - vcorners[l1].x), Math.toRadians(20));
+                heading = (h1 + h2) / 2 - p.heading + angles.getYaw(AngleUnit.RADIANS);
+                //TelemetryUtil.packet.put("h1 value", Math.toDegrees(h1));
+                //TelemetryUtil.packet.put("h2 value", Math.toDegrees(h2));
+                //TelemetryUtil.packet.put("h avg", Math.toDegrees(heading));
                 /*-
                         p.heading + angles.getYaw(AngleUnit.RADIANS);*/
 
@@ -161,12 +184,7 @@ public class LLBlockDetectionPostProcessor {
                 sumDetections++;
             }
 
-            while (heading > Math.PI / 2) {
-                heading -= Math.PI;
-            }
-            while (heading < -Math.PI / 2) {
-                heading += Math.PI;
-            }
+            heading = AngleUtil.mirroredClipAngleTolerence(heading, Math.toRadians(20));
 
             // If robot is moving very fast then it will only use drivetrain translational values to calculate new block pos
             double weightedAvg = robot.sensors.getVelocity().toVec3().getMag() / Drivetrain.maxVelocity;

@@ -33,8 +33,10 @@ public class SensorTester extends LinearOpMode {
 
             Pose2d pos = sensors.getOdometryPosition();
             String data = String.format(Locale.US, "{X: %.3f, Y: %.3f, H: %.3f}", pos.getX(), pos.getY(), pos.getHeading());
-            telemetry.addData("Position", data);
 
+            robot.nclawIntake.intakeLight.setState(gamepad1.x);
+
+            telemetry.addData("Position", data);
             telemetry.addData("Slides position", sensors.getSlidesPos());
             telemetry.addData("extendo slides position", sensors.getExtendoPos());
 

@@ -105,7 +105,7 @@ public class Robot {
         nclawIntake.update();
         drivetrain.update();
         //this.deposit.update();
-        //ndeposit.update();
+        ndeposit.update();
         hang.update();
         vision.update();
 

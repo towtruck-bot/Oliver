@@ -7,12 +7,14 @@ import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.utils.DashboardUtil;
 import org.firstinspires.ftc.teamcode.utils.LogUtil;
 import org.firstinspires.ftc.teamcode.utils.Pose2d;
+import org.firstinspires.ftc.teamcode.utils.REVColorSensorV3;
 import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 import org.firstinspires.ftc.teamcode.utils.priority.PriorityMotor;
 
 public class Sensors {
     private final Robot robot;
     private final GoBildaPinpointDriver odometry;
+    //private final REVColorSensorV3 intakeColorSensor;
 
     private double voltage;
     private final double voltageUpdateTime = 5000;
@@ -37,6 +39,8 @@ public class Sensors {
         odometry.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.REVERSED, GoBildaPinpointDriver.EncoderDirection.REVERSED);
 
         voltage = robot.hardwareMap.voltageSensor.iterator().next().getVoltage();
+
+        //intakeColorSensor = ;
     }
 
     public void update(){

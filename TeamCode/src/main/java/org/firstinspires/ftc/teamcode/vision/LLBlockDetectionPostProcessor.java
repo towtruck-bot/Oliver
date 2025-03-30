@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.vision;
 import android.util.Log;
 
 import com.acmerobotics.dashboard.canvas.Canvas;
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.hardware.limelightvision.LLResultTypes.ColorResult;
@@ -18,6 +19,7 @@ import org.firstinspires.ftc.teamcode.utils.Vector2;
 
 import java.util.List;
 
+@Config
 public class LLBlockDetectionPostProcessor {
     public enum Block {
         YELLOW(0),
@@ -38,9 +40,15 @@ public class LLBlockDetectionPostProcessor {
     private Robot robot;
     private boolean detecting = false;
     private Vector2 offset = new Vector2(0, 0);
+    private double lowPassError = 0;
     public static int pollRate = 100;
-    public boolean blockDetected = false;
+    private boolean blockDetected = false;
+    private boolean pastFirstDetection = false;
     private int sumDetections = 0;
+    public static int maxAngX = 15;
+    public static int maxAngY = 15;
+    private double lastAng = 0;
+    private double errorX = 0, errorY = 0, errorHeading = 0;
 
     public LLBlockDetectionPostProcessor(Robot robot) {
         ll = robot.hardwareMap.get(Limelight3A.class, "limelight");
@@ -74,6 +82,10 @@ public class LLBlockDetectionPostProcessor {
             return;
 
         LLResult result = ll.getLatestResult();
+        if (result == null) {
+            Log.e("Eric's Log", "Crap.");
+            return;
+        }
 
         // Get robot based pose delta
         Pose2d p = robot.sensors.getOdometryPosition();
@@ -83,29 +95,30 @@ public class LLBlockDetectionPostProcessor {
             p.heading - lastPosition.heading
         );
 
-        Vector2 pNewBlockPose = new Vector2( // Calculated from solely poses
-            (blockPos.x - pDelta.x) * Math.cos(pDelta.heading) - (blockPos.y - pDelta.y) * Math.sin(pDelta.heading),
-            (blockPos.x - pDelta.x) * Math.sin(pDelta.heading) + (blockPos.y - pDelta.y) * Math.cos(pDelta.heading)
+
+        YawPitchRollAngles angles = result.getBotpose().getOrientation();
+        if (!pastFirstDetection)
+            lastAng = angles.getYaw(AngleUnit.RADIANS);
+
+        double deltaAng = lastAng - angles.getYaw(AngleUnit.RADIANS);
+        Pose2d expectedNewBlockPose = new Pose2d( // Calculated from solely poses
+            (blockPos.x - pDelta.x) * Math.cos(deltaAng) - (blockPos.y - pDelta.y) * Math.sin(deltaAng),
+            (blockPos.x - pDelta.x) * Math.sin(deltaAng) + (blockPos.y - pDelta.y) * Math.cos(deltaAng),
+            blockPos.heading + deltaAng
         );
 
         // Update based on ONLY change in robot position
-        if (result == null ||
-            result.getStaleness() > 100 ||
+        if (result.getStaleness() > 100 ||
             result.getColorResults().isEmpty() ||
-                // Clamp
-            Math.abs(result.getColorResults().get(0).getTargetXDegrees()) > 20 ||
-            Math.abs(result.getColorResults().get(0).getTargetYDegrees()) > 20) {
+            // Clamp
+            Math.abs(result.getColorResults().get(0).getTargetXDegrees()) > maxAngX ||
+            Math.abs(result.getColorResults().get(0).getTargetYDegrees()) > maxAngY) {
 
-            blockPos.x = pNewBlockPose.x;
-            blockPos.y = pNewBlockPose.y;
-            blockPos.heading = blockPos.heading - pDelta.heading; // Is this right??
+            blockPos = expectedNewBlockPose.clone();
 
             blockDetected = false;
             sumDetections = 0;
         } else { // We have a valid result. Now we can update with both change according to dt and change according to limelight
-            // We can use IMU data to do some wackyyy stuff dudeee
-            YawPitchRollAngles angles = result.getBotpose().getOrientation();
-
             // Post processing. Get new block x, y, and heading
             ColorResult cr = result.getColorResults().get(0);
 
@@ -153,45 +166,27 @@ public class LLBlockDetectionPostProcessor {
                     }
                 }
 
-                //Canvas c = TelemetryUtil.packet.fieldOverlay();
-                //c.setFill("#ff0000");
-                //c.setStroke("#ff0000");
-                //c.fillCircle(getInchesX(vcorners[l0].x), getInchesY(-vcorners[l0].y), 1);
-                //c.fillCircle(getInchesX(vcorners[l1].x), getInchesY(-vcorners[l1].y), 1);
-                //c.strokeLine(getInchesX(vcorners[l0].x), getInchesY(-vcorners[l0].y), getInchesX(vcorners[l1].x), getInchesY(-vcorners[l1].y));
-                //c.setFill("#0000ff");
-                //c.setStroke("#0000ff");
-                //c.strokeLine(getInchesX(vcorners[l0].x), getInchesY(-vcorners[l0].y), getInchesX(vcorners[cl0].x), getInchesY(-vcorners[cl0].y));
-                //c.strokeLine(getInchesX(vcorners[l1].x), getInchesY(-vcorners[l1].y), getInchesX(vcorners[cl1].x), getInchesY(-vcorners[cl1].y));
-                //c.fillCircle(getInchesX(vcorners[cl0].x), getInchesY(-vcorners[cl0].y), 1);
-                //c.fillCircle(getInchesX(vcorners[cl1].x), getInchesY(-vcorners[cl1].y), 1);
-                //Log.e("label1 l0", vcorners[l0].toString());
-                //Log.e("label1 l1", vcorners[l1].toString());
-                //Log.e("label1 cl0", vcorners[cl0].toString());
-                //Log.e("label1 cl1", vcorners[cl1].toString());
-
                 // Average the 2 small sides
                 double h1 = AngleUtil.mirroredClipAngleTolerence(Math.atan2(vcorners[l0].y - vcorners[cl0].y, vcorners[l0].x - vcorners[cl0].x), Math.toRadians(20));
                 double h2 = AngleUtil.mirroredClipAngleTolerence(Math.atan2(vcorners[cl1].y - vcorners[l1].y, vcorners[cl1].x - vcorners[l1].x), Math.toRadians(20));
                 heading = (h1 + h2) / 2 - p.heading + angles.getYaw(AngleUnit.RADIANS);
-                //TelemetryUtil.packet.put("h1 value", Math.toDegrees(h1));
-                //TelemetryUtil.packet.put("h2 value", Math.toDegrees(h2));
-                //TelemetryUtil.packet.put("h avg", Math.toDegrees(heading));
-                /*-
-                        p.heading + angles.getYaw(AngleUnit.RADIANS);*/
 
                 blockDetected = true;
                 sumDetections++;
+                pastFirstDetection = true;
             }
 
             heading = AngleUtil.mirroredClipAngleTolerence(heading, Math.toRadians(20));
 
             // If robot is moving very fast then it will only use drivetrain translational values to calculate new block pos
             double weightedAvg = robot.sensors.getVelocity().toVec3().getMag() / Drivetrain.maxVelocity;
-            blockPos.x = pNewBlockPose.x * weightedAvg + x * (1 - weightedAvg);
-            blockPos.y = pNewBlockPose.y * weightedAvg + y * (1 - weightedAvg);
+
+            blockPos.x = expectedNewBlockPose.x * weightedAvg + x * (1 - weightedAvg);
+            blockPos.y = expectedNewBlockPose.y * weightedAvg + y * (1 - weightedAvg);
             // Low pass filter
-            blockPos.heading = blockPos.heading * 0.8 + heading * 0.2;//(blockPos.heading - pDelta.heading) * weightedAvg + heading * (1 - weightedAvg);
+            blockPos.heading = blockPos.heading * 0.8 + heading * 0.1 * weightedAvg + expectedNewBlockPose.heading * 0.1 * (1 - weightedAvg);
+
+            // Get the pose error (expected without limelight vs with limelight)
         }
 
         // This is fine because detecting turning on would update this value properly
@@ -209,6 +204,8 @@ public class LLBlockDetectionPostProcessor {
         lastPosition = robot.sensors.getOdometryPosition().clone();
         blockPos = new Pose2d(0, 0, 0);
         detecting = true;
+        pastFirstDetection = false;
+        lowPassError = sumDetections = 0;
     }
 
     /**
@@ -247,5 +244,9 @@ public class LLBlockDetectionPostProcessor {
 
     private double getInchesY(double y) {
         return 0.203 + 0.123 * y + -6.55e-5 * y * y;
+    }
+
+    public double getLowPassError() {
+        return lowPassError;
     }
 }

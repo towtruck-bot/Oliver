@@ -260,6 +260,7 @@ public class nClawIntake {
         }
 
         intakeTurret.update();
+        robot.vision.setNewOrientation(intakeTurret.getTurretRotation());
         updateTelemetry();
     }
 

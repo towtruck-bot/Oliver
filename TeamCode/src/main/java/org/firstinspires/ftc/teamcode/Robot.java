@@ -86,6 +86,7 @@ public class Robot {
         ndeposit = new nDeposit(this);
         hang = new Hang(this);
         vision = new LLBlockDetectionPostProcessor(this);
+        vision.start();
 
         TelemetryUtil.setup();
         LogUtil.reset();

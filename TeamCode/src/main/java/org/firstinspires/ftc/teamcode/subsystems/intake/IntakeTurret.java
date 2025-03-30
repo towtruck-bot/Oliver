@@ -86,14 +86,15 @@ public class IntakeTurret {
     }
 
     // Target is given in robot centric coordinates
-    public static double turretLength = 7.5;
-    public static double extendoOffset = 4;
+    public static double turretLength = 6;
+    public static double extendoOffset = 7.4;
+    public static double stupidConstant = 2.7;
     public void intakeAt(Pose2d target){
         double xError = target.x;
         double yError = target.y;
 
         if(Math.abs(yError) < turretLength){
-            targetLength = xError - extendoOffset - Math.sqrt(turretLength * turretLength - yError * yError);
+            targetLength = xError - extendoOffset - Math.sqrt(turretLength * turretLength - yError * yError) + stupidConstant/* - yError / turretLength*/;
             //clawRotationTarget = target.heading;
             setClawRotation(target.heading);
             // I hate you mechanical - Eric

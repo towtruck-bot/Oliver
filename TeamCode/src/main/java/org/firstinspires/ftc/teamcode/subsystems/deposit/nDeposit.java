@@ -45,7 +45,7 @@ public class nDeposit {
     public static double raiseArmBufferRotation = -1.8472,  sampleArm = -2.9728, sampleClaw = -0.0563, sampleY = 32.5;
     public static double outtakeArm = -2.9225, outtakeClaw = -0.00169, outtakeY = 0.0;
     public static double specimenIntakeArm = -2.9278, specimenIntakeClaw = 0.3436, specimenIntakeY = 0;
-    public static double specimenDepositArm = -0.1863, specimenDepositClaw = -1.8022, specimenDepositY = 18.6;
+    public static double specimenDepositArm = -0.1, specimenDepositClaw = -1.2, specimenDepositY = 18.6;
 
     private boolean requestFinishTransfer = false,
                     transferRequested = false,
@@ -178,6 +178,7 @@ public class nDeposit {
                 if (slides.inPosition(1.0) && arm.inPosition() && grabRequested) {
                     state = State.SPECIMEN_GRAB;
                 }
+                break;
             case SPECIMEN_GRAB:
                 slides.setTargetLength(specimenIntakeY);
                 arm.setArmRotation(specimenIntakeArm, 1.0);
@@ -218,7 +219,7 @@ public class nDeposit {
                 }
                 break;
             case TEST:
-
+                break;
         }
 
         if (hangState == HangState.PULL) {
@@ -227,8 +228,11 @@ public class nDeposit {
             slides.setTargetPowerFORCED(0.7);
         }
 
+        TelemetryUtil.packet.put("arm target", arm.armRotation.getTargetAngle());
         TelemetryUtil.packet.put("arm inPosition", arm.armInPosition());
+        TelemetryUtil.packet.put("claw target", arm.clawRotation.getTargetAngle());
         TelemetryUtil.packet.put("claw inPosition", arm.clawInPosition());
+        TelemetryUtil.packet.put("slides target", slides.getTargetLenght());
         TelemetryUtil.packet.put("slides inPosition", slides.inPosition(1.0));
     }
 

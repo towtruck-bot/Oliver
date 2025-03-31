@@ -139,4 +139,8 @@ public class Slides {
     public double getLength() {
         return length;
     }
+
+    public double getTargetLenght(){
+        return targetLength;
+    }
 }

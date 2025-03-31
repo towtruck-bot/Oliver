@@ -7,6 +7,8 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.teamcode.Robot;
+import org.firstinspires.ftc.teamcode.subsystems.deposit.nDeposit;
+import org.firstinspires.ftc.teamcode.subsystems.intake.nClawIntake;
 import org.firstinspires.ftc.teamcode.utils.AngleUtil;
 import org.firstinspires.ftc.teamcode.utils.Globals;
 import org.firstinspires.ftc.teamcode.utils.Pose2d;
@@ -22,6 +24,7 @@ public class IntakeWithLL extends LinearOpMode {
     public static boolean setRetract = false;
     public static boolean setGrab = false;
     public static boolean grab = false;
+    public static boolean transferRequest = false;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -61,6 +64,16 @@ public class IntakeWithLL extends LinearOpMode {
                 setRetract = false;
             }
 
+            if (transferRequest) {
+                robot.ndeposit.startTransfer();
+                transferRequest = false;
+            }
+
+            if (robot.nclawIntake.isTransferReady() && robot.ndeposit.isTransferReady()) {
+                robot.nclawIntake.finishTransfer();
+                robot.ndeposit.finishTransfer();
+            }
+
             if (setGrab) {
                 robot.nclawIntake.setTargetPose(new Pose2d(
                         blockPos.x,
@@ -71,10 +84,8 @@ public class IntakeWithLL extends LinearOpMode {
                 setGrab = false;
             }
 
+            TelemetryUtil.packet.put("velocityLowPass", robot.vision.getVelocityLowPass());
             robot.nclawIntake.setIntakeLength(extensionLength);
-            TelemetryUtil.packet.put("LL xError", robot.vision.getErrorX());
-            TelemetryUtil.packet.put("LL yError", robot.vision.getErrorY());
-            TelemetryUtil.packet.put("LL headingError", robot.vision.getErrorHeading());
 
             robot.update();
         }

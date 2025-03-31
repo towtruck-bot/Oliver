@@ -48,7 +48,7 @@ public class IntakeTurret {
         turretArm = new nPriorityServo(
                 new Servo[] {robot.hardwareMap.get(Servo.class, "intakeTurretArm")},
                 "intakeTurretArm",
-                nPriorityServo.ServoType.AXON_MINI,
+                nPriorityServo.ServoType.HITEC,
                 0.0026, 0.971, 0.0026,
                 new boolean[] {false},
                 1.0, 5
@@ -100,7 +100,7 @@ public class IntakeTurret {
             setClawRotation(AngleUtil.mirroredClipAngleTolerence(target.heading - getTurretRotation(), Math.toRadians(20)));
             // I hate you mechanical - Eric
             //turretArmTarget = 4.56;
-            setTurretArmTarget(4.56);
+            setTurretArmTarget(nClawIntake.turretGrabAngle);
             //turretAngle = yError < turretLength ? Math.asin(yError / turretLength) : turretAngle + (2.6395 - Math.PI / 2);
             //turretRotationTarget = Math.PI + Math.atan2(yError, Math.sqrt(turretLength * turretLength - yError * yError));
         }
@@ -164,5 +164,9 @@ public class IntakeTurret {
 
     public boolean turretAngInPosition(){
         return turretArm.inPosition();
+    }
+
+    public boolean clawInPosition() {
+        return claw.inPosition();
     }
 }

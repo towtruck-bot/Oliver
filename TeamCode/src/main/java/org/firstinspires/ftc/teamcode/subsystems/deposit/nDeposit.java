@@ -40,7 +40,7 @@ public class nDeposit {
     private Arm arm;
 
     // TODO: All values below (v) are estimates and may not scale correctly with the 0 positions. Make sure to tune!
-    public static double transferArm = -0.4472, transferClaw = -1.7178, transferY = 0;
+    public static double transferArm = 0.5696, transferClaw = 0, transferY = 6.5;
     public static double holdArm = -0.889, holdClaw = 0.6477, holdY = 0.0;
     public static double raiseArmBufferRotation = -1.8472,  sampleArm = -2.9728, sampleClaw = -0.0563, sampleY = 32.5;
     public static double outtakeArm = -2.9225, outtakeClaw = -0.00169, outtakeY = 0.0;

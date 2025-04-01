@@ -15,6 +15,7 @@ public class LogUtil {
     public static Datalogger.GenericField extendoCurrentPos = new Datalogger.GenericField("extendoCurrentPos");
     public static Datalogger.GenericField extendoTargetPos = new Datalogger.GenericField("extendoTargetPos");
     public static Datalogger.GenericField intakeClawRotationAngle = new Datalogger.GenericField("intakeClawRotationAngle");
+    public static Datalogger.GenericField intakeTurretRotationAngle = new Datalogger.GenericField("intakeTurretRotationAngle");
     public static Datalogger.GenericField intakeClawGrab = new Datalogger.GenericField("intakeClawGrab");
     public static Datalogger.GenericField slidesCurrentPos = new Datalogger.GenericField("slidesCurrentPos");
     public static Datalogger.GenericField slidesTargetPos = new Datalogger.GenericField("slidesTargetPos");
@@ -59,6 +60,7 @@ public class LogUtil {
                 extendoCurrentPos,
                 extendoTargetPos,
                 intakeClawRotationAngle,
+                intakeTurretRotationAngle,
                 intakeClawGrab,
                 slidesCurrentPos,
                 slidesTargetPos,

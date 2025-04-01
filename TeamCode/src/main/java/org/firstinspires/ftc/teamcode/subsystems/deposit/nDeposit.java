@@ -64,6 +64,7 @@ public class nDeposit {
     }
 
     public void update() {
+        TelemetryUtil.packet.put("Deposit.state", state);
         slides.update();
 
         switch (state) {
@@ -86,9 +87,9 @@ public class nDeposit {
 
                 arm.sampleOpen();
 
-                if (arm.inPosition() && slides.inPosition(1.0) && requestFinishTransfer) {
+                if (requestFinishTransfer) {
                     state = State.TRANSFER_FINISH;
-                    robot.nclawIntake.finishTransfer(); // Just to make sure you're not being stupid - Eric
+                    //robot.nclawIntake.finishTransfer(); // Just to make sure you're not being stupid - Eric
                     requestFinishTransfer = false;
                 }
 
@@ -257,7 +258,11 @@ public class nDeposit {
     }
 
     public void finishTransfer() {
-        requestFinishTransfer = state == State.TRANSFER_WAIT;
+        requestFinishTransfer = true;
+    }
+
+    public boolean retractReady() {
+        return arm.armRotation.getCurrentAngle() < -0.4;
     }
 
     public boolean isTransferFinished() {

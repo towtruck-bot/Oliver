@@ -10,6 +10,7 @@ import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.subsystems.deposit.nDeposit;
 import org.firstinspires.ftc.teamcode.subsystems.intake.nClawIntake;
 import org.firstinspires.ftc.teamcode.utils.AngleUtil;
+import org.firstinspires.ftc.teamcode.utils.ButtonToggle;
 import org.firstinspires.ftc.teamcode.utils.Globals;
 import org.firstinspires.ftc.teamcode.utils.Pose2d;
 import org.firstinspires.ftc.teamcode.utils.RunMode;
@@ -36,8 +37,12 @@ public class IntakeWithLL extends LinearOpMode {
 
         robot.nclawIntake.useCamera(true);
         //robot.nclawIntake.extend();
-        robot.vision.startDetection();
         robot.drivetrain.setPoseEstimate(new Pose2d(0, 0, 0));
+
+        ButtonToggle x_b = new ButtonToggle();
+        ButtonToggle y_b = new ButtonToggle();
+        ButtonToggle a_b = new ButtonToggle();
+
         while (opModeIsActive()) {
             robot.vision.setOffset(new Vector2(robot.nclawIntake.getIntakeRelativeToRobot(), 0));
             Pose2d blockPos = robot.vision.getBlockPos();
@@ -52,7 +57,16 @@ public class IntakeWithLL extends LinearOpMode {
             c.strokeCircle(blockPos.x, blockPos.y, 3);
             c.strokeLine(blockPos.x, blockPos.y, blockPos.x + 5 * Math.sin(blockPos.heading), blockPos.y + 5 * Math.cos(blockPos.heading));
 
-            if (setExtend) {
+            if (y_b.isClicked(gamepad1.y))
+                robot.nclawIntake.extend();
+
+            if (x_b.isClicked(gamepad1.x))
+                robot.ndeposit.startSampleDeposit();
+
+            if (a_b.isClicked(gamepad1.a))
+                robot.ndeposit.deposit();
+
+            /*if (setExtend) {
                 robot.vision.startDetection();
                 robot.nclawIntake.extend();
                 setExtend = false;
@@ -67,14 +81,14 @@ public class IntakeWithLL extends LinearOpMode {
             if (transferRequest) {
                 robot.ndeposit.startTransfer();
                 transferRequest = false;
-            }
+            }*/
 
             if (robot.nclawIntake.isTransferReady() && robot.ndeposit.isTransferReady()) {
                 robot.nclawIntake.finishTransfer();
                 robot.ndeposit.finishTransfer();
             }
 
-            if (setGrab) {
+            /*if (setGrab) {
                 robot.nclawIntake.setTargetPose(new Pose2d(
                         blockPos.x,
                         blockPos.y,
@@ -82,10 +96,11 @@ public class IntakeWithLL extends LinearOpMode {
                 ));
                 robot.nclawIntake.grab(grab);
                 setGrab = false;
-            }
+            }*/
 
             TelemetryUtil.packet.put("velocityLowPass", robot.vision.getVelocityLowPass());
             robot.nclawIntake.setIntakeLength(extensionLength);
+            robot.drivetrain.drive(gamepad1);
 
             robot.update();
         }

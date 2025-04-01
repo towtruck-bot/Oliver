@@ -64,6 +64,7 @@ public class nDeposit {
     }
 
     public void update() {
+        TelemetryUtil.packet.put("Deposit.state", state);
         slides.update();
 
         switch (state) {
@@ -86,9 +87,9 @@ public class nDeposit {
 
                 arm.sampleOpen();
 
-                if (arm.inPosition() && slides.inPosition(1.0) && requestFinishTransfer) {
+                if (requestFinishTransfer) {
                     state = State.TRANSFER_FINISH;
-                    robot.nclawIntake.finishTransfer(); // Just to make sure you're not being stupid - Eric
+                    //robot.nclawIntake.finishTransfer(); // Just to make sure you're not being stupid - Eric
                     requestFinishTransfer = false;
                 }
 
@@ -104,6 +105,10 @@ public class nDeposit {
                 if (arm.clawInPosition()) {
                     state = State.HOLD;
                 }
+
+                // Considering the speed of the slides and how stupid it would look to jitter this, we should probably perform hold checks here
+                // BUT. It's not an immediate issue so I don't care. With love, -Eric
+
                 break;
             case HOLD:
                 moveToHoldPoses();
@@ -130,7 +135,7 @@ public class nDeposit {
 
                 arm.clawClose();
 
-                if (arm.inPosition()) {
+                if (slides.inPosition(1.0)) {
                     state = State.SAMPLE_WAIT;
                 }
                 break;
@@ -257,7 +262,11 @@ public class nDeposit {
     }
 
     public void finishTransfer() {
-        requestFinishTransfer = state == State.TRANSFER_WAIT;
+        requestFinishTransfer = true;
+    }
+
+    public boolean retractReady() {
+        return arm.armRotation.getCurrentAngle() < -0.4;
     }
 
     public boolean isTransferFinished() {
@@ -302,11 +311,22 @@ public class nDeposit {
         }
     }
 
-    public boolean isDepositFinished() {
-        return state == State.IDLE;
-    }
-
     public boolean isTransferReady() {
         return state == State.TRANSFER_WAIT && arm.inPosition() && slides.inPosition(0.6);
+    }
+
+    public boolean isDepositReady() {
+        return (state == State.SAMPLE_WAIT ||
+                state == State.SPECIMEN_RAISE) &&
+                slides.inPosition(1.0) &&
+                arm.inPosition();
+    }
+
+    public boolean isDepositFinished() {
+        return ((state == State.SAMPLE_DEPOSIT ||
+                state == State.SPECIMEN_DEPOSIT) &&
+                arm.clawInPosition()) ||
+                state == State.RETRACT ||
+                state == State.IDLE;
     }
 }

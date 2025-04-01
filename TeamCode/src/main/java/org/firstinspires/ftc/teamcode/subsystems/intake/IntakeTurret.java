@@ -11,7 +11,7 @@ import org.firstinspires.ftc.teamcode.utils.priority.nPriorityServo;
 @Config
 public class IntakeTurret {
     private final Robot robot;
-    public final Extendo intakeExtension;
+    public final IntakeExtension intakeExtension;
     private final nPriorityServo clawRotation, claw, turretArm, turretRotation;
 
     private double targetLength, clawRotationTarget, turretArmTarget, turretRotationTarget;
@@ -23,7 +23,7 @@ public class IntakeTurret {
     public IntakeTurret(Robot robot){
         this.robot = robot;
 
-        intakeExtension = new Extendo(robot);
+        intakeExtension = new IntakeExtension(robot);
 
         claw = new nPriorityServo(
                 new Servo[] {robot.hardwareMap.get(Servo.class, "intakeClaw")},
@@ -49,7 +49,7 @@ public class IntakeTurret {
                 new Servo[] {robot.hardwareMap.get(Servo.class, "intakeTurretArm")},
                 "intakeTurretArm",
                 nPriorityServo.ServoType.HITEC,
-                0.0026, 0.971, 0.0026,
+                0, 1, 0.1118,
                 new boolean[] {false},
                 1.0, 5
         );
@@ -59,7 +59,7 @@ public class IntakeTurret {
                 new Servo[] {robot.hardwareMap.get(Servo.class, "intakeTurretRotation")},
                 "intakeTurretRotation",
                 nPriorityServo.ServoType.AXON_MINI,
-                0.0, 1.0, 0.03,
+                0.07, 1.0, 0.07,
                 new boolean[] {false},
                 1.0, 5
         );

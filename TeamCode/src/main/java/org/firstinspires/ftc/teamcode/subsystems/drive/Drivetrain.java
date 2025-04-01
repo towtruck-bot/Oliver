@@ -23,6 +23,7 @@ import org.firstinspires.ftc.teamcode.subsystems.drive.localizers.IMUMergeSoloLo
 import org.firstinspires.ftc.teamcode.subsystems.drive.localizers.Localizer;
 import org.firstinspires.ftc.teamcode.subsystems.drive.localizers.OneHundredMSIMULocalizer;
 import org.firstinspires.ftc.teamcode.subsystems.drive.localizers.TwoWheelLocalizer;
+import org.firstinspires.ftc.teamcode.subsystems.intake.IntakeTurret;
 import org.firstinspires.ftc.teamcode.utils.DashboardUtil;
 import org.firstinspires.ftc.teamcode.utils.LogUtil;
 import org.firstinspires.ftc.teamcode.utils.PID;
@@ -672,7 +673,7 @@ public class Drivetrain {
         double angle = Math.atan2(deltaY, deltaX);
         // convert error into direction robot is facing
         xError = Math.cos(angle)*deltaX + Math.sin(angle)*deltaY;
-        return xError - intakeOffset;
+        return xError - intakeOffset + IntakeTurret.extendoOffset;
     }
 
     public boolean isBusy() {

@@ -33,13 +33,13 @@ public class nClawIntake {
     // turretBufferAng -> angle that allows for any rotation to occur with the turret still inside the robot. use in any retract/extend states
 
     public static double transferRotation = 0, grabRotation = 0.0;
-    public static double turretBufferAngle = 1.11238, turretRetractedAngle = 1.5081, turretSearchAngle = 1.8688, turretTransferAngle = 0.1, turretGrabAngle = 2.6205;
+    public static double turretBufferAngle = 0.8, turretRetractedAngle = 1.15, turretSearchAngle = 1.65, turretTransferAngle = 0, turretGrabAngle = 2.4944;
     public static double turretPreRotation = 0.3, turretSearchRotation = 3.14, turretTransferRotation = 0, turretGrabRotation = 0.0;
     public static double turretPastSidePlatesRotation = 1.7;
-    public static double minExtension = 8;
+    public static double minExtension = 15;
     public static double lowerDelay = 250;
-    public static double transferExtension = 4;
-    public static double transferBufferExtension = 9;
+    public static double transferExtension = 5;
+    public static double transferBufferExtension = 13;
 
     private boolean grab = false;
     private boolean sampleStatus = false;
@@ -48,9 +48,10 @@ public class nClawIntake {
     public Pose2d target;
     public boolean useGrab = false;
     private long lowerStart = 0;
-    public static int blockPickUpPSThreashold = 128;//259;
+    public static int blockPickUpPSThreashold = 259;
     private int psReads = 0;
     private int consecutivePSPositives = 0;
+    private boolean autoGrabEnabled = false;
 
     public enum State {
         START_EXTEND,
@@ -157,7 +158,7 @@ public class nClawIntake {
 
                 intakeTurret.setClawState(false);
 
-                if ((robot.vision.isStable() && robot.vision.gottenFirstContact()) && intakeTurret.rotInPosition()) {
+                if ((robot.vision.isStable() && robot.vision.gottenFirstContact()) && intakeTurret.rotInPosition() && autoGrabEnabled) {
                     lowerStart = System.currentTimeMillis();
                     Pose2d p = robot.vision.getBlockPos();
                     target = new Pose2d(
@@ -286,8 +287,13 @@ public class nClawIntake {
                 intakeTurret.setTurretArmTarget(turretTransferAngle);
                 intakeTurret.setTurretRotation(turretTransferRotation);
 
-                if (intakeTurret.turretAngInPosition() && intakeTurret.turretRotInPosition() && robot.ndeposit.isTransferReady())
+                if (intakeTurret.turretAngInPosition() && intakeTurret.turretRotInPosition() && robot.ndeposit.isTransferReady()) {
                     state = State.TRANSFER_WAIT;
+                    intakeTurret.setIntakeExtension(transferExtension);
+                    intakeTurret.setClawRotation(transferRotation);
+                    intakeTurret.setTurretArmTarget(turretTransferAngle);
+                    intakeTurret.setTurretRotation(turretTransferRotation);
+                }
 
                 break;
             case TRANSFER_WAIT:
@@ -302,14 +308,14 @@ public class nClawIntake {
                 // Complete transfer can only be called in TRANSFER_WAIT, must have everything correct
                 // used to release intake grip on sample, should be called in deposit after the deposit has a firm grip
                 // TODO: check endAffector.inPosition()
-                if (intakeTurret.inPosition() && finishTransferRequest && robot.ndeposit.state == nDeposit.State.HOLD) {
+                if (finishTransferRequest && intakeTurret.inPosition() && intakeTurret.extendoInPosition() && robot.ndeposit.state == nDeposit.State.HOLD) {
                     state = State.TRANSFER_END;
                     finishTransferRequest = false;
                     sampleStatus = false;
                 }
                 break;
             case TRANSFER_END:
-                intakeTurret.setIntakeExtension(0.0);
+                intakeTurret.setIntakeExtension(transferExtension);
                 intakeTurret.setClawRotation(transferRotation);
                 intakeTurret.setTurretArmTarget(turretTransferAngle);
                 intakeTurret.setTurretRotation(turretTransferRotation);
@@ -318,7 +324,7 @@ public class nClawIntake {
 
                 // once the grab is finished, send back to RETRACT. false grab changes from HOLD to READY
                 // no need to worry about whacking stuff b/c both states require rotation to be in the turretTransferRot value
-                if (intakeTurret.grabInPosition()) {
+                if (intakeTurret.grabInPosition() && robot.ndeposit.retractReady()) {
                     state = State.RETRACT;
                     grab = false;
                 }
@@ -398,7 +404,7 @@ public class nClawIntake {
     }
 
     public boolean isTransferReady() {
-        return intakeTurret.inPosition() && intakeTurret.inPosition() && state == State.TRANSFER_WAIT;
+        return intakeTurret.inPosition() && intakeTurret.extendoInPosition() && state == State.TRANSFER_WAIT;
     }
 
     /*public void release() {
@@ -446,6 +452,14 @@ public class nClawIntake {
         TelemetryUtil.packet.put("ClawIntake clawRotation angle", intakeTurret.getClawRotation());
         TelemetryUtil.packet.put("ClawIntake State", this.state);
         LogUtil.intakeState.set(this.state.toString());
+    }
+
+    public void setAutoGrab(boolean status) {
+        autoGrabEnabled = status;
+    }
+
+    public int readPS() {
+        return colorSensorV3.readPS();
     }
 
     public void resetExtendoEncoders() {

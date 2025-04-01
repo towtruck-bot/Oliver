@@ -15,7 +15,7 @@ import org.firstinspires.ftc.teamcode.utils.Utils;
 import org.firstinspires.ftc.teamcode.utils.priority.PriorityMotor;
 
 @Config
-public class Extendo {
+public class IntakeExtension {
     public static double maxExtendoLength = 19.0;
 
     private final Robot robot;
@@ -24,11 +24,11 @@ public class Extendo {
 
     private double extendoCurrentPos = 0.0;
     private double targetLength = 0.0;
-    public static PID extendoPID = new PID(0.2, 0, 0.001);
+    public static PID extendoPID = new PID(0.2, 0.01, 0.001);
     public static double tollerance = 0.4;
     public static double slidesForcePullPow = -0.2;
 
-    public Extendo(Robot robot){
+    public IntakeExtension(Robot robot){
         this.robot = robot;
 
         m = robot.hardwareMap.get(DcMotorEx.class, "intakeExtensionMotor");

@@ -17,7 +17,7 @@ import org.firstinspires.ftc.teamcode.utils.RunMode;
 import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 import org.firstinspires.ftc.teamcode.utils.Vector2;
 
-@TeleOp
+@TeleOp(name = "B. IntakeWithLL")
 @Config
 public class IntakeWithLL extends LinearOpMode {
     public static double extensionLength = 10;
@@ -39,9 +39,10 @@ public class IntakeWithLL extends LinearOpMode {
         //robot.nclawIntake.extend();
         robot.drivetrain.setPoseEstimate(new Pose2d(0, 0, 0));
 
-        ButtonToggle x_b = new ButtonToggle();
-        ButtonToggle y_b = new ButtonToggle();
-        ButtonToggle a_b = new ButtonToggle();
+        ButtonToggle x1 = new ButtonToggle();
+        ButtonToggle y1 = new ButtonToggle();
+        ButtonToggle a1 = new ButtonToggle();
+        ButtonToggle b1 = new ButtonToggle();
 
         while (opModeIsActive()) {
             robot.vision.setOffset(new Vector2(robot.nclawIntake.getIntakeRelativeToRobot(), 0));
@@ -57,14 +58,16 @@ public class IntakeWithLL extends LinearOpMode {
             c.strokeCircle(blockPos.x, blockPos.y, 3);
             c.strokeLine(blockPos.x, blockPos.y, blockPos.x + 5 * Math.sin(blockPos.heading), blockPos.y + 5 * Math.cos(blockPos.heading));
 
-            if (y_b.isClicked(gamepad1.y))
-                robot.nclawIntake.extend();
+            if (y1.isClicked(gamepad1.y)) robot.nclawIntake.extend();
 
-            if (x_b.isClicked(gamepad1.x))
-                robot.ndeposit.startSampleDeposit();
+            if (x1.isClicked(gamepad1.x)) robot.ndeposit.startSampleDeposit();
 
-            if (a_b.isClicked(gamepad1.a))
-                robot.ndeposit.deposit();
+            if (a1.isClicked(gamepad1.a)) robot.ndeposit.deposit();
+
+            if (b1.isClicked(gamepad1.b)) robot.nclawIntake.retract();
+
+            double intakeControl1 = robot.drivetrain.smoothControls(-gamepad1.right_stick_y);
+            robot.nclawIntake.setIntakeLength(robot.nclawIntake.getIntakeTargetPos() + 0.4 * intakeControl1);
 
             /*if (setExtend) {
                 robot.vision.startDetection();

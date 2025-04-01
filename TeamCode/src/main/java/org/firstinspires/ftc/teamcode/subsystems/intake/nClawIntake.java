@@ -51,6 +51,7 @@ public class nClawIntake {
     public static int blockPickUpPSThreashold = 259;
     private int psReads = 0;
     private int consecutivePSPositives = 0;
+    private boolean autoGrabEnabled = false;
 
     public enum State {
         START_EXTEND,
@@ -157,7 +158,7 @@ public class nClawIntake {
 
                 intakeTurret.setClawState(false);
 
-                if ((robot.vision.isStable() && robot.vision.gottenFirstContact()) && intakeTurret.rotInPosition()) {
+                if ((robot.vision.isStable() && robot.vision.gottenFirstContact()) && intakeTurret.rotInPosition() && autoGrabEnabled) {
                     lowerStart = System.currentTimeMillis();
                     Pose2d p = robot.vision.getBlockPos();
                     target = new Pose2d(
@@ -451,6 +452,14 @@ public class nClawIntake {
         TelemetryUtil.packet.put("ClawIntake clawRotation angle", intakeTurret.getClawRotation());
         TelemetryUtil.packet.put("ClawIntake State", this.state);
         LogUtil.intakeState.set(this.state.toString());
+    }
+
+    public void setAutoGrab(boolean status) {
+        autoGrabEnabled = status;
+    }
+
+    public int readPS() {
+        return colorSensorV3.readPS();
     }
 
     public void resetExtendoEncoders() {

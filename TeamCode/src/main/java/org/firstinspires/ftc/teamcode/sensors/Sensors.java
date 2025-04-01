@@ -122,6 +122,7 @@ public class Sensors {
         TelemetryUtil.packet.put("Pinpoint: x", currentPos.x);
         TelemetryUtil.packet.put("Pinpoint: y", currentPos.y);
         TelemetryUtil.packet.put("Pinpoint: heading (deg)", Math.toDegrees(currentPos.heading));
+        TelemetryUtil.packet.put("PS Value", robot.nclawIntake.readPS());
         Canvas fieldOverlay = TelemetryUtil.packet.fieldOverlay();
         DashboardUtil.drawRobot(fieldOverlay, currentPos, getExtendoPos(), "#00ff00");
         LogUtil.driveCurrentX.set(currentPos.x);

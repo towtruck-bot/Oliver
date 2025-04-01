@@ -43,6 +43,7 @@ public class IntakeWithLL extends LinearOpMode {
         ButtonToggle y1 = new ButtonToggle();
         ButtonToggle a1 = new ButtonToggle();
         ButtonToggle b1 = new ButtonToggle();
+        robot.nclawIntake.setAutoGrab(true);
 
         while (opModeIsActive()) {
             robot.vision.setOffset(new Vector2(robot.nclawIntake.getIntakeRelativeToRobot(), 0));

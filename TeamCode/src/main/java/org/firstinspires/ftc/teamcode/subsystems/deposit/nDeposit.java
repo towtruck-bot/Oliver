@@ -40,12 +40,13 @@ public class nDeposit {
     private Arm arm;
 
     // TODO: All values below (v) are estimates and may not scale correctly with the 0 positions. Make sure to tune!
-    public static double transferArm = 0.5696, transferClaw = 0, transferY = 6.5;
-    public static double holdArm = -0.889, holdClaw = 0.6477, holdY = 0.0;
-    public static double raiseArmBufferRotation = -1.8472,  sampleArm = -2.9728, sampleClaw = -0.0563, sampleY = 32.5;
-    public static double outtakeArm = -2.9225, outtakeClaw = -0.00169, outtakeY = 0.0;
-    public static double specimenIntakeArm = -2.9278, specimenIntakeClaw = 0.3436, specimenIntakeY = 0;
-    public static double specimenDepositArm = -0.1, specimenDepositClaw = -1.2, specimenDepositY = 18.6;
+    public static double transferArm = 0.5696, transferClaw = 0, transferZ = 6.5;
+    public static double holdArm = -0.889, holdClaw = 0.6477, holdZ = 0.0;
+    public static double raiseArmBufferRotation = -1.8472,  sampleArm = -2.9728, sampleClaw = -0.0563, sampleZ = 34.5;
+    public static double outtakeArm = -2.9225, outtakeClaw = -0.00169, outtakeZ = 0.0;
+    public static double specimenIntakeArm = -2.9278, specimenIntakeClaw = 0.3436, specimenIntakeZ = 0;
+    public static double specimenDepositArm = -0.1, specimenDepositClaw = -1.2, specimenDepositZ = 18.6;
+    private boolean holding = false;
 
     private boolean requestFinishTransfer = false,
                     transferRequested = false,
@@ -66,6 +67,8 @@ public class nDeposit {
     public void update() {
         TelemetryUtil.packet.put("Deposit.state", state);
         slides.update();
+        TelemetryUtil.packet.put("Slides Length", slides.getLength());
+        TelemetryUtil.packet.put("Target Slides Length", slides.getTargetLength());
 
         switch (state) {
             case IDLE:
@@ -81,7 +84,7 @@ public class nDeposit {
                 }
                 break;
             case TRANSFER_WAIT:
-                slides.setTargetLength(transferY);
+                slides.setTargetLength(transferZ);
                 arm.setArmRotation(transferArm, 1.0);
                 arm.setClawRotation(transferClaw, 1.0);
 
@@ -96,13 +99,14 @@ public class nDeposit {
                 break;
             case TRANSFER_FINISH:
                 // Grab the thing
-                slides.setTargetLength(transferY);
+                slides.setTargetLength(transferZ);
                 arm.setArmRotation(transferArm, 1.0);
                 arm.setClawRotation(transferClaw, 1.0);
 
                 arm.clawClose();
 
                 if (arm.clawInPosition()) {
+                    holding = true;
                     state = State.HOLD;
                 }
 
@@ -129,7 +133,7 @@ public class nDeposit {
                 }
                 break;
             case SAMPLE_RAISE:
-                slides.setTargetLength(sampleY);
+                slides.setTargetLength(sampleZ);
                 arm.setArmRotation(raiseArmBufferRotation, 1.0);
                 arm.setClawRotation(sampleClaw, 1.0);
 
@@ -140,7 +144,7 @@ public class nDeposit {
                 }
                 break;
             case SAMPLE_WAIT:
-                slides.setTargetLength(sampleY);
+                slides.setTargetLength(sampleZ);
                 arm.setArmRotation(sampleArm, 1.0);
                 arm.setClawRotation(sampleClaw, 1.0);
 
@@ -152,7 +156,7 @@ public class nDeposit {
                 }
                 break;
             case SAMPLE_DEPOSIT:
-                slides.setTargetLength(sampleY);
+                slides.setTargetLength(sampleZ);
                 arm.setArmRotation(sampleArm, 1.0);
                 arm.setClawRotation(sampleClaw, 1.0);
 
@@ -160,21 +164,23 @@ public class nDeposit {
 
                 if (arm.clawInPosition()) {
                     state = State.RETRACT;
+                    holding = false;
                 }
                 break;
             case OUTTAKE:
                 // I don't know what the hell outtake does and why it like instantly pops the thing off but I trust its useful - Eric
-                slides.setTargetLength(outtakeY);
+                slides.setTargetLength(outtakeZ);
                 arm.setArmRotation(outtakeArm, 1.0);
                 arm.setClawRotation(outtakeClaw, 1.0);
 
                 if (arm.inPosition()) {
+                    holding = false;
                     state = State.IDLE;
                     arm.sampleOpen();
                 }
                 break;
             case SPECIMEN_INTAKE_WAIT:
-                slides.setTargetLength(specimenIntakeY);
+                slides.setTargetLength(specimenIntakeZ);
                 arm.setArmRotation(specimenIntakeArm, 1.0);
                 arm.setClawRotation(specimenIntakeClaw, 1.0);
 
@@ -185,7 +191,7 @@ public class nDeposit {
                 }
                 break;
             case SPECIMEN_GRAB:
-                slides.setTargetLength(specimenIntakeY);
+                slides.setTargetLength(specimenIntakeZ);
                 arm.setArmRotation(specimenIntakeArm, 1.0);
                 arm.setClawRotation(specimenIntakeClaw, 1.0);
 
@@ -196,7 +202,7 @@ public class nDeposit {
                 }
                 break;
             case SPECIMEN_RAISE:
-                slides.setTargetLength(specimenDepositY);
+                slides.setTargetLength(specimenDepositZ);
                 arm.setArmRotation(specimenDepositArm, 1.0);
                 arm.setClawRotation(specimenDepositClaw, 1.0);
 
@@ -206,7 +212,7 @@ public class nDeposit {
                 }
                 break;
             case SPECIMEN_DEPOSIT:
-                slides.setTargetLength(specimenDepositY);
+                slides.setTargetLength(specimenDepositZ);
                 arm.setArmRotation(specimenDepositArm, 1.0);
                 arm.setClawRotation(specimenDepositClaw, 1.0);
 
@@ -214,6 +220,7 @@ public class nDeposit {
 
                 if (arm.clawInPosition()) {
                     state = State.RETRACT;
+                    holding = false;
                 }
                 break;
             case RETRACT:
@@ -237,7 +244,7 @@ public class nDeposit {
         TelemetryUtil.packet.put("arm inPosition", arm.armInPosition());
         TelemetryUtil.packet.put("claw target", arm.clawRotation.getTargetAngle());
         TelemetryUtil.packet.put("claw inPosition", arm.clawInPosition());
-        TelemetryUtil.packet.put("slides target", slides.getTargetLenght());
+        TelemetryUtil.packet.put("slides target", slides.getTargetLength());
         TelemetryUtil.packet.put("slides inPosition", slides.inPosition(1.0));
     }
 
@@ -248,11 +255,11 @@ public class nDeposit {
     }
 
     public void setSampleHeight(double l) {
-        sampleY = Utils.minMaxClip(l, 0.0, Slides.maxSlidesHeight);
+        sampleZ = Utils.minMaxClip(l, 0.0, Slides.maxSlidesHeight);
     }
 
     private void moveToHoldPoses() {
-        slides.setTargetLength(holdY);
+        slides.setTargetLength(holdZ);
         arm.setArmRotation(holdArm, 1.0);
         arm.setClawRotation(holdClaw, 1.0);
     }
@@ -291,14 +298,11 @@ public class nDeposit {
     }
 
     public void startSampleDeposit() {
-        if(state == State.HOLD){
-            sampleDepositRequested = true;
-        }
+        sampleDepositRequested = true;
     }
 
     public void startSpecimenDeposit() {
-        if (state == State.HOLD)
-            specimenDepositRequested = true;
+        specimenDepositRequested = true;
     }
 
     public void startSpecimenIntake() {
@@ -328,5 +332,9 @@ public class nDeposit {
                 arm.clawInPosition()) ||
                 state == State.RETRACT ||
                 state == State.IDLE;
+    }
+
+    public boolean isHolding() {
+        return holding;
     }
 }

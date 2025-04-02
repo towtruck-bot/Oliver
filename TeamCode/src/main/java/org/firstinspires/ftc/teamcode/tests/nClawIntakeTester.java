@@ -35,7 +35,7 @@ public class nClawIntakeTester extends LinearOpMode {
         Robot robot = new Robot(hardwareMap);
 
         waitForStart();
-        robot.deposit.retract();
+        //robot.deposit.retract();
 
         while(!isStopRequested()){
             if(setState) {

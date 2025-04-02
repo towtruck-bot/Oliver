@@ -25,17 +25,13 @@ public class IntakeExtension {
     private double extendoCurrentPos = 0.0;
     private double targetLength = 0.0;
     public static PID extendoPID = new PID(0.2, 0.01, 0.001);
-    public static double tollerance = 0.4;
+    public static double tolerance = 0.6;
     public static double slidesForcePullPow = -0.2;
 
     public IntakeExtension(Robot robot){
         this.robot = robot;
 
         m = robot.hardwareMap.get(DcMotorEx.class, "intakeExtensionMotor");
-
-        if(Globals.RUNMODE != RunMode.TELEOP){
-            resetExtendoEncoders();
-        }
 
         extendoMotor = new PriorityMotor(new DcMotorEx[] {m}, "intakeExtensionMotor", 3, 5, new double[] {1}, robot.sensors);
         robot.hardwareQueue.addDevice(extendoMotor);
@@ -54,7 +50,7 @@ public class IntakeExtension {
             if (this.inPosition()) {
                 extendoPID.update(0, -1.0, 1.0);
                 extendoPID.resetIntegral();
-                pow = this.targetLength <= tollerance && this.extendoCurrentPos > 0.0 ? slidesForcePullPow : 0;
+                pow = this.targetLength <= tolerance && this.extendoCurrentPos > 0.0 ? slidesForcePullPow : 0;
             } else {
                 pow = extendoPID.update(this.targetLength - this.extendoCurrentPos, -1.0, 1.0);
             }
@@ -73,23 +69,11 @@ public class IntakeExtension {
     }
 
     public boolean inPosition() {
-        if (targetLength <= tollerance) return extendoCurrentPos <= tollerance;
-        return Math.abs(targetLength - extendoCurrentPos) <= tollerance;
+        if (targetLength <= tolerance) return extendoCurrentPos <= tolerance;
+        return Math.abs(targetLength - extendoCurrentPos) <= tolerance;
     }
 
     public double getLength() {
         return extendoCurrentPos;
-    }
-
-    public void resetExtendoEncoders(){
-        Log.e("RESETTTING", "RESTETING SLIDES *************");
-
-        m.setPower(0.0);
-
-        m.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        m.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-
-        targetLength = 0.0;
-        m.setPower(0.0);
     }
 }

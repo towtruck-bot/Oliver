@@ -25,10 +25,10 @@ public class GoToPointTester extends LinearOpMode {
 
         while (!isStopRequested()) {
             if(goTo) {
-                robot.deposit.slides.setTargetLength(18);
+                /*robot.deposit.slides.setTargetLength(18);
                 robot.deposit.state = Deposit.State.TEST;
                 robot.drivetrain.goToPoint(new Pose2d(x, y, Math.toRadians(h)), finalAdjustment, stop, 1.0);
-                robot.clawIntake.setIntakeTargetPos(0.0);
+                robot.clawIntake.setIntakeTargetPos(0.0);*/
                 goTo = !goTo;
             }
             robot.update();

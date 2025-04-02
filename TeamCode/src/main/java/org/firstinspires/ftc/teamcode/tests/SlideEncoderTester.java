@@ -17,7 +17,7 @@ import org.firstinspires.ftc.teamcode.utils.priority.PriorityMotor;
 @TeleOp
 public class SlideEncoderTester extends LinearOpMode{
     public void runOpMode(){
-        Robot robot = new Robot(hardwareMap);
+        /*Robot robot = new Robot(hardwareMap);
         Sensors sensors = robot.sensors;
 
         double motorPower = 0.0;
@@ -52,6 +52,6 @@ public class SlideEncoderTester extends LinearOpMode{
 
             TelemetryUtil.packet.put("Loop Time", GET_LOOP_TIME());
             TelemetryUtil.sendTelemetry();
-        }
+        }*/
     }
 }

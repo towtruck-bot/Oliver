@@ -109,7 +109,7 @@ public class Teleop extends LinearOpMode {
             // TODO: Need a method fort he deposit slides
             if (rsb_1.isClicked(gamepad1.right_stick_button)) {
                 // robot.ndeposit.slides.resetSlidesEncoders();
-                robot.nclawIntake.resetExtendoEncoders();
+                //robot.nclawIntake.resetExtendoEncoders();
             }
 
             if (lsb_1.isClicked(gamepad1.left_stick_button)) {

@@ -22,7 +22,7 @@ public class SlidesTuner extends LinearOpMode {
     public static double power = 0;
 
     public void runOpMode(){
-        Robot robot = new Robot(hardwareMap);
+        /*Robot robot = new Robot(hardwareMap);
 
         DcMotorEx motor = hardwareMap.get(DcMotorEx.class, "slidesMotor0");
         DcMotorEx motor1 = hardwareMap.get(DcMotorEx.class, "slidesMotor1");
@@ -58,6 +58,6 @@ public class SlidesTuner extends LinearOpMode {
             TelemetryUtil.packet.put("motor check1", motor1.getCurrentPosition());
 
             robot.update();
-        }
+        }*/
     }
 }

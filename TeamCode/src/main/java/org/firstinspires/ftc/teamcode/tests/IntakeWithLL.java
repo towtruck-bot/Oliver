@@ -33,7 +33,6 @@ public class IntakeWithLL extends LinearOpMode {
         Robot robot = new Robot(hardwareMap);
 
         waitForStart();
-        robot.nclawIntake.resetExtendoEncoders();
 
         robot.nclawIntake.useCamera(true);
         //robot.nclawIntake.extend();
@@ -103,7 +102,7 @@ public class IntakeWithLL extends LinearOpMode {
             }*/
 
             TelemetryUtil.packet.put("velocityLowPass", robot.vision.getVelocityLowPass());
-            robot.nclawIntake.setIntakeLength(extensionLength);
+            //robot.nclawIntake.setIntakeLength(extensionLength);
             robot.drivetrain.drive(gamepad1);
 
             robot.update();

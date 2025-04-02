@@ -1,16 +1,11 @@
 package org.firstinspires.ftc.teamcode.subsystems.deposit;
 
-import android.util.Log;
-
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 import org.firstinspires.ftc.teamcode.Robot;
-import org.firstinspires.ftc.teamcode.utils.Globals;
 import org.firstinspires.ftc.teamcode.utils.LogUtil;
-import org.firstinspires.ftc.teamcode.utils.RunMode;
 import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 import org.firstinspires.ftc.teamcode.utils.Utils;
 import org.firstinspires.ftc.teamcode.utils.priority.PriorityMotor;
@@ -46,28 +41,8 @@ public class Slides {
 
         // m2.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        if (Globals.RUNMODE != RunMode.TELEOP) {
-            resetSlidesEncoders();
-        }
-
         slidesMotors = new PriorityMotor(new DcMotorEx[] {m1, m2}, "slidesMotor", 3, 5, new double[] {1, -1}, robot.sensors);
         robot.hardwareQueue.addDevice(slidesMotors);
-    }
-
-    public void resetSlidesEncoders() {
-        Log.e("RESETTTING", "RESTETING SLIDES *************");
-
-        m1.setPower(0);
-        m2.setPower(0);
-
-        m1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        m2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        m1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        m2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-
-        targetLength = 0;
-        m1.setPower(0);
-        m2.setPower(0);
     }
 
     public void setSlidesMotorsToCoast() {
@@ -140,7 +115,7 @@ public class Slides {
         return length;
     }
 
-    public double getTargetLenght(){
+    public double getTargetLength(){
         return targetLength;
     }
 }

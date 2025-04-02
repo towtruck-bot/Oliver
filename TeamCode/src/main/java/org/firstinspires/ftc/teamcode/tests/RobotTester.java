@@ -16,7 +16,7 @@ public class RobotTester extends LinearOpMode {
 
     @Override
     public void runOpMode() {
-        Globals.RUNMODE = RunMode.TESTER;
+        /*Globals.RUNMODE = RunMode.TESTER;
 
         Robot robot = new Robot(hardwareMap);
 
@@ -79,6 +79,6 @@ public class RobotTester extends LinearOpMode {
             telemetry.addData("intake claw rotation", robot.clawIntake.getClawRotAngle());
             telemetry.addData("deposit height", robot.deposit.getDepositHeight());
             telemetry.update();
-        }
+        }*/
     }
 }

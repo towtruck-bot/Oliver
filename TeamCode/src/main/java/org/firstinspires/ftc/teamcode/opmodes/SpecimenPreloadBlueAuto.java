@@ -67,7 +67,7 @@ public class SpecimenPreloadBlueAuto extends LinearOpMode {
 
         while (opModeInInit() && !isStopRequested()) {
             robot.sensors.setOdometryPosition( -Globals.ROBOT_WIDTH / 2.0, 72.0 - Globals.ROBOT_FORWARD_LENGTH, Math.PI/2);
-            robot.deposit.setDepositHeight(0.0);
+            //robot.deposit.setDepositHeight(0.0);
 
             robot.update();
         }
@@ -76,7 +76,7 @@ public class SpecimenPreloadBlueAuto extends LinearOpMode {
     public void score(double offset) {
         // Extend deposit slides into deposit position
         robot.setNextState(Robot.NextState.DEPOSIT);
-        robot.waitWhile(() -> !robot.deposit.readyToRam());
+        //robot.waitWhile(() -> !robot.deposit.readyToRam());
         // ^Wait for fully raised slides and arm at correct angle^
 
         robot.drivetrain.slidesUp = true;
@@ -148,7 +148,7 @@ public class SpecimenPreloadBlueAuto extends LinearOpMode {
 
         // Grab
         robot.setNextState(Robot.NextState.GRAB_SPECIMEN);
-        robot.waitWhile(() -> !robot.deposit.isSpecimenReady());
+        //robot.waitWhile(() -> !robot.deposit.isSpecimenReady());
 
         robot.setNextState(Robot.NextState.DEPOSIT);
         robot.drivetrain.slidesUp = true;

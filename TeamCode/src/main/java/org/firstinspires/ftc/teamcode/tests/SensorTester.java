@@ -39,6 +39,7 @@ public class SensorTester extends LinearOpMode {
             telemetry.addData("Position", data);
             telemetry.addData("Slides position", sensors.getSlidesPos());
             telemetry.addData("extendo slides position", sensors.getExtendoPos());
+            TelemetryUtil.packet.put("PS Value", robot.nclawIntake.readPS());
 
             telemetry.update();
             TelemetryUtil.sendTelemetry();

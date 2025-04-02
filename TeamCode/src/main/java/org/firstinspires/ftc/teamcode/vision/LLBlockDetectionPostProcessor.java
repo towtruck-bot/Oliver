@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.vision;
 
+import android.util.Log;
+
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
@@ -37,8 +39,8 @@ public class LLBlockDetectionPostProcessor {
     private boolean detecting = false;
     private Vector2 offset = new Vector2(0, 0);
     public static int pollRate = 100;
-    public static int maxAngX = 9;
-    public static int maxAngY = 9;
+    public static int maxAngX = 11;
+    public static int maxAngY = 11;
     private double lastOrientation = Double.MAX_VALUE;
     private double orientation = Double.MAX_VALUE;
     private Pose2d lastBlockPosition;
@@ -79,6 +81,11 @@ public class LLBlockDetectionPostProcessor {
         if (!detecting)
             return;
 
+        if (!ll.isConnected()) {
+            Log.e("ERROR BIG", "Limelight Broke");
+        }
+        Log.e("ERROR BIG", "Hello?");
+
         long loopStart = System.currentTimeMillis();
 
         LLResult result = ll.getLatestResult();
@@ -114,7 +121,8 @@ public class LLBlockDetectionPostProcessor {
             Math.abs(result.getColorResults().get(0).getTargetXDegrees()) > maxAngX ||
             Math.abs(result.getColorResults().get(0).getTargetYDegrees()) > maxAngY) {
 
-            blockPos = expectedNewBlockPose.clone();
+            if (firstContact)
+                blockPos = expectedNewBlockPose.clone();
         } else { // We have a valid result. Now we can update with both change according to dt and change according to limelight
             // Post processing. Get new block x, y, and heading
             ColorResult cr = result.getColorResults().get(0);
@@ -202,7 +210,7 @@ public class LLBlockDetectionPostProcessor {
         TelemetryUtil.packet.put("blockVelocity.x", blockVelocity.x);
         TelemetryUtil.packet.put("blockVelocity.y", blockVelocity.y);
         TelemetryUtil.packet.put("blockVelocity mag", blockVelocity.mag());
-        velocityLowPass = blockVelocity.mag() * 0.2 + velocityLowPass * 0.8;
+        velocityLowPass = blockVelocity.mag() * 0.6 + velocityLowPass * 0.4;
 
         // This is fine because detecting turning on would update this value properly
         lastRobotPosition = robot.sensors.getOdometryPosition().clone();
@@ -218,10 +226,11 @@ public class LLBlockDetectionPostProcessor {
     public void startDetection() {
         lastRobotPosition = robot.sensors.getOdometryPosition().clone();
         blockPos = new Pose2d(0, 0, 0);
-        lastBlockPosition = new Pose2d(0, 0, 0);
+        lastBlockPosition = null;
         velocityLowPass = 0;
         detecting = true;
         firstContact = false;
+        lastOrientation = Double.MAX_VALUE;
         lastLoop = System.currentTimeMillis();
     }
 
@@ -267,7 +276,7 @@ public class LLBlockDetectionPostProcessor {
     }
 
     public boolean isStable() {
-        return velocityLowPass < 0.5;
+        return velocityLowPass < 1.5;
     }
 
     public double getVelocityLowPass() {

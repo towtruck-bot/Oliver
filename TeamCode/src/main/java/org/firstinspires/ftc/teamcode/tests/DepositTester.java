@@ -15,7 +15,7 @@ public class DepositTester extends LinearOpMode {
     public static boolean set = true;
 
     public void runOpMode(){
-        Robot robot = new Robot(hardwareMap);
+        /*Robot robot = new Robot(hardwareMap);
 
         waitForStart();
 
@@ -28,6 +28,6 @@ public class DepositTester extends LinearOpMode {
             TelemetryUtil.packet.put("current state", robot.deposit.state);
 
             robot.update();
-        }
+        }*/
     }
 }

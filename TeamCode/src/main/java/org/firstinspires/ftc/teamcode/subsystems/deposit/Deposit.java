@@ -132,7 +132,7 @@ public class Deposit {
 
                 if (arm.clawInPosition() && this.currentTime - this.grabStartTime >= transferBufferDuration * 1e6) {
                     state = State.TRANSFER_FINISH;
-                    robot.clawIntake.release();
+                    //robot.clawIntake.release();
                 }
                 break;
             case TRANSFER_FINISH:

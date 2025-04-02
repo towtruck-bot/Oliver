@@ -34,24 +34,27 @@ public class nClawIntake {
 
     public static double transferRotation = 0, grabRotation = 0.0;
     public static double turretBufferAngle = 0.8, turretRetractedAngle = 1.15, turretSearchAngle = 1.65, turretTransferAngle = 0, turretGrabAngle = 2.4944;
-    public static double turretPreRotation = 0.3, turretSearchRotation = 3.14, turretTransferRotation = 0, turretGrabRotation = 0.0;
+    public static double turretPreRotation = 0.3, turretTransferRotation = 0, turretGrabRotation = 0.0;
     public static double turretPastSidePlatesRotation = 1.7;
     public static double minExtension = 15;
     public static double lowerDelay = 250;
     public static double transferExtension = 5;
     public static double transferBufferExtension = 13;
+    public static double defaultTurretSearchRotation = 3.14;
 
     private boolean grab = false;
     private boolean sampleStatus = false;
     private boolean useCamera = true;
     private boolean finishTransferRequest = false;
+    private boolean extendRequest = false;
     public Pose2d target;
     public boolean useGrab = false;
     private long lowerStart = 0;
-    public static int blockPickUpPSThreashold = 259;
+    public static int blockPickUpPSThreashold = 263;
     private int psReads = 0;
     private int consecutivePSPositives = 0;
     private boolean autoGrabEnabled = false;
+    private double turretSearchRotation = defaultTurretSearchRotation;
 
     public enum State {
         START_EXTEND,
@@ -84,10 +87,6 @@ public class nClawIntake {
         );
         intakeLight.setMode(DigitalChannel.Mode.OUTPUT);
         intakeLight.setState(false);
-
-        if (Globals.RUNMODE != RunMode.TELEOP) {
-            resetExtendoEncoders();
-        }
 
         intakeSetTargetPos = 15;
 
@@ -158,6 +157,9 @@ public class nClawIntake {
 
                 intakeTurret.setClawState(false);
 
+                Log.e("CHECKING IT", robot.vision.isStable() + " stable");
+                Log.e("CHECKING IT", robot.vision.gottenFirstContact() + " first contact");
+                Log.e("CHECKING IT", intakeTurret.rotInPosition() + " rot in pos");
                 if ((robot.vision.isStable() && robot.vision.gottenFirstContact()) && intakeTurret.rotInPosition() && autoGrabEnabled) {
                     lowerStart = System.currentTimeMillis();
                     Pose2d p = robot.vision.getBlockPos();
@@ -185,9 +187,7 @@ public class nClawIntake {
                 intakeTurret.setClawState(false);
 
                 // everything in position before grabbing
-                if (((intakeTurret.inPosition() && intakeTurret.extendoInPosition() && (System.currentTimeMillis() - lowerStart) > lowerDelay) && !useGrab) ||
-                    (useGrab && grab)) {
-
+                if (useGrab ? grab : ((intakeTurret.inPosition() && (System.currentTimeMillis() - lowerStart) > lowerDelay))) {
                     state = State.GRAB_CLOSE;
                 }
                 break;
@@ -216,7 +216,7 @@ public class nClawIntake {
 
                 int val = colorSensorV3.readPS();
                 Log.e("colorSensorPS Value", val + "");
-                if (colorSensorV3.readPS() > blockPickUpPSThreashold) {
+                if (val > blockPickUpPSThreashold) {
                     consecutivePSPositives++;
                 } else
                     consecutivePSPositives = 0;
@@ -234,6 +234,7 @@ public class nClawIntake {
                 if (sampleStatus && intakeTurret.clawInPosition()) {
                     state = State.START_RETRACT;
                     robot.ndeposit.startTransfer();
+                    intakeLight.setState(false);
                 }
 
                 break;
@@ -280,6 +281,11 @@ public class nClawIntake {
                 intakeTurret.setTurretRotation(turretTransferRotation);
 
                 intakeTurret.setClawState(false);
+
+                if (extendRequest) {
+                    state = State.START_EXTEND;
+                    extendRequest = false;
+                }
                 break;
             case TRANSFER_BUFFER:
                 intakeTurret.setIntakeExtension(transferBufferExtension);
@@ -308,7 +314,7 @@ public class nClawIntake {
                 // Complete transfer can only be called in TRANSFER_WAIT, must have everything correct
                 // used to release intake grip on sample, should be called in deposit after the deposit has a firm grip
                 // TODO: check endAffector.inPosition()
-                if (finishTransferRequest && intakeTurret.inPosition() && intakeTurret.extendoInPosition() && robot.ndeposit.state == nDeposit.State.HOLD) {
+                if (finishTransferRequest && intakeTurret.inPosition() && intakeTurret.extendoInPosition() && robot.ndeposit.isHolding()) {
                     state = State.TRANSFER_END;
                     finishTransferRequest = false;
                     sampleStatus = false;
@@ -372,8 +378,7 @@ public class nClawIntake {
     }
 
     public void extend() {
-        if (this.state == State.READY)
-            this.state = State.START_EXTEND;
+        extendRequest = true;
     }
 
     public boolean isExtended() {
@@ -381,7 +386,8 @@ public class nClawIntake {
     }
 
     public void retract() {
-        this.state = State.START_RETRACT;
+        if (state != State.READY)
+            this.state = State.START_RETRACT;
     }
 
     public boolean isRetracted() {
@@ -462,8 +468,11 @@ public class nClawIntake {
         return colorSensorV3.readPS();
     }
 
-    public void resetExtendoEncoders() {
-        Log.e("RESETTTING", "RESTETING EXTENDO *************");
-        intakeTurret.intakeExtension.resetExtendoEncoders();
+    public void setSerachRotation(double ang) {
+        turretSearchRotation = ang;
+    }
+
+    public void restoreTurretRotation() {
+        turretSearchRotation = defaultTurretSearchRotation;
     }
 }

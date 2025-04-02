@@ -18,7 +18,7 @@ public class IntakePIDTuner extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
-        Globals.TESTING_DISABLE_CONTROL = false;
+        /*Globals.TESTING_DISABLE_CONTROL = false;
         Robot robot = new Robot(hardwareMap);
 
         robot.clawIntake.clawIntakeState = ClawIntake.ClawIntakeState.TEST;
@@ -33,7 +33,7 @@ public class IntakePIDTuner extends LinearOpMode {
             TelemetryUtil.packet.put("Intake Current Position", robot.sensors.getExtendoPos());
 
             robot.update();
-        }
+        }*/
 
 
     }

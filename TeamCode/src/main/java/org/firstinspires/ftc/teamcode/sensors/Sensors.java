@@ -2,12 +2,15 @@ package org.firstinspires.ftc.teamcode.sensors;
 
 import com.acmerobotics.dashboard.canvas.Canvas;
 import com.qualcomm.robotcore.hardware.AnalogInput;
+import com.qualcomm.robotcore.hardware.DcMotor;
 
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.utils.DashboardUtil;
+import org.firstinspires.ftc.teamcode.utils.Globals;
 import org.firstinspires.ftc.teamcode.utils.LogUtil;
 import org.firstinspires.ftc.teamcode.utils.Pose2d;
 import org.firstinspires.ftc.teamcode.utils.REVColorSensorV3;
+import org.firstinspires.ftc.teamcode.utils.RunMode;
 import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 import org.firstinspires.ftc.teamcode.utils.priority.PriorityMotor;
 
@@ -39,6 +42,13 @@ public class Sensors {
         odometry.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.REVERSED, GoBildaPinpointDriver.EncoderDirection.REVERSED);
 
         voltage = robot.hardwareMap.voltageSensor.iterator().next().getVoltage();
+
+        if (Globals.RUNMODE != RunMode.TELEOP) {
+            robot.hardwareMap.get(DcMotor.class, "leftRear").setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            robot.hardwareMap.get(DcMotor.class, "leftRear").setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            robot.hardwareMap.get(DcMotor.class, "rightFront").setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            robot.hardwareMap.get(DcMotor.class, "rightFront").setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        }
 
         //intakeColorSensor = ;
     }
@@ -122,7 +132,6 @@ public class Sensors {
         TelemetryUtil.packet.put("Pinpoint: x", currentPos.x);
         TelemetryUtil.packet.put("Pinpoint: y", currentPos.y);
         TelemetryUtil.packet.put("Pinpoint: heading (deg)", Math.toDegrees(currentPos.heading));
-        TelemetryUtil.packet.put("PS Value", robot.nclawIntake.readPS());
         Canvas fieldOverlay = TelemetryUtil.packet.fieldOverlay();
         DashboardUtil.drawRobot(fieldOverlay, currentPos, getExtendoPos(), "#00ff00");
         LogUtil.driveCurrentX.set(currentPos.x);

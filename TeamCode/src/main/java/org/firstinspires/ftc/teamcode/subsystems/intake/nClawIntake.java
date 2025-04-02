@@ -40,7 +40,7 @@ public class nClawIntake {
     public static double lowerDelay = 250;
     public static double transferExtension = 5;
     public static double transferBufferExtension = 13;
-    public static double defaultTurretSearchRotation = 3.14;
+    public static double turretSearchRotation = 3.14;
 
     private boolean grab = false;
     private boolean sampleStatus = false;
@@ -54,7 +54,6 @@ public class nClawIntake {
     private int psReads = 0;
     private int consecutivePSPositives = 0;
     private boolean autoGrabEnabled = false;
-    private double turretSearchRotation = defaultTurretSearchRotation;
 
     public enum State {
         START_EXTEND,
@@ -137,7 +136,7 @@ public class nClawIntake {
                     if (useCamera) {
                         state = State.SEARCH;
                         robot.vision.startDetection();
-                        robot.vision.setOffset(new Vector2(robot.nclawIntake.getIntakeRelativeToRobot(), 0));
+                        robot.vision.setOffset(robot.nclawIntake.getIntakeRelativeToRobot());
                         intakeLight.setState(true);
                     } else {
                         lowerStart = System.currentTimeMillis();
@@ -147,13 +146,28 @@ public class nClawIntake {
                 }
                 break;
             case SEARCH:
-                // Begin Search, just hold positions
-                intakeTurret.setIntakeExtension(intakeSetTargetPos);
-                intakeTurret.setClawRotation(target.heading);
-                intakeTurret.setTurretArmTarget(turretSearchAngle);
-                intakeTurret.setTurretRotation(turretSearchRotation);
+                if(known != null){
+                    // Begin Search, dynamic correction
+                    Pose2d curr = robot.sensors.getOdometryPosition();
+                    double deltaX = (known.x - curr.x);
+                    double deltaY = (known.y - curr.y);
 
-                robot.vision.setOffset(new Vector2(robot.nclawIntake.getIntakeRelativeToRobot(), 0));
+                    double relX = Math.cos(curr.heading)*deltaX + Math.sin(curr.heading)*deltaY;
+                    double relY = -Math.sin(curr.heading)*deltaX + Math.cos(curr.heading)*deltaY;
+
+                    intakeTurret.extendTo(new Vector2(relX, relY));
+                    intakeTurret.setTurretArmTarget(turretSearchAngle);
+                    intakeTurret.setClawRotation(target.heading);
+                }else{
+                    // Begin Search, just hold positions
+                    intakeTurret.setIntakeExtension(intakeSetTargetPos);
+                    intakeTurret.setClawRotation(target.heading);
+                    intakeTurret.setTurretArmTarget(turretSearchAngle);
+                    intakeTurret.setTurretRotation(turretSearchRotation);
+                }
+
+                robot.vision.setOffset(robot.nclawIntake.getIntakeRelativeToRobot());
+                robot.vision.setNewOrientation(intakeTurret.getTurretRotation() - Math.PI);
 
                 intakeTurret.setClawState(false);
 
@@ -232,6 +246,7 @@ public class nClawIntake {
                 }
 
                 if (sampleStatus && intakeTurret.clawInPosition()) {
+                    known = null;
                     state = State.START_RETRACT;
                     robot.ndeposit.startTransfer();
                     intakeLight.setState(false);
@@ -272,6 +287,8 @@ public class nClawIntake {
                     state = State.READY;
                     this.intakeLight.setState(false);
                 }
+
+                // TODO: Fix it all the way retracting by suopporting an extension req here
                 break;
             case READY:
                 // hold in start position, everything tucked in while moving so defense can be played. no sample ver
@@ -342,7 +359,6 @@ public class nClawIntake {
         }
 
         intakeTurret.update();
-        robot.vision.setNewOrientation(intakeTurret.getTurretRotation() - Math.PI);
         updateTelemetry();
     }
 
@@ -359,6 +375,14 @@ public class nClawIntake {
         finishTransferRequest = state == State.TRANSFER_WAIT;
     }
 
+    private Pose2d known = null;
+    public void setKnownIntakePose(Pose2d k){
+        known = k.clone();
+    }
+
+    public void removeKnown() {
+        known = null;
+    }
 
     public void setClawRotation(double angle) {
         if (angle > 1.7) {
@@ -432,8 +456,11 @@ public class nClawIntake {
         return intakeTurret.intakeExtension.getLength();
     }
 
-    public double getIntakeRelativeToRobot() {
-        return getIntakeLength() + IntakeTurret.extendoOffset;
+    public Vector2 getIntakeRelativeToRobot() {
+        return new Vector2(
+            getIntakeLength() + IntakeTurret.extendoOffset + Math.sin(intakeTurret.getTurretRotation() - Math.toRadians(90)) * IntakeTurret.turretLengthLL,
+            -IntakeTurret.turretLengthLL * Math.cos(intakeTurret.getTurretRotation() - Math.toRadians(90))
+        );
     }
 
     public double getIntakeTargetPos() {
@@ -466,13 +493,5 @@ public class nClawIntake {
 
     public int readPS() {
         return colorSensorV3.readPS();
-    }
-
-    public void setSerachRotation(double ang) {
-        turretSearchRotation = ang;
-    }
-
-    public void restoreTurretRotation() {
-        turretSearchRotation = defaultTurretSearchRotation;
     }
 }

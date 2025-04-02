@@ -20,17 +20,15 @@ import org.firstinspires.ftc.teamcode.utils.Vector2;
 @TeleOp(name = "B. IntakeWithLL")
 @Config
 public class IntakeWithLL extends LinearOpMode {
-    public static double extensionLength = 10;
-    public static boolean setExtend = false;
-    public static boolean setRetract = false;
-    public static boolean setGrab = false;
-    public static boolean grab = false;
-    public static boolean transferRequest = false;
+    public static boolean autoGrab = false;
+    public static boolean useKnown = false;
 
     @Override
     public void runOpMode() throws InterruptedException {
         Globals.RUNMODE = RunMode.AUTO;
         Robot robot = new Robot(hardwareMap);
+
+        robot.drivetrain.setPoseEstimate(new Pose2d(0, 0, 0));
 
         waitForStart();
 
@@ -42,10 +40,9 @@ public class IntakeWithLL extends LinearOpMode {
         ButtonToggle y1 = new ButtonToggle();
         ButtonToggle a1 = new ButtonToggle();
         ButtonToggle b1 = new ButtonToggle();
-        robot.nclawIntake.setAutoGrab(true);
 
         while (opModeIsActive()) {
-            robot.vision.setOffset(new Vector2(robot.nclawIntake.getIntakeRelativeToRobot(), 0));
+            robot.vision.setOffset(robot.nclawIntake.getIntakeRelativeToRobot());
             Pose2d blockPos = robot.vision.getBlockPos();
 
             TelemetryUtil.packet.put("blockPos.x", blockPos.x);
@@ -67,7 +64,15 @@ public class IntakeWithLL extends LinearOpMode {
             if (b1.isClicked(gamepad1.b)) robot.nclawIntake.retract();
 
             double intakeControl1 = robot.drivetrain.smoothControls(-gamepad1.right_stick_y);
-            robot.nclawIntake.setIntakeLength(robot.nclawIntake.getIntakeTargetPos() + 0.4 * intakeControl1);
+            //robot.nclawIntake.setIntakeLength(robot.nclawIntake.getIntakeTargetPos() + 0.4 * intakeControl1);
+            if (!useKnown) {
+                robot.nclawIntake.removeKnown();
+                robot.nclawIntake.setIntakeLength(10);
+            } else {
+                robot.nclawIntake.setKnownIntakePose(new Pose2d(15, 3, 0));
+            }
+
+            robot.nclawIntake.setAutoGrab(autoGrab);
 
             /*if (setExtend) {
                 robot.vision.startDetection();

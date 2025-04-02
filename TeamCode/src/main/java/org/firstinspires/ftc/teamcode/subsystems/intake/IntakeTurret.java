@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.utils.AngleUtil;
 import org.firstinspires.ftc.teamcode.utils.Pose2d;
+import org.firstinspires.ftc.teamcode.utils.Vector2;
 import org.firstinspires.ftc.teamcode.utils.priority.nPriorityServo;
 
 @Config
@@ -78,7 +79,6 @@ public class IntakeTurret {
     public void update() {
         intakeExtension.setTargetLength(targetLength);
         intakeExtension.update();
-
         //clawRotation.setTargetAngle(clawRotationTarget);
 
         //turretArm.setTargetAngle(turretArmTarget);
@@ -86,23 +86,35 @@ public class IntakeTurret {
     }
 
     // Target is given in robot centric coordinates
-    public static double turretLength = 6;
-    public static double extendoOffset = 7.4;
-    public static double stupidConstant = 2.7;
+    public static double turretLengthTip = 8;
+    public static double turretLengthLL = 6;
+    public static double extendoOffset = 6;
+    public static double stupidConstant = -0.25;
     public void intakeAt(Pose2d target){
         double xError = target.x;
         double yError = target.y;
 
-        if(Math.abs(yError) < turretLength){
-            targetLength = xError - extendoOffset - Math.sqrt(turretLength * turretLength - yError * yError) + stupidConstant/* - yError / turretLength*/;
+        if(Math.abs(yError) < turretLengthTip){
+            targetLength = xError - extendoOffset - Math.sqrt(turretLengthTip * turretLengthTip - yError * yError) + stupidConstant/* - yError / turretLength*/;
             //clawRotationTarget = target.heading;
-            setTurretRotation(Math.PI + Math.atan2(yError, Math.sqrt(turretLength * turretLength - yError * yError)));
+            setTurretRotation(Math.PI + Math.atan2(yError, Math.sqrt(turretLengthTip * turretLengthTip - yError * yError)));
             setClawRotation(AngleUtil.mirroredClipAngleTolerence(target.heading - getTurretRotation(), Math.toRadians(20)));
             // I hate you mechanical - Eric
             //turretArmTarget = 4.56;
             setTurretArmTarget(nClawIntake.turretGrabAngle);
             //turretAngle = yError < turretLength ? Math.asin(yError / turretLength) : turretAngle + (2.6395 - Math.PI / 2);
             //turretRotationTarget = Math.PI + Math.atan2(yError, Math.sqrt(turretLength * turretLength - yError * yError));
+        }
+    }
+
+    public static double stupidConstantTwo = 5;
+    public void extendTo(Vector2 target){
+        double xError = target.x;
+        double yError = target.y;
+
+        if(Math.abs(yError) < turretLengthLL){
+            targetLength = xError - extendoOffset - Math.sqrt(turretLengthLL * turretLengthLL - yError * yError) + stupidConstantTwo;
+            setTurretRotation(Math.PI + Math.atan2(yError, Math.sqrt(turretLengthLL * turretLengthLL - yError * yError)));
         }
     }
 

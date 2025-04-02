@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.vision;
 
 import android.util.Log;
 
+import com.acmerobotics.dashboard.canvas.Canvas;
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
@@ -39,15 +40,16 @@ public class LLBlockDetectionPostProcessor {
     private boolean detecting = false;
     private Vector2 offset = new Vector2(0, 0);
     public static int pollRate = 100;
-    public static int maxAngX = 11;
-    public static int maxAngY = 11;
-    private double lastOrientation = Double.MAX_VALUE;
-    private double orientation = Double.MAX_VALUE;
+    public static int maxAngX = 14;
+    public static int maxAngY = 14;
+    private double lastOrientation = 0;
+    private double orientation = 0;
     private Pose2d lastBlockPosition;
     private Vector2 deltaOffset;
     private double velocityLowPass = 0;
     private double lastLoop = System.currentTimeMillis();
     private boolean firstContact = false;
+    private boolean firstOrientation = false;
 
     public LLBlockDetectionPostProcessor(Robot robot) {
         ll = robot.hardwareMap.get(Limelight3A.class, "limelight");
@@ -78,13 +80,18 @@ public class LLBlockDetectionPostProcessor {
      * If you didn't do this you're stupid btw
      */
     public void update() {
+        boolean firstContactOutput = firstContact;
+        Canvas c = TelemetryUtil.packet.fieldOverlay();
+        c.setStroke("#444400");
+        c.strokeCircle(blockPos.x, blockPos.y, 3);
+        c.strokeLine(blockPos.x, blockPos.y, blockPos.x + 5 * Math.sin(blockPos.heading), blockPos.y + 5 * Math.cos(blockPos.heading));
+
         if (!detecting)
             return;
 
         if (!ll.isConnected()) {
             Log.e("ERROR BIG", "Limelight Broke");
         }
-        Log.e("ERROR BIG", "Hello?");
 
         long loopStart = System.currentTimeMillis();
 
@@ -105,13 +112,11 @@ public class LLBlockDetectionPostProcessor {
 
 
         double deltaAng = lastOrientation - orientation - pDeltaRelative.heading;
-        deltaOffset = new Vector2(0, 0);
         Pose2d expectedNewBlockPose = new Pose2d( // Calculated from solely poses
             (blockPos.x - pDeltaRelative.x - deltaOffset.x) * Math.cos(deltaAng) + (blockPos.y - pDeltaRelative.y - deltaOffset.y) * Math.sin(deltaAng),
             (blockPos.x - pDeltaRelative.x - deltaOffset.x) * Math.sin(deltaAng) + (blockPos.y - pDeltaRelative.y - deltaOffset.y) * Math.cos(deltaAng),
             blockPos.heading + lastOrientation - orientation + pDeltaRelative.heading
         );
-        deltaOffset = new Vector2();
 
         // Update based on ONLY change in robot position
         if (result == null ||
@@ -130,9 +135,8 @@ public class LLBlockDetectionPostProcessor {
             double x = getInchesX(cr.getTargetYDegrees());
             double y = getInchesY(-cr.getTargetXDegrees());
 
-            Vector2 o = Vector2.staticrotate(offset, orientation);
-            x += o.x;
-            y += o.y;
+            x += offset.x;
+            y += offset.y;
 
             double heading = expectedNewBlockPose.heading;// - pDelta.heading;
             // Attempt to update heading value with the new value
@@ -179,8 +183,8 @@ public class LLBlockDetectionPostProcessor {
                 // Average the 2 small sides
                 double h1 = AngleUtil.mirroredClipAngleTolerence(Math.atan2(vcorners[l0].y - vcorners[cl0].y, vcorners[l0].x - vcorners[cl0].x), Math.toRadians(20));
                 double h2 = AngleUtil.mirroredClipAngleTolerence(Math.atan2(vcorners[cl1].y - vcorners[l1].y, vcorners[cl1].x - vcorners[l1].x), Math.toRadians(20));
-                heading = (h1 + h2) / 2 + lastOrientation - orientation;
-                firstContact = true;
+                heading = (h1 + h2) / 2 - orientation;
+                firstContactOutput = true;
             }
 
             heading = AngleUtil.mirroredClipAngleTolerence(heading, Math.toRadians(20));
@@ -211,6 +215,9 @@ public class LLBlockDetectionPostProcessor {
         TelemetryUtil.packet.put("blockVelocity.y", blockVelocity.y);
         TelemetryUtil.packet.put("blockVelocity mag", blockVelocity.mag());
         velocityLowPass = blockVelocity.mag() * 0.6 + velocityLowPass * 0.4;
+        if (!firstContact)
+            velocityLowPass = 1;
+        firstContact = firstContactOutput;
 
         // This is fine because detecting turning on would update this value properly
         lastRobotPosition = robot.sensors.getOdometryPosition().clone();
@@ -230,7 +237,8 @@ public class LLBlockDetectionPostProcessor {
         velocityLowPass = 0;
         detecting = true;
         firstContact = false;
-        lastOrientation = Double.MAX_VALUE;
+        lastOrientation = orientation = 0;
+        firstOrientation = true;
         lastLoop = System.currentTimeMillis();
     }
 
@@ -269,14 +277,15 @@ public class LLBlockDetectionPostProcessor {
     }
 
     public void setNewOrientation(double ang) {
-        if (lastOrientation == Double.MAX_VALUE) {
+        if (firstOrientation) {
             lastOrientation = ang;
+            firstOrientation = false;
         }
         orientation = ang;
     }
 
     public boolean isStable() {
-        return velocityLowPass < 1.5;
+        return velocityLowPass < 0.1;
     }
 
     public double getVelocityLowPass() {

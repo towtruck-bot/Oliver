@@ -16,7 +16,7 @@ import org.firstinspires.ftc.teamcode.utils.priority.PriorityMotor;
 
 @Config
 public class IntakeExtension {
-    public static double maxExtendoLength = 19.0;
+    public static double maxExtendoLength = 19.5; // Actually 19
 
     private final Robot robot;
     public PriorityMotor extendoMotor;

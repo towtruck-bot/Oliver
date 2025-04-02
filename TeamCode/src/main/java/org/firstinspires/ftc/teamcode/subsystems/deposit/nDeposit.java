@@ -42,7 +42,7 @@ public class nDeposit {
     // TODO: All values below (v) are estimates and may not scale correctly with the 0 positions. Make sure to tune!
     public static double transferArm = 0.5696, transferClaw = 0, transferZ = 6.5;
     public static double holdArm = -0.889, holdClaw = 0.6477, holdZ = 0.0;
-    public static double raiseArmBufferRotation = -1.8472,  sampleArm = -2.9728, sampleClaw = -0.0563, sampleZ = 34.5;
+    public static double raiseArmBufferRotation = -1.8472,  sampleArm = -2.9728, sampleClaw = -0.0563, sampleZ = 35.5;
     public static double outtakeArm = -2.9225, outtakeClaw = -0.00169, outtakeZ = 0.0;
     public static double specimenIntakeArm = -2.9278, specimenIntakeClaw = 0.3436, specimenIntakeZ = 0;
     public static double specimenDepositArm = -0.1, specimenDepositClaw = -1.2, specimenDepositZ = 18.6;
@@ -145,7 +145,7 @@ public class nDeposit {
                 break;
             case SAMPLE_WAIT:
                 slides.setTargetLength(sampleZ);
-                arm.setArmRotation(sampleArm, 1.0);
+                arm.setArmRotation(sampleArm, 0.4);
                 arm.setClawRotation(sampleClaw, 1.0);
 
                 arm.clawClose();

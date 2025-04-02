@@ -43,6 +43,8 @@ public class SamplePreloadBlueAuto extends LinearOpMode {
 
         robot.ndeposit.state = nDeposit.State.HOLD;
         robot.nclawIntake.useCamera(true);
+        robot.nclawIntake.dontUseGrab();
+        robot.nclawIntake.setAutoGrab(false);
         while (opModeInInit() && !isStopRequested()) {
             //robot.sensors.setOdometryPosition(48.0 - Globals.ROBOT_WIDTH / 2.0, 72.0 - Globals.ROBOT_FORWARD_LENGTH, Math.PI/2);
             robot.sensors.setOdometryPosition(48.0 - Globals.ROBOT_REVERSE_LENGTH, 72.0 - Globals.ROBOT_WIDTH / 2, Math.PI);
@@ -111,8 +113,12 @@ public class SamplePreloadBlueAuto extends LinearOpMode {
         robot.ndeposit.startSampleDeposit(); // This effectively buffers it
         robot.nclawIntake.finishTransfer();
         robot.ndeposit.finishTransfer();
-        robot.nclawIntake.setKnownIntakePose(new Pose2d(bx3, by3, Math.PI / 2));
         robot.nclawIntake.setAutoGrab(false);
+        robot.nclawIntake.useCamera(false);
+        robot.nclawIntake.useGrab();
+        robot.nclawIntake.setTargetPose(new Pose2d(bx3, by3, Math.PI / 2));
+        //robot.nclawIntake.setKnownIntakePose(new Pose2d(bx3, by3, Math.PI / 2));
+        //robot.nclawIntake.setAutoGrab(false);
         robot.nclawIntake.extend();
 
         robot.waitWhile(() -> robot.drivetrain.isBusy() || !robot.ndeposit.isDepositReady());
@@ -122,7 +128,8 @@ public class SamplePreloadBlueAuto extends LinearOpMode {
 
         // Depo 3
         robot.waitWhile(() -> !robot.nclawIntake.isExtended());
-        robot.nclawIntake.setAutoGrab(true);
+        robot.nclawIntake.grab(true);
+        //robot.nclawIntake.setAutoGrab(true);
         robot.waitWhile(() -> !robot.nclawIntake.hasSample());
         // Go to under bucket
         robot.drivetrain.goToPoint(
@@ -146,6 +153,8 @@ public class SamplePreloadBlueAuto extends LinearOpMode {
                 1.0
         );
         robot.waitWhile(() -> !robot.ndeposit.isDepositFinished());
+
+        // TODO: Remember to set auto grab to true, set use camera to true, and DONT use grab
 
         // Depo 3
         /*robot.goToPoint(

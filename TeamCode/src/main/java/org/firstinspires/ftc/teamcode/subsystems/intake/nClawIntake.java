@@ -189,14 +189,7 @@ public class nClawIntake {
                 break;
             case LOWER:
                 // intakeAt method should hopefully calculate new extension, new turretAngle + Rotation, and move in to grab
-                if (useCamera) {
-                    intakeTurret.intakeAt(target);
-                } else {
-                    intakeTurret.setIntakeExtension(intakeSetTargetPos);
-                    intakeTurret.setClawRotation(grabRotation);
-                    intakeTurret.setTurretArmTarget(turretGrabAngle);
-                    intakeTurret.setTurretRotation(turretGrabRotation);
-                }
+                intakeTurret.intakeAt(target);
 
                 intakeTurret.setClawState(false);
 
@@ -288,7 +281,10 @@ public class nClawIntake {
                     this.intakeLight.setState(false);
                 }
 
-                // TODO: Fix it all the way retracting by suopporting an extension req here
+                if (extendRequest) {
+                    state = State.START_EXTEND;
+                    extendRequest = false;
+                }
                 break;
             case READY:
                 // hold in start position, everything tucked in while moving so defense can be played. no sample ver

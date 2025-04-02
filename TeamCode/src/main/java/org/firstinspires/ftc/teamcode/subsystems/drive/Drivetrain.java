@@ -349,16 +349,9 @@ public class Drivetrain {
                 state = State.WAIT_AT_POINT;
                 break;
             case WAIT_AT_POINT:
-                if (moveNear) {
-                    if (!atHeading()) {
-                        state = State.ADJUST;
-                    }
-                } else {
-                    if (!atPointThresholds(finalAdjustment ? finalXThreshold : xThreshold, finalAdjustment ? finalYThreshold : yThreshold, finalAdjustment ? finalTurnThreshold: turnThreshold) || !(moveNear && atPoint())) {
-                        resetIntegrals();
-                        state = State.GO_TO_POINT;
-                    }
-                }
+                if (!atPoint()) state = State.GO_TO_POINT;
+                else if (moveNear && !atHeading()) state = State.ADJUST;
+
                 break;
             case DRIVE:
                 break;

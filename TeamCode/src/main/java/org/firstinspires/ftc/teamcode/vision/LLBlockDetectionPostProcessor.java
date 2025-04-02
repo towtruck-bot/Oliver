@@ -48,8 +48,8 @@ public class LLBlockDetectionPostProcessor {
     private Vector2 deltaOffset;
     private double velocityLowPass = 0;
     private double lastLoop = System.currentTimeMillis();
-    private boolean firstContact = false;
     private boolean firstOrientation = false;
+    private int detections = 0;
 
     public LLBlockDetectionPostProcessor(Robot robot) {
         ll = robot.hardwareMap.get(Limelight3A.class, "limelight");
@@ -80,7 +80,6 @@ public class LLBlockDetectionPostProcessor {
      * If you didn't do this you're stupid btw
      */
     public void update() {
-        boolean firstContactOutput = firstContact;
         Canvas c = TelemetryUtil.packet.fieldOverlay();
         c.setStroke("#444400");
         c.strokeCircle(blockPos.x, blockPos.y, 3);
@@ -88,6 +87,8 @@ public class LLBlockDetectionPostProcessor {
 
         if (!detecting)
             return;
+
+        int newDetections = detections;
 
         if (!ll.isConnected()) {
             Log.e("ERROR BIG", "Limelight Broke");
@@ -126,7 +127,7 @@ public class LLBlockDetectionPostProcessor {
             Math.abs(result.getColorResults().get(0).getTargetXDegrees()) > maxAngX ||
             Math.abs(result.getColorResults().get(0).getTargetYDegrees()) > maxAngY) {
 
-            if (firstContact)
+            if (detections >= 1)
                 blockPos = expectedNewBlockPose.clone();
         } else { // We have a valid result. Now we can update with both change according to dt and change according to limelight
             // Post processing. Get new block x, y, and heading
@@ -184,7 +185,7 @@ public class LLBlockDetectionPostProcessor {
                 double h1 = AngleUtil.mirroredClipAngleTolerence(Math.atan2(vcorners[l0].y - vcorners[cl0].y, vcorners[l0].x - vcorners[cl0].x), Math.toRadians(20));
                 double h2 = AngleUtil.mirroredClipAngleTolerence(Math.atan2(vcorners[cl1].y - vcorners[l1].y, vcorners[cl1].x - vcorners[l1].x), Math.toRadians(20));
                 heading = (h1 + h2) / 2 - orientation;
-                firstContactOutput = true;
+                newDetections++;
             }
 
             heading = AngleUtil.mirroredClipAngleTolerence(heading, Math.toRadians(20));
@@ -215,9 +216,9 @@ public class LLBlockDetectionPostProcessor {
         TelemetryUtil.packet.put("blockVelocity.y", blockVelocity.y);
         TelemetryUtil.packet.put("blockVelocity mag", blockVelocity.mag());
         velocityLowPass = blockVelocity.mag() * 0.6 + velocityLowPass * 0.4;
-        if (!firstContact)
-            velocityLowPass = 1;
-        firstContact = firstContactOutput;
+        if (detections <= 0)
+            velocityLowPass = 0;
+        detections = newDetections;
 
         // This is fine because detecting turning on would update this value properly
         lastRobotPosition = robot.sensors.getOdometryPosition().clone();
@@ -235,9 +236,10 @@ public class LLBlockDetectionPostProcessor {
         blockPos = new Pose2d(0, 0, 0);
         lastBlockPosition = null;
         velocityLowPass = 0;
+        detections = 0;
+        lastOrientation = 0;
+        orientation = 0;
         detecting = true;
-        firstContact = false;
-        lastOrientation = orientation = 0;
         firstOrientation = true;
         lastLoop = System.currentTimeMillis();
     }
@@ -285,7 +287,7 @@ public class LLBlockDetectionPostProcessor {
     }
 
     public boolean isStable() {
-        return velocityLowPass < 0.1;
+        return velocityLowPass < 0.1 && detections >= 2; // Detections >= 2 allows us to have a velocity
     }
 
     public double getVelocityLowPass() {
@@ -293,6 +295,6 @@ public class LLBlockDetectionPostProcessor {
     }
 
     public boolean gottenFirstContact() {
-        return firstContact;
+        return detections >= 1;
     }
 }

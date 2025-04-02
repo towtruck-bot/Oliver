@@ -1,7 +1,5 @@
 package org.firstinspires.ftc.teamcode.opmodes;
 
-import android.util.Log;
-
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -9,8 +7,6 @@ import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.subsystems.deposit.nDeposit;
-import org.firstinspires.ftc.teamcode.subsystems.drive.Drivetrain;
-import org.firstinspires.ftc.teamcode.subsystems.drive.Spline;
 import org.firstinspires.ftc.teamcode.utils.Globals;
 import org.firstinspires.ftc.teamcode.utils.LogUtil;
 import org.firstinspires.ftc.teamcode.utils.Pose2d;
@@ -43,7 +39,8 @@ public class SamplePreloadBlueAuto extends LinearOpMode {
 
         robot.ndeposit.state = nDeposit.State.HOLD;
         robot.nclawIntake.useCamera(true);
-        robot.nclawIntake.dontUseGrab();
+        robot.nclawIntake.setUseTarget(true);
+        robot.nclawIntake.setUseManualGrab(false);
         robot.nclawIntake.setAutoGrab(false);
         while (opModeInInit() && !isStopRequested()) {
             //robot.sensors.setOdometryPosition(48.0 - Globals.ROBOT_WIDTH / 2.0, 72.0 - Globals.ROBOT_FORWARD_LENGTH, Math.PI/2);
@@ -115,7 +112,7 @@ public class SamplePreloadBlueAuto extends LinearOpMode {
         robot.ndeposit.finishTransfer();
         robot.nclawIntake.setAutoGrab(false);
         robot.nclawIntake.useCamera(false);
-        robot.nclawIntake.useGrab();
+        robot.nclawIntake.setUseManualGrab(true);
         robot.nclawIntake.setTargetPose(new Pose2d(bx3, by3, Math.PI / 2));
         //robot.nclawIntake.setKnownIntakePose(new Pose2d(bx3, by3, Math.PI / 2));
         //robot.nclawIntake.setAutoGrab(false);
@@ -128,7 +125,7 @@ public class SamplePreloadBlueAuto extends LinearOpMode {
 
         // Depo 3
         robot.waitWhile(() -> !robot.nclawIntake.isExtended());
-        robot.nclawIntake.grab(true);
+        robot.nclawIntake.setGrab(true);
         //robot.nclawIntake.setAutoGrab(true);
         robot.waitWhile(() -> !robot.nclawIntake.hasSample());
         // Go to under bucket

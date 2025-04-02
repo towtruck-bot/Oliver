@@ -3,17 +3,12 @@ package org.firstinspires.ftc.teamcode.subsystems.intake;
 import android.util.Log;
 
 import com.acmerobotics.dashboard.config.Config;
-import com.google.ar.core.Pose;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
 
 import org.firstinspires.ftc.teamcode.Robot;
-import org.firstinspires.ftc.teamcode.subsystems.deposit.Deposit;
-import org.firstinspires.ftc.teamcode.subsystems.deposit.nDeposit;
-import org.firstinspires.ftc.teamcode.utils.Globals;
 import org.firstinspires.ftc.teamcode.utils.LogUtil;
 import org.firstinspires.ftc.teamcode.utils.Pose2d;
 import org.firstinspires.ftc.teamcode.utils.REVColorSensorV3;
-import org.firstinspires.ftc.teamcode.utils.RunMode;
 import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 import org.firstinspires.ftc.teamcode.utils.Utils;
 import org.firstinspires.ftc.teamcode.utils.Vector2;
@@ -47,8 +42,9 @@ public class nClawIntake {
     private boolean useCamera = true;
     private boolean finishTransferRequest = false;
     private boolean extendRequest = false;
+    private boolean useTarget = true;
     public Pose2d target;
-    public boolean useGrab = false;
+    public boolean manualGrab = false;
     private long lowerStart = 0;
     public static int blockPickUpPSThreashold = 263;
     private int psReads = 0;
@@ -182,6 +178,7 @@ public class nClawIntake {
                         p.y,
                         -p.heading
                     );
+                    useTarget = true; // We kind of need this or else it'll be weird
                     robot.vision.stopDetection();
                     consecutivePSPositives = psReads = 0;
                     state = State.LOWER;
@@ -189,12 +186,19 @@ public class nClawIntake {
                 break;
             case LOWER:
                 // intakeAt method should hopefully calculate new extension, new turretAngle + Rotation, and move in to grab
-                intakeTurret.intakeAt(target);
+                if (useTarget) {
+                    intakeTurret.intakeAt(target);
+                } else {
+                    intakeTurret.setIntakeExtension(intakeSetTargetPos);
+                    intakeTurret.setClawRotation(grabRotation);
+                    intakeTurret.setTurretArmTarget(turretGrabAngle);
+                    intakeTurret.setTurretRotation(turretGrabRotation);
+                }
 
                 intakeTurret.setClawState(false);
 
                 // everything in position before grabbing
-                if (useGrab ? grab : ((intakeTurret.inPosition() && (System.currentTimeMillis() - lowerStart) > lowerDelay))) {
+                if (manualGrab ? grab : ((intakeTurret.inPosition() && (System.currentTimeMillis() - lowerStart) > lowerDelay))) {
                     state = State.GRAB_CLOSE;
                 }
                 break;
@@ -414,7 +418,7 @@ public class nClawIntake {
         return state == State.READY;
     }
 
-    public void grab(boolean closed) {
+    public void setGrab(boolean closed) {
         grab = closed;
         if (!grab)
             state = State.SEARCH;
@@ -463,12 +467,8 @@ public class nClawIntake {
         return this.intakeSetTargetPos;
     }
 
-    public void useGrab() {
-        useGrab = true;
-    }
-
-    public void dontUseGrab() {
-        useGrab = false;
+    public void setUseManualGrab(boolean manualGrab) {
+        this.manualGrab = manualGrab;
     }
 
 //    public void forcePullIn() { forcePull = true; }
@@ -489,5 +489,9 @@ public class nClawIntake {
 
     public int readPS() {
         return colorSensorV3.readPS();
+    };
+
+    public void setUseTarget(boolean val) {
+        useTarget = val;
     }
 }

@@ -53,7 +53,7 @@ public class nClawIntakeTester extends LinearOpMode {
                 confirmTransfer = !confirmTransfer;
             }
             if (setGrab) {
-                robot.nclawIntake.grab(grab);
+                robot.nclawIntake.setGrab(grab);
                 setGrab = !setGrab;
             }
 

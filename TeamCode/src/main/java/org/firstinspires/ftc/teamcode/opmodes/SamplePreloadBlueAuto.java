@@ -19,7 +19,7 @@ public class SamplePreloadBlueAuto extends LinearOpMode {
     private Robot robot;
 
     // Block positions
-    public static double by1 = 21.5, bx1 = 49.75, bx2 = 59.7, by2 = 29.5, bx3 = 71.8, by3 = 23.5;
+    public static double by1 = 21.75, bx1 = 49.5, bx2 = 59.5, by2 = 22.25, bx3 = 69, by3 = 23.75;
 
     // GP depo positions
     public static double dx1 = 62.3, dy1 = 52.5;

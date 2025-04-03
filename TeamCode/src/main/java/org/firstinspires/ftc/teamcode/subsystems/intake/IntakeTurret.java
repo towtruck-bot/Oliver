@@ -86,16 +86,16 @@ public class IntakeTurret {
     }
 
     // Target is given in robot centric coordinates
-    public static double turretLengthTip = 8;
-    public static double turretLengthLL = 6;
-    public static double extendoOffset = 6;
+    public static double turretLengthTip = 6.7;
+    public static double turretLengthLL = 4.4;
+    public static double extendoOffset = 3.5;
     public static double stupidConstant = -0.25;
     public void intakeAt(Pose2d target){
         double xError = target.x;
         double yError = target.y;
 
         if(Math.abs(yError) < turretLengthTip){
-            targetLength = xError - extendoOffset - Math.sqrt(turretLengthTip * turretLengthTip - yError * yError) + stupidConstant/* - yError / turretLength*/;
+            targetLength = xError - extendoOffset - Math.sqrt(turretLengthTip * turretLengthTip - yError * yError)/* - yError / turretLength*/;
             //clawRotationTarget = target.heading;
             setTurretRotation(Math.PI + Math.atan2(yError, Math.sqrt(turretLengthTip * turretLengthTip - yError * yError)));
             setClawRotation(AngleUtil.mirroredClipAngleTolerence(target.heading - getTurretRotation(), Math.toRadians(20)));
@@ -107,13 +107,12 @@ public class IntakeTurret {
         }
     }
 
-    public static double stupidConstantTwo = 5;
     public void extendTo(Vector2 target){
         double xError = target.x;
         double yError = target.y;
 
         if(Math.abs(yError) < turretLengthLL){
-            targetLength = xError - extendoOffset - Math.sqrt(turretLengthLL * turretLengthLL - yError * yError) + stupidConstantTwo;
+            targetLength = xError - extendoOffset - Math.sqrt(turretLengthLL * turretLengthLL - yError * yError);
             setTurretRotation(Math.PI + Math.atan2(yError, Math.sqrt(turretLengthLL * turretLengthLL - yError * yError)));
         }
     }

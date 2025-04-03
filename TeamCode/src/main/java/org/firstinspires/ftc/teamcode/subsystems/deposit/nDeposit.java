@@ -145,7 +145,7 @@ public class nDeposit {
                 break;
             case SAMPLE_WAIT:
                 slides.setTargetLength(sampleZ);
-                arm.setArmRotation(sampleArm, 0.4);
+                arm.setArmRotation(sampleArm, 0.2);
                 arm.setClawRotation(sampleClaw, 1.0);
 
                 arm.clawClose();

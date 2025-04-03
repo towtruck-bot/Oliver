@@ -22,6 +22,8 @@ import org.firstinspires.ftc.teamcode.utils.Vector2;
 public class IntakeWithLL extends LinearOpMode {
     public static boolean autoGrab = false;
     public static boolean useKnown = false;
+    public static double keepX = 5;
+    public static double keepY = 3;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -69,7 +71,7 @@ public class IntakeWithLL extends LinearOpMode {
                 robot.nclawIntake.removeKnown();
                 robot.nclawIntake.setIntakeLength(10);
             } else {
-                robot.nclawIntake.setKnownIntakePose(new Pose2d(15, 3, 0));
+                robot.nclawIntake.setKnownIntakePose(new Pose2d(keepX, keepY, 0));
             }
 
             robot.nclawIntake.setAutoGrab(autoGrab);

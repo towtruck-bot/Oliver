@@ -198,6 +198,7 @@ public class nClawIntake {
 
                 // everything in position before grabbing
                 if (manualGrab ? grab : ((intakeTurret.inPosition() && (System.currentTimeMillis() - lowerStart) > lowerDelay))) {
+                    consecutivePSPositives = psReads = 0;
                     state = State.GRAB_CLOSE;
                 }
                 break;

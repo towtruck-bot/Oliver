@@ -42,7 +42,6 @@ public class nClawIntake {
     private boolean useCamera = true;
     private boolean finishTransferRequest = false;
     private boolean extendRequest = false;
-    private boolean useTarget = true;
     public Pose2d target;
     public boolean manualGrab = false;
     private long lowerStart = 0;
@@ -50,6 +49,13 @@ public class nClawIntake {
     private int psReads = 0;
     private int consecutivePSPositives = 0;
     private boolean autoGrabEnabled = false;
+    private Target targetType = Target.RELATIVE;
+
+    public enum Target {
+        RELATIVE,
+        GLOBAL,
+        NONE
+    }
 
     public enum State {
         START_EXTEND,
@@ -178,7 +184,7 @@ public class nClawIntake {
                         p.y,
                         -p.heading
                     );
-                    useTarget = true; // We kind of need this or else it'll be weird
+                    targetType = Target.RELATIVE; // Kind of needed here or else its weird
                     robot.vision.stopDetection();
                     consecutivePSPositives = psReads = 0;
                     state = State.LOWER;
@@ -186,14 +192,7 @@ public class nClawIntake {
                 break;
             case LOWER:
                 // intakeAt method should hopefully calculate new extension, new turretAngle + Rotation, and move in to grab
-                if (useTarget) {
-                    intakeTurret.intakeAt(target);
-                } else {
-                    intakeTurret.setIntakeExtension(intakeSetTargetPos);
-                    intakeTurret.setClawRotation(grabRotation);
-                    intakeTurret.setTurretArmTarget(turretGrabAngle);
-                    intakeTurret.setTurretRotation(turretGrabRotation);
-                }
+                aimAtTarget();
 
                 intakeTurret.setClawState(false);
 
@@ -203,6 +202,8 @@ public class nClawIntake {
                 }
                 break;
             case GRAB_CLOSE:
+                aimAtTarget();
+
                 if (psReads >= 35) {
                     grab = false;
                     if (useCamera) {
@@ -213,16 +214,6 @@ public class nClawIntake {
                         lowerStart = System.currentTimeMillis();
                         state = State.LOWER;
                     }
-                }
-
-                // Grab the block and wait for a confirmtion that we have the block
-                if (useCamera) {
-                    intakeTurret.intakeAt(target);
-                } else {
-                    intakeTurret.setIntakeExtension(intakeSetTargetPos);
-                    intakeTurret.setClawRotation(grabRotation);
-                    intakeTurret.setTurretArmTarget(turretGrabAngle);
-                    intakeTurret.setTurretRotation(turretGrabRotation);
                 }
 
                 int val = colorSensorV3.readPS();
@@ -420,8 +411,6 @@ public class nClawIntake {
 
     public void setGrab(boolean closed) {
         grab = closed;
-        if (!grab)
-            state = State.SEARCH;
     }
 
     // Confirm pickup
@@ -491,7 +480,32 @@ public class nClawIntake {
         return colorSensorV3.readPS();
     };
 
-    public void setUseTarget(boolean val) {
-        useTarget = val;
+    public void setTargetType(Target targetType) {
+        this.targetType = targetType;
+    }
+
+    public void aimAtTarget() {
+         switch (targetType) {
+            case RELATIVE:
+                intakeTurret.intakeAt(target);
+                break;
+            case GLOBAL:
+                double deltaX = (target.x - robot.sensors.getOdometryPosition().x);
+                double deltaY = (target.y - robot.sensors.getOdometryPosition().y);
+
+                // convert error into direction robot is facing
+                intakeTurret.intakeAt(new Pose2d(
+                    Math.cos(robot.sensors.getOdometryPosition().heading)*deltaX + Math.sin(robot.sensors.getOdometryPosition().heading)*deltaY,
+                    -Math.sin(robot.sensors.getOdometryPosition().heading)*deltaX + Math.cos(robot.sensors.getOdometryPosition().heading)*deltaY,
+                    target.heading - robot.sensors.getOdometryPosition().heading
+                ));
+                break;
+             case NONE:
+                 intakeTurret.setIntakeExtension(intakeSetTargetPos);
+                 intakeTurret.setClawRotation(grabRotation);
+                 intakeTurret.setTurretArmTarget(turretGrabAngle);
+                 intakeTurret.setTurretRotation(turretGrabRotation);
+                 break;
+        }
     }
 }

@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.subsystems.deposit.nDeposit;
+import org.firstinspires.ftc.teamcode.subsystems.intake.nClawIntake;
 import org.firstinspires.ftc.teamcode.utils.Globals;
 import org.firstinspires.ftc.teamcode.utils.LogUtil;
 import org.firstinspires.ftc.teamcode.utils.Pose2d;
@@ -18,10 +19,10 @@ public class SamplePreloadBlueAuto extends LinearOpMode {
     private Robot robot;
 
     // Block positions
-    public static double by1 = 23.2, bx1 = 49.75, bx2 = 59.7, by2 = 27.5, bx3 = 71.3, by3 = 23.5;
+    public static double by1 = 21.5, bx1 = 49.75, bx2 = 59.7, by2 = 29.5, bx3 = 71.8, by3 = 23.5;
 
     // GP depo positions
-    public static double dx1 = 60.3, dy1 = 51;
+    public static double dx1 = 62.3, dy1 = 52.5;
     public static double dx2 = 64.5, dy2 = 52;
     public static double dx3 = 66, dy3 = 53;
 
@@ -39,7 +40,6 @@ public class SamplePreloadBlueAuto extends LinearOpMode {
 
         robot.ndeposit.state = nDeposit.State.HOLD;
         robot.nclawIntake.useCamera(true);
-        robot.nclawIntake.setUseTarget(true);
         robot.nclawIntake.setUseManualGrab(false);
         robot.nclawIntake.setAutoGrab(false);
         while (opModeInInit() && !isStopRequested()) {
@@ -56,7 +56,7 @@ public class SamplePreloadBlueAuto extends LinearOpMode {
         robot.ndeposit.startSampleDeposit();
         robot.goToPoint(
             new Pose2d(dx1, dy1, Math.toRadians(250)),
-            () -> !(robot.drivetrain.targetPoint.getDistanceFromPoint(robot.sensors.getOdometryPosition()) < 4),
+            () -> !(robot.drivetrain.targetPoint.getDistanceFromPoint(robot.sensors.getOdometryPosition()) < 8),
             false,
             true,
             1.0
@@ -113,6 +113,8 @@ public class SamplePreloadBlueAuto extends LinearOpMode {
         robot.nclawIntake.setAutoGrab(false);
         robot.nclawIntake.useCamera(false);
         robot.nclawIntake.setUseManualGrab(true);
+        robot.nclawIntake.setGrab(false);
+        robot.nclawIntake.setTargetType(nClawIntake.Target.GLOBAL);
         robot.nclawIntake.setTargetPose(new Pose2d(bx3, by3, Math.PI / 2));
         //robot.nclawIntake.setKnownIntakePose(new Pose2d(bx3, by3, Math.PI / 2));
         //robot.nclawIntake.setAutoGrab(false);

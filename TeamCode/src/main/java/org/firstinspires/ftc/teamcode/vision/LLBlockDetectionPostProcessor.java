@@ -215,6 +215,7 @@ public class LLBlockDetectionPostProcessor {
         TelemetryUtil.packet.put("blockVelocity.x", blockVelocity.x);
         TelemetryUtil.packet.put("blockVelocity.y", blockVelocity.y);
         TelemetryUtil.packet.put("blockVelocity mag", blockVelocity.mag());
+        TelemetryUtil.packet.put("velocityLowPass", velocityLowPass);
         velocityLowPass = blockVelocity.mag() * 0.6 + velocityLowPass * 0.4;
         if (detections <= 0)
             velocityLowPass = 0;
@@ -287,7 +288,7 @@ public class LLBlockDetectionPostProcessor {
     }
 
     public boolean isStable() {
-        return velocityLowPass < 0.1 && detections >= 2; // Detections >= 2 allows us to have a velocity
+        return velocityLowPass < 5 && detections >= 2; // Detections >= 2 allows us to have a velocity
     }
 
     public double getVelocityLowPass() {

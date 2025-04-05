@@ -80,16 +80,17 @@ public class LLBlockDetectionPostProcessor {
      * If you didn't do this you're stupid btw
      */
     public void update() {
-        Canvas c = TelemetryUtil.packet.fieldOverlay();
-        c.setStroke("#444400");
-        c.strokeCircle(blockPos.x, blockPos.y, 3);
-        c.strokeLine(blockPos.x, blockPos.y, blockPos.x + 5 * Math.sin(blockPos.heading), blockPos.y + 5 * Math.cos(blockPos.heading));
+        Canvas canvas = TelemetryUtil.packet.fieldOverlay();
+        canvas.setStroke("#444400");
+        canvas.strokeCircle(blockPos.x, blockPos.y, 3);
+        canvas.strokeLine(blockPos.x, blockPos.y, blockPos.x + 5 * Math.sin(blockPos.heading), blockPos.y + 5 * Math.cos(blockPos.heading));
 
         if (!detecting)
             return;
 
         int newDetections = detections;
 
+        TelemetryUtil.packet.put("LL connected", ll.isConnected());
         if (!ll.isConnected()) {
             Log.e("ERROR BIG", "Limelight Broke");
         }
@@ -97,6 +98,7 @@ public class LLBlockDetectionPostProcessor {
         long loopStart = System.currentTimeMillis();
 
         LLResult result = ll.getLatestResult();
+        TelemetryUtil.packet.put("LL result", "> " + result);
 
         // Get robot based pose delta
         Pose2d p = robot.sensors.getOdometryPosition();
@@ -142,13 +144,14 @@ public class LLBlockDetectionPostProcessor {
             double heading = expectedNewBlockPose.heading;// - pDelta.heading;
             // Attempt to update heading value with the new value
             List<List<Double>> corners = cr.getTargetCorners();
+            Vector2[] vcorners = new Vector2[corners.size()];
+            TelemetryUtil.packet.put("LL corners.size", corners.size());
+            canvas.setStroke("#606060");
+            for (int i = 0; i < corners.size(); i++) {
+                vcorners[i] = new Vector2(corners.get(i).get(0), corners.get(i).get(1));
+                canvas.strokeCircle(vcorners[i].x, vcorners[i].y, 0.5);
+            }
             if (corners.size() == 4) { // I don't care enough to get this to work with stupid detections
-                // THIS FORMAT IS SO HORRID I'M SORRY BUT I'M TAKING THE EXTRA STEP TO CHANGE THE FORMAT - Eric
-                Vector2[] vcorners = new Vector2[4];
-                for (int i = 0; i < corners.size(); i++) {
-                    vcorners[i] = new Vector2(corners.get(i).get(0), corners.get(i).get(1));
-                }
-
                 // Get the 2 longest
                 int l0 = 0; // nyeh pointer !
                 int l1 = 0;

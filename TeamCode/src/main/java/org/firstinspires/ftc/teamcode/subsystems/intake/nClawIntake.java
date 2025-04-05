@@ -23,7 +23,7 @@ public class nClawIntake {
 
     public final DigitalChannel intakeLight;
 
-    private double intakeSetTargetPos = 0;
+    private double intakeSetTargetPos;
 
     // turretBufferAng -> angle that allows for any rotation to occur with the turret still inside the robot. use in any retract/extend states
 
@@ -173,9 +173,9 @@ public class nClawIntake {
 
                 intakeTurret.setClawState(false);
 
-                Log.e("CHECKING IT", robot.vision.isStable() + " stable");
-                Log.e("CHECKING IT", robot.vision.gottenFirstContact() + " first contact");
-                Log.e("CHECKING IT", intakeTurret.rotInPosition() + " rot in pos");
+                Log.i("CHECKING IT", robot.vision.isStable() + " stable");
+                Log.i("CHECKING IT", robot.vision.gottenFirstContact() + " first contact");
+                Log.i("CHECKING IT", intakeTurret.rotInPosition() + " rot in pos");
                 if ((robot.vision.isStable() && robot.vision.gottenFirstContact()) && intakeTurret.rotInPosition() && autoGrabEnabled) {
                     lowerStart = System.currentTimeMillis();
                     Pose2d p = robot.vision.getBlockPos();
@@ -479,7 +479,7 @@ public class nClawIntake {
 
     public int readPS() {
         return colorSensorV3.readPS();
-    };
+    }
 
     public void setTargetType(Target targetType) {
         this.targetType = targetType;

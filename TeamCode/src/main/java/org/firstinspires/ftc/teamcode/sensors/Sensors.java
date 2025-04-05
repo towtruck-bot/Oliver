@@ -56,8 +56,8 @@ public class Sensors {
     public void update(){
         odometry.update();
 
-        slidesEncoder = ((PriorityMotor) robot.hardwareQueue.getDevice("leftRear")).motor[0].getCurrentPosition() * -1;
-        slidesVel = ((PriorityMotor) robot.hardwareQueue.getDevice("leftRear")).motor[0].getVelocity() * -1;
+        slidesEncoder = ((PriorityMotor) robot.hardwareQueue.getDevice("leftRear")).motor[0].getCurrentPosition();
+        slidesVel = ((PriorityMotor) robot.hardwareQueue.getDevice("leftRear")).motor[0].getVelocity();
         extendoEncoder = ((PriorityMotor) robot.hardwareQueue.getDevice("rightFront")).motor[0].getCurrentPosition();
 
         if (System.currentTimeMillis() - lastVoltageUpdatedTime > voltageUpdateTime) {

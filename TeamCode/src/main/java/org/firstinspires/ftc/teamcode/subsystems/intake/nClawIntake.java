@@ -4,6 +4,7 @@ import android.util.Log;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
+import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.utils.LogUtil;
@@ -28,13 +29,13 @@ public class nClawIntake {
     // turretBufferAng -> angle that allows for any rotation to occur with the turret still inside the robot. use in any retract/extend states
 
     public static double transferRotation = 0, grabRotation = 0.0;
-    public static double turretBufferAngle = 0.8, turretRetractedAngle = 1.15, turretSearchAngle = 1.65, turretTransferAngle = 0, turretGrabAngle = 2.4944;
+    public static double turretBufferAngle = 0.8, turretRetractedAngle = 1.15, turretSearchAngle = 1.65, turretTransferAngle = 0, turretGrabAngle = 2.356;
     public static double turretPreRotation = 0.3, turretTransferRotation = 0, turretGrabRotation = 0.0;
     public static double turretPastSidePlatesRotation = 1.7;
-    public static double minExtension = 15;
-    public static double lowerDelay = 250;
+    public static double minExtension = 13;
+    public static double lowerDelay = 25;
     public static double transferExtension = 5;
-    public static double transferBufferExtension = 13;
+    public static double transferBufferExtension = 11;
     public static double turretSearchRotation = 3.14;
 
     private boolean grab = false;
@@ -48,7 +49,6 @@ public class nClawIntake {
     public static int blockPickUpPSThreashold = 263;
     private int psReads = 0;
     private int consecutivePSPositives = 0;
-    private boolean autoGrabEnabled = false;
     private Target targetType = Target.RELATIVE;
 
     public enum Target {
@@ -176,7 +176,7 @@ public class nClawIntake {
                 Log.i("CHECKING IT", robot.vision.isStable() + " stable");
                 Log.i("CHECKING IT", robot.vision.gottenFirstContact() + " first contact");
                 Log.i("CHECKING IT", intakeTurret.rotInPosition() + " rot in pos");
-                if ((robot.vision.isStable() && robot.vision.gottenFirstContact()) && intakeTurret.rotInPosition() && autoGrabEnabled) {
+                if ((robot.vision.isStable() && robot.vision.gottenFirstContact()) && intakeTurret.rotInPosition()) {
                     lowerStart = System.currentTimeMillis();
                     Pose2d p = robot.vision.getBlockPos();
                     target = new Pose2d(
@@ -197,10 +197,13 @@ public class nClawIntake {
                 intakeTurret.setClawState(false);
 
                 // everything in position before grabbing
-                if (manualGrab ? grab : ((intakeTurret.inPosition() && (System.currentTimeMillis() - lowerStart) > lowerDelay))) {
-                    consecutivePSPositives = psReads = 0;
-                    state = State.GRAB_CLOSE;
-                }
+                //if (intakeTurret.inPosition() && (System.currentTimeMillis() - lowerStart) > lowerDelay) {
+                RobotLog.e("IN POSITION IS " + intakeTurret.inPosition());
+                    if ((!manualGrab || grab)) {
+                        consecutivePSPositives = psReads = 0;
+                        state = State.GRAB_CLOSE;
+                    }
+                //}
                 break;
             case GRAB_CLOSE:
                 aimAtTarget();
@@ -471,10 +474,6 @@ public class nClawIntake {
         TelemetryUtil.packet.put("ClawIntake clawRotation angle", intakeTurret.getClawRotation());
         TelemetryUtil.packet.put("ClawIntake State", this.state);
         LogUtil.intakeState.set(this.state.toString());
-    }
-
-    public void setAutoGrab(boolean status) {
-        autoGrabEnabled = status;
     }
 
     public int readPS() {

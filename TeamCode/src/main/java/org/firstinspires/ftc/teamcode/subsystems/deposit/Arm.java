@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.sensors.Sensors;
+import org.firstinspires.ftc.teamcode.utils.priority.PriorityServo;
 import org.firstinspires.ftc.teamcode.utils.priority.nPriorityServo;
 
 @Config
@@ -15,7 +16,7 @@ public class Arm {
     public final nPriorityServo clawRotation;
     public final nPriorityServo claw;
 
-    public static double sampleOpenRad = 0.22, speciOpenRad = 0.1011, closeRad = 0.0;
+    public static double openRad = 1.2456, closeRad = 0.0;
 
     public Arm(Robot robot){
         this.sensors = robot.sensors;
@@ -29,7 +30,7 @@ public class Arm {
                 0.864,
                 new boolean[] {false, true},
                 1.0,
-                2.0
+                2.0 // Tee hee - eric
         );
         robot.hardwareQueue.addDevice(armRotation);
 
@@ -50,9 +51,9 @@ public class Arm {
                 new Servo[] {robot.hardwareMap.get(Servo.class, "depositClaw")},
                 "depositClaw",
                 nPriorityServo.ServoType.AXON_MINI,
-                0.086,
-                0.146,
-                0.086,
+                0.028,
+                0.238,
+                0,
                 new boolean[] {false},
                 1.0,
                 2.0
@@ -68,16 +69,12 @@ public class Arm {
         clawRotation.setTargetAngle(targetRad, power);
     }
 
-    public void sampleOpen(){
-        claw.setTargetAngle(sampleOpenRad, 1.0);
-    }
-
-    public void speciOpen(){
-        claw.setTargetAngle(speciOpenRad, 1.0);
-    }
-
     public void clawClose(){
         claw.setTargetAngle(closeRad, 1.0);
+    }
+
+    public void clawOpen() {
+        claw.setTargetAngle(openRad, 1.0);
     }
 
     public boolean inPosition(){

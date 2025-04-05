@@ -104,7 +104,7 @@ public class Deposit {
             case TRANSFER_PREPARE:
                 moveToWithRad(intakeWaitRad, intakeWaitY);
                 arm.setClawRotation(intakeWaitClawRad, 1.0);
-                arm.sampleOpen();
+                arm.clawOpen();
 
                 if(arm.inPosition() && slides.inPosition(1) && arm.clawInPosition()){
                     state = State.TRANSFER_WAIT;
@@ -117,7 +117,7 @@ public class Deposit {
             case TRANSFER_GRAB:
                 moveToWithRad(intakeRad, intakeY);
                 arm.setClawRotation(intakeClawRad, 1.0);
-                arm.speciOpen();
+                arm.clawOpen();
 
                 if(arm.inPosition() && slides.inPosition(1)){
                     state = State.TRANSFER_CLOSE;
@@ -173,7 +173,7 @@ public class Deposit {
             case SAMPLE_RELEASE:
                 moveToWithRad(sampleDepositRad, targetY);
                 arm.setClawRotation(sampleDepositClawRad, 1.0);
-                arm.sampleOpen();
+                arm.clawOpen();
 
                 if (arm.clawInPosition()) {
                     state = State.SAMPLE_FINISH;
@@ -198,7 +198,7 @@ public class Deposit {
             case OUTTAKE_RELEASE:
                 moveToWithRad(outtakeRad, outtakeY);
                 arm.setClawRotation(outtakeClawRad, 1.0);
-                arm.sampleOpen();
+                arm.clawOpen();
 
                 if (arm.clawInPosition()) {
                     state = State.RETRACT;
@@ -210,7 +210,7 @@ public class Deposit {
 
                 if (arm.inPosition() && slides.inPosition(1)) {
                     state = State.GRAB_WAIT;
-                    arm.speciOpen();
+                    arm.clawOpen();
                 }
                 break;
             case GRAB_WAIT:
@@ -255,7 +255,7 @@ public class Deposit {
 
                 break;
             case RELEASE:
-                arm.speciOpen();
+                arm.clawOpen();
 
                 if (arm.clawInPosition() && this.currentTime >= this.specimenReleaseTime + specimenReleaseDuration * 1e6) {
                     state = State.RETRACT;
@@ -306,7 +306,7 @@ public class Deposit {
     public void moveToStart(){
         arm.setArmRotation(0.001, 1.0);
         arm.setClawRotation(0.001, 1.0);
-        arm.sampleOpen();
+        arm.clawOpen();
         slides.setTargetLength(0.0);
     }
 

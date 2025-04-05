@@ -19,12 +19,12 @@ public class SamplePreloadBlueAuto extends LinearOpMode {
     private Robot robot;
 
     // Block positions
-    public static double by1 = 21.75, bx1 = 49.5, bx2 = 59.5, by2 = 22.25, bx3 = 69, by3 = 23.75;
+    public static double by1 = 23.5, bx1 = 48.7, bx2 = 59.5, by2 = 24.25, bx3 = 69.3, by3 = 23.2;
 
     // GP depo positions
-    public static double dx1 = 62.3, dy1 = 52.5;
-    public static double dx2 = 64.5, dy2 = 52;
-    public static double dx3 = 66, dy3 = 53;
+    public static double dx1 = 62.3, dy1 = 52.7;
+    public static double dx2 = 64.5, dy2 = 54.5;
+    public static double dx3 = 66, dy3 = 54.5;
 
     public void runOpMode(){
         Globals.isRed = false;
@@ -41,7 +41,6 @@ public class SamplePreloadBlueAuto extends LinearOpMode {
         robot.ndeposit.state = nDeposit.State.HOLD;
         robot.nclawIntake.useCamera(true);
         robot.nclawIntake.setUseManualGrab(false);
-        robot.nclawIntake.setAutoGrab(false);
         while (opModeInInit() && !isStopRequested()) {
             //robot.sensors.setOdometryPosition(48.0 - Globals.ROBOT_WIDTH / 2.0, 72.0 - Globals.ROBOT_FORWARD_LENGTH, Math.PI/2);
             robot.sensors.setOdometryPosition(48.0 - Globals.ROBOT_REVERSE_LENGTH, 72.0 - Globals.ROBOT_WIDTH / 2, Math.PI);
@@ -55,15 +54,17 @@ public class SamplePreloadBlueAuto extends LinearOpMode {
         // Preload
         robot.ndeposit.startSampleDeposit();
         robot.goToPoint(
-            new Pose2d(dx1, dy1, Math.toRadians(250)),
+            new Pose2d(dx1, dy1, Math.atan2(by1 - dy1, bx1 - dx1)),
             () -> !(robot.drivetrain.targetPoint.getDistanceFromPoint(robot.sensors.getOdometryPosition()) < 8),
             false,
             true,
             1.0
         );
-        //robot.nclawIntake.setIntakeLength(robot.drivetrain.calcExtension(new Pose2d(dx1, dy1), new Pose2d(bx1, by1)));
-        robot.nclawIntake.setKnownIntakePose(new Pose2d(bx1, by1, Math.PI / 2));
-        robot.nclawIntake.setAutoGrab(false);
+        robot.nclawIntake.useCamera(false);
+        robot.nclawIntake.setUseManualGrab(true);
+        robot.nclawIntake.setGrab(false);
+        robot.nclawIntake.setTargetType(nClawIntake.Target.GLOBAL);
+        robot.nclawIntake.setTargetPose(new Pose2d(bx1, by1, Math.PI / 2));
         robot.nclawIntake.extend();
         robot.waitWhile(() -> robot.drivetrain.isBusy() || !robot.ndeposit.isDepositReady());
 
@@ -72,7 +73,7 @@ public class SamplePreloadBlueAuto extends LinearOpMode {
 
         // Depo 1
         robot.waitWhile(() -> !robot.nclawIntake.isExtended());
-        robot.nclawIntake.setAutoGrab(true);
+        robot.nclawIntake.setGrab(true);
         robot.waitWhile(() -> !robot.nclawIntake.hasSample());
         // Go to under bucket
         robot.drivetrain.goToPoint(
@@ -85,9 +86,13 @@ public class SamplePreloadBlueAuto extends LinearOpMode {
         robot.ndeposit.startSampleDeposit(); // This effectively buffers it
         robot.nclawIntake.finishTransfer();
         robot.ndeposit.finishTransfer();
-        //robot.nclawIntake.setIntakeLength(robot.drivetrain.calcExtension(new Pose2d(dx2, dy2), new Pose2d(bx2, by2)));
+
+        // Undoing stuff to use camera
+        robot.nclawIntake.useCamera(true);
+        robot.nclawIntake.setUseManualGrab(false);
+        robot.nclawIntake.setTargetType(nClawIntake.Target.RELATIVE);
+
         robot.nclawIntake.setKnownIntakePose(new Pose2d(bx2, by2, Math.PI / 2));
-        robot.nclawIntake.setAutoGrab(false);
         robot.nclawIntake.extend();
 
         robot.waitWhile(() -> robot.drivetrain.isBusy() || !robot.ndeposit.isDepositReady());
@@ -97,7 +102,7 @@ public class SamplePreloadBlueAuto extends LinearOpMode {
 
         // Depo 2
         robot.waitWhile(() -> !robot.nclawIntake.isExtended());
-        robot.nclawIntake.setAutoGrab(true);
+        robot.nclawIntake.setGrab(true);
         robot.waitWhile(() -> !robot.nclawIntake.hasSample());
         // Go to under bucket
         robot.drivetrain.goToPoint(
@@ -110,13 +115,12 @@ public class SamplePreloadBlueAuto extends LinearOpMode {
         robot.ndeposit.startSampleDeposit(); // This effectively buffers it
         robot.nclawIntake.finishTransfer();
         robot.ndeposit.finishTransfer();
-        robot.nclawIntake.setAutoGrab(false);
-        robot.nclawIntake.useCamera(false);
+        /*robot.nclawIntake.useCamera(false);
         robot.nclawIntake.setUseManualGrab(true);
         robot.nclawIntake.setGrab(false);
         robot.nclawIntake.setTargetType(nClawIntake.Target.GLOBAL);
-        robot.nclawIntake.setTargetPose(new Pose2d(bx3, by3, Math.PI / 2));
-        //robot.nclawIntake.setKnownIntakePose(new Pose2d(bx3, by3, Math.PI / 2));
+        robot.nclawIntake.setTargetPose(new Pose2d(bx3, by3, Math.PI / 2));*/
+        robot.nclawIntake.setKnownIntakePose(new Pose2d(bx3, by3, Math.PI / 2));
         //robot.nclawIntake.setAutoGrab(false);
         robot.nclawIntake.extend();
 
@@ -127,8 +131,8 @@ public class SamplePreloadBlueAuto extends LinearOpMode {
 
         // Depo 3
         robot.waitWhile(() -> !robot.nclawIntake.isExtended());
+        //robot.nclawIntake.setGrab(true);
         robot.nclawIntake.setGrab(true);
-        //robot.nclawIntake.setAutoGrab(true);
         robot.waitWhile(() -> !robot.nclawIntake.hasSample());
         // Go to under bucket
         robot.drivetrain.goToPoint(
@@ -141,7 +145,6 @@ public class SamplePreloadBlueAuto extends LinearOpMode {
         robot.ndeposit.startSampleDeposit();
         robot.nclawIntake.finishTransfer();
         robot.ndeposit.finishTransfer();
-        robot.nclawIntake.setAutoGrab(false);
 
         robot.waitWhile(() -> robot.drivetrain.isBusy() || !robot.ndeposit.isDepositReady());
         robot.ndeposit.deposit();

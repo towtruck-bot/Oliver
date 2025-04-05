@@ -20,7 +20,7 @@ import org.firstinspires.ftc.teamcode.utils.Vector2;
 @TeleOp(name = "B. IntakeWithLL")
 @Config
 public class IntakeWithLL extends LinearOpMode {
-    public static boolean autoGrab = false;
+    public static boolean grab = false;
     public static boolean useKnown = false;
     public static double keepX = 5;
     public static double keepY = 3;
@@ -74,7 +74,7 @@ public class IntakeWithLL extends LinearOpMode {
                 robot.nclawIntake.setKnownIntakePose(new Pose2d(keepX, keepY, 0));
             }
 
-            robot.nclawIntake.setAutoGrab(autoGrab);
+            robot.nclawIntake.setGrab(grab);
 
             /*if (setExtend) {
                 robot.vision.startDetection();

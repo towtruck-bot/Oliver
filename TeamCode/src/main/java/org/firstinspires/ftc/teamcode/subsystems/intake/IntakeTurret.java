@@ -86,7 +86,7 @@ public class IntakeTurret {
     }
 
     // Target is given in robot centric coordinates
-    public static double turretLengthTip = 6.7;
+    public static double turretLengthTip = 6;
     public static double turretLengthLL = 4.4;
     public static double extendoOffset = 3.5;
     public static double stupidConstant = -0.25;
@@ -96,14 +96,9 @@ public class IntakeTurret {
 
         if(Math.abs(yError) < turretLengthTip){
             targetLength = xError - extendoOffset - Math.sqrt(turretLengthTip * turretLengthTip - yError * yError)/* - yError / turretLength*/;
-            //clawRotationTarget = target.heading;
             setTurretRotation(Math.PI + Math.atan2(yError, Math.sqrt(turretLengthTip * turretLengthTip - yError * yError)));
             setClawRotation(AngleUtil.mirroredClipAngleTolerence(target.heading - getTurretRotation(), Math.toRadians(20)));
-            // I hate you mechanical - Eric
-            //turretArmTarget = 4.56;
             setTurretArmTarget(nClawIntake.turretGrabAngle);
-            //turretAngle = yError < turretLength ? Math.asin(yError / turretLength) : turretAngle + (2.6395 - Math.PI / 2);
-            //turretRotationTarget = Math.PI + Math.atan2(yError, Math.sqrt(turretLength * turretLength - yError * yError));
         }
     }
 

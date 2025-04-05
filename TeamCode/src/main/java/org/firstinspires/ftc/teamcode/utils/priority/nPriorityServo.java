@@ -15,7 +15,7 @@ public class nPriorityServo extends PriorityDevice {
         TORQUE(0.2162104887, Math.toRadians(60) / 0.25),
         SPEED(0.2162104887, Math.toRadians(60) / 0.11),
         SUPER_SPEED(0.2162104887, Math.toRadians(60) / 0.055),
-        AXON_MINI(1 / Math.toRadians(305), Math.toRadians(200) / 0.343),
+        AXON_MINI(1 / Math.toRadians(305), 5.06),
         AXON_MAX(0.1775562245447108, 6.5830247235911042),
         AXON_MICRO(0.1775562245447108, 6.5830247235911042),  // TODO need to tune
         AMAZON(0.2122065908, Math.toRadians(60) / 0.13),
@@ -119,13 +119,19 @@ public class nPriorityServo extends PriorityDevice {
 
     @Override
     protected void update() {
+        Log.e("Priority Servo Log", name + " is moving with power " + power);
+
         Log.i("SLCI", "Updated " + name);
 
         long currentTime = System.nanoTime();
         double timeSinceLastUpdate = ((double) currentTime - lastUpdateTime)/1.0E9;
 
         double error = targetAngle - currentAngle;
+        Log.e("TTTTTTTTa", timeSinceLastUpdate + " is the time since last update");
+        Log.e("TTTTTTTTa", error + " is the error");
         double deltaAngle = timeSinceLastUpdate * type.speed * power * Math.signum(error);
+        Log.e("TTTTTTTTa", deltaAngle + " delta ang");
+        Log.e("TTTTTTTTa", power + " power");
 
         currentIntermediateTargetAngle += deltaAngle;
 
@@ -143,7 +149,7 @@ public class nPriorityServo extends PriorityDevice {
                 pos = 1 - convertAngleToPos(currentIntermediateTargetAngle);
             }
             servos[i].setPosition(pos);
-            Log.i("SLCI", "Set position of " + name + " to position " + pos);
+            Log.i("SLCI", "Set position of " + name + i + " to position " + pos);
         }
 
         isUpdated = true;

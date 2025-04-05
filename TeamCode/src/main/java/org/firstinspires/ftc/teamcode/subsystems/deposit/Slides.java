@@ -41,7 +41,7 @@ public class Slides {
 
         // m2.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        slidesMotors = new PriorityMotor(new DcMotorEx[] {m1, m2}, "slidesMotor", 3, 5, new double[] {1, -1}, robot.sensors);
+        slidesMotors = new PriorityMotor(new DcMotorEx[] {m1, m2}, "slidesMotor", 3, 5, new double[] {-1, 1}, robot.sensors);
         robot.hardwareQueue.addDevice(slidesMotors);
     }
 

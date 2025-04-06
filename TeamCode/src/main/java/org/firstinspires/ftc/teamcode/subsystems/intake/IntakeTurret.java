@@ -5,7 +5,9 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.utils.AngleUtil;
+import org.firstinspires.ftc.teamcode.utils.LogUtil;
 import org.firstinspires.ftc.teamcode.utils.Pose2d;
+import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 import org.firstinspires.ftc.teamcode.utils.Vector2;
 import org.firstinspires.ftc.teamcode.utils.priority.nPriorityServo;
 
@@ -21,7 +23,7 @@ public class IntakeTurret {
     public static double clawOpenAngle = 0.0958;
     public static double clawCloseAngle = 1.219;
 
-    public IntakeTurret(Robot robot){
+    public IntakeTurret(Robot robot) {
         this.robot = robot;
 
         intakeExtension = new IntakeExtension(robot);
@@ -90,11 +92,11 @@ public class IntakeTurret {
     public static double turretLengthLL = 4.4;
     public static double extendoOffset = 3.5;
     public static double stupidConstant = -0.25;
-    public void intakeAt(Pose2d target){
+    public void intakeAt(Pose2d target) {
         double xError = target.x;
         double yError = target.y;
 
-        if(Math.abs(yError) < turretLengthTip){
+        if(Math.abs(yError) < turretLengthTip) {
             targetLength = xError - extendoOffset - Math.sqrt(turretLengthTip * turretLengthTip - yError * yError)/* - yError / turretLength*/;
             setTurretRotation(Math.PI + Math.atan2(yError, Math.sqrt(turretLengthTip * turretLengthTip - yError * yError)));
             setClawRotation(AngleUtil.mirroredClipAngleTolerence(target.heading - getTurretRotation(), Math.toRadians(20)));
@@ -102,11 +104,11 @@ public class IntakeTurret {
         }
     }
 
-    public void extendTo(Vector2 target){
+    public void extendTo(Vector2 target) {
         double xError = target.x;
         double yError = target.y;
 
-        if(Math.abs(yError) < turretLengthLL){
+        if(Math.abs(yError) < turretLengthLL) {
             targetLength = xError - extendoOffset - Math.sqrt(turretLengthLL * turretLengthLL - yError * yError);
             setTurretRotation(Math.PI + Math.atan2(yError, Math.sqrt(turretLengthLL * turretLengthLL - yError * yError)));
         }
@@ -115,60 +117,66 @@ public class IntakeTurret {
     public void setClawState(boolean closed) {
         this.closed = closed;
         claw.setTargetAngle(this.closed ? clawCloseAngle : clawOpenAngle, 1.0);
+        TelemetryUtil.packet.put("intakeClawGrab", closed);
+        LogUtil.intakeClawGrab.set(closed);
     }
 
-    public void setIntakeExtension(double t){
+    public void setIntakeExtension(double t) {
         targetLength = t;
     }
 
-    public void setClawRotation(double t){
+    public void setClawRotation(double t) {
         clawRotation.setTargetAngle(t);
         //clawRotationTarget = t;
+        TelemetryUtil.packet.put("intakeClawRotationAngle", t);
+        LogUtil.intakeClawRotationAngle.set(t);
     }
 
-    public void setTurretArmTarget(double t){
+    public void setTurretArmTarget(double t) {
         turretArm.setTargetAngle(t);
         //turretArmTarget = t;
     }
 
-    public void setTurretRotation(double t){
+    public void setTurretRotation(double t) {
         turretRotation.setTargetAngle(t * (3.524 / Math.PI));
         //turretRotationTarget = t;
+        TelemetryUtil.packet.put("intakeTurretRotationAngle", t);
+        LogUtil.intakeTurretRotationAngle.set(t);
     }
 
     public double getTurretRotation() {
         return turretRotation.getCurrentAngle() / (3.524 / Math.PI);
     }
 
-    public double getClawRotation(){
+    public double getClawRotation() {
         return clawRotation.getCurrentAngle();
     }
 
-    public boolean isClosed(){
+    public boolean isClosed() {
         return closed && claw.inPosition();
     }
 
-    public boolean inPosition(){
+    public boolean inPosition() {
         return intakeExtension.inPosition() && clawRotation.inPosition() && turretArm.inPosition() && turretRotation.inPosition();
     }
 
-    public boolean extendoInPosition(){
+    public boolean extendoInPosition() {
         return intakeExtension.inPosition();
     }
 
-    public boolean rotInPosition(){
+    public boolean rotInPosition() {
         return clawRotation.inPosition();
     }
 
-    public boolean grabInPosition(){
+    public boolean grabInPosition() {
         return claw.inPosition();
     }
 
-    public boolean turretRotInPosition(){
+    public boolean turretRotInPosition() {
         return turretRotation.inPosition();
     }
 
-    public boolean turretAngInPosition(){
+    public boolean turretAngInPosition() {
         return turretArm.inPosition();
     }
 

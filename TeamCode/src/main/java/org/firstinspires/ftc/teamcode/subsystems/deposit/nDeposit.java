@@ -10,6 +10,7 @@ import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 public class nDeposit {
     public enum State {
         IDLE,
+        TRANSFER_BUFFER,
         TRANSFER_WAIT,
         TRANSFER_FINISH,
         HOLD,
@@ -30,17 +31,14 @@ public class nDeposit {
         OUT,
         PULL,
         OFF
-    }
-
-    ;
+    };
     public HangState hangState = HangState.OFF;
 
     private Robot robot;
     private Slides slides;
     private Arm arm;
 
-    // TODO: All values below (v) are estimates and may not scale correctly with the 0 positions. Make sure to tune!
-    public static double transferArm = 0.5696, transferClaw = 0, transferZ = 6.5;
+    public static double transferArm = 0.6281, transferClaw = -1.25, transferBufferZ = 11, transferZ = 8.7;
     public static double holdArm = -0.889, holdClaw = 0.6477, holdZ = 0.0;
     public static double raiseArmBufferRotation = -1.8472,  sampleArm = -2.9728, sampleClaw = -0.0563, sampleZ = 35.5;
     public static double outtakeArm = -2.9225, outtakeClaw = -0.00169, outtakeZ = 0.0;
@@ -76,7 +74,7 @@ public class nDeposit {
                 moveToHoldPoses();
 
                 if (transferRequested) {
-                    state = State.TRANSFER_WAIT;
+                    state = State.TRANSFER_BUFFER;
                     transferRequested = false;
                 }
                 if (specimenIntakeRequested) {
@@ -84,6 +82,19 @@ public class nDeposit {
                     specimenIntakeRequested = false;
                 }
                 break;
+
+            case TRANSFER_BUFFER:
+                slides.setTargetLength(transferBufferZ);
+                arm.setArmRotation(transferArm, 1.0);
+                arm.setClawRotation(transferClaw, 1.0);
+
+                arm.clawOpen();
+
+                if (requestFinishTransfer && robot.nclawIntake.isTransferReady() && slides.inPosition(1.0) && arm.inPosition())
+                    state = State.TRANSFER_WAIT;
+
+                break;
+
             case TRANSFER_WAIT:
                 slides.setTargetLength(transferZ);
                 arm.setArmRotation(transferArm, 1.0);
@@ -91,7 +102,7 @@ public class nDeposit {
 
                 arm.clawOpen();
 
-                if (requestFinishTransfer) {
+                if (slides.inPosition(0.1)) {
                     state = State.TRANSFER_FINISH;
                     //robot.nclawIntake.finishTransfer(); // Just to make sure you're not being stupid - Eric
                     requestFinishTransfer = false;
@@ -232,6 +243,11 @@ public class nDeposit {
                 if (arm.inPosition() && slides.inPosition(0.5)) {
                     state = State.IDLE;
                 }
+
+                if (transferRequested) {
+                    state = State.TRANSFER_BUFFER;
+                    transferRequested = false;
+                }
                 break;
             case TEST:
                 break;
@@ -319,7 +335,7 @@ public class nDeposit {
     }
 
     public boolean isTransferReady() {
-        return state == State.TRANSFER_WAIT && arm.inPosition() && slides.inPosition(0.6);
+        return state == State.TRANSFER_BUFFER && arm.inPosition() && slides.inPosition(0.2);
     }
 
     public boolean isDepositReady() {

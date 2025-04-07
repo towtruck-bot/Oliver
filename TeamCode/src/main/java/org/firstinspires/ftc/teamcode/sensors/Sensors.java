@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.sensors;
 
 import com.acmerobotics.dashboard.canvas.Canvas;
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
@@ -14,6 +15,7 @@ import org.firstinspires.ftc.teamcode.utils.RunMode;
 import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 import org.firstinspires.ftc.teamcode.utils.priority.PriorityMotor;
 
+@Config
 public class Sensors {
     private final Robot robot;
     private final GoBildaPinpointDriver odometry;
@@ -28,7 +30,7 @@ public class Sensors {
     public static double slidesInchesPerTick = 35.3 / 1950;
 
     private int extendoEncoder;
-    public static double extendoInchesPerTick = 0.04293545803;
+    public static double extendoInchesPerTick = 19.0 / 467;
 
     private final AnalogInput[] analogEncoders = new AnalogInput[2];
     public double[] analogVoltages = new double[analogEncoders.length];

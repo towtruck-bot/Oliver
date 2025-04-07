@@ -58,7 +58,6 @@ public class nClawIntakeTester extends LinearOpMode {
             }
 
             robot.nclawIntake.setIntakeLength(targetLength);
-            robot.nclawIntake.useCamera(useCamera);
 
 
             if (!crankThatSoulaBoy)

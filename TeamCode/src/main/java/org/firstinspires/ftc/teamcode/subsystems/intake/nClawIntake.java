@@ -29,32 +29,48 @@ public class nClawIntake {
     // turretBufferAng -> angle that allows for any rotation to occur with the turret still inside the robot. use in any retract/extend states
 
     public static double transferRotation = 0, grabRotation = 0.0;
-    public static double turretBufferAngle = 0.8, turretRetractedAngle = 1.15, turretSearchAngle = 1.65, turretTransferAngle = 0, turretGrabAngle = 2.356;
+    public static double hoverAngle = 2.2315;
+    public static double turretBufferAngle = 0.8, turretRetractedAngle = 1.15, turretSearchAngle = 1.65, turretTransferPos = 0.07, turretGrabAngle = 2.5133;
     public static double turretPreRotation = 0.3, turretTransferRotation = 0, turretGrabRotation = 0.0;
     public static double turretPastSidePlatesRotation = 1.7;
     public static double minExtension = 13;
-    public static double lowerDelay = 25;
-    public static double transferExtension = 5;
-    public static double transferBufferExtension = 11;
+    public static long hoverStart = 0;
+    public static double hoverDelay = 150;
+    public static double transferExtension = 0;
     public static double turretSearchRotation = 3.14;
 
     private boolean grab = false;
     private boolean sampleStatus = false;
-    private boolean useCamera = true;
+    //private boolean useCamera = true;
     private boolean finishTransferRequest = false;
     private boolean extendRequest = false;
     public Pose2d target;
-    public boolean manualGrab = false;
-    private long lowerStart = 0;
+    //public boolean manualGrab = false;
     public static int blockPickUpPSThreashold = 263;
     private int psReads = 0;
     private int consecutivePSPositives = 0;
     private Target targetType = Target.RELATIVE;
+    private GrabMethod grabMethod = GrabMethod.CONTINUOUS_SEARCH_MG;
+    private Pose2d known = null;
 
     public enum Target {
         RELATIVE,
-        GLOBAL,
-        NONE
+        GLOBAL
+    }
+
+    public enum GrabMethod {
+        MANUAL_AIM(false, true),
+        MANUAL_TARGET(false, true),
+        CONTINUOUS_SEARCH_MG(true, true),
+        SEARCH_HOVER_MG(true, true),
+        AUTOGRAB(true, false);
+
+        private final boolean useCamera, manualGrab;
+
+        GrabMethod(boolean useCamera, boolean manualGrab) {
+            this.useCamera = useCamera;
+            this.manualGrab = manualGrab;
+        }
     }
 
     public enum State {
@@ -62,12 +78,12 @@ public class nClawIntake {
         MID_EXTEND,
         FULL_EXTEND,
         SEARCH,
+        HOVER,
         LOWER,
         GRAB_CLOSE,
         START_RETRACT,
         RETRACT,
         READY,
-        TRANSFER_BUFFER,
         TRANSFER_WAIT,
         TRANSFER_END,
         TEST
@@ -92,6 +108,7 @@ public class nClawIntake {
         intakeSetTargetPos = 15;
 
         target = new Pose2d(0, 0, 0);
+//        intakeTurret.turretArm.servos[0].getController().pwmEnable();
     }
 
     //general update for entire class
@@ -135,38 +152,20 @@ public class nClawIntake {
 
                 // Wait for full extension and turret in position before starting search
                 if (intakeTurret.extendoInPosition() && intakeTurret.turretRotInPosition()) {
-                    if (useCamera) {
+                    if (grabMethod.useCamera) {
                         state = State.SEARCH;
                         robot.vision.startDetection();
                         robot.vision.setOffset(robot.nclawIntake.getIntakeRelativeToRobot());
                         intakeLight.setState(true);
                     } else {
-                        lowerStart = System.currentTimeMillis();
+                        hoverStart = System.currentTimeMillis();
                         state = State.LOWER;
                     }
 
                 }
                 break;
             case SEARCH:
-                if(known != null){
-                    // Begin Search, dynamic correction
-                    Pose2d curr = robot.sensors.getOdometryPosition();
-                    double deltaX = (known.x - curr.x);
-                    double deltaY = (known.y - curr.y);
-
-                    double relX = Math.cos(curr.heading)*deltaX + Math.sin(curr.heading)*deltaY;
-                    double relY = -Math.sin(curr.heading)*deltaX + Math.cos(curr.heading)*deltaY;
-
-                    intakeTurret.extendTo(new Vector2(relX, relY));
-                    intakeTurret.setTurretArmTarget(turretSearchAngle);
-                    intakeTurret.setClawRotation(target.heading);
-                }else{
-                    // Begin Search, just hold positions
-                    intakeTurret.setIntakeExtension(intakeSetTargetPos);
-                    intakeTurret.setClawRotation(target.heading);
-                    intakeTurret.setTurretArmTarget(turretSearchAngle);
-                    intakeTurret.setTurretRotation(turretSearchRotation);
-                }
+                aimAtKnown();
 
                 robot.vision.setOffset(robot.nclawIntake.getIntakeRelativeToRobot());
                 robot.vision.setNewOrientation(intakeTurret.getTurretRotation() - Math.PI);
@@ -176,47 +175,68 @@ public class nClawIntake {
                 Log.i("CHECKING IT", robot.vision.isStable() + " stable");
                 Log.i("CHECKING IT", robot.vision.gottenFirstContact() + " first contact");
                 Log.i("CHECKING IT", intakeTurret.rotInPosition() + " rot in pos");
-                if ((robot.vision.isStable() && robot.vision.gottenFirstContact()) && intakeTurret.rotInPosition()) {
-                    lowerStart = System.currentTimeMillis();
-                    Pose2d p = robot.vision.getBlockPos();
-                    target = new Pose2d(
-                        p.x,
-                        p.y,
-                        -p.heading
-                    );
-                    targetType = Target.RELATIVE; // Kind of needed here or else its weird
-                    robot.vision.stopDetection();
-                    consecutivePSPositives = psReads = 0;
-                    state = State.LOWER;
+                switch (grabMethod) {
+                    case CONTINUOUS_SEARCH_MG:
+                        if (!grab)
+                            break;
+                    case SEARCH_HOVER_MG:
+                    case AUTOGRAB:
+                        if (!(robot.vision.isStable() && robot.vision.gottenFirstContact() && intakeTurret.inPosition() && intakeTurret.extendoInPosition()))
+                            break;
+
+                        hoverStart = System.currentTimeMillis();
+                        Pose2d p = robot.vision.getBlockPos();
+                        target = new Pose2d(
+                            p.x,
+                            p.y,
+                            -p.heading
+                        );
+                        targetType = Target.RELATIVE; // Kind of needed here or else its weird
+                        robot.vision.stopDetection();
+                        state = State.HOVER;
+                        break;
                 }
                 break;
-            case LOWER:
-                // intakeAt method should hopefully calculate new extension, new turretAngle + Rotation, and move in to grab
+
+            case HOVER:
+                aimAtTarget();
+                // I dont gaf
+                intakeTurret.setTurretArmTarget(hoverAngle);
+
+                intakeTurret.setClawState(false);
+
+                if (intakeTurret.inPosition() && (System.currentTimeMillis() - hoverStart) > hoverDelay) {
+                    RobotLog.e("IN POSITION IS " + intakeTurret.inPosition());
+                    if (!grabMethod.manualGrab || grab) {
+                        state = State.LOWER;
+                    }
+                }
+
+                break;
+
+            case LOWER: // Slam it down sometimes so we need to hover
                 aimAtTarget();
 
                 intakeTurret.setClawState(false);
 
                 // everything in position before grabbing
-                //if (intakeTurret.inPosition() && (System.currentTimeMillis() - lowerStart) > lowerDelay) {
-                RobotLog.e("IN POSITION IS " + intakeTurret.inPosition());
-                    if ((!manualGrab || grab)) {
-                        consecutivePSPositives = psReads = 0;
-                        state = State.GRAB_CLOSE;
-                    }
-                //}
+                if (intakeTurret.inPosition()) {
+                    consecutivePSPositives = psReads = 0;
+                    state = State.GRAB_CLOSE;
+                }
                 break;
             case GRAB_CLOSE:
                 aimAtTarget();
 
                 if (psReads >= 35) {
                     grab = false;
-                    if (useCamera) {
+                    if (grabMethod.useCamera) {
                         state = State.SEARCH;
                         robot.vision.startDetection();
                         intakeLight.setState(true);
                     } else {
-                        lowerStart = System.currentTimeMillis();
-                        state = State.LOWER;
+                        hoverStart = System.currentTimeMillis();
+                        state = State.HOVER;
                     }
                 }
 
@@ -258,7 +278,7 @@ public class nClawIntake {
                 if (intakeTurret.turretAngInPosition() && intakeTurret.turretRotInPosition()) {
                     // If we have a sample, transfer otherwise just retract into it
                     if (sampleStatus)
-                        state = State.TRANSFER_BUFFER;
+                        state = State.TRANSFER_WAIT;
                     else {
                         state = State.RETRACT;
                         grab = false;
@@ -299,26 +319,11 @@ public class nClawIntake {
                     extendRequest = false;
                 }
                 break;
-            case TRANSFER_BUFFER:
-                intakeTurret.setIntakeExtension(transferBufferExtension);
-                intakeTurret.setClawRotation(transferRotation);
-                intakeTurret.setTurretArmTarget(turretTransferAngle);
-                intakeTurret.setTurretRotation(turretTransferRotation);
-
-                if (intakeTurret.turretAngInPosition() && intakeTurret.turretRotInPosition() && robot.ndeposit.isTransferReady()) {
-                    state = State.TRANSFER_WAIT;
-                    intakeTurret.setIntakeExtension(transferExtension);
-                    intakeTurret.setClawRotation(transferRotation);
-                    intakeTurret.setTurretArmTarget(turretTransferAngle);
-                    intakeTurret.setTurretRotation(turretTransferRotation);
-                }
-
-                break;
             case TRANSFER_WAIT:
                 // hold in transfer position
                 intakeTurret.setIntakeExtension(transferExtension);
                 intakeTurret.setClawRotation(transferRotation);
-                intakeTurret.setTurretArmTarget(turretTransferAngle);
+                intakeTurret.turretArm.setTargetPos(turretTransferPos);
                 intakeTurret.setTurretRotation(turretTransferRotation);
 
                 intakeTurret.setClawState(true);
@@ -335,7 +340,7 @@ public class nClawIntake {
             case TRANSFER_END:
                 intakeTurret.setIntakeExtension(transferExtension);
                 intakeTurret.setClawRotation(transferRotation);
-                intakeTurret.setTurretArmTarget(turretTransferAngle);
+                intakeTurret.turretArm.setTargetPos(turretTransferPos);
                 intakeTurret.setTurretRotation(turretTransferRotation);
 
                 intakeTurret.setClawState(false);
@@ -357,10 +362,6 @@ public class nClawIntake {
         updateTelemetry();
     }
 
-    public void useCamera(boolean val) {
-        useCamera = val;
-    }
-
     // TODO: Determine minMaxClips for setters
     public void setTurretGrabRot(double t) {
         turretGrabRotation = t;
@@ -370,7 +371,6 @@ public class nClawIntake {
         finishTransferRequest = state == State.TRANSFER_WAIT;
     }
 
-    private Pose2d known = null;
     public void setKnownIntakePose(Pose2d k){
         known = k.clone();
     }
@@ -401,7 +401,7 @@ public class nClawIntake {
     }
 
     public boolean isExtended() {
-        return state == State.SEARCH || state == State.LOWER || state == State.GRAB_CLOSE;
+        return (state == State.SEARCH || state == State.HOVER || state == State.LOWER ||  state == State.GRAB_CLOSE) && intakeTurret.extendoInPosition();
     }
 
     public void retract() {
@@ -460,10 +460,6 @@ public class nClawIntake {
         return this.intakeSetTargetPos;
     }
 
-    public void setUseManualGrab(boolean manualGrab) {
-        this.manualGrab = manualGrab;
-    }
-
 //    public void forcePullIn() { forcePull = true; }
 
     public void updateTelemetry() {
@@ -474,6 +470,14 @@ public class nClawIntake {
         TelemetryUtil.packet.put("ClawIntake clawRotation angle", intakeTurret.getClawRotation());
         TelemetryUtil.packet.put("ClawIntake State", this.state);
         LogUtil.intakeState.set(this.state.toString());
+        TelemetryUtil.packet.put("LL Target X", target.x);
+        TelemetryUtil.packet.put("LL Target Y", target.y);
+        TelemetryUtil.packet.put("LL Target Heading", target.heading);
+
+    }
+
+    public void setGrabMethod(GrabMethod grabMethod) {
+        this.grabMethod = grabMethod;
     }
 
     public int readPS() {
@@ -482,6 +486,28 @@ public class nClawIntake {
 
     public void setTargetType(Target targetType) {
         this.targetType = targetType;
+    }
+
+    public void aimAtKnown() {
+        if(known != null){
+            // Begin Search, dynamic correction
+            Pose2d curr = robot.sensors.getOdometryPosition();
+            double deltaX = (known.x - curr.x);
+            double deltaY = (known.y - curr.y);
+
+            double relX = Math.cos(curr.heading)*deltaX + Math.sin(curr.heading)*deltaY;
+            double relY = -Math.sin(curr.heading)*deltaX + Math.cos(curr.heading)*deltaY;
+
+            intakeTurret.extendTo(new Vector2(relX, relY));
+            intakeTurret.setTurretArmTarget(turretSearchAngle);
+            intakeTurret.setClawRotation(target.heading);
+        }else{
+            // Begin Search, just hold positions
+            intakeTurret.setIntakeExtension(intakeSetTargetPos);
+            intakeTurret.setClawRotation(target.heading);
+            intakeTurret.setTurretArmTarget(turretSearchAngle);
+            intakeTurret.setTurretRotation(turretSearchRotation);
+        }
     }
 
     public void aimAtTarget() {
@@ -500,12 +526,6 @@ public class nClawIntake {
                     target.heading - robot.sensors.getOdometryPosition().heading
                 ));
                 break;
-             case NONE:
-                 intakeTurret.setIntakeExtension(intakeSetTargetPos);
-                 intakeTurret.setClawRotation(grabRotation);
-                 intakeTurret.setTurretArmTarget(turretGrabAngle);
-                 intakeTurret.setTurretRotation(turretGrabRotation);
-                 break;
         }
     }
 }

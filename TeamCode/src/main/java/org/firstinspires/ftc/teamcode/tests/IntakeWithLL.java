@@ -25,6 +25,12 @@ public class IntakeWithLL extends LinearOpMode {
     public static double keepX = 5;
     public static double keepY = 3;
 
+    public static double targetX = 0;
+    public static double targetY = 0;
+    public static double targetH = 0;
+    public static nClawIntake.GrabMethod grabMethod = nClawIntake.GrabMethod.SEARCH_HOVER_MG;
+    public static boolean setTarget = true;
+
     @Override
     public void runOpMode() throws InterruptedException {
         Globals.RUNMODE = RunMode.AUTO;
@@ -34,7 +40,6 @@ public class IntakeWithLL extends LinearOpMode {
 
         waitForStart();
 
-        robot.nclawIntake.useCamera(true);
         //robot.nclawIntake.extend();
         robot.drivetrain.setPoseEstimate(new Pose2d(0, 0, 0));
 
@@ -43,13 +48,15 @@ public class IntakeWithLL extends LinearOpMode {
         ButtonToggle a1 = new ButtonToggle();
         ButtonToggle b1 = new ButtonToggle();
 
+        robot.nclawIntake.setTargetType(nClawIntake.Target.GLOBAL);
+        robot.nclawIntake.setGrabMethod(nClawIntake.GrabMethod.MANUAL_TARGET);
+
         while (opModeIsActive()) {
+            robot.nclawIntake.setGrabMethod(grabMethod);
             robot.vision.setOffset(robot.nclawIntake.getIntakeRelativeToRobot());
             Pose2d blockPos = robot.vision.getBlockPos();
 
-            TelemetryUtil.packet.put("blockPos.x", blockPos.x);
-            TelemetryUtil.packet.put("blockPos.y", blockPos.y);
-            TelemetryUtil.packet.put("blockPos.heading", blockPos.heading);
+
             RobotLog.e("blockPos.heading " + Math.toDegrees(blockPos.heading));
 
             Canvas c = TelemetryUtil.packet.fieldOverlay();
@@ -72,6 +79,11 @@ public class IntakeWithLL extends LinearOpMode {
                 robot.nclawIntake.setIntakeLength(10);
             } else {
                 robot.nclawIntake.setKnownIntakePose(new Pose2d(keepX, keepY, 0));
+            }
+
+            if (setTarget) {
+                robot.nclawIntake.setTargetPose(new Pose2d(targetX, targetY, targetH));
+                setTarget = false;
             }
 
             robot.nclawIntake.setGrab(grab);

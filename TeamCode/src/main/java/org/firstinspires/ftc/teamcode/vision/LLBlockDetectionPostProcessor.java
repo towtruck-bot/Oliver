@@ -98,7 +98,7 @@ public class LLBlockDetectionPostProcessor {
         long loopStart = System.currentTimeMillis();
 
         LLResult result = ll.getLatestResult();
-        TelemetryUtil.packet.put("LL result", "> " + result);
+        // TelemetryUtil.packet.put("LL result", "> " + result); Stop. Don't do this.
 
         // Get robot based pose delta
         Pose2d p = robot.sensors.getOdometryPosition();
@@ -144,14 +144,15 @@ public class LLBlockDetectionPostProcessor {
             double heading = expectedNewBlockPose.heading;// - pDelta.heading;
             // Attempt to update heading value with the new value
             List<List<Double>> corners = cr.getTargetCorners();
-            Vector2[] vcorners = new Vector2[corners.size()];
-            TelemetryUtil.packet.put("LL corners.size", corners.size());
-            canvas.setStroke("#606060");
-            for (int i = 0; i < corners.size(); i++) {
-                vcorners[i] = new Vector2(corners.get(i).get(0), corners.get(i).get(1));
-                canvas.strokeCircle(vcorners[i].x, vcorners[i].y, 0.5);
-            }
+            // TelemetryUtil.packet.put("LL corners.size", corners.size()); Stop.
             if (corners.size() == 4) { // I don't care enough to get this to work with stupid detections
+                Vector2[] vcorners = new Vector2[corners.size()];
+                canvas.setStroke("#606060");
+                for (int i = 0; i < corners.size(); i++) {
+                    vcorners[i] = new Vector2(corners.get(i).get(0), corners.get(i).get(1));
+                    canvas.strokeCircle(vcorners[i].x, vcorners[i].y, 0.5);
+                }
+
                 // Get the 2 longest
                 int l0 = 0; // nyeh pointer !
                 int l1 = 0;
@@ -230,6 +231,10 @@ public class LLBlockDetectionPostProcessor {
         lastOrientation = orientation;
         lastBlockPosition = blockPos.clone();
         lastLoop = loopStart;
+
+        TelemetryUtil.packet.put("blockPos.x", blockPos.x);
+        TelemetryUtil.packet.put("blockPos.y", blockPos.y);
+        TelemetryUtil.packet.put("blockPos.heading", blockPos.heading);
     }
 
     /**
@@ -252,7 +257,7 @@ public class LLBlockDetectionPostProcessor {
      * Stops detection
      */
     public void stopDetection() {
-        detecting = true;
+        detecting = false;
     }
 
     /**
@@ -291,7 +296,7 @@ public class LLBlockDetectionPostProcessor {
     }
 
     public boolean isStable() {
-        return velocityLowPass < 3 && detections >= 2; // Detections >= 2 allows us to have a velocity
+        return velocityLowPass < 1 && detections >= 2; // Detections >= 2 allows us to have a velocity
     }
 
     public double getVelocityLowPass() {

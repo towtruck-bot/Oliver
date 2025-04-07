@@ -25,7 +25,7 @@ public class IntakeExtension {
     private double extendoCurrentPos = 0.0;
     private double targetLength = 0.0;
     public static PID extendoPID = new PID(0.2, 0.01, 0.001);
-    public static double tolerance = 0.6;
+    public static double tolerance = 0.4;
     public static double slidesForcePullPow = -0.2;
 
     public IntakeExtension(Robot robot){
@@ -47,13 +47,13 @@ public class IntakeExtension {
             extendoPID.resetIntegral();
             extendoMotor.setTargetPower(0.0);
         } else {
-            if (this.inPosition()) {
+            /*if (this.inPosition()) {
                 extendoPID.update(0, -1.0, 1.0);
                 extendoPID.resetIntegral();
                 pow = this.targetLength <= tolerance && this.extendoCurrentPos > 0.0 ? slidesForcePullPow : 0;
-            } else {
+            } else {*/
                 pow = extendoPID.update(this.targetLength - this.extendoCurrentPos, -1.0, 1.0);
-            }
+            //}
 
             this.extendoMotor.setTargetPower(pow);
         }
@@ -65,6 +65,9 @@ public class IntakeExtension {
     }
 
     public void setTargetLength(double l){
+        if (Math.abs(l - targetLength) > 5) {
+            extendoPID.resetIntegral();
+        }
         targetLength = Utils.minMaxClip(l, 0.0, maxExtendoLength);
     }
 

@@ -29,7 +29,7 @@ public class nClawIntake {
     // turretBufferAng -> angle that allows for any rotation to occur with the turret still inside the robot. use in any retract/extend states
 
     public static double transferRotation = 0, grabRotation = 0.0;
-    public static double hoverAngle = 2.2315;
+    public static double hoverAngle = 2.0515;
     public static double turretBufferAngle = 0.8, turretRetractedAngle = 1.15, turretSearchAngle = 1.65, turretTransferPos = 0.07, turretGrabAngle = 2.5133;
     public static double turretPreRotation = 0.3, turretTransferRotation = 0, turretGrabRotation = 0.0;
     public static double turretPastSidePlatesRotation = 1.7;
@@ -159,7 +159,7 @@ public class nClawIntake {
                         intakeLight.setState(true);
                     } else {
                         hoverStart = System.currentTimeMillis();
-                        state = State.LOWER;
+                        state = State.HOVER;
                     }
 
                 }
@@ -205,8 +205,7 @@ public class nClawIntake {
 
                 intakeTurret.setClawState(false);
 
-                if (intakeTurret.inPosition() && (System.currentTimeMillis() - hoverStart) > hoverDelay) {
-                    RobotLog.e("IN POSITION IS " + intakeTurret.inPosition());
+                if (intakeTurret.inPosition(Math.toRadians(10)) && (System.currentTimeMillis() - hoverStart) > hoverDelay) {
                     if (!grabMethod.manualGrab || grab) {
                         state = State.LOWER;
                     }
@@ -220,7 +219,7 @@ public class nClawIntake {
                 intakeTurret.setClawState(false);
 
                 // everything in position before grabbing
-                if (intakeTurret.inPosition()) {
+                if (intakeTurret.inPosition(Math.toRadians(5))) {
                     consecutivePSPositives = psReads = 0;
                     state = State.GRAB_CLOSE;
                 }

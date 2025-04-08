@@ -160,6 +160,10 @@ public class IntakeTurret {
         return intakeExtension.inPosition() && clawRotation.inPosition() && turretArm.inPosition() && turretRotation.inPosition();
     }
 
+    public boolean inPosition(double t) {
+        return intakeExtension.inPosition() && clawRotation.inPosition(t) && turretArm.inPosition(t) && turretRotation.inPosition(t);
+    }
+
     public boolean extendoInPosition() {
         return intakeExtension.inPosition();
     }

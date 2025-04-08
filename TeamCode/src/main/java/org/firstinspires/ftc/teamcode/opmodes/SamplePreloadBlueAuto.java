@@ -19,12 +19,12 @@ public class SamplePreloadBlueAuto extends LinearOpMode {
     private Robot robot;
 
     // Block positions
-    public static double by1 = 26, bx1 = 48.7, bx2 = 59.5, by2 = 27, bx3 = 69.3, by3 = 27;
+    public static double by1 = 26.5, bx1 = 49.7, bx2 = 61, by2 = 26.5, bx3 = 70.3, by3 = 26.5;
 
     // GP depo positions
     public static double dx1 = 63, dy1 = 52.7;
-    public static double dx2 = 64.5, dy2 = 54.5;
-    public static double dx3 = 66, dy3 = 54.5;
+    public static double dx2 = 63, dy2 = 55;
+    public static double dx3 = 66, dy3 = 54.7;
 
     public void runOpMode(){
         Globals.isRed = false;
@@ -76,7 +76,7 @@ public class SamplePreloadBlueAuto extends LinearOpMode {
 
         // Go to under bucket
         robot.drivetrain.goToPoint(
-            new Pose2d(dx2, dy2, Math.atan2(by2 - dy2, bx2 - dx2)),
+            new Pose2d(dx2, dy2, Math.toRadians(260)),
             false,
             true,
             1.0
@@ -102,7 +102,7 @@ public class SamplePreloadBlueAuto extends LinearOpMode {
         robot.waitWhile(() -> !robot.nclawIntake.hasSample());
         // Go to under bucket
         robot.drivetrain.goToPoint(
-            new Pose2d(dx3, dy3, Math.toRadians(278)),
+            new Pose2d(dx3, dy3, Math.toRadians(267)),
             false,
             true,
             1.0
@@ -125,7 +125,7 @@ public class SamplePreloadBlueAuto extends LinearOpMode {
         robot.waitWhile(() -> !robot.nclawIntake.hasSample());
         // Go to under bucket
         robot.drivetrain.goToPoint(
-                new Pose2d(dx3, dy3, Math.toRadians(260)),
+                new Pose2d(dx3, dy3, Math.toRadians(267)),
                 false,
                 true,
                 1.0
@@ -138,12 +138,12 @@ public class SamplePreloadBlueAuto extends LinearOpMode {
 
         robot.waitWhile(() -> robot.drivetrain.isBusy() || !robot.ndeposit.isDepositReady());
         robot.ndeposit.deposit();
-        robot.drivetrain.goToPoint(
+        /*robot.drivetrain.goToPoint(
                 new Pose2d(dx3, dy3 + 5, Math.toRadians(260)),
                 false,
                 true,
                 1.0
-        );
+        );*/
         robot.waitWhile(() -> !robot.ndeposit.isDepositFinished());
 
         // TODO: Remember to set auto grab to true, set use camera to true, and DONT use grab

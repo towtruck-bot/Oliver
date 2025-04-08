@@ -25,7 +25,7 @@ public class IntakeExtension {
     private double extendoCurrentPos = 0.0;
     private double targetLength = 0.0;
     public static PID extendoPID = new PID(0.2, 0.01, 0.001);
-    public static double tolerance = 0.4;
+    public static double tolerance = 0.6;
     public static double slidesForcePullPow = -0.2;
 
     public IntakeExtension(Robot robot){

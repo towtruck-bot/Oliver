@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.utils.Globals;
+import org.firstinspires.ftc.teamcode.utils.LogUtil;
 import org.firstinspires.ftc.teamcode.utils.PID;
 import org.firstinspires.ftc.teamcode.utils.RunMode;
 import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
@@ -59,7 +60,8 @@ public class IntakeExtension {
         }
 
         TelemetryUtil.packet.put("Extendo Power", pow);
-        TelemetryUtil.packet.put("Extendo Target Length", targetLength);
+        TelemetryUtil.packet.put("extendoTargetPos", targetLength);
+        LogUtil.extendoTargetPos.set(targetLength);
         TelemetryUtil.packet.put("Extendo Current Length", extendoCurrentPos);
         TelemetryUtil.packet.put("Extendo inPosition", this.inPosition());
     }

@@ -370,7 +370,7 @@ public class nClawIntake {
         finishTransferRequest = state == State.TRANSFER_WAIT;
     }
 
-    public void setKnownIntakePose(Pose2d k){
+    public void setKnownIntakePose(Pose2d k) {
         known = k.clone();
     }
 
@@ -462,10 +462,6 @@ public class nClawIntake {
 //    public void forcePullIn() { forcePull = true; }
 
     public void updateTelemetry() {
-        TelemetryUtil.packet.put("ClawIntake.clawRotationAlignAngle", grabRotation);
-        LogUtil.intakeClawRotationAngle.set(grabRotation);
-        TelemetryUtil.packet.put("ClawIntake.grab", grab);
-        LogUtil.intakeClawGrab.set(grab);
         TelemetryUtil.packet.put("ClawIntake clawRotation angle", intakeTurret.getClawRotation());
         TelemetryUtil.packet.put("ClawIntake State", this.state);
         LogUtil.intakeState.set(this.state.toString());
@@ -488,7 +484,7 @@ public class nClawIntake {
     }
 
     public void aimAtKnown() {
-        if(known != null){
+        if (known != null) {
             // Begin Search, dynamic correction
             Pose2d curr = robot.sensors.getOdometryPosition();
             double deltaX = (known.x - curr.x);
@@ -500,7 +496,7 @@ public class nClawIntake {
             intakeTurret.extendTo(new Vector2(relX, relY));
             intakeTurret.setTurretArmTarget(turretSearchAngle);
             intakeTurret.setClawRotation(target.heading);
-        }else{
+        } else {
             // Begin Search, just hold positions
             intakeTurret.setIntakeExtension(intakeSetTargetPos);
             intakeTurret.setClawRotation(target.heading);
@@ -510,7 +506,7 @@ public class nClawIntake {
     }
 
     public void aimAtTarget() {
-         switch (targetType) {
+        switch (targetType) {
             case RELATIVE:
                 intakeTurret.intakeAt(target);
                 break;

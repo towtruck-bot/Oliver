@@ -2,6 +2,11 @@ package org.firstinspires.ftc.teamcode.utils;
 
 import com.acmerobotics.dashboard.config.Config;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+
+
 @Config
 public class LogUtil {
     private static Datalogger datalogger = null;
@@ -30,6 +35,7 @@ public class LogUtil {
     private static int loopCountBeforeWrite;
 
     public static boolean DISABLED = false;
+    public static boolean stateTransition = false;
 
     public static void reset() {
         if (datalogger != null) {
@@ -40,11 +46,15 @@ public class LogUtil {
     public static void init() {
         loopCountBeforeWrite = 0;
 
+        long timeNow = System.currentTimeMillis();
+        String fileName = "Log_" + timeNow + "_"
+            + new SimpleDateFormat("yyyy-MM-dd_HH.mm.ss", Locale.US).format(new Date(timeNow))
+            + "_CAT6_" + Globals.RUNMODE.toString();
+        TelemetryUtil.packet.put("Log filename", fileName);
+
         if (datalogger != null) throw new IllegalStateException("LogUtil was already initialized");
         if (DISABLED) return;
 
-        String fileName = "Log_" + System.currentTimeMillis();
-        TelemetryUtil.packet.put("Log filename", fileName);
         datalogger = new Datalogger.Builder()
             // Pass through the filename
             .setFilename(fileName)
@@ -54,7 +64,6 @@ public class LogUtil {
             // Note that order *IS* important here! The order in which we list
             // the fields is the order in which they will appear in the log.
             .setFields(
-                robotState,
                 intakeState,
                 depositState,
                 extendoCurrentPos,
@@ -64,10 +73,10 @@ public class LogUtil {
                 intakeClawGrab,
                 slidesCurrentPos,
                 slidesTargetPos,
-                driveState,
                 driveCurrentX,
                 driveCurrentY,
                 driveCurrentAngle,
+                driveState,
                 driveTargetX,
                 driveTargetY,
                 driveTargetAngle
@@ -78,9 +87,10 @@ public class LogUtil {
     public static void send() {
         if (datalogger == null) return;
         --loopCountBeforeWrite;
-        if (loopCountBeforeWrite <= 0) {
+        if (loopCountBeforeWrite <= 0 || stateTransition) {
             datalogger.writeLine();
             loopCountBeforeWrite = 25;
+            stateTransition = false;
         }
     }
 }

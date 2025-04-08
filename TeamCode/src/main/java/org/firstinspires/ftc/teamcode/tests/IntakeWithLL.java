@@ -56,8 +56,12 @@ public class IntakeWithLL extends LinearOpMode {
             robot.vision.setOffset(robot.nclawIntake.getIntakeRelativeToRobot());
             Pose2d blockPos = robot.vision.getBlockPos();
 
-
+/*
+            TelemetryUtil.packet.put("blockPos.x", blockPos.x);
+            TelemetryUtil.packet.put("blockPos.y", blockPos.y);
+            TelemetryUtil.packet.put("blockPos.heading", blockPos.heading);
             RobotLog.e("blockPos.heading " + Math.toDegrees(blockPos.heading));
+*/
 
             Canvas c = TelemetryUtil.packet.fieldOverlay();
             c.setStroke("#444400");

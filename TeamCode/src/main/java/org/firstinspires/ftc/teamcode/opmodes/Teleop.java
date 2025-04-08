@@ -106,15 +106,9 @@ public class Teleop extends LinearOpMode {
             }
 
             // Reset encoders in case something breaks
-            // TODO: Need a method fort he deposit slides
-            if (rsb_1.isClicked(gamepad1.right_stick_button)) {
-                // robot.ndeposit.slides.resetSlidesEncoders();
-                //robot.nclawIntake.resetExtendoEncoders();
-            }
+            if (rsb_1.isClicked(gamepad1.right_stick_button)) robot.sensors.resetSlidesEncoders();
 
-            if (lsb_1.isClicked(gamepad1.left_stick_button)) {
-                robot.restartState();
-            }
+            if (lsb_1.isClicked(gamepad1.left_stick_button)) robot.restartState();
 
             // Driving
             robot.drivetrain.drive(gamepad1);
@@ -122,9 +116,7 @@ public class Teleop extends LinearOpMode {
             // Driver 2
 
             // Toggle Alliance
-            if (x_2.isClicked(gamepad2.x)) {
-                Globals.isRed = !Globals.isRed;
-            }
+            if (x_2.isClicked(gamepad2.x)) Globals.isRed = !Globals.isRed;
 
             // Specimen/Sample Toggle
             // TODO: Implement updateDepositHeights in nDeposit
@@ -153,74 +145,30 @@ public class Teleop extends LinearOpMode {
             // hang (both drivers)
             int hangLeftDir = 0, hangRightDir = 0;
             //for (Gamepad gamepad : new Gamepad[]{gamepad1, gamepad2}) {
-            if (gamepad1.dpad_up) {
-                ++hangLeftDir;
-                ++hangRightDir;
-            }
-            if (gamepad1.dpad_down) {
-                --hangLeftDir;
-                --hangRightDir;
-            }
-            if (gamepad1.dpad_left) {
-                --hangLeftDir;
-                ++hangRightDir;
-            }
-            if (gamepad1.dpad_right) {
-                ++hangLeftDir;
-                --hangRightDir;
-            }
+            if (gamepad1.dpad_up) { ++hangLeftDir; ++hangRightDir; }
+            if (gamepad1.dpad_down) { --hangLeftDir; --hangRightDir; }
+            if (gamepad1.dpad_left) { --hangLeftDir; ++hangRightDir; }
+            if (gamepad1.dpad_right) { ++hangLeftDir; --hangRightDir; }
             //}
-            if (-gamepad2.right_stick_y >= triggerThresh) {
-                ++hangLeftDir;
-            }
-            if (-gamepad2.right_stick_y <= -triggerThresh) {
-                --hangLeftDir;
-            }
-            if (-gamepad2.left_stick_y >= triggerThresh) {
-                ++hangRightDir;
-            }
-            if (-gamepad2.left_stick_y <= -triggerThresh) {
-                --hangRightDir;
-            }
+            if (-gamepad2.right_stick_y >= triggerThresh) ++hangLeftDir;
+            if (-gamepad2.right_stick_y <= -triggerThresh) --hangLeftDir;
+            if (-gamepad2.left_stick_y >= triggerThresh) ++hangRightDir;
+            if (-gamepad2.left_stick_y <= -triggerThresh) --hangRightDir;
 
-            if (gamepad2.y) {
-                ++hangLeftDir;
-                ++hangRightDir;
-            }
-            if (gamepad2.a) {
-                --hangLeftDir;
-                --hangRightDir;
-            }
+            if (gamepad2.y) { ++hangLeftDir; ++hangRightDir; }
+            if (gamepad2.a) { --hangLeftDir; --hangRightDir; }
 
-            if (hangLeftDir > 0) {
-                robot.hang.leftUp();
-            }
-            else if (hangLeftDir < 0) {
-                robot.hang.leftReverse();
-            }
-            else {
-                robot.hang.leftOff();
-            }
+            if (hangLeftDir > 0) robot.hang.leftUp();
+            else if (hangLeftDir < 0) robot.hang.leftReverse();
+            else robot.hang.leftOff();
 
-            if (hangRightDir > 0) {
-                robot.hang.rightUp();
-            }
-            else if (hangRightDir < 0) {
-                robot.hang.rightReverse();
-            }
-            else {
-                robot.hang.rightOff();
-            }
+            if (hangRightDir > 0) robot.hang.rightUp();
+            else if (hangRightDir < 0) robot.hang.rightReverse();
+            else robot.hang.rightOff();
 
-            if (gamepad2.right_bumper) {
-                robot.hang.l3Pull();
-            }
-            else if (gamepad2.left_bumper) {
-                robot.hang.l3Up();
-            }
-            else {
-                robot.hang.l3Off();
-            }
+            if (gamepad2.right_bumper) robot.hang.l3Pull();
+            else if (gamepad2.left_bumper) robot.hang.l3Up();
+            else robot.hang.l3Off();
 
             if (gamepad2.right_trigger >= 0.7) {
                 robot.ndeposit.hangState = nDeposit.HangState.PULL;

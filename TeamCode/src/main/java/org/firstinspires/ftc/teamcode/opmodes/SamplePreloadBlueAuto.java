@@ -119,7 +119,6 @@ public class SamplePreloadBlueAuto extends LinearOpMode {
         robot.ndeposit.deposit();
         robot.waitWhile(() -> !robot.ndeposit.isDepositFinished());
 
-
         // Depo 3
         robot.waitWhile(() -> !robot.nclawIntake.isExtended());
         robot.nclawIntake.setGrab(true);

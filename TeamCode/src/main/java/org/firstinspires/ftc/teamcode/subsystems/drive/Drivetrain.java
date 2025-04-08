@@ -709,15 +709,15 @@ public class Drivetrain {
     }
 
     public void updateTelemetry() {
-        TelemetryUtil.packet.put("Drivetrain State", state);
+        TelemetryUtil.packet.put("driveState", state);
         LogUtil.driveState.set(state.toString());
 
-        TelemetryUtil.packet.put("Drivetrain:: xError", xError);
-        TelemetryUtil.packet.put("Drivetrain:: yError", yError);
-        TelemetryUtil.packet.put("Drivetrain:: turnError (deg)", Math.toDegrees(turnError));
-        TelemetryUtil.packet.put("Drivetrain:: xTarget", targetPoint.x);
-        TelemetryUtil.packet.put("Drivetrain:: yTarget", targetPoint.y);
-        TelemetryUtil.packet.put("Drivetrain:: turnTarget", Math.toDegrees(targetPoint.heading));
+        TelemetryUtil.packet.put("Drivetrain xError", xError);
+        TelemetryUtil.packet.put("Drivetrain yError", yError);
+        TelemetryUtil.packet.put("Drivetrain turnError (deg)", Math.toDegrees(turnError));
+        TelemetryUtil.packet.put("Drivetrain xTarget", targetPoint.x);
+        TelemetryUtil.packet.put("Drivetrain yTarget", targetPoint.y);
+        TelemetryUtil.packet.put("Drivetrain turnTarget", Math.toDegrees(targetPoint.heading));
         LogUtil.driveTargetX.set(targetPoint.x);
         LogUtil.driveTargetY.set(targetPoint.y);
         LogUtil.driveTargetAngle.set(targetPoint.heading);

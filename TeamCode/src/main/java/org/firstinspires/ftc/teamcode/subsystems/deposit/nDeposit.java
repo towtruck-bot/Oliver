@@ -1,8 +1,11 @@
 package org.firstinspires.ftc.teamcode.subsystems.deposit;
 
+import android.util.Log;
+
 import com.acmerobotics.dashboard.config.Config;
 
 import org.firstinspires.ftc.teamcode.Robot;
+import org.firstinspires.ftc.teamcode.utils.LogUtil;
 import org.firstinspires.ftc.teamcode.utils.Utils;
 import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 
@@ -65,7 +68,8 @@ public class nDeposit {
 
     public void update() {
         slides.update();
-        TelemetryUtil.packet.put("Deposit.state", state);
+        TelemetryUtil.packet.put("depositState", state);
+        LogUtil.depositState.set(this.state.toString());
         TelemetryUtil.packet.put("Slides Length", slides.getLength());
         TelemetryUtil.packet.put("Target Slides Length", slides.getTargetLength());
 
@@ -284,10 +288,12 @@ public class nDeposit {
     }
 
     public void startTransfer() {
+        Log.i("FSM", "nDeposit.startTransfer");
         transferRequested = true;
     }
 
     public void finishTransfer() {
+        Log.i("FSM", "nDeposit.finishTransfer");
         requestFinishTransfer = true;
     }
 
@@ -317,6 +323,7 @@ public class nDeposit {
     }
 
     public void startSampleDeposit() {
+        Log.i("FSM", "nDeposit.startSampleDeposit");
         sampleDepositRequested = true;
     }
 
@@ -329,6 +336,7 @@ public class nDeposit {
     }
 
     public void deposit() {
+        Log.i("FSM", "nDeposit.deposit");
         if (state == State.SAMPLE_WAIT || state == State.SPECIMEN_RAISE) {
             releaseRequested = true;
         }

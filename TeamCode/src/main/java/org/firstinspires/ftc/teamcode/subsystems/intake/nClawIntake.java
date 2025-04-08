@@ -52,6 +52,7 @@ public class nClawIntake {
     private Target targetType = Target.RELATIVE;
     private GrabMethod grabMethod = GrabMethod.CONTINUOUS_SEARCH_MG;
     private Pose2d known = null;
+    private boolean retryGrab = false;
 
     private double manualTurretAngle, manualClawAngle;
 
@@ -154,7 +155,7 @@ public class nClawIntake {
                 intakeTurret.setClawState(grab);
 
                 // Wait for full extension and turret in position before starting search
-                if (intakeTurret.extendoInPosition() && intakeTurret.turretRotInPosition()) {
+                if (intakeTurret.extendoInPosition(1.0) && intakeTurret.turretRotInPosition()) {
                     grab = false;
                     sampleStatus = false;
                     if (grabMethod.useCamera) {
@@ -230,7 +231,8 @@ public class nClawIntake {
                 aimAtTarget();
 
                 if (psReads >= 35) {
-                    grab = false;
+                    if (!retryGrab)
+                        grab = false;
                     if (grabMethod.useCamera) {
                         state = State.SEARCH;
                         robot.vision.startDetection();
@@ -538,5 +540,9 @@ public class nClawIntake {
                 break;
             }
         }
+    }
+
+    public void setRetryGrab(boolean retryGrab) {
+        this.retryGrab = retryGrab;
     }
 }

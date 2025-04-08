@@ -84,7 +84,7 @@ public class IntakeExtension {
     }
 
     public boolean inPosition() { return inPosition(slidesTolerance); }
-    private boolean inPosition(double tol) {
+    public boolean inPosition(double tol) {
         if (targetLength <= tol) return extendoCurrentPos <= tol;
         return Math.abs(targetLength - extendoCurrentPos) <= tol;
     }

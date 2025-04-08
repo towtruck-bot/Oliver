@@ -42,7 +42,7 @@ public class nDeposit {
     private Slides slides;
     private Arm arm;
 
-    public static double transferArm = 0.6281, transferClaw = -1.25, transferBufferZ = 10, transferZ = 8.7;
+    public static double transferArm = 0.6281, transferClaw = -1.25, transferBufferZ = 11.5, transferZ = 8.7;
     public static double holdArm = -0.889, holdClaw = 0.6477, holdZ = 0.0;
     public static double raiseArmBufferRotation = -1.8472,  sampleArm = -2.9728, sampleClaw = -0.0563;
     public static double sampleLZ = 20, sampleHZ = 35.5, speciZ = 18;
@@ -181,10 +181,10 @@ public class nDeposit {
                 arm.setArmRotation(sampleArm, 1.0);
                 arm.setClawRotation(sampleClaw, 1.0);
 
-                if (System.currentTimeMillis() - depositStart > 250)
+                if (System.currentTimeMillis() - depositStart > 75)
                     arm.clawOpen();
 
-                if (arm.clawInPosition() && System.currentTimeMillis() - depositStart > 250) {
+                if (arm.clawInPosition() && System.currentTimeMillis() - depositStart > 75) {
                     state = State.RETRACT;
                     holding = false;
                 }

@@ -19,12 +19,12 @@ public class SamplePreloadBlueAuto extends LinearOpMode {
     private Robot robot;
 
     // Block positions
-    public static double by1 = 26.5, bx1 = 49.7, bx2 = 59.8, by2 = 26.5, bx3 = 69.8, by3 = 26.5;
+    public static double by1 = 26.5, bx1 = 49.7, bx2 = 59.8, by2 = 26.7, bx3 = 69.8, by3 = 26.7;
 
     // GP depo positions
     public static double dx1 = 63, dy1 = 52.7;
     public static double dx2 = 63, dy2 = 54;
-    public static double dx3 = 66, dy3 = 53;
+    public static double dx3 = 66, dy3 = 52.7;
 
     public void runOpMode(){
         Globals.isRed = false;
@@ -103,7 +103,7 @@ public class SamplePreloadBlueAuto extends LinearOpMode {
         robot.waitWhile(() -> !robot.nclawIntake.hasSample());
         // Go to under bucket
         robot.drivetrain.goToPoint(
-            new Pose2d(dx3, dy3, Math.toRadians(278)),
+            new Pose2d(dx3, dy3, Math.toRadians(276)),
             false,
             true,
             1.0
@@ -128,7 +128,7 @@ public class SamplePreloadBlueAuto extends LinearOpMode {
         robot.waitWhile(() -> !robot.nclawIntake.hasSample());
         // Go to under bucket
         robot.drivetrain.goToPoint(
-                new Pose2d(dx3, dy3, Math.toRadians(278)),
+                new Pose2d(dx3, dy3, Math.toRadians(276)),
                 false,
                 true,
                 1.0

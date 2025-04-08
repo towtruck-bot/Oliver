@@ -176,6 +176,10 @@ public class IntakeTurret {
         return clawRotation.inPosition();
     }
 
+    public boolean rotInPosition(double t) {
+        return clawRotation.inPosition(t);
+    }
+
     public boolean grabInPosition() {
         return claw.inPosition();
     }
@@ -184,8 +188,16 @@ public class IntakeTurret {
         return turretRotation.inPosition();
     }
 
+    public boolean turretRotInPosition(double t) {
+        return turretRotation.inPosition(t);
+    }
+
     public boolean turretAngInPosition() {
         return turretArm.inPosition();
+    }
+
+    public boolean turretAngInPosition(double t) {
+        return turretArm.inPosition(t);
     }
 
     public boolean clawInPosition() {

@@ -33,7 +33,7 @@ public class nClawIntake {
     public static double turretBufferAngle = 0.8, turretRetractedAngle = 1.15, turretSearchAngle = 1.65, turretTransferPos = 0.07, turretGrabAngle = 2.5133;
     public static double turretPreRotation = 0.3, turretTransferRotation = 0, turretGrabRotation = 0.0;
     public static double turretPastSidePlatesRotation = 1.7;
-    public static double minExtension = 13;
+    public static double minExtension = 11;
     private long hoverStart = 0;
     public static double hoverDelay = 150;
     public static double transferExtension = 0;
@@ -279,7 +279,7 @@ public class nClawIntake {
                 intakeTurret.setClawState(grab);
 
                 // if grab failed go back to search
-                if (intakeTurret.turretAngInPosition() && intakeTurret.turretRotInPosition()) {
+                if (intakeTurret.turretAngInPosition(Math.toRadians(20)) && intakeTurret.turretRotInPosition(Math.toRadians(20))) {
                     // If we have a sample, transfer otherwise just retract into it
                     if (sampleStatus)
                         state = State.TRANSFER_WAIT;

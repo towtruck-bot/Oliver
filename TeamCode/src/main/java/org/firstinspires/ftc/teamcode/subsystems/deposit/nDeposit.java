@@ -36,6 +36,7 @@ public class nDeposit {
         OFF
     };
     public HangState hangState = HangState.OFF;
+    public boolean holdSlides = false;
 
     private Robot robot;
     private Slides slides;
@@ -43,12 +44,15 @@ public class nDeposit {
 
     public static double transferArm = 0.6281, transferClaw = -1.25, transferBufferZ = 10, transferZ = 8.7;
     public static double holdArm = -0.889, holdClaw = 0.6477, holdZ = 0.0;
-    public static double raiseArmBufferRotation = -1.8472,  sampleArm = -2.9728, sampleClaw = -0.0563, sampleZ = 35.5;
+    public static double raiseArmBufferRotation = -1.8472,  sampleArm = -2.9728, sampleClaw = -0.0563;
+    public static double sampleLZ = 20, sampleHZ = 35.5, speciZ = 18;
     public static double outtakeArm = -2.9225, outtakeClaw = -0.00169, outtakeZ = 0.0;
     public static double specimenIntakeArm = -2.9278, specimenIntakeClaw = 0.3436, specimenIntakeZ = 0;
-    public static double specimenDepositArm = -0.1, specimenDepositClaw = -1.2, specimenDepositZ = 18.6;
+    public static double specimenDepositArm = -0.1, specimenDepositClaw = -1.2;
     private boolean holding = false;
     private long depositStart = 0;
+
+    private double targetZ = sampleHZ;
 
     private boolean requestFinishTransfer = false,
                     transferRequested = false,
@@ -149,7 +153,7 @@ public class nDeposit {
                 }
                 break;
             case SAMPLE_RAISE:
-                slides.setTargetLength(sampleZ);
+                slides.setTargetLength(targetZ);
                 arm.setArmRotation(raiseArmBufferRotation, 0.3);
                 arm.setClawRotation(sampleClaw, 0.3);
 
@@ -160,7 +164,7 @@ public class nDeposit {
                 }
                 break;
             case SAMPLE_WAIT:
-                slides.setTargetLength(sampleZ);
+                slides.setTargetLength(targetZ);
                 arm.setArmRotation(sampleArm, 0.3);
                 arm.setClawRotation(sampleClaw, 0.3);
 
@@ -173,7 +177,7 @@ public class nDeposit {
                 }
                 break;
             case SAMPLE_DEPOSIT:
-                slides.setTargetLength(sampleZ);
+                slides.setTargetLength(targetZ);
                 arm.setArmRotation(sampleArm, 1.0);
                 arm.setClawRotation(sampleClaw, 1.0);
 
@@ -206,6 +210,7 @@ public class nDeposit {
 
                 if (slides.inPosition(1.0) && arm.inPosition() && grabRequested) {
                     state = State.SPECIMEN_GRAB;
+                    grabRequested = false;
                 }
                 break;
             case SPECIMEN_GRAB:
@@ -220,7 +225,7 @@ public class nDeposit {
                 }
                 break;
             case SPECIMEN_RAISE:
-                slides.setTargetLength(specimenDepositZ);
+                slides.setTargetLength(targetZ);
                 arm.setArmRotation(specimenDepositArm, 1.0);
                 arm.setClawRotation(specimenDepositClaw, 1.0);
 
@@ -230,7 +235,7 @@ public class nDeposit {
                 }
                 break;
             case SPECIMEN_DEPOSIT:
-                slides.setTargetLength(specimenDepositZ);
+                slides.setTargetLength(targetZ);
                 arm.setArmRotation(specimenDepositArm, 1.0);
                 arm.setClawRotation(specimenDepositClaw, 1.0);
 
@@ -259,9 +264,14 @@ public class nDeposit {
 
         if (hangState == HangState.PULL) {
             slides.setTargetPowerFORCED(-0.9);
+            targetZ = slides.getLength() - 0.5;
         } else if (hangState == HangState.OUT) {
             slides.setTargetPowerFORCED(0.7);
+            targetZ = slides.getLength() + 0.5;
         }
+        if (hangState != HangState.OFF) holdSlides = true;
+        if (holdSlides) slides.setTargetLength(targetZ);
+        hangState = HangState.OFF;
 
         TelemetryUtil.packet.put("arm target", arm.armRotation.getTargetAngle());
         TelemetryUtil.packet.put("arm inPosition", arm.armInPosition());
@@ -277,8 +287,12 @@ public class nDeposit {
         slides.setTargetLength(slidesHeight);
     }
 
-    public void setSampleHeight(double l) {
-        sampleZ = Utils.minMaxClip(l, 0.0, Slides.maxSlidesHeight);
+    public void setDepositHeight(double l) {
+        targetZ = Utils.minMaxClip(l, 0.0, Slides.maxSlidesHeight);
+    }
+    public double getDepositHeight() { return targetZ; }
+    public void presetDepositHeight(boolean speciMode, boolean high) {
+        targetZ = speciMode ? speciZ : high ? sampleHZ : sampleLZ;
     }
 
     private void moveToHoldPoses() {
@@ -296,6 +310,8 @@ public class nDeposit {
         Log.i("FSM", "nDeposit.finishTransfer");
         requestFinishTransfer = true;
     }
+
+    public void returnToIdle() { state = State.IDLE; }
 
     public boolean retractReady() {
         return arm.armRotation.getCurrentAngle() < -0.4;

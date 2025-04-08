@@ -4,18 +4,14 @@ import com.acmerobotics.dashboard.canvas.Canvas;
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.teamcode.Robot;
-import org.firstinspires.ftc.teamcode.subsystems.deposit.nDeposit;
 import org.firstinspires.ftc.teamcode.subsystems.intake.nClawIntake;
-import org.firstinspires.ftc.teamcode.utils.AngleUtil;
 import org.firstinspires.ftc.teamcode.utils.ButtonToggle;
 import org.firstinspires.ftc.teamcode.utils.Globals;
 import org.firstinspires.ftc.teamcode.utils.Pose2d;
 import org.firstinspires.ftc.teamcode.utils.RunMode;
 import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
-import org.firstinspires.ftc.teamcode.utils.Vector2;
 
 @TeleOp(name = "B. IntakeWithLL")
 @Config
@@ -80,7 +76,7 @@ public class IntakeWithLL extends LinearOpMode {
             //robot.nclawIntake.setIntakeLength(robot.nclawIntake.getIntakeTargetPos() + 0.4 * intakeControl1);
             if (!useKnown) {
                 robot.nclawIntake.removeKnown();
-                robot.nclawIntake.setIntakeLength(10);
+                robot.nclawIntake.setExtendoTargetPos(10);
             } else {
                 robot.nclawIntake.setKnownIntakePose(new Pose2d(keepX, keepY, 0));
             }

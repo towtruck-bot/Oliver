@@ -14,7 +14,6 @@ import org.firstinspires.ftc.teamcode.subsystems.drive.Spline;
 import org.firstinspires.ftc.teamcode.subsystems.hang.Hang;
 import org.firstinspires.ftc.teamcode.subsystems.intake.nClawIntake;
 import org.firstinspires.ftc.teamcode.utils.Func;
-import org.firstinspires.ftc.teamcode.utils.Globals;
 import org.firstinspires.ftc.teamcode.utils.LogUtil;
 import org.firstinspires.ftc.teamcode.utils.Pose2d;
 import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
@@ -62,7 +61,7 @@ public class Robot {
         this.hardwareMap = hardwareMap;
         this.hardwareQueue = new HardwareQueue();
 
-        if (Globals.hasSpecimenPreload) {
+        /*if (Globals.hasSpecimenPreload) {
             this.state = RobotState.SPECIMEN_READY;
             this.prevState1 = RobotState.SPECIMEN_READY;
             this.prevState = RobotState.SPECIMEN_READY;
@@ -70,7 +69,7 @@ public class Robot {
             this.state = RobotState.SAMPLE_READY;
             this.prevState1 = RobotState.SAMPLE_READY;
             this.prevState = RobotState.SAMPLE_READY;
-        }
+        }*/
 
         sensors = new Sensors(this);
         nclawIntake = new nClawIntake(this);
@@ -254,7 +253,7 @@ boolean wasClicked;
      * Gets the Robot FSM's state. -- Daniel
      * @return the Robot FSM's state
      */
-    public RobotState getState() { return this.state; }
+    //public RobotState getState() { return this.state; }
 
     /**
      * Sets what the robot will do next. Use in Teleop. -- Daniel
@@ -317,20 +316,10 @@ boolean wasClicked;
     /**
      * Restarts the current state. -- Daniel
      */
-    public void restartState() {
+    /*public void restartState() {
         prevState = prevState1 = RobotState.RESET;
 //        ndeposit.holdSlides = false;
-    }
-
-    public void updateDepositHeights(boolean speciMode, boolean high){
-//        if (speciMode) {
-//            if (high) this.deposit.setDepositHighSpeci();
-//            else this.deposit.setDepositLowSpeci();
-//        } else {
-//            if (high) this.deposit.setDepositHeightHighSample();
-//            else this.deposit.setDepositHeightLowSample();
-//        }
-    }
+    }*/
 
     /**
      * Sets the condition that should abort waiting (waitWhile, goToPoint)
@@ -416,20 +405,12 @@ boolean wasClicked;
         } while (((boolean) this.abortChecker.call()) && (func == null || (boolean) func.call()) && System.currentTimeMillis() - start <= 10000 && drivetrain.isBusy());
     }
 
-    public void setIntakeExtension(double target){
-        nclawIntake.setIntakeLength(target);
-    }
-
-    public void grab(boolean closed){
-        nclawIntake.setGrab(closed);
-    }
-
     private void updateTelemetry() {
-        TelemetryUtil.packet.put("Robot.state", this.state.toString());
-        LogUtil.robotState.set(this.state.toString());
+        //TelemetryUtil.packet.put("Robot.state", this.state.toString());
+        //LogUtil.robotState.set(this.state.toString());
         //TelemetryUtil.packet.put("Robot.prevState1", this.prevState1.toString());
         //TelemetryUtil.packet.put("Robot.prevState", this.prevState.toString());
-        TelemetryUtil.packet.put("Robot.nextState", this.nextState.toString());
+        //TelemetryUtil.packet.put("Robot.nextState", this.nextState.toString());
         //TelemetryUtil.packet.put("Globals::RUNMODE", Globals.RUNMODE);
         //TelemetryUtil.packet.put("Globals::TESTING_DISABLE_CONTROL", Globals.TESTING_DISABLE_CONTROL);
         TelemetryUtil.packet.put("Loop Time", GET_LOOP_TIME());

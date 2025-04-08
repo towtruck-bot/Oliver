@@ -4,7 +4,6 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.Robot;
-import org.firstinspires.ftc.teamcode.subsystems.deposit.Deposit;
 import org.firstinspires.ftc.teamcode.subsystems.deposit.nDeposit;
 import org.firstinspires.ftc.teamcode.subsystems.intake.nClawIntake;
 import org.firstinspires.ftc.teamcode.utils.ButtonToggle;
@@ -26,7 +25,6 @@ public class Teleop extends LinearOpMode {
 
         // Gamepad 1
         ButtonToggle lb_1 = new ButtonToggle();
-        ButtonToggle lt_1 = new ButtonToggle();
         ButtonToggle rb_1 = new ButtonToggle();
         ButtonToggle x_1 = new ButtonToggle();
         ButtonToggle b_1 = new ButtonToggle();
@@ -39,91 +37,94 @@ public class Teleop extends LinearOpMode {
 
         final double slidesInc = 0.4;
         final double extendoInc = 0.4;
-        final double intakeClawRotationInc = 0.1; // 0.08
+        final double intakeClawRotationInc = 0.1;
+        final double intakeTurretRotationInc = 0.1;
         final double triggerThresh = 0.2;
         boolean speciMode = false;
+        boolean intakeMode = false;
         boolean high = true;
 
         while (opModeInInit()) {
             robot.update();
-            robot.updateDepositHeights(speciMode, high);
+            robot.ndeposit.presetDepositHeight(speciMode, high);
         }
 
         while (!isStopRequested()) {
             robot.update();
-            Robot.RobotState robotState = robot.getState();
 
-            // DRIVER 1
+            robot.nclawIntake.setGrabMethod(nClawIntake.GrabMethod.MANUAL_AIM);
+            robot.nclawIntake.setTargetType(nClawIntake.Target.MANUAL);
 
             // Toggle Specimen/Sample Deposit Mode
-            // TODO: Implement updateDepositHeights into nDeposit
             if (x_1.isClicked(gamepad1.x)) {
                 speciMode = !speciMode;
-                robot.updateDepositHeights(speciMode, high);
+                robot.ndeposit.presetDepositHeight(speciMode, high);
+            }
+            if (b_2.isClicked(gamepad2.b)) {
+                speciMode = !speciMode;
+                intakeMode = false;
+                robot.ndeposit.presetDepositHeight(speciMode, high);
             }
             // Toggle High/Low Deposit
             if (b_1.isClicked(gamepad1.b)) {
                 high = !high;
-                robot.updateDepositHeights(speciMode, high);
+                robot.ndeposit.presetDepositHeight(speciMode, high);
+            }
+            if (lsb_1.isClicked(gamepad1.left_stick_button)) {
+                intakeMode = !intakeMode && !speciMode;
+                robot.ndeposit.holdSlides = false;
             }
 
-            // Increment / Decrement Slides Height
-            // TODO: Currently implemented only sets sample height
-            // TODO: Need a way to get current deposit height, either make slides public or a getter
-            if (gamepad1.y) {
-                //robot.ndeposit.setSampleHeight(robot.ndeposit.slides.getLength() + slidesInc);
-            } else if (gamepad1.a) {
-                //robot.ndeposit.setSampleHeight(robot.ndeposit.slides.getLength() - slidesInc);
-            }
-
-            // Packed buttom why we do this
             if (lb_1.isClicked(gamepad1.left_bumper)) {
-                // Begin specimen grab
-                if (speciMode && robot.ndeposit.state == nDeposit.State.IDLE) {
-                    robot.ndeposit.startSpecimenIntake();
-                }
-                // Finish specimen grab
-                else if(speciMode && robot.ndeposit.state == nDeposit.State.SPECIMEN_INTAKE_WAIT){
-                    robot.ndeposit.grab();
-                }
-                // Begin sample intake. No need for retract bc camera auto retract
-                else if(!speciMode && robot.nclawIntake.state == nClawIntake.State.READY) {
-                    robot.nclawIntake.extend();
+                if (speciMode) {
+                    // Begin specimen grab
+                    if (robot.ndeposit.state == nDeposit.State.IDLE) robot.ndeposit.startSpecimenIntake();
+                    // Finish specimen grab
+                    else if (robot.ndeposit.state == nDeposit.State.SPECIMEN_INTAKE_WAIT) robot.ndeposit.grab();
+                    else if (robot.ndeposit.state == nDeposit.State.HOLD) robot.ndeposit.startSpecimenDeposit();
+                    else robot.ndeposit.deposit();
+                } else {
+                    // Begin sample intake
+                    if (robot.nclawIntake.state == nClawIntake.State.READY || robot.nclawIntake.state == nClawIntake.State.TRANSFER_WAIT) robot.nclawIntake.extend();
+                    // Manual retract
+                    else {
+                        robot.nclawIntake.retract();
+                        intakeMode = false;
+                    }
                 }
             }
 
             // Deposit sample/speci. The deposit FSM takes care of which one
             if (rb_1.isClicked(gamepad1.right_bumper)) {
-                robot.ndeposit.deposit();
+                if (robot.nclawIntake.isExtended()) robot.nclawIntake.setGrab(true);
+                else if (robot.nclawIntake.isTransferReady() && robot.ndeposit.isTransferReady()) {
+                    robot.ndeposit.startSampleDeposit();
+                    robot.nclawIntake.finishTransfer();
+                    robot.ndeposit.finishTransfer();
+                } else robot.ndeposit.deposit();
             }
 
             // Manualy adjust the slides height during deposit
-            // TODO: Need that get + set length method with target Profe
-            if(robot.ndeposit.state == nDeposit.State.SAMPLE_WAIT || robot.ndeposit.state == nDeposit.State.SPECIMEN_RAISE){
+            if (intakeMode) {
+                double turretControl1 = robot.drivetrain.smoothControls(gamepad1.right_stick_x);
+                double extendoControl1 = robot.drivetrain.smoothControls(-gamepad1.right_stick_y);
+                robot.nclawIntake.setExtendoTargetPos(robot.nclawIntake.getExtendoTargetPos() + extendoInc * extendoControl1);
+                robot.nclawIntake.setManualClawAngle(robot.nclawIntake.getManualClawAngle() + intakeClawRotationInc * (gamepad1.right_trigger - gamepad1.left_trigger));
+                robot.nclawIntake.setManualTurretAngle(robot.nclawIntake.getManualTurretAngle() + intakeTurretRotationInc * turretControl1);
+            } else {
                 double slidesControl1 = robot.drivetrain.smoothControls(-gamepad1.right_stick_y);
-
-                //robot.ndeposit.setSlidesHeight(robot.ndeposit.getSlidesHeight() + slidesInc * slidesControl1);
+                robot.ndeposit.setDepositHeight(robot.ndeposit.getDepositHeight() + slidesInc * slidesControl1);
             }
 
             // Reset encoders in case something breaks
             if (rsb_1.isClicked(gamepad1.right_stick_button)) robot.sensors.resetSlidesEncoders();
 
-            if (lsb_1.isClicked(gamepad1.left_stick_button)) robot.restartState();
-
             // Driving
+            robot.drivetrain.intakeDriveMode = intakeMode;
             robot.drivetrain.drive(gamepad1);
-
-            // Driver 2
 
             // Toggle Alliance
             if (x_2.isClicked(gamepad2.x)) Globals.isRed = !Globals.isRed;
-
-            // Specimen/Sample Toggle
-            // TODO: Implement updateDepositHeights in nDeposit
-            if (b_2.isClicked(gamepad2.b)) {
-                speciMode = !speciMode;
-                robot.updateDepositHeights(speciMode, high);
-            }
 
             // Increment/Decrement Intake Slides
             // Up --> increase, Down --> decrease on right joystick
@@ -136,10 +137,9 @@ public class Teleop extends LinearOpMode {
             //robot.deposit.setDepositHeight(robot.deposit.getDepositHeight() + slidesInc * slidesControl2);
 
             if (gamepad2.dpad_up) {
-                // robot.deposit.setDepositHeight(robot.deposit.getDepositHeight() + slidesInc);
-            }
-            else if (gamepad2.dpad_down) {
-                // robot.deposit.setDepositHeight(robot.deposit.getDepositHeight() - slidesInc);
+                robot.ndeposit.setDepositHeight(robot.ndeposit.getDepositHeight() + slidesInc);
+            } else if (gamepad2.dpad_down) {
+                robot.ndeposit.setDepositHeight(robot.ndeposit.getDepositHeight() - slidesInc);
             }
 
             // hang (both drivers)
@@ -177,19 +177,16 @@ public class Teleop extends LinearOpMode {
             }
 
             // Used to keep intake extendo in during hang
-            // TODO: Implement below method
-            if (gamepad1.back || gamepad2.back) {
-                // robot.nclawIntake.forcePullIn();
-            }
+            if (gamepad1.back || gamepad2.back) robot.nclawIntake.intakeTurret.intakeExtension.forcePullIn();
 
             telemetry.addData("speciMode", speciMode);
+            telemetry.addData("intakeMode", intakeMode);
             telemetry.addData("high", high);
-            telemetry.addData("Intake target pos", robot.nclawIntake.getIntakeTargetPos());
-            // telemetry.addData("deposit height", robot.ndeposit.getDepositHeight());
+            telemetry.addData("Intake target pos", robot.nclawIntake.getExtendoTargetPos());
+            telemetry.addData("Deposit height", robot.ndeposit.getDepositHeight());
             telemetry.addData("isRed", Globals.isRed);
             telemetry.addData("Intake current length", robot.sensors.getExtendoPos());
-            // telemetry.addData("Slides current length", robot.ndeposit.slides.getLength());
-            telemetry.addData("hasSamplePreload", Globals.hasSamplePreload);
+            telemetry.addData("Slides current length", robot.sensors.getSlidesPos());
             telemetry.update();
         }
     }

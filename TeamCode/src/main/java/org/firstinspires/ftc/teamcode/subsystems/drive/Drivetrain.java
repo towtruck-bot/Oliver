@@ -61,7 +61,7 @@ public class Drivetrain {
     public Vision vision;
     public Robot robot;
 
-    public boolean slow = false;
+    public boolean intakeDriveMode = false;
     public static double slowSpeed = 0.4;
     public static double pval = 1.5;
 
@@ -598,10 +598,10 @@ public class Drivetrain {
         double strafe = smoothControls(gamepad.left_stick_x);
         double turn = smoothControls(-gamepad.right_stick_x);
 
-        if (slow) {
+        if (intakeDriveMode) {
             forward *= slowSpeed;
             strafe *= slowSpeed;
-            turn *= slowSpeed;
+            turn = 0;
         }
 
         Vector2 drive = new Vector2(forward,strafe);

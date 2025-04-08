@@ -25,11 +25,14 @@ public class IntakeExtension {
 
     private double extendoCurrentPos = 0.0;
     private double targetLength = 0.0;
-    public static PID extendoPID = new PID(0.2, 0.01, 0.001);
-    public static double tolerance = 0.6;
-    public static double slidesForcePullPow = -0.2;
+    public static PID extendoPID = new PID(0.2, 0.05, 0.005);
+    public static double slidesTolerance = 0.6;
+    public static double slidesDeadZone = 0.2;
+    public static double slidesKeepInPow = -0.25;
+    public static double slidesForcePullPow = -0.8;
+    private boolean forcePull = false;
 
-    public IntakeExtension(Robot robot){
+    public IntakeExtension(Robot robot) {
         this.robot = robot;
 
         m = robot.hardwareMap.get(DcMotorEx.class, "intakeExtensionMotor");
@@ -38,7 +41,7 @@ public class IntakeExtension {
         robot.hardwareQueue.addDevice(extendoMotor);
     }
 
-    public void update(){
+    public void update() {
         this.extendoCurrentPos = this.robot.sensors.getExtendoPos();
 
         double pow = 0;
@@ -48,13 +51,18 @@ public class IntakeExtension {
             extendoPID.resetIntegral();
             extendoMotor.setTargetPower(0.0);
         } else {
-            /*if (this.inPosition()) {
+            if (this.inPosition(slidesDeadZone)) {
                 extendoPID.update(0, -1.0, 1.0);
                 extendoPID.resetIntegral();
-                pow = this.targetLength <= tolerance && this.extendoCurrentPos > 0.0 ? slidesForcePullPow : 0;
-            } else {*/
-                pow = extendoPID.update(this.targetLength - this.extendoCurrentPos, -1.0, 1.0);
-            //}
+                pow = this.targetLength <= slidesTolerance && this.extendoCurrentPos >= 0.0 ? slidesKeepInPow : 0;
+            } else {
+                pow = extendoPID.update(this.targetLength - this.extendoCurrentPos, -0.7, 0.7);
+            }
+
+            if (forcePull) {
+                pow = slidesForcePullPow;
+                forcePull = false;
+            }
 
             this.extendoMotor.setTargetPower(pow);
         }
@@ -66,16 +74,19 @@ public class IntakeExtension {
         TelemetryUtil.packet.put("Extendo inPosition", this.inPosition());
     }
 
-    public void setTargetLength(double l){
+    public void forcePullIn() { forcePull = true; }
+
+    public void setTargetLength(double l) {
         if (Math.abs(l - targetLength) > 5) {
             extendoPID.resetIntegral();
         }
         targetLength = Utils.minMaxClip(l, 0.0, maxExtendoLength);
     }
 
-    public boolean inPosition() {
-        if (targetLength <= tolerance) return extendoCurrentPos <= tolerance;
-        return Math.abs(targetLength - extendoCurrentPos) <= tolerance;
+    public boolean inPosition() { return inPosition(slidesTolerance); }
+    private boolean inPosition(double tol) {
+        if (targetLength <= tol) return extendoCurrentPos <= tol;
+        return Math.abs(targetLength - extendoCurrentPos) <= tol;
     }
 
     public double getLength() {

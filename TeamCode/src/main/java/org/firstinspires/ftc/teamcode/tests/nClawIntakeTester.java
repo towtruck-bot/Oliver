@@ -57,8 +57,7 @@ public class nClawIntakeTester extends LinearOpMode {
                 setGrab = !setGrab;
             }
 
-            robot.nclawIntake.setIntakeLength(targetLength);
-
+            robot.nclawIntake.setExtendoTargetPos(targetLength);
 
             if (!crankThatSoulaBoy)
                 robot.nclawIntake.setTargetPose(new Pose2d(targetX, targetY, targetHeading));

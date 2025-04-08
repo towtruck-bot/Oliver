@@ -4,9 +4,9 @@ import android.util.Log;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
-import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.teamcode.Robot;
+import org.firstinspires.ftc.teamcode.subsystems.deposit.nDeposit;
 import org.firstinspires.ftc.teamcode.utils.LogUtil;
 import org.firstinspires.ftc.teamcode.utils.Pose2d;
 import org.firstinspires.ftc.teamcode.utils.REVColorSensorV3;
@@ -18,7 +18,7 @@ import org.firstinspires.ftc.teamcode.utils.Vector2;
 public class nClawIntake {
     private final Robot robot;
 
-    private final IntakeTurret intakeTurret;
+    public final IntakeTurret intakeTurret;
 
     private final REVColorSensorV3 colorSensorV3;
 
@@ -28,13 +28,13 @@ public class nClawIntake {
 
     // turretBufferAng -> angle that allows for any rotation to occur with the turret still inside the robot. use in any retract/extend states
 
-    public static double transferRotation = 0, grabRotation = 0.0;
+    public static double transferRotation = 0;
     public static double hoverAngle = 2.0515;
     public static double turretBufferAngle = 0.8, turretRetractedAngle = 1.15, turretSearchAngle = 1.65, turretTransferPos = 0.07, turretGrabAngle = 2.5133;
     public static double turretPreRotation = 0.3, turretTransferRotation = 0, turretGrabRotation = 0.0;
     public static double turretPastSidePlatesRotation = 1.7;
     public static double minExtension = 13;
-    public static long hoverStart = 0;
+    private long hoverStart = 0;
     public static double hoverDelay = 150;
     public static double transferExtension = 0;
     public static double turretSearchRotation = 3.14;
@@ -53,9 +53,12 @@ public class nClawIntake {
     private GrabMethod grabMethod = GrabMethod.CONTINUOUS_SEARCH_MG;
     private Pose2d known = null;
 
+    private double manualTurretAngle, manualClawAngle;
+
     public enum Target {
         RELATIVE,
-        GLOBAL
+        GLOBAL,
+        MANUAL
     }
 
     public enum GrabMethod {
@@ -119,7 +122,7 @@ public class nClawIntake {
                 intakeTurret.setIntakeExtension(minExtension);
                 intakeTurret.setTurretArmTarget(turretBufferAngle);
                 intakeTurret.setTurretRotation(turretPreRotation);
-                intakeTurret.setClawRotation(target.heading);
+                intakeTurret.setClawRotation(0);
 
                 intakeTurret.setClawState(grab);
 
@@ -136,7 +139,7 @@ public class nClawIntake {
                 intakeTurret.setIntakeExtension(minExtension);
                 intakeTurret.setTurretArmTarget(turretBufferAngle);
                 intakeTurret.setTurretRotation(turretPastSidePlatesRotation);
-                intakeTurret.setClawRotation(target.heading);
+                intakeTurret.setClawRotation(0);
 
                 if (intakeTurret.turretAngInPosition())
                     state = State.FULL_EXTEND;
@@ -146,12 +149,14 @@ public class nClawIntake {
                 intakeTurret.setIntakeExtension(intakeSetTargetPos);
                 intakeTurret.setTurretArmTarget(turretSearchAngle);
                 intakeTurret.setTurretRotation(turretSearchRotation);
-                intakeTurret.setClawRotation(target.heading);
+                intakeTurret.setClawRotation(0);
 
                 intakeTurret.setClawState(grab);
 
                 // Wait for full extension and turret in position before starting search
                 if (intakeTurret.extendoInPosition() && intakeTurret.turretRotInPosition()) {
+                    grab = false;
+                    sampleStatus = false;
                     if (grabMethod.useCamera) {
                         state = State.SEARCH;
                         robot.vision.startDetection();
@@ -161,7 +166,6 @@ public class nClawIntake {
                         hoverStart = System.currentTimeMillis();
                         state = State.HOVER;
                     }
-
                 }
                 break;
             case SEARCH:
@@ -200,12 +204,10 @@ public class nClawIntake {
 
             case HOVER:
                 aimAtTarget();
-                // I dont gaf
                 intakeTurret.setTurretArmTarget(hoverAngle);
-
                 intakeTurret.setClawState(false);
 
-                if (intakeTurret.inPosition(Math.toRadians(10)) && (System.currentTimeMillis() - hoverStart) > hoverDelay) {
+                if (intakeTurret.inPosition(Math.toRadians(10)) && (grabMethod == GrabMethod.MANUAL_AIM || System.currentTimeMillis() - hoverStart > hoverDelay)) {
                     if (!grabMethod.manualGrab || grab) {
                         state = State.LOWER;
                     }
@@ -237,6 +239,7 @@ public class nClawIntake {
                         hoverStart = System.currentTimeMillis();
                         state = State.HOVER;
                     }
+                    break;
                 }
 
                 int val = colorSensorV3.readPS();
@@ -281,6 +284,7 @@ public class nClawIntake {
                     else {
                         state = State.RETRACT;
                         grab = false;
+                        if (robot.ndeposit.state == nDeposit.State.TRANSFER_BUFFER) robot.ndeposit.returnToIdle();
                     }
                 }
                 break;
@@ -327,10 +331,14 @@ public class nClawIntake {
 
                 intakeTurret.setClawState(true);
 
+                if (extendRequest) {
+                    state = State.START_EXTEND;
+                    extendRequest = false;
+                }
                 // Complete transfer can only be called in TRANSFER_WAIT, must have everything correct
                 // used to release intake grip on sample, should be called in deposit after the deposit has a firm grip
                 // TODO: check endAffector.inPosition()
-                if (finishTransferRequest && intakeTurret.inPosition() && intakeTurret.extendoInPosition() && robot.ndeposit.isHolding()) {
+                else if (finishTransferRequest && intakeTurret.inPosition() && intakeTurret.extendoInPosition() && robot.ndeposit.isHolding()) {
                     state = State.TRANSFER_END;
                     finishTransferRequest = false;
                     sampleStatus = false;
@@ -376,19 +384,6 @@ public class nClawIntake {
 
     public void removeKnown() {
         known = null;
-    }
-
-    public void setClawRotation(double angle) {
-        if (angle > 1.7) {
-            angle = -1.7;
-        } else if (angle < -1.7) {
-            angle = 1.7;
-        }
-        grabRotation = angle;
-    }
-
-    public double getClawRotAngle() {
-        return grabRotation;
     }
 
     public void setTargetPose(Pose2d t) {
@@ -440,8 +435,21 @@ public class nClawIntake {
     //    return state == State.SEARCH;
     //}
 
-    public void setIntakeLength(double targetPos) {
+    public double getExtendoTargetPos() { return this.intakeSetTargetPos; }
+    public void setExtendoTargetPos(double targetPos) {
         this.intakeSetTargetPos = Utils.minMaxClip(targetPos, 1, 19);
+    }
+    public double getManualTurretAngle() { return this.manualTurretAngle; }
+    public void setManualTurretAngle(double targetPos) {
+        if (targetPos < -1.8) targetPos = 1.8;
+        else if (targetPos > 1.8) targetPos = -1.8;
+        this.manualTurretAngle = targetPos;
+    }
+    public double getManualClawAngle() { return this.manualClawAngle; }
+    public void setManualClawAngle(double targetPos) {
+        if (targetPos < -1.8) targetPos = 1.8;
+        else if (targetPos > 1.8) targetPos = -1.8;
+        this.manualClawAngle = targetPos;
     }
 
     public double getIntakeLength() {
@@ -455,14 +463,13 @@ public class nClawIntake {
         );
     }
 
-    public double getIntakeTargetPos() {
-        return this.intakeSetTargetPos;
-    }
-
 //    public void forcePullIn() { forcePull = true; }
 
     public void updateTelemetry() {
         TelemetryUtil.packet.put("ClawIntake clawRotation angle", intakeTurret.getClawRotation());
+        TelemetryUtil.packet.put("ClawIntake manualTurretAngle", manualTurretAngle);
+        TelemetryUtil.packet.put("ClawIntake manualClawAngle", manualClawAngle);
+        TelemetryUtil.packet.put("ClawIntake grab", grab);
         TelemetryUtil.packet.put("ClawIntake State", this.state);
         LogUtil.intakeState.set(this.state.toString());
         TelemetryUtil.packet.put("LL Target X", target.x);
@@ -507,20 +514,29 @@ public class nClawIntake {
 
     public void aimAtTarget() {
         switch (targetType) {
-            case RELATIVE:
+            case RELATIVE: {
                 intakeTurret.intakeAt(target);
                 break;
-            case GLOBAL:
+            }
+            case GLOBAL: {
                 double deltaX = (target.x - robot.sensors.getOdometryPosition().x);
                 double deltaY = (target.y - robot.sensors.getOdometryPosition().y);
 
                 // convert error into direction robot is facing
                 intakeTurret.intakeAt(new Pose2d(
-                    Math.cos(robot.sensors.getOdometryPosition().heading)*deltaX + Math.sin(robot.sensors.getOdometryPosition().heading)*deltaY,
-                    -Math.sin(robot.sensors.getOdometryPosition().heading)*deltaX + Math.cos(robot.sensors.getOdometryPosition().heading)*deltaY,
+                    Math.cos(robot.sensors.getOdometryPosition().heading) * deltaX + Math.sin(robot.sensors.getOdometryPosition().heading) * deltaY,
+                    -Math.sin(robot.sensors.getOdometryPosition().heading) * deltaX + Math.cos(robot.sensors.getOdometryPosition().heading) * deltaY,
                     target.heading - robot.sensors.getOdometryPosition().heading
                 ));
                 break;
+            }
+            case MANUAL: {
+                intakeTurret.setIntakeExtension(intakeSetTargetPos);
+                intakeTurret.setTurretRotation(Math.PI + manualTurretAngle);
+                intakeTurret.setClawRotation(manualClawAngle);
+                intakeTurret.setTurretArmTarget(turretGrabAngle);
+                break;
+            }
         }
     }
 }

@@ -15,7 +15,7 @@ import org.firstinspires.ftc.teamcode.utils.priority.nPriorityServo;
 public class IntakeTurret {
     private final Robot robot;
     public final IntakeExtension intakeExtension;
-    private final nPriorityServo clawRotation, claw, turretArm, turretRotation;
+    public final nPriorityServo clawRotation, claw, turretArm, turretRotation;
 
     private double targetLength, clawRotationTarget, turretArmTarget, turretRotationTarget;
 
@@ -88,9 +88,9 @@ public class IntakeTurret {
     }
 
     // Target is given in robot centric coordinates
-    public static double turretLengthTip = 6;
-    public static double turretLengthLL = 4.4;
-    public static double extendoOffset = 3.5;
+    public static double turretLengthTip = 5.3;
+    public static double turretLengthLL = 2.3;
+    public static double extendoOffset = 6;
     public static double stupidConstant = -0.25;
     public void intakeAt(Pose2d target) {
         double xError = target.x;

@@ -49,7 +49,7 @@ public class LogUtil {
         long timeNow = System.currentTimeMillis();
         String fileName = "Log_" + timeNow + "_"
             + new SimpleDateFormat("yyyy-MM-dd_HH.mm.ss", Locale.US).format(new Date(timeNow))
-            + "_" + Globals.RUNMODE.toString();
+            + "_CAT6_" + Globals.RUNMODE.toString();
         TelemetryUtil.packet.put("Log filename", fileName);
 
         if (datalogger != null) throw new IllegalStateException("LogUtil was already initialized");

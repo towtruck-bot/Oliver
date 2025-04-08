@@ -39,7 +39,7 @@ public class Arm {
                 "depositClawRotation",
                 nPriorityServo.ServoType.AXON_MAX,
                 0,
-                0.67,
+                1,
                 0.32,
                 new boolean[] {true},
                 1.0,

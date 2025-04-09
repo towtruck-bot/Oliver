@@ -38,21 +38,19 @@ public class nDeposit {
     public HangState hangState = HangState.OFF;
     public boolean holdSlides = false;
 
-    private Robot robot;
-    private Slides slides;
-    private Arm arm;
+    private final Robot robot;
+    private final Slides slides;
+    private final Arm arm;
 
     public static double transferArm = 0.6281, transferClaw = -1.25, transferBufferZ = 11.5, transferZ = 8.7;
     public static double holdArm = -0.889, holdClaw = 0.6477, holdZ = 0.0;
-    public static double raiseArmBufferRotation = -1.8472,  sampleArm = -2.9728, sampleClaw = -0.0563;
-    public static double sampleLZ = 20, sampleHZ = 35.5, speciZ = 18;
+    public static double raiseArmBufferRotation = -1.8472,  sampleArm = -2.6, sampleClaw = -0.0563;
+    public static double sampleLZ = 20, sampleHZ = 35, speciZ = 18, targetZ = sampleHZ;
     public static double outtakeArm = -2.9225, outtakeClaw = -0.00169, outtakeZ = 0.0;
     public static double specimenIntakeArm = -2.9278, specimenIntakeClaw = 0.3436, specimenIntakeZ = 0;
     public static double specimenDepositArm = -0.1, specimenDepositClaw = -1.2;
     private boolean holding = false;
     private long depositStart = 0;
-
-    private double targetZ = sampleHZ;
 
     private boolean requestFinishTransfer = false,
                     transferRequested = false,
@@ -72,10 +70,9 @@ public class nDeposit {
 
     public void update() {
         slides.update();
+        TelemetryUtil.packet.put("Deposit : state", state);
         TelemetryUtil.packet.put("depositState", state);
         LogUtil.depositState.set(this.state.toString());
-        TelemetryUtil.packet.put("Slides Length", slides.getLength());
-        TelemetryUtil.packet.put("Target Slides Length", slides.getTargetLength());
 
         switch (state) {
             case IDLE:
@@ -356,6 +353,10 @@ public class nDeposit {
         if (state == State.SAMPLE_WAIT || state == State.SPECIMEN_RAISE) {
             releaseRequested = true;
         }
+    }
+
+    public boolean isDepositingSample() {
+        return state == State.SAMPLE_RAISE || state == State.SAMPLE_WAIT || state == State.SAMPLE_DEPOSIT;
     }
 
     public boolean isTransferReady() {

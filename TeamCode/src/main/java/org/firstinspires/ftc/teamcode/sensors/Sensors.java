@@ -123,12 +123,12 @@ public class Sensors {
     private void updateTelemetry() {
         TelemetryUtil.packet.put("voltage", voltage);
 
-        TelemetryUtil.packet.put("extendoCurrentPos", getExtendoPos());
-        TelemetryUtil.packet.put("Extendo encoder", this.extendoEncoder);
+        TelemetryUtil.packet.put("Extendo : position", getExtendoPos());
+        TelemetryUtil.packet.put("Extendo : encoder", this.extendoEncoder);
         LogUtil.extendoCurrentPos.set(getExtendoPos());
 
-        TelemetryUtil.packet.put("slidesCurrentPos", getSlidesPos());
-        TelemetryUtil.packet.put("Slides encoder", this.slidesEncoder);
+        TelemetryUtil.packet.put("Slides : position", getSlidesPos());
+        TelemetryUtil.packet.put("Slides : encoder", this.slidesEncoder);
         LogUtil.slidesCurrentPos.set(getSlidesPos());
 
         Pose2d currentPos = getOdometryPosition();

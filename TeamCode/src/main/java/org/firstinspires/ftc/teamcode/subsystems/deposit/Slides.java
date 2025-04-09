@@ -61,8 +61,8 @@ public class Slides {
      */
     private double feedforward() {
         double error = targetLength - length;
-        TelemetryUtil.packet.put("Slides: Error", error);
-        TelemetryUtil.packet.put("slidesTargetPos", targetLength);
+        TelemetryUtil.packet.put("Slides : error", error);
+        TelemetryUtil.packet.put("Slides : targetLength", targetLength);
         LogUtil.slidesTargetPos.set(targetLength);
         //TelemetryUtil.packet.put("Slides: Length", length);
 

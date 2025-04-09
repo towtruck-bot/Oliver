@@ -30,8 +30,8 @@ public class nClawIntake {
 
     public static double transferRotation = 0;
     public static double hoverAngle = 2.0515;
-    public static double turretBufferAngle = 0.8, turretRetractedAngle = 1.15, turretSearchAngle = 1.65, turretTransferPos = 0.07, turretGrabAngle = 2.5133;
-    public static double turretPreRotation = 0.3, turretTransferRotation = 0, turretGrabRotation = 0.0;
+    public static double turretBufferAngle = 0.7, turretRetractedAngle = 1.15, turretSearchAngle = 1.65, turretTransferPos = 0.07, turretGrabAngle = 2.5133;
+    public static double turretPreRotation = 0.3, turretTransferRotation = 0;
     public static double turretPastSidePlatesRotation = 1.7;
     public static double minExtension = 11;
     private long hoverStart = 0;
@@ -142,7 +142,7 @@ public class nClawIntake {
                 intakeTurret.setTurretRotation(turretPastSidePlatesRotation);
                 intakeTurret.setClawRotation(0);
 
-                if (intakeTurret.turretAngInPosition())
+                if (intakeTurret.turretRotInPosition())
                     state = State.FULL_EXTEND;
                 break;
             case FULL_EXTEND:
@@ -230,9 +230,16 @@ public class nClawIntake {
             case GRAB_CLOSE:
                 aimAtTarget();
 
+                if (grabMethod == GrabMethod.MANUAL_AIM) {
+                    sampleStatus = grab;
+                    intakeTurret.setClawState(grab);
+                    if (intakeTurret.clawInPosition()) intakeTurret.setTurretArmTarget(hoverAngle);
+                    if (!grab) state = State.HOVER;
+                    break;
+                }
+
                 if (psReads >= 35) {
-                    if (!retryGrab)
-                        grab = false;
+                    if (!retryGrab) grab = false;
                     if (grabMethod.useCamera) {
                         state = State.SEARCH;
                         robot.vision.startDetection();
@@ -371,11 +378,6 @@ public class nClawIntake {
         updateTelemetry();
     }
 
-    // TODO: Determine minMaxClips for setters
-    public void setTurretGrabRot(double t) {
-        turretGrabRotation = t;
-    }
-
     public void finishTransfer() {
         finishTransferRequest = state == State.TRANSFER_WAIT;
     }
@@ -396,13 +398,20 @@ public class nClawIntake {
         extendRequest = true;
     }
 
+    public boolean isOut() {
+        return state == State.SEARCH || state == State.HOVER || state == State.LOWER ||  state == State.GRAB_CLOSE;
+    }
+
     public boolean isExtended() {
-        return (state == State.SEARCH || state == State.HOVER || state == State.LOWER ||  state == State.GRAB_CLOSE) && intakeTurret.extendoInPosition();
+        return isOut() && intakeTurret.extendoInPosition();
     }
 
     public void retract() {
-        if (state != State.READY)
+        if (state != State.READY) {
             this.state = State.START_RETRACT;
+            intakeLight.setState(false);
+            if (grab && grabMethod == GrabMethod.MANUAL_AIM) robot.ndeposit.startTransfer();
+        }
     }
 
     public boolean isRetracted() {
@@ -443,14 +452,14 @@ public class nClawIntake {
     }
     public double getManualTurretAngle() { return this.manualTurretAngle; }
     public void setManualTurretAngle(double targetPos) {
-        if (targetPos < -1.8) targetPos = 1.8;
-        else if (targetPos > 1.8) targetPos = -1.8;
+        while (targetPos < -1.8) targetPos += 1.8 * 2;
+        while (targetPos > 1.8) targetPos -= 1.8 * 2;
         this.manualTurretAngle = targetPos;
     }
     public double getManualClawAngle() { return this.manualClawAngle; }
     public void setManualClawAngle(double targetPos) {
-        if (targetPos < -1.8) targetPos = 1.8;
-        else if (targetPos > 1.8) targetPos = -1.8;
+        while (targetPos < -1.8) targetPos += 1.8 * 2;
+        while (targetPos > 1.8) targetPos -= 1.8 * 2;
         this.manualClawAngle = targetPos;
     }
 
@@ -468,15 +477,18 @@ public class nClawIntake {
 //    public void forcePullIn() { forcePull = true; }
 
     public void updateTelemetry() {
-        TelemetryUtil.packet.put("ClawIntake clawRotation angle", intakeTurret.getClawRotation());
-        TelemetryUtil.packet.put("ClawIntake manualTurretAngle", manualTurretAngle);
-        TelemetryUtil.packet.put("ClawIntake manualClawAngle", manualClawAngle);
-        TelemetryUtil.packet.put("ClawIntake grab", grab);
-        TelemetryUtil.packet.put("ClawIntake State", this.state);
+        TelemetryUtil.packet.put("ClawIntake : clawRotation angle", intakeTurret.getClawRotation());
+        TelemetryUtil.packet.put("ClawIntake : manualTurretAngle", manualTurretAngle);
+        TelemetryUtil.packet.put("ClawIntake : manualClawAngle", manualClawAngle);
+        TelemetryUtil.packet.put("ClawIntake : grab", grab);
+        TelemetryUtil.packet.put("ClawIntake : grabMethod", grabMethod);
+        TelemetryUtil.packet.put("ClawIntake : targetType", targetType);
+        TelemetryUtil.packet.put("ClawIntake : state", this.state);
+        TelemetryUtil.packet.put("intakeState", this.state);
         LogUtil.intakeState.set(this.state.toString());
-        TelemetryUtil.packet.put("LL Target X", target.x);
-        TelemetryUtil.packet.put("LL Target Y", target.y);
-        TelemetryUtil.packet.put("LL Target Heading", target.heading);
+        TelemetryUtil.packet.put("LL : Target X", target.x);
+        TelemetryUtil.packet.put("LL : Target Y", target.y);
+        TelemetryUtil.packet.put("LL : Target Heading", target.heading);
 
     }
 

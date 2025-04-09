@@ -40,11 +40,10 @@ public class SamplePreloadBlueAuto extends LinearOpMode {
 
         robot.ndeposit.state = nDeposit.State.HOLD;
         robot.nclawIntake.setGrabMethod(nClawIntake.GrabMethod.MANUAL_TARGET);
+        robot.ndeposit.presetDepositHeight(false, true);
 
         while (opModeInInit() && !isStopRequested()) {
             robot.sensors.setOdometryPosition(48.0 - Globals.ROBOT_REVERSE_LENGTH, 72.0 - Globals.ROBOT_WIDTH / 2, Math.PI);
-            // robot.updateDepositHeights(false, true);
-
             robot.update();
         }
 

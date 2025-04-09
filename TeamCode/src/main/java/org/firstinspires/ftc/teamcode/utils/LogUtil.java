@@ -11,12 +11,32 @@ import java.util.Locale;
 public class LogUtil {
     private static Datalogger datalogger = null;
 
+    public static class StateField extends Datalogger.LoggableField {
+        private String value = "";
+
+        public StateField(String name) { super(name); }
+
+        @Override
+        public void writeToBuffer(StringBuilder out) { out.append(value); }
+
+        public void set(String newValue) {
+            if (!newValue.equals(value)) {
+                TelemetryUtil.packet.put("LogUtil : stateTransition", name + "," + value);
+                LogUtil.stateTransition = true;
+            }
+            value = newValue;
+        }
+
+        @Override
+        public String toString() { return value; }
+    }
+
     // These are all of the fields that we want in the datalog.
     // Note that order here is NOT important. The order is important in the setFields() call below
     //public static Datalogger.GenericField loopTime = new Datalogger.GenericField("loopTime");
     public static Datalogger.GenericField robotState = new Datalogger.GenericField("robotState");
-    public static Datalogger.GenericField intakeState = new Datalogger.GenericField("intakeState");
-    public static Datalogger.GenericField depositState = new Datalogger.GenericField("depositState");
+    public static StateField intakeState = new StateField("intakeState");
+    public static StateField depositState = new StateField("depositState");
     public static Datalogger.GenericField extendoCurrentPos = new Datalogger.GenericField("extendoCurrentPos");
     public static Datalogger.GenericField extendoTargetPos = new Datalogger.GenericField("extendoTargetPos");
     public static Datalogger.GenericField intakeClawRotationAngle = new Datalogger.GenericField("intakeClawRotationAngle");
@@ -50,7 +70,7 @@ public class LogUtil {
         String fileName = "Log_" + timeNow + "_"
             + new SimpleDateFormat("yyyy-MM-dd_HH.mm.ss", Locale.US).format(new Date(timeNow))
             + "_CAT6_" + Globals.RUNMODE.toString();
-        TelemetryUtil.packet.put("Log filename", fileName);
+        TelemetryUtil.packet.put("LogUtil : filename", fileName);
 
         if (datalogger != null) throw new IllegalStateException("LogUtil was already initialized");
         if (DISABLED) return;
@@ -91,6 +111,7 @@ public class LogUtil {
             datalogger.writeLine();
             loopCountBeforeWrite = 25;
             stateTransition = false;
+            TelemetryUtil.packet.put("LogUtil : stateTransition", "[ none ]");
         }
     }
 }

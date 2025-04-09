@@ -17,7 +17,8 @@ import org.firstinspires.ftc.teamcode.utils.Vector3;
 public class MaxSpeedYoinker extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
-        Globals.RUNMODE = RunMode.AUTO;
+        Globals.RUNMODE = RunMode.TESTER;
+        Globals.TESTING_DISABLE_CONTROL = false;
         Robot robot = new Robot(hardwareMap);
         robot.setAbortChecker(() -> !isStopRequested());
         double maxXSpeed = 0;

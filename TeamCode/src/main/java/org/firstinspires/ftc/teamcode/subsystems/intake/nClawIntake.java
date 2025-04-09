@@ -4,6 +4,7 @@ import android.util.Log;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
+import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.subsystems.deposit.nDeposit;
@@ -28,16 +29,15 @@ public class nClawIntake {
 
     // turretBufferAng -> angle that allows for any rotation to occur with the turret still inside the robot. use in any retract/extend states
 
-    public static double transferRotation = 0;
+    public static double transferClawRotation = 0;
     public static double hoverAngle = 2.0515;
-    public static double turretBufferAngle = 0.7, turretRetractedAngle = 1.15, turretSearchAngle = 1.65, turretTransferPos = 0.07, turretGrabAngle = 2.5133;
-    public static double turretPreRotation = 0.3, turretTransferRotation = 0;
-    public static double turretPastSidePlatesRotation = 1.7;
-    public static double minExtension = 11;
+    public static double turretRetractedAngle = -0.3769, turretSearchAngle = 1.65, turretTransferAngle = 0.0613, turretGrabAngle = 2.5133;
+    public static double turretTransferRotation = 3.165;
+    public static double minExtension = 2; // What we require before giving full range of motion
     private long hoverStart = 0;
     public static double hoverDelay = 150;
     public static double transferExtension = 0;
-    public static double turretSearchRotation = 3.14;
+    public static double turretSearchRotation = 3.165;
 
     private boolean grab = false;
     private boolean sampleStatus = false;
@@ -78,9 +78,6 @@ public class nClawIntake {
     }
 
     public enum State {
-        START_EXTEND,
-        MID_EXTEND,
-        FULL_EXTEND,
         SEARCH,
         HOVER,
         LOWER,
@@ -118,7 +115,7 @@ public class nClawIntake {
     //general update for entire class
     public void update() {
         switch (state) {
-            case START_EXTEND:
+            /*case START_EXTEND:
                 // Pre-rotate the turret + claw servos
                 intakeTurret.setIntakeExtension(minExtension);
                 intakeTurret.setTurretArmTarget(turretBufferAngle);
@@ -168,7 +165,7 @@ public class nClawIntake {
                         state = State.HOVER;
                     }
                 }
-                break;
+                break;*/
             case SEARCH:
                 aimAtKnown();
 
@@ -222,7 +219,7 @@ public class nClawIntake {
                 intakeTurret.setClawState(false);
 
                 // everything in position before grabbing
-                if (intakeTurret.inPosition(Math.toRadians(5))) {
+                if (intakeTurret.inPosition(Math.toRadians(2))) {
                     consecutivePSPositives = psReads = 0;
                     state = State.GRAB_CLOSE;
                 }
@@ -279,14 +276,14 @@ public class nClawIntake {
             case START_RETRACT:
                 // Get the arm in a proper angle for a full retract
                 intakeTurret.setIntakeExtension(minExtension);
-                intakeTurret.setClawRotation(transferRotation);
-                intakeTurret.setTurretArmTarget(turretBufferAngle);
+                intakeTurret.setClawRotation(transferClawRotation);
+                intakeTurret.setTurretArmTarget(turretTransferAngle);
                 intakeTurret.setTurretRotation(turretTransferRotation);
 
                 intakeTurret.setClawState(grab);
 
                 // if grab failed go back to search
-                if (intakeTurret.turretAngInPosition(Math.toRadians(20)) && intakeTurret.turretRotInPosition(Math.toRadians(20))) {
+                if (intakeTurret.turretAngInPosition(Math.toRadians(30)) && intakeTurret.turretRotInPosition(Math.toRadians(30))) {
                     // If we have a sample, transfer otherwise just retract into it
                     if (sampleStatus)
                         state = State.TRANSFER_WAIT;
@@ -300,7 +297,7 @@ public class nClawIntake {
             case RETRACT:
                 // full retract into transfer
                 intakeTurret.setIntakeExtension(0.0);
-                intakeTurret.setClawRotation(transferRotation);
+                intakeTurret.setClawRotation(transferClawRotation);
                 intakeTurret.setTurretArmTarget(turretRetractedAngle);
                 intakeTurret.setTurretRotation(turretTransferRotation);
 
@@ -313,35 +310,35 @@ public class nClawIntake {
                 }
 
                 if (extendRequest) {
-                    state = State.START_EXTEND;
+                    doExtend();
                     extendRequest = false;
                 }
                 break;
             case READY:
                 // hold in start position, everything tucked in while moving so defense can be played. no sample ver
                 intakeTurret.setIntakeExtension(0.0);
-                intakeTurret.setClawRotation(transferRotation);
+                intakeTurret.setClawRotation(transferClawRotation);
                 intakeTurret.setTurretArmTarget(turretRetractedAngle);
                 intakeTurret.setTurretRotation(turretTransferRotation);
 
                 intakeTurret.setClawState(false);
 
                 if (extendRequest) {
-                    state = State.START_EXTEND;
+                    doExtend();
                     extendRequest = false;
                 }
                 break;
             case TRANSFER_WAIT:
                 // hold in transfer position
                 intakeTurret.setIntakeExtension(transferExtension);
-                intakeTurret.setClawRotation(transferRotation);
-                intakeTurret.turretArm.setTargetPos(turretTransferPos);
+                intakeTurret.setClawRotation(transferClawRotation);
+                intakeTurret.setTurretArmTarget(turretTransferAngle);
                 intakeTurret.setTurretRotation(turretTransferRotation);
 
                 intakeTurret.setClawState(true);
 
                 if (extendRequest) {
-                    state = State.START_EXTEND;
+                    doExtend();
                     extendRequest = false;
                 }
                 // Complete transfer can only be called in TRANSFER_WAIT, must have everything correct
@@ -355,8 +352,8 @@ public class nClawIntake {
                 break;
             case TRANSFER_END:
                 intakeTurret.setIntakeExtension(transferExtension);
-                intakeTurret.setClawRotation(transferRotation);
-                intakeTurret.turretArm.setTargetPos(turretTransferPos);
+                intakeTurret.setClawRotation(transferClawRotation);
+                intakeTurret.setTurretArmTarget(turretTransferAngle);
                 intakeTurret.setTurretRotation(turretTransferRotation);
 
                 intakeTurret.setClawState(false);
@@ -432,6 +429,7 @@ public class nClawIntake {
     }
 
     public boolean isTransferReady() {
+        RobotLog.e("TSPMO " + intakeTurret.inPosition() + " " + intakeTurret.extendoInPosition() + " " + (state == State.TRANSFER_WAIT));
         return intakeTurret.inPosition() && intakeTurret.extendoInPosition() && state == State.TRANSFER_WAIT;
     }
 
@@ -556,5 +554,17 @@ public class nClawIntake {
 
     public void setRetryGrab(boolean retryGrab) {
         this.retryGrab = retryGrab;
+    }
+
+    private void doExtend() {
+        if (grabMethod.useCamera) {
+            state = State.SEARCH;
+            robot.vision.startDetection();
+            robot.vision.setOffset(robot.nclawIntake.getIntakeRelativeToRobot());
+            intakeLight.setState(true);
+        } else {
+            hoverStart = System.currentTimeMillis();
+            state = State.HOVER;
+        }
     }
 }

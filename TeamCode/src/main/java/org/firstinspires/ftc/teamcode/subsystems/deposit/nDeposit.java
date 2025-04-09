@@ -42,10 +42,10 @@ public class nDeposit {
     private final Slides slides;
     private final Arm arm;
 
-    public static double transferArm = 0.6281, transferClaw = -1.25, transferBufferZ = 11.5, transferZ = 8.7;
-    public static double holdArm = -0.889, holdClaw = 0.6477, holdZ = 0.0;
-    public static double raiseArmBufferRotation = -1.8472,  sampleArm = -2.6, sampleClaw = -0.0563;
-    public static double sampleLZ = 20, sampleHZ = 35, speciZ = 18, targetZ = sampleHZ;
+    public static double transferArm = 0.724, transferClaw = -0.4449, transferBufferZ = 10.9, transferZ = 7;
+    public static double holdArm = -0.4046, holdClaw = -0.3267, holdZ = 0.0;
+    public static double raiseArmBufferRotation = 0.346,  sampleArm = -2.177, sampleClaw = 0.4506;
+    public static double sampleLZ = 20, sampleHZ = 29.2, speciZ = 18, targetZ = sampleHZ;
     public static double outtakeArm = -2.9225, outtakeClaw = -0.00169, outtakeZ = 0.0;
     public static double specimenIntakeArm = -2.9278, specimenIntakeClaw = 0.3436, specimenIntakeZ = 0;
     public static double specimenDepositArm = -0.1, specimenDepositClaw = -1.2;
@@ -151,19 +151,19 @@ public class nDeposit {
                 break;
             case SAMPLE_RAISE:
                 slides.setTargetLength(targetZ);
-                arm.setArmRotation(raiseArmBufferRotation, 0.3);
+                arm.setArmRotation(raiseArmBufferRotation, 1.0);
                 arm.setClawRotation(sampleClaw, 0.3);
 
                 arm.clawClose();
 
-                if (slides.inPosition(1.0)) {
+                if (slides.getLength() >= targetZ - 7) {
                     state = State.SAMPLE_WAIT;
                 }
                 break;
             case SAMPLE_WAIT:
                 slides.setTargetLength(targetZ);
-                arm.setArmRotation(sampleArm, 0.3);
-                arm.setClawRotation(sampleClaw, 0.3);
+                arm.setArmRotation(sampleArm, 1.0);
+                arm.setClawRotation(sampleClaw, 1.0);
 
                 arm.clawClose();
 
@@ -181,7 +181,7 @@ public class nDeposit {
                 if (System.currentTimeMillis() - depositStart > 75)
                     arm.clawOpen();
 
-                if (arm.clawInPosition() && System.currentTimeMillis() - depositStart > 75) {
+                if (arm.clawInPosition() && System.currentTimeMillis() - depositStart > 125) {
                     state = State.RETRACT;
                     holding = false;
                 }
@@ -311,7 +311,7 @@ public class nDeposit {
     public void returnToIdle() { state = State.IDLE; }
 
     public boolean retractReady() {
-        return arm.armRotation.getCurrentAngle() < -0.4;
+        return arm.armRotation.getCurrentAngle() < -0.4 || slides.getLength() >= 3;
     }
 
     public boolean isTransferFinished() {

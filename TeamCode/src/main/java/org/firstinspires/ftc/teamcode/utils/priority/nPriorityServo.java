@@ -21,7 +21,7 @@ public class nPriorityServo extends PriorityDevice {
         AMAZON(0.2122065908, Math.toRadians(60) / 0.13),
         PRO_MODELER(0.32698, Math.toRadians(60) / 0.139),
         JX(0.3183098862, Math.toRadians(60) / 0.12),
-        HITEC(0.2966648, 2.8);
+        HITEC(0.2966648, 6.3);
 
         public final double positionPerRadian;
         public final double speed;
@@ -119,19 +119,17 @@ public class nPriorityServo extends PriorityDevice {
 
     @Override
     protected void update() {
-        Log.e("Priority Servo Log", name + " is moving with power " + power);
-
-        Log.i("SLCI", "Updated " + name);
+        //Log.e("Priority Servo Log", name + " is moving with power " + power);
 
         long currentTime = System.nanoTime();
         double timeSinceLastUpdate = ((double) currentTime - lastUpdateTime)/1.0E9;
 
         double error = targetAngle - currentAngle;
-        Log.e("TTTTTTTTa", timeSinceLastUpdate + " is the time since last update");
-        Log.e("TTTTTTTTa", error + " is the error");
+        //Log.e("TTTTTTTTa", timeSinceLastUpdate + " is the time since last update");
+        //Log.e("TTTTTTTTa", error + " is the error");
         double deltaAngle = timeSinceLastUpdate * type.speed * power * Math.signum(error);
-        Log.e("TTTTTTTTa", deltaAngle + " delta ang");
-        Log.e("TTTTTTTTa", power + " power");
+        //Log.e("TTTTTTTTa", deltaAngle + " delta ang");
+        //Log.e("TTTTTTTTa", power + " power");
 
         currentIntermediateTargetAngle += deltaAngle;
 
@@ -148,8 +146,13 @@ public class nPriorityServo extends PriorityDevice {
             } else {
                 pos = 1 - convertAngleToPos(currentIntermediateTargetAngle);
             }
+            if (type == ServoType.HITEC && pos <= 0.07) {
+                // I kid you not this must happen
+                servos[i].setPosition(0.1);
+                servos[i].setPosition(0.07);
+            }
             servos[i].setPosition(pos);
-            Log.i("SLCI", "Set position of " + name + i + " to position " + pos);
+            //Log.i("SLCI", "Set position of " + name + i + " to position " + pos + " current angle is " + currentAngle);
         }
 
         isUpdated = true;
@@ -172,7 +175,10 @@ public class nPriorityServo extends PriorityDevice {
         double loopTime = ((double) currentTime - lastLoopTime)/1.0E9;
 
         // We actually use this to pretty much just get direction
-        double error = currentIntermediateTargetAngle - currentAngle;
+        double error = targetAngle - currentAngle;
+        //Log.i("SLCI", "currentIntermediateTargetAngle is " + currentIntermediateTargetAngle + " for " + name);
+        //Log.i("SLCI", "currentAngle is " + currentAngle + " for " + name);
+        //Log.i("SLCI", "targetAngle is " + targetAngle + " for " + name);
 
         // How much the servo has moved from the start of the loop to now
         double deltaAngle = loopTime * type.speed * Math.signum(error) * power;
@@ -191,8 +197,12 @@ public class nPriorityServo extends PriorityDevice {
         TelemetryUtil.packet.put("currentPos " + name, currentAngle);
 
         // Clamp
-        if (Math.abs(error) < Math.abs(deltaAngle))
+        //Log.i("SLCI", deltaAngle + " is delta angle for servo " + name);
+        //Log.i("SLCI", error + " is error for servo " + name);
+        if (Math.abs(error) < Math.abs(deltaAngle)) {
+        //    Log.i("SLCI", "Gotcha! " + name);
             currentAngle = targetAngle;
+        }
 
         lastLoopTime = currentTime;
 

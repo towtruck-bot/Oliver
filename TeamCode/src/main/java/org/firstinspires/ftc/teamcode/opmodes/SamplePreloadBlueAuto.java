@@ -19,12 +19,12 @@ public class SamplePreloadBlueAuto extends LinearOpMode {
     private Robot robot;
 
     // Block positions
-    public static double by1 = 26.5, bx1 = 49.7, bx2 = 59.8, by2 = 26.7, bx3 = 69.8, by3 = 26.7;
+    public static double by1 = 27, bx1 = 51.4, bx2 = 60.7, by2 = 27, bx3 = 69.4, by3 = 27.5;
 
     // GP depo positions
-    public static double dx1 = 63, dy1 = 52.7;
-    public static double dx2 = 63, dy2 = 54;
-    public static double dx3 = 66, dy3 = 52.7;
+    public static double dx1 = 63, dy1 = 53.2;
+    public static double dx2 = 63, dy2 = 53.6;
+    public static double dx3 = 66, dy3 = 52.9;
 
     public void runOpMode(){
         Globals.isRed = false;
@@ -58,7 +58,7 @@ public class SamplePreloadBlueAuto extends LinearOpMode {
         // Preload
         robot.goToPoint(
             new Pose2d(dx1, dy1, Math.atan2(by1 - dy1, bx1 - dx1)),
-            () -> !(robot.drivetrain.targetPoint.getDistanceFromPoint(robot.sensors.getOdometryPosition()) < 8),
+            () -> !(robot.drivetrain.targetPoint.getDistanceFromPoint(robot.sensors.getOdometryPosition()) < 11),
             false,
             true,
             1.0

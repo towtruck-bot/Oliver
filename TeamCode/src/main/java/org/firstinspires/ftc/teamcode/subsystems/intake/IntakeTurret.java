@@ -8,6 +8,7 @@ import org.firstinspires.ftc.teamcode.utils.AngleUtil;
 import org.firstinspires.ftc.teamcode.utils.LogUtil;
 import org.firstinspires.ftc.teamcode.utils.Pose2d;
 import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
+import org.firstinspires.ftc.teamcode.utils.Utils;
 import org.firstinspires.ftc.teamcode.utils.Vector2;
 import org.firstinspires.ftc.teamcode.utils.priority.nPriorityServo;
 
@@ -88,7 +89,7 @@ public class IntakeTurret {
     }
 
     // Target is given in robot centric coordinates
-    public static double turretLengthTip = 5.3;
+    public static double turretLengthTip = 4.8;
     public static double turretLengthLL = 2.3;
     public static double extendoOffset = 6;
     public static double stupidConstant = -0.25;
@@ -138,6 +139,9 @@ public class IntakeTurret {
     }
 
     public void setTurretRotation(double t) {
+        if (intakeExtension.getLength() < nClawIntake.minExtension)
+            t = Utils.minMaxClip(t, 2.50419, 3.951);
+
         turretRotation.setTargetAngle(t * (3.524 / Math.PI));
         //turretRotationTarget = t;
         TelemetryUtil.packet.put("intakeTurretRotationAngle", t);

@@ -143,6 +143,7 @@ public class Teleop extends LinearOpMode {
             if (rsb_1.isClicked(gamepad1.right_stick_button)) {
                 if (gamepad1.left_trigger >= triggerHardThresh && gamepad1.right_trigger >= triggerHardThresh) {
                     robot.sensors.setOdometryPosition(0, 48, 0);
+                    LogUtil.drivePositionReset = true;
                 } else {
                     robot.sensors.resetSlidesEncoders();
                 }

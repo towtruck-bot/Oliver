@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.utils;
 
+import androidx.annotation.NonNull;
+
 import com.acmerobotics.dashboard.config.Config;
 
 import java.text.SimpleDateFormat;
@@ -27,6 +29,7 @@ public class LogUtil {
             value = newValue;
         }
 
+        @NonNull
         @Override
         public String toString() { return value; }
     }
@@ -34,7 +37,7 @@ public class LogUtil {
     // These are all of the fields that we want in the datalog.
     // Note that order here is NOT important. The order is important in the setFields() call below
     //public static Datalogger.GenericField loopTime = new Datalogger.GenericField("loopTime");
-    public static Datalogger.GenericField robotState = new Datalogger.GenericField("robotState");
+    //public static Datalogger.GenericField robotState = new Datalogger.GenericField("robotState");
     public static StateField intakeState = new StateField("intakeState");
     public static StateField depositState = new StateField("depositState");
     public static Datalogger.GenericField extendoCurrentPos = new Datalogger.GenericField("extendoCurrentPos");
@@ -56,6 +59,7 @@ public class LogUtil {
 
     public static boolean DISABLED = false;
     public static boolean stateTransition = false;
+    public static boolean drivePositionReset = false;
 
     public static void reset() {
         if (datalogger != null) {
@@ -107,10 +111,12 @@ public class LogUtil {
     public static void send() {
         if (datalogger == null) return;
         --loopCountBeforeWrite;
-        if (loopCountBeforeWrite <= 0 || stateTransition) {
+        if (loopCountBeforeWrite <= 0 || stateTransition || drivePositionReset) {
+            if (drivePositionReset) driveState.set("[reset]");
             datalogger.writeLine();
             loopCountBeforeWrite = 25;
             stateTransition = false;
+            drivePositionReset = false;
             TelemetryUtil.packet.put("LogUtil : stateTransition", "[ none ]");
         }
     }

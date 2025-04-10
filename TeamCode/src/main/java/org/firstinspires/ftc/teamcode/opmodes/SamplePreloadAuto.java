@@ -13,17 +13,17 @@ import org.firstinspires.ftc.teamcode.utils.LogUtil;
 import org.firstinspires.ftc.teamcode.utils.Pose2d;
 import org.firstinspires.ftc.teamcode.utils.RunMode;
 
-@Autonomous(name = "SamplePreloadBlueAuto", preselectTeleOp = "A. Teleop")
+@Autonomous(name = "Sample Auto", preselectTeleOp = "A. Teleop")
 @Config
-public class SamplePreloadBlueAuto extends LinearOpMode {
+public class SamplePreloadAuto extends LinearOpMode {
     private Robot robot;
 
     // Block positions
-    public static double by1 = 27, bx1 = 51.4, bx2 = 60.7, by2 = 27, bx3 = 69.4, by3 = 27.5;
+    public static double by1 = 27, bx1 = 50.4, bx2 = 59.2, by2 = 27, bx3 = 69.4, by3 = 27;
 
     // GP depo positions
     public static double dx1 = 63, dy1 = 53.2;
-    public static double dx2 = 63, dy2 = 53.6;
+    public static double dx2 = 63.5, dy2 = 53.9;
     public static double dx3 = 66, dy3 = 52.9;
 
     public void runOpMode(){
@@ -41,31 +41,38 @@ public class SamplePreloadBlueAuto extends LinearOpMode {
         robot.ndeposit.state = nDeposit.State.HOLD;
         robot.nclawIntake.setGrabMethod(nClawIntake.GrabMethod.MANUAL_TARGET);
         robot.ndeposit.presetDepositHeight(false, true);
+        robot.nclawIntake.setGrab(false);
+        robot.nclawIntake.setTargetType(nClawIntake.Target.MANUAL);
+        robot.nclawIntake.setRetryGrab(true);
+        robot.nclawIntake.setTargetType(nClawIntake.Target.GLOBAL);
 
         while (opModeInInit() && !isStopRequested()) {
             robot.sensors.setOdometryPosition(48.0 - Globals.ROBOT_REVERSE_LENGTH, 72.0 - Globals.ROBOT_WIDTH / 2, Math.PI);
             robot.update();
         }
 
-        robot.ndeposit.startSampleDeposit();
-        robot.nclawIntake.setGrab(false);
-        robot.nclawIntake.setTargetType(nClawIntake.Target.GLOBAL);
-        robot.nclawIntake.setTargetPose(new Pose2d(bx1, by1, Math.PI / 2));
-        robot.nclawIntake.setRetryGrab(true);
-
         Globals.autoStartTime = System.currentTimeMillis();
 
         // Preload
-        robot.goToPoint(
+        robot.ndeposit.startSampleDeposit();
+        robot.drivetrain.goToPoint(
             new Pose2d(dx1, dy1, Math.atan2(by1 - dy1, bx1 - dx1)),
-            () -> !(robot.drivetrain.targetPoint.getDistanceFromPoint(robot.sensors.getOdometryPosition()) < 11),
             false,
             true,
             1.0
         );
+        //robot.nclawIntake.setTargetPose(new Pose2d(bx1, by1, Math.PI / 2));
+        robot.nclawIntake.setExtendoTargetPos(12);
+        robot.nclawIntake.setManualTurretAngle(nClawIntake.hoverAngle);
+        robot.nclawIntake.setTargetType(nClawIntake.Target.MANUAL);
         robot.nclawIntake.extend();
-        robot.waitWhile(() -> robot.drivetrain.isBusy() || !robot.ndeposit.isDepositReady());
 
+        robot.update(); // Sigh.. - Eric
+        robot.waitWhile(() -> !robot.nclawIntake.isExtended());
+        robot.nclawIntake.setTargetPose(new Pose2d(bx1, by1, Math.PI / 2));
+        robot.nclawIntake.setTargetType(nClawIntake.Target.GLOBAL);
+
+        robot.waitWhile(() -> !robot.ndeposit.isDepositReady() || robot.drivetrain.isBusy());
         robot.ndeposit.deposit();
         robot.waitWhile(() -> !robot.ndeposit.isDepositFinished());
 
@@ -81,7 +88,7 @@ public class SamplePreloadBlueAuto extends LinearOpMode {
             true,
             1.0
         );
-        robot.waitWhile(() -> !robot.nclawIntake.isTransferReady() || !robot.ndeposit.isTransferReady());
+        robot.waitWhile(() -> !robot.nclawIntake.isTransferReady() || !robot.ndeposit.isTransferReady() || true);
         robot.ndeposit.startSampleDeposit(); // This effectively buffers it
         robot.nclawIntake.finishTransfer();
         robot.ndeposit.finishTransfer();

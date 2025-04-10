@@ -15,7 +15,7 @@ public class nPriorityServo extends PriorityDevice {
         TORQUE(0.2162104887, Math.toRadians(60) / 0.25),
         SPEED(0.2162104887, Math.toRadians(60) / 0.11),
         SUPER_SPEED(0.2162104887, Math.toRadians(60) / 0.055),
-        AXON_MINI(1 / Math.toRadians(305), 5.6403953024772129),
+        AXON_MINI(1 / Math.toRadians(305), 5.3403953024772129),
         AXON_MAX(0.1775562245447108, 6.5830247235911042),
         AXON_MICRO(0.1775562245447108, 6.5830247235911042),  // TODO need to tune
         AMAZON(0.2122065908, Math.toRadians(60) / 0.13),
@@ -64,6 +64,11 @@ public class nPriorityServo extends PriorityDevice {
         this.basePos = basePos;
         this.reversed = reversed;
         this.currentAngle = convertPosToAngle(basePos);
+        if (type == ServoType.HITEC) { // I actually dislike this servo so much
+            servos[0].setPosition(1.0);
+            servos[0].setPosition(0.0);
+            servos[0].setPosition(basePos);
+        }
     }
 
     private double convertPosToAngle(double pos) {

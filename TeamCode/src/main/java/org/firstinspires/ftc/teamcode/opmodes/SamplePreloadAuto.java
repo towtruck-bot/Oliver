@@ -63,7 +63,6 @@ public class SamplePreloadAuto extends LinearOpMode {
         );
         //robot.nclawIntake.setTargetPose(new Pose2d(bx1, by1, Math.PI / 2));
         robot.nclawIntake.setExtendoTargetPos(12);
-        robot.nclawIntake.setManualTurretAngle(nClawIntake.hoverAngle);
         robot.nclawIntake.setTargetType(nClawIntake.Target.MANUAL);
         robot.nclawIntake.extend();
 

@@ -114,7 +114,7 @@ public class LogUtil {
         if (loopCountBeforeWrite <= 0 || stateTransition || drivePositionReset) {
             if (drivePositionReset) driveState.set("[reset]");
             datalogger.writeLine();
-            loopCountBeforeWrite = 25;
+            loopCountBeforeWrite = 10;
             stateTransition = false;
             drivePositionReset = false;
             TelemetryUtil.packet.put("LogUtil : stateTransition", "[ none ]");

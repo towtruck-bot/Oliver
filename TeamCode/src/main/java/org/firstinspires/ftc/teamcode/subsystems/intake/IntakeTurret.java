@@ -21,8 +21,8 @@ public class IntakeTurret {
     private double targetLength, clawRotationTarget, turretArmTarget, turretRotationTarget;
 
     private boolean closed;
-    public static double clawOpenAngle = 0.0958;
-    public static double clawCloseAngle = 1.219;
+    public static double clawOpenAngle = 0.0;
+    public static double clawCloseAngle = 1.3;
 
     public IntakeTurret(Robot robot) {
         this.robot = robot;
@@ -33,7 +33,7 @@ public class IntakeTurret {
                 new Servo[] {robot.hardwareMap.get(Servo.class, "intakeClaw")},
                 "intakeClaw",
                 nPriorityServo.ServoType.AXON_MINI,
-                0.46, 0.75, 0.47,
+                0.492, 0.755, 0.492,
                 new boolean[] {false},
                 1.0, 5
         );

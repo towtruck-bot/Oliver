@@ -10,6 +10,7 @@ import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.subsystems.intake.nClawIntake;
 import org.firstinspires.ftc.teamcode.utils.ButtonToggle;
 import org.firstinspires.ftc.teamcode.utils.Globals;
+import org.firstinspires.ftc.teamcode.utils.LogUtil;
 import org.firstinspires.ftc.teamcode.utils.Pose2d;
 import org.firstinspires.ftc.teamcode.utils.RunMode;
 import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
@@ -30,8 +31,10 @@ public class IntakeWithLL extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
-        Globals.RUNMODE = RunMode.AUTO;
+        Globals.RUNMODE = RunMode.TESTER;
+        Globals.TESTING_DISABLE_CONTROL = false;
         Robot robot = new Robot(hardwareMap);
+        LogUtil.init();
 
         robot.drivetrain.setPoseEstimate(new Pose2d(0, 0, 0));
 

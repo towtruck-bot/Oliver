@@ -15,13 +15,13 @@ public class nPriorityServo extends PriorityDevice {
         TORQUE(0.2162104887, Math.toRadians(60) / 0.25),
         SPEED(0.2162104887, Math.toRadians(60) / 0.11),
         SUPER_SPEED(0.2162104887, Math.toRadians(60) / 0.055),
-        AXON_MINI(1 / Math.toRadians(305), 6.2),
+        AXON_MINI(1 / Math.toRadians(305), 5.6403953024772129),
         AXON_MAX(0.1775562245447108, 6.5830247235911042),
         AXON_MICRO(0.1775562245447108, 6.5830247235911042),  // TODO need to tune
         AMAZON(0.2122065908, Math.toRadians(60) / 0.13),
         PRO_MODELER(0.32698, Math.toRadians(60) / 0.139),
         JX(0.3183098862, Math.toRadians(60) / 0.12),
-        HITEC(0.2966648, 6.3);
+        HITEC(0.2966648, 5.2);
 
         public final double positionPerRadian;
         public final double speed;

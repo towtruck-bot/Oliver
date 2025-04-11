@@ -31,7 +31,7 @@ public class nClawIntake {
 
     public static double transferClawRotation = 0;
     public static double hoverAngle = 0.0061;
-    public static double turretRetractedAngle = 2.4345, turretSearchAngle = 0.4076, turretTransferAngle = 1.9431, turretGrabAngle = -0.4557;
+    public static double turretRetractedAngle = 2.4345, turretSearchAngle = 0.625, turretTransferAngle = 1.9431, turretGrabAngle = -0.4557;
     public static double turretTransferRotation = 3.165;
     public static double minExtension = 2; // What we require before giving full range of motion
     private long hoverStart = 0;

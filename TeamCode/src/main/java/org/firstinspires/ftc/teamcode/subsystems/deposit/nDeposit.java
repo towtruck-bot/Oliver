@@ -39,7 +39,7 @@ public class nDeposit {
     public boolean holdSlides = false;
 
     private final Robot robot;
-    private final Slides slides;
+    public final Slides slides;
     private final Arm arm;
 
     public static double transferArm = 0.4578, transferClaw = -0.9, transferBufferZ = 10.9, transferZ = 6.8;

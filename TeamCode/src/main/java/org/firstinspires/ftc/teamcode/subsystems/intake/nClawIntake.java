@@ -430,7 +430,7 @@ public class nClawIntake {
 
     public boolean isTransferReady() {
         RobotLog.e("TSPMO " + intakeTurret.inPosition() + " " + intakeTurret.extendoInPosition() + " " + (state == State.TRANSFER_WAIT));
-        return intakeTurret.inPosition() && intakeTurret.extendoInPosition() && state == State.TRANSFER_WAIT;
+        return intakeTurret.inPosition() && state == State.TRANSFER_WAIT;
     }
 
     /*public void release() {

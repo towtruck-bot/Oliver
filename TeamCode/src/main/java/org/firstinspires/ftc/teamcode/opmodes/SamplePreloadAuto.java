@@ -87,7 +87,7 @@ public class SamplePreloadAuto extends LinearOpMode {
             true,
             1.0
         );
-        robot.waitWhile(() -> !robot.nclawIntake.isTransferReady() || !robot.ndeposit.isTransferReady() || true);
+        robot.waitWhile(() -> !robot.nclawIntake.isTransferReady());
         robot.ndeposit.startSampleDeposit(); // This effectively buffers it
         robot.nclawIntake.finishTransfer();
         robot.ndeposit.finishTransfer();

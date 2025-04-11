@@ -35,8 +35,9 @@ public class Teleop extends LinearOpMode {
         // Gamepad 1
         ButtonToggle lb_1 = new ButtonToggle();
         ButtonToggle rb_1 = new ButtonToggle();
-        ButtonToggle x_1 = new ButtonToggle();
         ButtonToggle b_1 = new ButtonToggle();
+        ButtonToggle x_1 = new ButtonToggle();
+        ButtonToggle y_1 = new ButtonToggle();
         ButtonToggle lsb_1 = new ButtonToggle();
         ButtonToggle rsb_1 = new ButtonToggle();
 
@@ -51,6 +52,7 @@ public class Teleop extends LinearOpMode {
         boolean speciMode = false;
         boolean intakeMode = false;
         boolean high = true;
+        boolean autoGrab = false;
 
         while (opModeInInit()) {
             robot.update();
@@ -60,24 +62,30 @@ public class Teleop extends LinearOpMode {
         while (!isStopRequested()) {
             robot.update();
 
-            robot.nclawIntake.setGrabMethod(nClawIntake.GrabMethod.MANUAL_AIM);
-            robot.nclawIntake.setTargetType(nClawIntake.Target.MANUAL);
+            if (autoGrab) {
+                robot.nclawIntake.setGrabMethod(nClawIntake.GrabMethod.AUTOGRAB);
+                robot.nclawIntake.setTargetType(nClawIntake.Target.RELATIVE);
+            } else {
+                robot.nclawIntake.setGrabMethod(nClawIntake.GrabMethod.MANUAL_AIM);
+                robot.nclawIntake.setTargetType(nClawIntake.Target.MANUAL);
+            }
             robot.nclawIntake.setRetryGrab(false);
 
-            // Toggle Specimen/Sample Deposit Mode
-            if (x_1.isClicked(gamepad1.x)) {
-                speciMode = !speciMode;
-                robot.ndeposit.presetDepositHeight(speciMode, high);
-            }
-            if (b_2.isClicked(gamepad2.b)) {
+            if (x_1.isClicked(gamepad1.x) || b_2.isClicked(gamepad2.b)) {
                 speciMode = !speciMode;
                 intakeMode = false;
                 robot.ndeposit.presetDepositHeight(speciMode, high);
+                if (speciMode) gamepad1.rumble(250);
+                else gamepad1.rumble(100);
             }
-            // Toggle High/Low Deposit
             if (b_1.isClicked(gamepad1.b)) {
                 high = !high;
                 robot.ndeposit.presetDepositHeight(speciMode, high);
+            }
+            if (y_1.isClicked(gamepad1.y)) {
+                autoGrab = !autoGrab;
+                if (autoGrab) gamepad1.rumble(250);
+                else gamepad1.rumble(100);
             }
             if (lsb_1.isClicked(gamepad1.left_stick_button)) {
                 intakeMode = !intakeMode && !speciMode;
@@ -185,34 +193,31 @@ public class Teleop extends LinearOpMode {
             if (-gamepad2.right_stick_y <= -triggerThresh) --hangLeftDir;
             if (-gamepad2.left_stick_y >= triggerThresh) ++hangRightDir;
             if (-gamepad2.left_stick_y <= -triggerThresh) --hangRightDir;
-
             if (gamepad2.y) { ++hangLeftDir; ++hangRightDir; }
             if (gamepad2.a) { --hangLeftDir; --hangRightDir; }
 
             if (hangLeftDir > 0) robot.hang.leftUp();
             else if (hangLeftDir < 0) robot.hang.leftPull();
             else robot.hang.leftOff();
-
             if (hangRightDir > 0) robot.hang.rightUp();
             else if (hangRightDir < 0) robot.hang.rightPull();
             else robot.hang.rightOff();
-
             if (gamepad2.right_bumper) robot.hang.l3Pull();
             else if (gamepad2.left_bumper) robot.hang.l3Up();
             else robot.hang.l3Off();
-
             if (gamepad2.right_trigger >= triggerHardThresh) {
                 robot.ndeposit.hangState = nDeposit.HangState.PULL;
             } else if (gamepad2.left_trigger >= triggerHardThresh || gamepad1.touchpad) {
                 robot.ndeposit.hangState = nDeposit.HangState.OUT;
             }
 
-            // Used to keep intake extendo in during hang
+            // Used to keep extendo in during hang
             if (gamepad1.back || gamepad2.back) robot.nclawIntake.intakeTurret.intakeExtension.forcePullIn();
 
             telemetry.addData("speciMode", speciMode);
             telemetry.addData("intakeMode", intakeMode);
             telemetry.addData("high", high);
+            telemetry.addData("autoGrab", autoGrab);
             telemetry.addData("Intake target pos", robot.nclawIntake.getExtendoTargetPos());
             telemetry.addData("Deposit height", robot.ndeposit.getDepositHeight());
             telemetry.addData("isRed", Globals.isRed);

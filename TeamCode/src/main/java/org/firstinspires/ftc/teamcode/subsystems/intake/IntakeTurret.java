@@ -52,8 +52,8 @@ public class IntakeTurret {
         turretArm = new nPriorityServo(
                 new Servo[] {robot.hardwareMap.get(Servo.class, "intakeTurretArm")},
                 "intakeTurretArm",
-                nPriorityServo.ServoType.HITEC,
-                0, 1, 0.1118,
+                nPriorityServo.ServoType.AXON_MAX,
+                0, 1, 0.179,
                 new boolean[] {false},
                 1.0, 5
         );

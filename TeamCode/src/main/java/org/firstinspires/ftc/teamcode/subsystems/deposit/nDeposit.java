@@ -42,7 +42,7 @@ public class nDeposit {
     public final Slides slides;
     private final Arm arm;
 
-    public static double transferArm = 0.4578, transferClaw = -0.7434, transferBufferZ = 10.9, transferZ = 7.5;
+    public static double transferArm = 0.4578, transferClaw = -0.9, transferBufferZ = 10.9, transferZ = 7.5;
     public static double holdArm = -0.4646, holdClaw = -0.6533, holdZ = 0.0;
     public static double raiseArmBufferRotation = 0.346,  sampleArm = -2.177, sampleClaw = 0.4506;
     public static double sampleLZ = 20, sampleHZ = 29.2, speciZ = 18, targetZ = sampleHZ;

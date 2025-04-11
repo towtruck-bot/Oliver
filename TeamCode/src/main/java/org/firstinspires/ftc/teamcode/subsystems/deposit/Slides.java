@@ -77,6 +77,7 @@ public class Slides {
     public void update() {
         length = this.robot.sensors.getSlidesPos();
         vel = this.robot.sensors.getSlidesVel();
+        TelemetryUtil.packet.put("Slides: Velocity", vel);
 
         if (!manualMode) {
 //            if (!(Globals.RUNMODE == RunMode.TESTER)) {
@@ -117,5 +118,9 @@ public class Slides {
 
     public double getTargetLength(){
         return targetLength;
+    }
+
+    public double getVel() {
+        return vel;
     }
 }

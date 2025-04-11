@@ -42,15 +42,17 @@ public class nDeposit {
     public final Slides slides;
     private final Arm arm;
 
-    public static double transferArm = 0.4578, transferClaw = -1, transferBufferZ = 10.9, transferZ = 6.8;
-    public static double holdArm = -0.4046, holdClaw = -0.3267, holdZ = 0.0;
+    public static double transferArm = 0.4578, transferClaw = -0.7434, transferBufferZ = 10.9, transferZ = 7.5;
+    public static double holdArm = -0.4646, holdClaw = -0.6533, holdZ = 0.0;
     public static double raiseArmBufferRotation = 0.346,  sampleArm = -2.177, sampleClaw = 0.4506;
     public static double sampleLZ = 20, sampleHZ = 29.2, speciZ = 18, targetZ = sampleHZ;
     public static double outtakeArm = -2.9225, outtakeClaw = -0.00169, outtakeZ = 0.0;
     public static double specimenIntakeArm = -2.9278, specimenIntakeClaw = 0.3436, specimenIntakeZ = 0;
     public static double specimenDepositArm = -0.1, specimenDepositClaw = -1.2;
+    public static double minVel = 1.25;
     private boolean holding = false;
     private long depositStart = 0;
+    private double slidesVelWeightedAvg = 0;
 
     private boolean requestFinishTransfer = false,
                     transferRequested = false,
@@ -95,8 +97,10 @@ public class nDeposit {
 
                 arm.clawOpen();
 
-                if (requestFinishTransfer && robot.nclawIntake.isTransferReady() && slides.inPosition(1.0) && arm.inPosition())
+                if (requestFinishTransfer && robot.nclawIntake.isTransferReady() && slides.inPosition(1) && arm.inPosition()) {
                     state = State.TRANSFER_WAIT;
+                    slidesVelWeightedAvg = slides.getVel();
+                }
 
                 break;
 
@@ -106,8 +110,9 @@ public class nDeposit {
                 arm.setClawRotation(transferClaw, 1.0);
 
                 arm.clawOpen();
+                slidesVelWeightedAvg = slides.getVel() * 0.5 + slidesVelWeightedAvg * 0.5;
 
-                if (slides.getLength() <= transferZ + 0.2) {
+                if (slides.getLength() <= transferZ + 0.2 && Math.abs(slidesVelWeightedAvg) < minVel) {
                     state = State.TRANSFER_FINISH;
                     //robot.nclawIntake.finishTransfer(); // Just to make sure you're not being stupid - Eric
                     requestFinishTransfer = false;

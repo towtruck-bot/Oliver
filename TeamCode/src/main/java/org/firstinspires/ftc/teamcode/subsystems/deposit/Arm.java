@@ -25,9 +25,9 @@ public class Arm {
                 new Servo[] {robot.hardwareMap.get(Servo.class, "depositArmRotationL"), robot.hardwareMap.get(Servo.class, "depositArmRotationR")},
                 "depositArmRotation",
                 nPriorityServo.ServoType.AXON_MINI,
-                0.325,
-                1.0,
-                0.864,
+                0.335,
+                0.982,
+                0.871,
                 new boolean[] {false, true},
                 1.0,
                 2.0 // Tee hee - eric

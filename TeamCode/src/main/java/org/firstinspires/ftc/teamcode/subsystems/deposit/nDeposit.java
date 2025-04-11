@@ -161,7 +161,7 @@ public class nDeposit {
 
                 arm.clawClose();
 
-                if (slides.getLength() >= targetZ - 7) {
+                if (slides.getLength() >= targetZ - 14) {
                     state = State.SAMPLE_WAIT;
                 }
                 break;
@@ -316,7 +316,7 @@ public class nDeposit {
     public void returnToIdle() { state = State.IDLE; }
 
     public boolean retractReady() {
-        return arm.armRotation.getCurrentAngle() < -0.4 || slides.getLength() >= 3;
+        return arm.armRotation.getCurrentAngle() < -0.4 || slides.getLength() >= 2;
     }
 
     public boolean isTransferFinished() {

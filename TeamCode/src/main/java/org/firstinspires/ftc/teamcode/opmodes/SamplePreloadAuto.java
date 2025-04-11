@@ -23,8 +23,8 @@ public class SamplePreloadAuto extends LinearOpMode {
 
     // GP depo positions
     public static double dx1 = 63, dy1 = 53.5;
-    public static double dx2 = 63.5, dy2 = 53.9;
-    public static double dx3 = 66, dy3 = 53.4;
+    public static double dx2 = 63.5, dy2 = 54.1;
+    public static double dx3 = 66, dy3 = 53.8;
 
     public void runOpMode(){
         Globals.isRed = false;
@@ -65,14 +65,16 @@ public class SamplePreloadAuto extends LinearOpMode {
         robot.nclawIntake.setExtendoTargetPos(7);
         robot.nclawIntake.setTargetType(nClawIntake.Target.MANUAL);
         robot.nclawIntake.extend();
-
         robot.update(); // Sigh.. - Eric
-        robot.waitWhile(() -> !robot.nclawIntake.isExtended());
-        robot.nclawIntake.setTargetPose(new Pose2d(bx1, by1, Math.PI / 2));
-        robot.nclawIntake.setTargetType(nClawIntake.Target.GLOBAL);
+
+        robot.waitWhile(() -> robot.drivetrain.targetPoint.getDistanceFromPoint(robot.sensors.getOdometryPosition()) > 10);
+        robot.nclawIntake.setExtendoTargetPos(15);
+        robot.update();
 
         robot.waitWhile(() -> !robot.ndeposit.isDepositReady() || robot.drivetrain.isBusy());
         robot.ndeposit.deposit();
+        robot.nclawIntake.setTargetPose(new Pose2d(bx1, by1, Math.PI / 2));
+        robot.nclawIntake.setTargetType(nClawIntake.Target.GLOBAL);
         robot.waitWhile(() -> !robot.ndeposit.isDepositFinished());
 
         // Depo 1

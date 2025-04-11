@@ -360,7 +360,7 @@ public class nClawIntake {
 
                 // once the grab is finished, send back to RETRACT. false grab changes from HOLD to READY
                 // no need to worry about whacking stuff b/c both states require rotation to be in the turretTransferRot value
-                if (intakeTurret.grabInPosition() && robot.ndeposit.retractReady()) {
+                if (robot.ndeposit.retractReady()) {
                     state = State.RETRACT;
                     grab = false;
                 }

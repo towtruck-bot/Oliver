@@ -10,7 +10,7 @@ import org.firstinspires.ftc.teamcode.utils.LogUtil;
 import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 import org.firstinspires.ftc.teamcode.utils.Utils;
 
-@Config
+//@Config
 public class Deposit {
     public enum State{
         IDLE,

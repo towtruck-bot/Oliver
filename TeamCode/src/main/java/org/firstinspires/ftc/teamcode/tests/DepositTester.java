@@ -8,8 +8,8 @@ import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.subsystems.deposit.Deposit;
 import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 
-@TeleOp(group = "Test")
-@Config
+//@TeleOp(group = "Test")
+//@Config
 public class DepositTester extends LinearOpMode {
     public static Deposit.State stateDashboard = Deposit.State.RETRACT;
     public static boolean set = true;

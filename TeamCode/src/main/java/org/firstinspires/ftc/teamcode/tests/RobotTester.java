@@ -10,8 +10,8 @@ import org.firstinspires.ftc.teamcode.utils.Globals;
 import org.firstinspires.ftc.teamcode.utils.RunMode;
 import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 
-@Config
-@TeleOp(group = "Test")
+//@Config
+//@TeleOp(group = "Test")
 public class RobotTester extends LinearOpMode {
 
     @Override

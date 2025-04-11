@@ -8,7 +8,7 @@ import org.firstinspires.ftc.teamcode.sensors.Sensors;
 import org.firstinspires.ftc.teamcode.utils.priority.PriorityServo;
 import org.firstinspires.ftc.teamcode.utils.priority.nPriorityServo;
 
-@Config
+//@Config
 public class Arm {
     public final Sensors sensors;
 

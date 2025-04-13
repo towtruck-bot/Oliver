@@ -8,9 +8,11 @@ import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.subsystems.deposit.nDeposit;
+import org.firstinspires.ftc.teamcode.utils.Globals;
 import org.firstinspires.ftc.teamcode.utils.LogUtil;
 import org.firstinspires.ftc.teamcode.utils.Pose2d;
 import org.firstinspires.ftc.teamcode.utils.REVColorSensorV3;
+import org.firstinspires.ftc.teamcode.utils.RunMode;
 import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 import org.firstinspires.ftc.teamcode.utils.Utils;
 import org.firstinspires.ftc.teamcode.utils.Vector2;
@@ -30,8 +32,8 @@ public class nClawIntake {
     // turretBufferAng -> angle that allows for any rotation to occur with the turret still inside the robot. use in any retract/extend states
 
     public static double transferClawRotation = 0;
-    public static double hoverAngle = 0.0061;
-    public static double turretRetractedAngle = 2.4345, turretSearchAngle = 0.625, turretTransferAngle = 1.9431, turretGrabAngle = -0.4557;
+    public static double hoverAngle = 0.232;
+    public static double turretRetractedAngle = 2.4345, turretSearchAngle = 0.625, turretTransferAngle = 2.05, turretGrabAngle = -0.4557;
     public static double turretTransferRotation = 3.165;
     public static double minExtension = 2; // What we require before giving full range of motion
     private long hoverStart = 0;
@@ -169,8 +171,15 @@ public class nClawIntake {
             case SEARCH:
                 aimAtKnown();
 
-                robot.vision.setOffset(robot.nclawIntake.getIntakeRelativeToRobot());
-                robot.vision.setNewOrientation(intakeTurret.getTurretRotation() - Math.PI);
+                if (intakeTurret.extendoInPosition() && !robot.vision.isDetecting()) {
+                    robot.vision.startDetection();
+                    intakeLight.setState(true);
+                }
+
+                if (robot.vision.isDetecting()) {
+                    robot.vision.setOffset(robot.nclawIntake.getIntakeRelativeToRobot());
+                    robot.vision.setNewOrientation(intakeTurret.getTurretRotation() - Math.PI);
+                }
 
                 intakeTurret.setClawState(false);
 
@@ -205,7 +214,7 @@ public class nClawIntake {
                 intakeTurret.setTurretArmTarget(hoverAngle);
                 intakeTurret.setClawState(false);
 
-                if (intakeTurret.inPosition(Math.toRadians(10)) && (grabMethod == GrabMethod.MANUAL_AIM || System.currentTimeMillis() - hoverStart > hoverDelay)) {
+                if (intakeTurret.inPosition(Math.toRadians(5)) && (grabMethod == GrabMethod.MANUAL_AIM || System.currentTimeMillis() - hoverStart > hoverDelay)) {
                     if (!grabMethod.manualGrab || grab) {
                         state = State.LOWER;
                     }
@@ -344,7 +353,7 @@ public class nClawIntake {
                 // Complete transfer can only be called in TRANSFER_WAIT, must have everything correct
                 // used to release intake grip on sample, should be called in deposit after the deposit has a firm grip
                 // TODO: check endAffector.inPosition()
-                else if (finishTransferRequest && intakeTurret.inPosition() && intakeTurret.extendoInPosition() && robot.ndeposit.isHolding()) {
+                else if (Globals.RUNMODE == RunMode.TELEOP ? finishTransferRequest && robot.ndeposit.isHolding() : finishTransferRequest && intakeTurret.inPosition() && intakeTurret.extendoInPosition() && robot.ndeposit.isHolding()) {
                     state = State.TRANSFER_END;
                     finishTransferRequest = false;
                     sampleStatus = false;
@@ -503,6 +512,7 @@ public class nClawIntake {
     }
 
     public void aimAtKnown() {
+        Log.e("THIS THING IS KNOWN", known == null ? "null" : known.toString());
         if (known != null) {
             // Begin Search, dynamic correction
             Pose2d curr = robot.sensors.getOdometryPosition();
@@ -559,9 +569,7 @@ public class nClawIntake {
     private void doExtend() {
         if (grabMethod.useCamera) {
             state = State.SEARCH;
-            robot.vision.startDetection();
             robot.vision.setOffset(robot.nclawIntake.getIntakeRelativeToRobot());
-            intakeLight.setState(true);
         } else {
             hoverStart = System.currentTimeMillis();
             state = State.HOVER;

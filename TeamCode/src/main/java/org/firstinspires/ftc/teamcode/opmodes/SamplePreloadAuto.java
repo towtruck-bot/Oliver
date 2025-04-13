@@ -1,12 +1,16 @@
 package org.firstinspires.ftc.teamcode.opmodes;
 
 import com.acmerobotics.dashboard.config.Config;
+import com.google.ar.core.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.RobotLog;
+import com.sun.tools.javac.code.TargetType;
 
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.subsystems.deposit.nDeposit;
+import org.firstinspires.ftc.teamcode.subsystems.drive.Drivetrain;
+import org.firstinspires.ftc.teamcode.subsystems.drive.Spline;
 import org.firstinspires.ftc.teamcode.subsystems.intake.nClawIntake;
 import org.firstinspires.ftc.teamcode.utils.Globals;
 import org.firstinspires.ftc.teamcode.utils.LogUtil;
@@ -19,12 +23,12 @@ public class SamplePreloadAuto extends LinearOpMode {
     private Robot robot;
 
     // Block positions
-    public static double by1 = 27, bx1 = 50.4, bx2 = 59.6, by2 = 27, bx3 = 69.7, by3 = 27;
+    public static double bx1 = 50.4, by1 = 27, bx2 = 59.6, by2 = 27, bx3 = 69.7, by3 = 27;
 
     // GP depo positions
-    public static double dx1 = 63, dy1 = 53.5;
-    public static double dx2 = 63.5, dy2 = 54.1;
-    public static double dx3 = 66, dy3 = 53.8;
+    public static double dx1 = 63, dy1 = 53.3;
+    public static double dx2 = 63.5, dy2 = 53.4;
+    public static double dx3 = 66, dy3 = 53.4;
 
     public void runOpMode(){
         Globals.isRed = false;
@@ -42,7 +46,6 @@ public class SamplePreloadAuto extends LinearOpMode {
         robot.nclawIntake.setGrabMethod(nClawIntake.GrabMethod.MANUAL_TARGET);
         robot.ndeposit.presetDepositHeight(false, true);
         robot.nclawIntake.setGrab(false);
-        robot.nclawIntake.setTargetType(nClawIntake.Target.MANUAL);
         robot.nclawIntake.setRetryGrab(true);
         robot.nclawIntake.setTargetType(nClawIntake.Target.GLOBAL);
 
@@ -144,18 +147,63 @@ public class SamplePreloadAuto extends LinearOpMode {
         robot.ndeposit.startSampleDeposit();
         robot.nclawIntake.finishTransfer();
         robot.ndeposit.finishTransfer();
-        robot.nclawIntake.setGrab(false);
 
+
+        robot.nclawIntake.setGrabMethod(nClawIntake.GrabMethod.SEARCH_HOVER_MG);
         robot.waitWhile(() -> robot.nclawIntake.hasSample());
-        robot.waitWhile(() -> robot.drivetrain.isBusy() || !robot.ndeposit.isDepositReady());
-        robot.ndeposit.deposit();
+
+        Pose2d pickUp = new Pose2d(12, 12, 0);
+
+        for (int i = 0; i < 3; i++) {
+            robot.waitWhile(() -> robot.drivetrain.isBusy() || !robot.ndeposit.isDepositReady());
+            robot.ndeposit.deposit();
+            robot.nclawIntake.removeKnown();
+            robot.nclawIntake.setExtendoTargetPos(10);
+            robot.nclawIntake.extend();
+
+            robot.drivetrain.goToPoint(
+                new Pose2d(30, pickUp.y, Math.toRadians(210)),
+                false,
+                false,
+                1.0
+            );
+
+            robot.waitWhile(() -> robot.drivetrain.targetPoint.getDistanceFromPoint(robot.sensors.getOdometryPosition()) > 5);
+            robot.drivetrain.goToPoint(
+                new Pose2d(27, pickUp.y, Math.PI),
+                false,
+                true,
+                1.0
+            );
+
+            robot.nclawIntake.setKnownIntakePose(new Pose2d(pickUp.x, pickUp.y, 0));
+
+            robot.waitWhile(() -> !robot.vision.isStable() || !robot.vision.gottenFirstContact() || !robot.nclawIntake.isExtended());
+            robot.nclawIntake.setGrab(true);
+
+            robot.waitWhile(() -> !robot.nclawIntake.hasSample());
+            // Go to under bucket
+            Spline s = new Spline(robot.sensors.getOdometryPosition(), 7)
+                .setReversed(true)
+                .addPoint(new Pose2d(30, pickUp.y, Math.toRadians(210)))
+                .addPoint(62, 55, Math.toRadians(242));
+            robot.drivetrain.setPath(s);
+            robot.drivetrain.state = Drivetrain.State.FOLLOW_SPLINE;
+            robot.drivetrain.setMaxPower(0.5);
+            robot.waitWhile(() -> !robot.nclawIntake.isTransferReady() || !robot.ndeposit.isTransferReady());
+            robot.nclawIntake.finishTransfer();
+            robot.ndeposit.finishTransfer();
+
+            robot.waitWhile(() -> robot.sensors.getOdometryPosition().getDistanceFromPoint(s.getLastPoint()) > 12);
+            robot.ndeposit.startSampleDeposit();
+        }
+
         /*robot.drivetrain.goToPoint(
                 new Pose2d(dx3, dy3 + 5, Math.toRadians(260)),
                 false,
                 true,
                 1.0
         );*/
-        robot.waitWhile(() -> !robot.ndeposit.isDepositFinished());
 
         // TODO: Remember to set auto grab to true, set use camera to true, and DONT use grab
 

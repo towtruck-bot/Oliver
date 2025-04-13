@@ -122,11 +122,13 @@ public class Teleop extends LinearOpMode {
                 robot.nclawIntake.setGrab(gamepad1.right_bumper);
             } else {
                 if (rb_1.isClicked(gamepad1.right_bumper)) {
-                    if (robot.nclawIntake.isTransferReady() && robot.ndeposit.isTransferReady()) {
+                    if (robot.ndeposit.isHolding()) {
+                        robot.ndeposit.deposit();
+                    } else {
                         robot.ndeposit.startSampleDeposit();
                         robot.nclawIntake.finishTransfer();
                         robot.ndeposit.finishTransfer();
-                    } else robot.ndeposit.deposit();
+                    }
                 }
             }
 

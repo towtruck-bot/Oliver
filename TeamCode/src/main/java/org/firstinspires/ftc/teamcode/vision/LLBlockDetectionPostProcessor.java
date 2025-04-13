@@ -296,7 +296,7 @@ public class LLBlockDetectionPostProcessor {
     }
 
     public boolean isStable() {
-        return velocityLowPass < 1 && detections >= 2; // Detections >= 2 allows us to have a velocity
+        return velocityLowPass < 0.1 && detections >= 2; // Detections >= 2 allows us to have a velocity
     }
 
     public double getVelocityLowPass() {
@@ -305,5 +305,9 @@ public class LLBlockDetectionPostProcessor {
 
     public boolean gottenFirstContact() {
         return detections >= 1;
+    }
+
+    public boolean isDetecting() {
+        return detecting;
     }
 }

@@ -5,7 +5,9 @@ import android.util.Log;
 import com.acmerobotics.dashboard.config.Config;
 
 import org.firstinspires.ftc.teamcode.Robot;
+import org.firstinspires.ftc.teamcode.utils.Globals;
 import org.firstinspires.ftc.teamcode.utils.LogUtil;
+import org.firstinspires.ftc.teamcode.utils.RunMode;
 import org.firstinspires.ftc.teamcode.utils.Utils;
 import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 
@@ -97,7 +99,7 @@ public class nDeposit {
 
                 arm.clawOpen();
 
-                if (requestFinishTransfer && robot.nclawIntake.isTransferReady() && slides.inPosition(1) && arm.inPosition()) {
+                if (Globals.RUNMODE == RunMode.TELEOP ? requestFinishTransfer : requestFinishTransfer && robot.nclawIntake.isTransferReady() && slides.inPosition(1) && arm.inPosition()) {
                     state = State.TRANSFER_WAIT;
                     slidesVelWeightedAvg = slides.getVel();
                 }

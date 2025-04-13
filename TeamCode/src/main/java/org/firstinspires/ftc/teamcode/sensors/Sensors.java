@@ -132,9 +132,9 @@ public class Sensors {
         LogUtil.slidesCurrentPos.set(getSlidesPos());
 
         Pose2d currentPos = getOdometryPosition();
-        TelemetryUtil.packet.put("driveCurrentX", currentPos.x);
-        TelemetryUtil.packet.put("driveCurrentY", currentPos.y);
-        TelemetryUtil.packet.put("driveCurrentAngle (deg)", Math.toDegrees(currentPos.heading));
+        TelemetryUtil.packet.put("pinpointX", currentPos.x);
+        TelemetryUtil.packet.put("pinpointY", currentPos.y);
+        TelemetryUtil.packet.put("pinpoint Angle (deg)", Math.toDegrees(currentPos.heading));
         Canvas fieldOverlay = TelemetryUtil.packet.fieldOverlay();
         DashboardUtil.drawRobot(fieldOverlay, currentPos, getExtendoPos(), "#00ff00");
         LogUtil.driveCurrentX.set(currentPos.x);

@@ -4,6 +4,7 @@ import android.util.Log;
 
 import com.acmerobotics.dashboard.canvas.Canvas;
 import com.acmerobotics.dashboard.config.Config;
+import com.google.ar.core.Pose;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.hardware.limelightvision.LLResultTypes.ColorResult;
@@ -11,10 +12,12 @@ import com.qualcomm.hardware.limelightvision.LLResultTypes.ColorResult;
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.subsystems.drive.Drivetrain;
 import org.firstinspires.ftc.teamcode.utils.AngleUtil;
+import org.firstinspires.ftc.teamcode.utils.Func;
 import org.firstinspires.ftc.teamcode.utils.Pose2d;
 import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 import org.firstinspires.ftc.teamcode.utils.Vector2;
 
+import java.util.LinkedList;
 import java.util.List;
 
 @Config
@@ -31,46 +34,112 @@ public class LLBlockDetectionPostProcessor {
         }
     }
 
-    class Block {
+    public class Block {
         private Pose2d pose;
-        private BlockColor color;
+        private boolean justUpdated;
+        private final BlockColor color;
+        private double width;
+        private double height;
         private double area;
 
-        Block(double x, double y, double heading) {}
+        protected Block(double x, double y, double heading, double width, double height, BlockColor blockColor) {
+            pose = new Pose2d(x, y, heading);
+            this.width = width;
+            this.height = height;
+            area = width * height;
+            color = blockColor;
+            justUpdated = true;
+        }
+
+        protected Block(Pose2d p, double width, double height, BlockColor blockColor) {
+            this(p.x, p.y, p.heading, width, height, blockColor);
+        }
+
+        public Pose2d getPose() {
+            return pose;
+        }
+
+        public double getArea() {
+            return area;
+        }
+
+        // We got new camera values
+        protected void updateNewValues(double x, double y, double heading, double width, double height) {
+            pose = new Pose2d(x, y, heading);
+            this.width = width;
+            this.height = height;
+            area = width * height;
+            justUpdated = true;
+        }
+
+        protected void updateNewValues(Pose2d p, double width, double height) {
+            this.updateNewValues(p.x, p.y, p.heading, width, height);
+        }
+
+        public void update() {
+            // Get expected based on robot velocities
+            Pose2d p = robot.sensors.getOdometryPosition();
+            Pose2d pDelta = new Pose2d( // Pose delta
+                p.x - lastRobotPosition.x,
+                p.y - lastRobotPosition.y,
+                p.heading - lastRobotPosition.heading
+            );
+            Pose2d pDeltaRelative = new Pose2d(
+                pDelta.x * Math.cos(p.heading) + pDelta.y * Math.sin(p.heading),
+                -pDelta.x * Math.sin(p.heading) + pDelta.y * Math.cos(p.heading),
+                pDelta.heading
+            );
+            Pose2d expected = new Pose2d(
+                pose.x + pDeltaRelative.x,
+                pose.y + pDeltaRelative.y,
+                pose.heading + pDelta.heading
+            );
+
+            if (!justUpdated)
+                pose = expected;
+            else
+                justUpdated = false;
+        }
+
+        public double getX() {
+            return pose.x;
+        }
+
+        public double getY() {
+            return pose.y;
+        }
+
+        public double getHeading() {
+            return pose.heading;
+        }
     }
 
-    public static boolean useExpected = false;
+    interface BlockFilter {
+        boolean call(Block b);
+    }
+
+    private LinkedList<Block> blocks;
     private final Limelight3A ll;
-    private BlockColor block;
-    private Pose2d blockPos; // Robot centric vaue
+    private BlockColor blockColor;
     private Pose2d lastRobotPosition;
     private final Robot robot;
     private boolean detecting = false;
     private Vector2 offset = new Vector2(0, 0);
     public static int pollRate = 100;
-    public static int maxAngX = 100;
-    public static int maxAngY = 100;
-    private double lastOrientation = 0;
     private double orientation = 0;
-    private Pose2d lastBlockPosition;
-    private Vector2 deltaOffset;
-    private double velocityLowPass = 0;
     private double lastLoop = System.currentTimeMillis();
-    private boolean firstOrientation = false;
-    private int detections = 0;
 
     public LLBlockDetectionPostProcessor(Robot robot) {
         ll = robot.hardwareMap.get(Limelight3A.class, "limelight");
-        block = BlockColor.YELLOW;
+        blockColor = BlockColor.YELLOW;
         ll.setPollRateHz(pollRate);
-        blockPos = new Pose2d(0, 0, 0);
-        lastBlockPosition = null;
+        blocks = new LinkedList<>();
         lastRobotPosition = null;
         this.robot = robot;
     }
 
     public void start() {
-        ll.pipelineSwitch(block.pipelineIndex);
+        ll.pipelineSwitch(blockColor.pipelineIndex);
         ll.start();
     }
 
@@ -79,7 +148,7 @@ public class LLBlockDetectionPostProcessor {
     }
 
     public void setBlockColor(BlockColor block) {
-        this.block = block;
+        this.blockColor = block;
         ll.pipelineSwitch(block.pipelineIndex);
     }
 
@@ -90,174 +159,117 @@ public class LLBlockDetectionPostProcessor {
     public void update() {
         Canvas canvas = TelemetryUtil.packet.fieldOverlay();
         canvas.setStroke("#444400");
-        canvas.strokeCircle(blockPos.x, blockPos.y, 3);
-        canvas.strokeLine(blockPos.x, blockPos.y, blockPos.x + 5 * Math.sin(blockPos.heading), blockPos.y + 5 * Math.cos(blockPos.heading));
-
-        if (!detecting)
-            return;
-
-        int newDetections = detections;
+        for (Block b : blocks) {
+            canvas.strokeCircle(b.getX(), b.getY(), 3);
+            canvas.strokeLine(b.getX(), b.getY(), b.getX() + 5 * Math.sin(b.getHeading()), b.getY() + 5 * Math.cos(b.getHeading()));
+        }
 
         TelemetryUtil.packet.put("LL connected", ll.isConnected());
         if (!ll.isConnected()) {
             Log.e("ERROR BIG", "Limelight Broke");
         }
 
+        if (!detecting)
+            return;
+
         long loopStart = System.currentTimeMillis();
 
         LLResult result = ll.getLatestResult();
         // TelemetryUtil.packet.put("LL result", "> " + result); Stop. Don't do this.
 
-        // Get robot based pose delta
-        Pose2d p = robot.sensors.getOdometryPosition();
-        Pose2d pDelta = new Pose2d( // Pose delta
-            p.x - lastRobotPosition.x,
-            p.y - lastRobotPosition.y,
-            p.heading - lastRobotPosition.heading
-        );
-        Pose2d pDeltaRelative = new Pose2d(
-            pDelta.x * Math.cos(p.heading) + pDelta.y * Math.sin(p.heading),
-            -pDelta.x * Math.sin(p.heading) + pDelta.y * Math.cos(p.heading),
-            pDelta.heading
-        );
+        // Hn we are cooked
+        if (result == null || result.getStaleness() >= 100)
+            return;
 
+        // We have valid results, update the list of blocks properly
+        List<ColorResult> crs = result.getColorResults();
 
-        double deltaAng = lastOrientation - orientation - pDeltaRelative.heading;
-        Pose2d expectedNewBlockPose = new Pose2d( // Calculated from solely poses
-            (blockPos.x - pDeltaRelative.x - deltaOffset.x) * Math.cos(deltaAng) + (blockPos.y - pDeltaRelative.y - deltaOffset.y) * Math.sin(deltaAng),
-            (blockPos.x - pDeltaRelative.x - deltaOffset.x) * Math.sin(deltaAng) + (blockPos.y - pDeltaRelative.y - deltaOffset.y) * Math.cos(deltaAng),
-            blockPos.heading + lastOrientation - orientation + pDeltaRelative.heading
-        );
+        for (ColorResult cr : crs) {
+            if (cr.getTargetCorners().size() != 4) // Ok. If a block literally has a corner count of not 4 it is obvi cooked
+                continue;
 
-        // Update based on ONLY change in robot position
-        if (result == null ||
-            result.getStaleness() > 100 ||
-            result.getColorResults().isEmpty() ||
-            // Clamp
-            Math.abs(result.getColorResults().get(0).getTargetXDegrees()) > maxAngX ||
-            Math.abs(result.getColorResults().get(0).getTargetYDegrees()) > maxAngY) {
+            Pose2d newPose = new Pose2d(getInchesX(cr.getTargetYDegrees()) + offset.x, getInchesY(-cr.getTargetXDegrees()) + offset.y, 0);
 
-            if (detections >= 1)
-                blockPos = expectedNewBlockPose.clone();
-        } else { // We have a valid result. Now we can update with both change according to dt and change according to limelight
-            // Post processing. Get new block x, y, and heading
-            ColorResult cr = result.getColorResults().get(0);
-
-            double x = getInchesX(cr.getTargetYDegrees());
-            double y = getInchesY(-cr.getTargetXDegrees());
-
-            x += offset.x;
-            y += offset.y;
-
-            double heading = expectedNewBlockPose.heading;// - pDelta.heading;
-            // Attempt to update heading value with the new value
             List<List<Double>> corners = cr.getTargetCorners();
-            // TelemetryUtil.packet.put("LL corners.size", corners.size()); Stop.
-            double area = 0;
-            if (corners.size() == 4) { // I don't care enough to get this to work with stupid detections
-                Vector2[] vcorners = new Vector2[corners.size()];
-                canvas.setStroke("#606060");
-                for (int i = 0; i < corners.size(); i++) {
-                    vcorners[i] = new Vector2(corners.get(i).get(0), corners.get(i).get(1));
-                    canvas.strokeCircle(vcorners[i].x, vcorners[i].y, 0.5);
-                }
-
-                // Get the 2 longest
-                int l0 = 0; // nyeh pointer !
-                int l1 = 0;
-                double largestDistance = Vector2.distance(vcorners[l0], vcorners[l1]);
-                for (int i = 0; i < vcorners.length; i++) {
-                    for (int j = i + 1; j < vcorners.length; j++) { // No gaf
-                        double d = Vector2.distance(vcorners[i], vcorners[j]);
-                        if (d >= largestDistance) {
-                            l0 = i;
-                            l1 = j;
-                            largestDistance = d;
-                        }
-                    }
-                }
-                // Now find out which one is the closest for each
-                int cl0 = -1;
-                int cl1 = -1;
-                double distcl0 = Double.MAX_VALUE;
-                double distcl1 = Double.MAX_VALUE;
-                for (int i = 0; i < vcorners.length; i++) {
-                    double dl0 = Vector2.distance(vcorners[l0], vcorners[i]);
-                    double dl1 = Vector2.distance(vcorners[l1], vcorners[i]);
-                    if (i != l0 && (cl0 == -1 || dl0 < distcl0)) {
-                        cl0 = i;
-                        distcl0 = dl0;
-                    }
-                    if (i != l1 && (cl1 == -1 || dl1 < distcl1)) {
-                        cl1 = i;
-                        distcl1 = dl1;
-                    }
-                }
-
-                // Use length and width to get area
-                double width = Math.sqrt(Math.pow(vcorners[cl0].x - vcorners[l0].x, 2) + Math.pow(vcorners[cl0].y - vcorners[l0].y, 2));
-                double length = Math.sqrt(Math.pow(largestDistance, 2) - width * width);
-                area = width * length;
-
-                TelemetryUtil.packet.put("BlockWidth", width);
-                TelemetryUtil.packet.put("BlockLength", length);
-                TelemetryUtil.packet.put("BlockArea", area);
-
-                // Average the 2 small sides
-                double h1 = AngleUtil.mirroredClipAngleTolerence(Math.atan2(vcorners[l0].y - vcorners[cl0].y, vcorners[l0].x - vcorners[cl0].x), Math.toRadians(20));
-                double h2 = AngleUtil.mirroredClipAngleTolerence(Math.atan2(vcorners[cl1].y - vcorners[l1].y, vcorners[cl1].x - vcorners[l1].x), Math.toRadians(20));
-                heading = (h1 + h2) / 2 - orientation;
-                newDetections++;
+            // This format sucks balls im changing it
+            Vector2[] vcorners = new Vector2[corners.size()];
+            for (int i = 0; i < corners.size(); i++) {
+                vcorners[i] = new Vector2(corners.get(i).get(0), corners.get(i).get(1));
             }
 
-            heading = AngleUtil.mirroredClipAngleTolerence(heading, Math.toRadians(20));
+            int l0 = 0; // nyeh pointer !
+            int l1 = 0;
+            double largestDistance = Vector2.distance(vcorners[l0], vcorners[l1]);
+            for (int i = 0; i < vcorners.length; i++) {
+                for (int j = i + 1; j < vcorners.length; j++) { // No gaf
+                    double d = Vector2.distance(vcorners[i], vcorners[j]);
+                    if (d >= largestDistance) {
+                        l0 = i;
+                        l1 = j;
+                        largestDistance = d;
+                    }
+                }
+            }
+            // Now find out which one is the closest for each
+            int cl0 = -1;
+            int cl1 = -1;
+            double distcl0 = Double.MAX_VALUE;
+            double distcl1 = Double.MAX_VALUE;
+            for (int i = 0; i < vcorners.length; i++) {
+                double dl0 = Vector2.distance(vcorners[l0], vcorners[i]);
+                double dl1 = Vector2.distance(vcorners[l1], vcorners[i]);
+                if (i != l0 && (cl0 == -1 || dl0 < distcl0)) {
+                    cl0 = i;
+                    distcl0 = dl0;
+                }
+                if (i != l1 && (cl1 == -1 || dl1 < distcl1)) {
+                    cl1 = i;
+                    distcl1 = dl1;
+                }
+            }
 
-            // If robot is moving very fast then it will only use drivetrain translational values to calculate new block pos
-            Vector2 velocityVector = new Vector2(
-                    robot.sensors.getVelocity().x,
-                    robot.sensors.getVelocity().y
-            );
-            double weightedAvg = velocityVector.mag() / Drivetrain.maxVelocity;
-            weightedAvg = 0; // Yuh - Eric
+            double width = Math.sqrt(Math.pow(vcorners[cl0].x - vcorners[l0].x, 2) + Math.pow(vcorners[cl0].y - vcorners[l0].y, 2));
+            double height = Math.sqrt(Math.pow(largestDistance, 2) - width * width);
+            double area = width * height;
 
-            blockPos.x = expectedNewBlockPose.x * weightedAvg + x * (1 - weightedAvg);
-            blockPos.y = expectedNewBlockPose.y * weightedAvg + y * (1 - weightedAvg);
-            blockPos.heading = expectedNewBlockPose.heading * weightedAvg + heading * (1 - weightedAvg);
+            double h1 = AngleUtil.mirroredClipAngleTolerence(Math.atan2(vcorners[l0].y - vcorners[cl0].y, vcorners[l0].x - vcorners[cl0].x), Math.toRadians(20));
+            double h2 = AngleUtil.mirroredClipAngleTolerence(Math.atan2(vcorners[cl1].y - vcorners[l1].y, vcorners[cl1].x - vcorners[l1].x), Math.toRadians(20));
+            newPose.heading = AngleUtil.mirroredClipAngleTolerence((h1 + h2) / 2 - orientation, Math.toRadians(20));
 
-            if ((area <= 10000 || area >= 14000) && detections >= 1) { // Pre worlds jank - Eric
-                blockPos = expectedNewBlockPose.clone();
-                newDetections = detections;
+            // I'm going to discard velo based weighted avg for now
+
+            // Now we need to find the block that is closest
+            Block b = null;
+            double dist = 0.75;
+            for (Block block : blocks) {
+                double d = block.getPose().getDistanceFromPoint(newPose);
+                if (d <= dist) {
+                    b = block;
+                    dist = d;
+                }
+            }
+
+            if (area >= 11000 && area <= 14000) {
+                if (b == null) {
+                    b = new Block(newPose, width, height, blockColor);
+                    blocks.add(b);
+                } else
+                    b.updateNewValues(newPose, width, height);
             }
         }
 
-        if (lastBlockPosition == null)
-            lastBlockPosition = blockPos.clone();
-
-        // Get velocity value and low pass filter it
-        Vector2 blockVelocity = new Vector2( // Technically it doesnt move
-            (blockPos.x - lastBlockPosition.x) / (loopStart - lastLoop) / 1.0e-3,
-            (blockPos.y - lastBlockPosition.y) / (loopStart - lastLoop) / 1.0e-3
-        );
+        for (Block b : blocks)
+            b.update();
+            /*if ((area <= 10000 || area >= 14000) && detections >= 1) { // Pre worlds jank - Eric
+                blockPos = expectedNewBlockPose.clone();
+                newDetections = detections;
+            }*/
         TelemetryUtil.packet.put("loopDelta", (loopStart - lastLoop) * 1.0e-3);
-        TelemetryUtil.packet.put("blockVelocity.x", blockVelocity.x);
-        TelemetryUtil.packet.put("blockVelocity.y", blockVelocity.y);
-        TelemetryUtil.packet.put("blockVelocity mag", blockVelocity.mag());
-        TelemetryUtil.packet.put("velocityLowPass", velocityLowPass);
-        velocityLowPass = blockVelocity.mag() * 0.6 + velocityLowPass * 0.4;
-        if (detections <= 0)
-            velocityLowPass = 0;
-        detections = newDetections;
 
         // This is fine because detecting turning on would update this value properly
         lastRobotPosition = robot.sensors.getOdometryPosition().clone();
 
-        lastOrientation = orientation;
-        lastBlockPosition = blockPos.clone();
         lastLoop = loopStart;
-
-        TelemetryUtil.packet.put("blockPos.x", blockPos.x);
-        TelemetryUtil.packet.put("blockPos.y", blockPos.y);
-        TelemetryUtil.packet.put("blockPos.heading", blockPos.heading);
     }
 
     /**
@@ -265,14 +277,8 @@ public class LLBlockDetectionPostProcessor {
      */
     public void startDetection() {
         lastRobotPosition = robot.sensors.getOdometryPosition().clone();
-        blockPos = new Pose2d(0, 0, 0);
-        lastBlockPosition = null;
-        velocityLowPass = 0;
-        detections = 0;
-        lastOrientation = 0;
         orientation = 0;
         detecting = true;
-        firstOrientation = true;
         lastLoop = System.currentTimeMillis();
     }
 
@@ -283,22 +289,8 @@ public class LLBlockDetectionPostProcessor {
         detecting = false;
     }
 
-    /**
-     * @return Robot centric value
-     */
-    public Pose2d getBlockPos() {
-        return blockPos;
-    }
-
-    public void setBlock(BlockColor block) {
-        ll.pipelineSwitch(block.pipelineIndex);
-    }
 
     public void setOffset(Vector2 v) {
-        deltaOffset = new Vector2(
-            offset.x - v.x,
-            offset.y - v.y
-        );
         offset = v;
     }
 
@@ -311,26 +303,49 @@ public class LLBlockDetectionPostProcessor {
     }
 
     public void setNewOrientation(double ang) {
-        if (firstOrientation) {
-            lastOrientation = ang;
-            firstOrientation = false;
-        }
         orientation = ang;
-    }
-
-    public boolean isStable() {
-        return velocityLowPass < 1 && detections >= 2; // Detections >= 2 allows us to have a velocity
-    }
-
-    public double getVelocityLowPass() {
-        return velocityLowPass;
-    }
-
-    public boolean gottenFirstContact() {
-        return detections >= 1;
     }
 
     public boolean isDetecting() {
         return detecting;
+    }
+
+    public BlockColor getBlockColor() {
+        return blockColor;
+    }
+
+    public void removeBlock(Block b) {
+        blocks.remove(b);
+    }
+
+
+
+    public static LinkedList<Block> filterBlocks(LinkedList<Block> blocks, BlockFilter filter) {
+        LinkedList<Block> output = new LinkedList<>();
+
+        for (Block b : blocks) {
+            if (filter.call(b))
+                output.add(b);
+        }
+
+        return output;
+    }
+
+    public Block getClosestValidBlock() {
+        if (blocks.size() <= 0)
+            return null;
+
+        Block closest = blocks.get(0);
+        double closestDist = closest.getPose().getDistanceFromPoint(new Pose2d(offset.x, offset.y, 0));
+        for (Block b : blocks) {
+            double d = b.getPose().getDistanceFromPoint(new Pose2d(offset.x, offset.y, 0));
+
+            if (d <= closestDist) {
+                closest = b;
+                closestDist = d;
+            }
+        }
+
+        return closest;
     }
 }

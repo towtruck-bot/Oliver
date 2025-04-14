@@ -19,21 +19,29 @@ import java.util.List;
 
 @Config
 public class LLBlockDetectionPostProcessor {
-    public enum Block {
+    public enum BlockColor {
         YELLOW(0),
         RED(1),
         BLUE(2);
 
         private final int pipelineIndex;
 
-        Block(int pipelineIndex) {
+        BlockColor(int pipelineIndex) {
             this.pipelineIndex = pipelineIndex;
         }
     }
 
+    class Block {
+        private Pose2d pose;
+        private BlockColor color;
+        private double area;
+
+        Block(double x, double y, double heading) {}
+    }
+
     public static boolean useExpected = false;
     private final Limelight3A ll;
-    private Block block;
+    private BlockColor block;
     private Pose2d blockPos; // Robot centric vaue
     private Pose2d lastRobotPosition;
     private final Robot robot;
@@ -53,7 +61,7 @@ public class LLBlockDetectionPostProcessor {
 
     public LLBlockDetectionPostProcessor(Robot robot) {
         ll = robot.hardwareMap.get(Limelight3A.class, "limelight");
-        block = Block.YELLOW;
+        block = BlockColor.YELLOW;
         ll.setPollRateHz(pollRate);
         blockPos = new Pose2d(0, 0, 0);
         lastBlockPosition = null;
@@ -70,7 +78,7 @@ public class LLBlockDetectionPostProcessor {
         ll.stop();
     }
 
-    public void setBlockColor(Block block) {
+    public void setBlockColor(BlockColor block) {
         this.block = block;
         ll.pipelineSwitch(block.pipelineIndex);
     }
@@ -282,7 +290,7 @@ public class LLBlockDetectionPostProcessor {
         return blockPos;
     }
 
-    public void setBlock(Block block) {
+    public void setBlock(BlockColor block) {
         ll.pipelineSwitch(block.pipelineIndex);
     }
 

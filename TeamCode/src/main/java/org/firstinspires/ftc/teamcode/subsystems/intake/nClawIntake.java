@@ -288,6 +288,7 @@ public class nClawIntake {
 
                 break;
             case START_RETRACT:
+                intakeTurret.intakeExtension.disableIgnoreKeepIn();
                 // Get the arm in a proper angle for a full retract
                 intakeTurret.setIntakeExtension(minExtension);
                 intakeTurret.setClawRotation(transferClawRotation);
@@ -572,6 +573,7 @@ public class nClawIntake {
     }
 
     private void doExtend() {
+        intakeTurret.intakeExtension.ignoreKeepIn();
         if (grabMethod.useCamera) {
             state = State.SEARCH;
             robot.vision.setOffset(robot.nclawIntake.getIntakeRelativeToRobot());

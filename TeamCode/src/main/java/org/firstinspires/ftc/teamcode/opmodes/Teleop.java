@@ -9,7 +9,6 @@ import org.firstinspires.ftc.teamcode.subsystems.deposit.nDeposit;
 import org.firstinspires.ftc.teamcode.subsystems.intake.IntakeExtension;
 import org.firstinspires.ftc.teamcode.subsystems.intake.IntakeTurret;
 import org.firstinspires.ftc.teamcode.subsystems.intake.nClawIntake;
-import org.firstinspires.ftc.teamcode.utils.AngleUtil;
 import org.firstinspires.ftc.teamcode.utils.ButtonToggle;
 import org.firstinspires.ftc.teamcode.utils.Globals;
 import org.firstinspires.ftc.teamcode.utils.Pose2d;
@@ -144,7 +143,7 @@ public class Teleop extends LinearOpMode {
             if (intakeMode) {
                 double t = robot.nclawIntake.intakeTurret.getTargetTurretRotation();
                 robot.nclawIntake.setTargetPose(new Pose2d(
-                    Utils.minMaxClip(robot.nclawIntake.target.x - gamepad1.right_stick_y * verticalExtensionSpeed, IntakeTurret.extendoOffset, IntakeTurret.extendoOffset + IntakeExtension.maxExtendoLength + IntakeTurret.turretLengthTip * -Math.cos(t)),
+                    Utils.minMaxClip(robot.nclawIntake.target.x - gamepad1.right_stick_y * verticalExtensionSpeed, 0, IntakeTurret.extendoOffset + IntakeExtension.maxExtendoLength + IntakeTurret.turretLengthTip * -Math.cos(t)),
                     Utils.minMaxClip(robot.nclawIntake.target.y - gamepad1.right_stick_x * horizontalExtensionSpeed, -IntakeTurret.turretLengthTip, IntakeTurret.turretLengthTip),
                     robot.nclawIntake.target.heading + intakeClawRotationInc * (gamepad1.left_trigger - gamepad1.right_trigger))
                 );
@@ -169,7 +168,7 @@ public class Teleop extends LinearOpMode {
                     robot.sensors.setOdometryPosition(0, 48, 0);
                     LogUtil.drivePositionReset = true;
                 } else {
-                    robot.sensors.resetSlidesEncoders();
+                    robot.sensors.hardwareResetSlidesEncoders();
                 }
                 gamepad1.rumble(250);
             }

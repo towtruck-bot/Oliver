@@ -5,7 +5,6 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 
 import org.firstinspires.ftc.teamcode.Robot;
-import org.firstinspires.ftc.teamcode.utils.LogUtil;
 import org.firstinspires.ftc.teamcode.utils.PID;
 import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 import org.firstinspires.ftc.teamcode.utils.Utils;
@@ -98,7 +97,7 @@ public class Slides {
                 concurrence = 0;
 
             if (concurrence >= 4 && slidesTargetDelta >= 10) {
-                robot.sensors.resetSlidesEncoders();
+                robot.sensors.softwareResetSlidesEncoders();
                 justZeroed = true;
             }
 

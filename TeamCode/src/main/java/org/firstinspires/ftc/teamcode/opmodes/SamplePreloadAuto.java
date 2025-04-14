@@ -152,12 +152,12 @@ public class SamplePreloadAuto extends LinearOpMode {
         robot.nclawIntake.finishTransfer();
         robot.ndeposit.finishTransfer();
 
-        robot.waitWhile(() -> !robot.ndeposit.isTransferFinished());
-        robot.ndeposit.deposit();
+        //robot.waitWhile(() -> !robot.ndeposit.isTransferFinished());
+        //robot.ndeposit.deposit();
 
-        robot.waitWhile(() -> !robot.ndeposit.isDepositFinished());
+        //robot.waitWhile(() -> !robot.ndeposit.isDepositFinished());
 
-        /*
+
         robot.nclawIntake.setGrabMethod(nClawIntake.GrabMethod.SEARCH_HOVER_MG);
         robot.waitWhile(() -> robot.nclawIntake.hasSample());
 
@@ -189,7 +189,7 @@ public class SamplePreloadAuto extends LinearOpMode {
 
             robot.nclawIntake.setKnownIntakePose(new Pose2d(pickUp.x, pickUp.y, 0));
 
-            robot.waitWhile(() -> !robot.vision.isStable() || !robot.vision.gottenFirstContact() || !robot.nclawIntake.isExtended());
+            robot.waitWhile(() -> robot.vision.getClosestValidBlock() == null || !robot.nclawIntake.isExtended());
             robot.nclawIntake.setGrab(true);
 
             robot.waitWhile(() -> !robot.nclawIntake.hasSample());
@@ -207,9 +207,12 @@ public class SamplePreloadAuto extends LinearOpMode {
 
             robot.waitWhile(() -> robot.sensors.getOdometryPosition().getDistanceFromPoint(s2.getLastPoint()) > 24);
             robot.ndeposit.startSampleDeposit();
-            pickUp.y -= 4;
+            if (robot.vision.getClosestValidBlock() != null)
+                pickUp = robot.vision.getClosestValidBlock().getGlobalPose().clone();
+            else
+                pickUp.y -= 4;
         }
-*/
+
         /*robot.drivetrain.goToPoint(
                 new Pose2d(dx3, dy3 + 5, Math.toRadians(260)),
                 false,

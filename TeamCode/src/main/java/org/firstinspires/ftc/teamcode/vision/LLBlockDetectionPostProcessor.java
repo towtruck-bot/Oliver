@@ -77,26 +77,8 @@ public class LLBlockDetectionPostProcessor {
         }
 
         public void update() {
-            // Get expected based on robot velocities
-            Pose2d p = robot.sensors.getOdometryPosition();
-            Pose2d pDelta = new Pose2d( // Pose delta
-                p.x - lastRobotPosition.x,
-                p.y - lastRobotPosition.y,
-                p.heading - lastRobotPosition.heading
-            );
-            Pose2d pDeltaRelative = new Pose2d(
-                pDelta.x * Math.cos(p.heading) + pDelta.y * Math.sin(p.heading),
-                -pDelta.x * Math.sin(p.heading) + pDelta.y * Math.cos(p.heading),
-                pDelta.heading
-            );
-            Pose2d expected = new Pose2d(
-                pose.x + pDeltaRelative.x,
-                pose.y + pDeltaRelative.y,
-                pose.heading + pDelta.heading
-            );
-
             if (!justUpdated)
-                pose = expected;
+                pose = getExpectedPosition();
             else
                 justUpdated = false;
         }
@@ -112,6 +94,40 @@ public class LLBlockDetectionPostProcessor {
         public double getHeading() {
             return pose.heading;
         }
+
+        public Pose2d getExpectedPosition () {
+            // Get expected based on robot velocities
+            Pose2d p = robot.sensors.getOdometryPosition();
+            Pose2d pDelta = new Pose2d( // Pose delta
+                p.x - lastRobotPosition.x,
+                p.y - lastRobotPosition.y,
+                p.heading - lastRobotPosition.heading
+            );
+            Pose2d pDeltaRelative = new Pose2d(
+                pDelta.x * Math.cos(p.heading) + pDelta.y * Math.sin(p.heading),
+                -pDelta.x * Math.sin(p.heading) + pDelta.y * Math.cos(p.heading),
+                pDelta.heading
+            );
+            Pose2d bRelative = new Pose2d(
+                pose.x * Math.cos(pDelta.heading) + pose.y * Math.sin(pDelta.heading),
+                -pose.x * Math.sin(pDelta.heading) + pose.y * Math.cos(pDelta.heading),
+                pose.heading
+            );
+            return new Pose2d(
+                bRelative.x - pDeltaRelative.x + lastOffset.x - offset.x,
+                bRelative.y - pDeltaRelative.y + lastOffset.y - offset.y,
+                pose.heading + pDelta.heading
+            );
+        }
+
+        public Pose2d getGlobalPose() {
+            Pose2d p = robot.sensors.getOdometryPosition();
+            return new Pose2d(
+                pose.x * Math.cos(p.heading) + pose.y * Math.sin(p.heading),
+                -pose.x * Math.sin(p.heading) + pose.y * Math.cos(p.heading),
+                pose.heading + p.heading
+            );
+        }
     }
 
     interface BlockFilter {
@@ -123,8 +139,10 @@ public class LLBlockDetectionPostProcessor {
     private BlockColor blockColor;
     private Pose2d lastRobotPosition;
     private final Robot robot;
+    private boolean firstOffset = true;
     private boolean detecting = false;
     private Vector2 offset = new Vector2(0, 0);
+    private Vector2 lastOffset = new Vector2(0, 0);
     public static int pollRate = 100;
     private double orientation = 0;
     private double lastLoop = System.currentTimeMillis();
@@ -169,92 +187,91 @@ public class LLBlockDetectionPostProcessor {
             Log.e("ERROR BIG", "Limelight Broke");
         }
 
-        if (!detecting)
-            return;
-
         long loopStart = System.currentTimeMillis();
 
-        LLResult result = ll.getLatestResult();
-        // TelemetryUtil.packet.put("LL result", "> " + result); Stop. Don't do this.
+        if (detecting) {
+            LLResult result = ll.getLatestResult();
+            // TelemetryUtil.packet.put("LL result", "> " + result); Stop. Don't do this.
 
-        // Hn we are cooked
-        if (result == null || result.getStaleness() >= 100)
-            return;
+            // Hn we are cooked
+            if (result == null || result.getStaleness() >= 100)
+                return;
 
-        // We have valid results, update the list of blocks properly
-        List<ColorResult> crs = result.getColorResults();
+            // We have valid results, update the list of blocks properly
+            List<ColorResult> crs = result.getColorResults();
 
-        for (ColorResult cr : crs) {
-            if (cr.getTargetCorners().size() != 4) // Ok. If a block literally has a corner count of not 4 it is obvi cooked
-                continue;
+            for (ColorResult cr : crs) {
+                if (cr.getTargetCorners().size() != 4) // Ok. If a block literally has a corner count of not 4 it is obvi cooked
+                    continue;
 
-            Pose2d newPose = new Pose2d(getInchesX(cr.getTargetYDegrees()) + offset.x, getInchesY(-cr.getTargetXDegrees()) + offset.y, 0);
+                Pose2d newPose = new Pose2d(getInchesX(cr.getTargetYDegrees()) + offset.x, getInchesY(-cr.getTargetXDegrees()) + offset.y, 0);
 
-            List<List<Double>> corners = cr.getTargetCorners();
-            // This format sucks balls im changing it
-            Vector2[] vcorners = new Vector2[corners.size()];
-            for (int i = 0; i < corners.size(); i++) {
-                vcorners[i] = new Vector2(corners.get(i).get(0), corners.get(i).get(1));
-            }
+                List<List<Double>> corners = cr.getTargetCorners();
+                // This format sucks balls im changing it
+                Vector2[] vcorners = new Vector2[corners.size()];
+                for (int i = 0; i < corners.size(); i++) {
+                    vcorners[i] = new Vector2(corners.get(i).get(0), corners.get(i).get(1));
+                }
 
-            int l0 = 0; // nyeh pointer !
-            int l1 = 0;
-            double largestDistance = Vector2.distance(vcorners[l0], vcorners[l1]);
-            for (int i = 0; i < vcorners.length; i++) {
-                for (int j = i + 1; j < vcorners.length; j++) { // No gaf
-                    double d = Vector2.distance(vcorners[i], vcorners[j]);
-                    if (d >= largestDistance) {
-                        l0 = i;
-                        l1 = j;
-                        largestDistance = d;
+                int l0 = 0; // nyeh pointer !
+                int l1 = 0;
+                double largestDistance = Vector2.distance(vcorners[l0], vcorners[l1]);
+                for (int i = 0; i < vcorners.length; i++) {
+                    for (int j = i + 1; j < vcorners.length; j++) { // No gaf
+                        double d = Vector2.distance(vcorners[i], vcorners[j]);
+                        if (d >= largestDistance) {
+                            l0 = i;
+                            l1 = j;
+                            largestDistance = d;
+                        }
                     }
                 }
-            }
-            // Now find out which one is the closest for each
-            int cl0 = -1;
-            int cl1 = -1;
-            double distcl0 = Double.MAX_VALUE;
-            double distcl1 = Double.MAX_VALUE;
-            for (int i = 0; i < vcorners.length; i++) {
-                double dl0 = Vector2.distance(vcorners[l0], vcorners[i]);
-                double dl1 = Vector2.distance(vcorners[l1], vcorners[i]);
-                if (i != l0 && (cl0 == -1 || dl0 < distcl0)) {
-                    cl0 = i;
-                    distcl0 = dl0;
+                // Now find out which one is the closest for each
+                int cl0 = -1;
+                int cl1 = -1;
+                double distcl0 = Double.MAX_VALUE;
+                double distcl1 = Double.MAX_VALUE;
+                for (int i = 0; i < vcorners.length; i++) {
+                    double dl0 = Vector2.distance(vcorners[l0], vcorners[i]);
+                    double dl1 = Vector2.distance(vcorners[l1], vcorners[i]);
+                    if (i != l0 && (cl0 == -1 || dl0 < distcl0)) {
+                        cl0 = i;
+                        distcl0 = dl0;
+                    }
+                    if (i != l1 && (cl1 == -1 || dl1 < distcl1)) {
+                        cl1 = i;
+                        distcl1 = dl1;
+                    }
                 }
-                if (i != l1 && (cl1 == -1 || dl1 < distcl1)) {
-                    cl1 = i;
-                    distcl1 = dl1;
+
+                double width = Math.sqrt(Math.pow(vcorners[cl0].x - vcorners[l0].x, 2) + Math.pow(vcorners[cl0].y - vcorners[l0].y, 2));
+                double height = Math.sqrt(Math.pow(largestDistance, 2) - width * width);
+                double area = width * height;
+
+                double h1 = AngleUtil.mirroredClipAngleTolerence(Math.atan2(vcorners[l0].y - vcorners[cl0].y, vcorners[l0].x - vcorners[cl0].x), Math.toRadians(20));
+                double h2 = AngleUtil.mirroredClipAngleTolerence(Math.atan2(vcorners[cl1].y - vcorners[l1].y, vcorners[cl1].x - vcorners[l1].x), Math.toRadians(20));
+                newPose.heading = AngleUtil.mirroredClipAngleTolerence((h1 + h2) / 2 - orientation, Math.toRadians(20));
+
+                // I'm going to discard velo based weighted avg for now
+
+                // Now we need to find the block that is closest
+                Block b = null;
+                double dist = 1.5;
+                for (Block block : blocks) {
+                    double d = block.getExpectedPosition().getDistanceFromPoint(newPose);
+                    if (d <= dist) {
+                        b = block;
+                        dist = d;
+                    }
                 }
-            }
 
-            double width = Math.sqrt(Math.pow(vcorners[cl0].x - vcorners[l0].x, 2) + Math.pow(vcorners[cl0].y - vcorners[l0].y, 2));
-            double height = Math.sqrt(Math.pow(largestDistance, 2) - width * width);
-            double area = width * height;
-
-            double h1 = AngleUtil.mirroredClipAngleTolerence(Math.atan2(vcorners[l0].y - vcorners[cl0].y, vcorners[l0].x - vcorners[cl0].x), Math.toRadians(20));
-            double h2 = AngleUtil.mirroredClipAngleTolerence(Math.atan2(vcorners[cl1].y - vcorners[l1].y, vcorners[cl1].x - vcorners[l1].x), Math.toRadians(20));
-            newPose.heading = AngleUtil.mirroredClipAngleTolerence((h1 + h2) / 2 - orientation, Math.toRadians(20));
-
-            // I'm going to discard velo based weighted avg for now
-
-            // Now we need to find the block that is closest
-            Block b = null;
-            double dist = 0.75;
-            for (Block block : blocks) {
-                double d = block.getPose().getDistanceFromPoint(newPose);
-                if (d <= dist) {
-                    b = block;
-                    dist = d;
+                if (area >= 11000 && area <= 14000) {
+                    if (b == null) {
+                        b = new Block(newPose, width, height, blockColor);
+                        blocks.add(b);
+                    } else
+                        b.updateNewValues(newPose, width, height);
                 }
-            }
-
-            if (area >= 11000 && area <= 14000) {
-                if (b == null) {
-                    b = new Block(newPose, width, height, blockColor);
-                    blocks.add(b);
-                } else
-                    b.updateNewValues(newPose, width, height);
             }
         }
 
@@ -279,6 +296,7 @@ public class LLBlockDetectionPostProcessor {
         lastRobotPosition = robot.sensors.getOdometryPosition().clone();
         orientation = 0;
         detecting = true;
+        firstOffset = true;
         lastLoop = System.currentTimeMillis();
     }
 
@@ -291,6 +309,12 @@ public class LLBlockDetectionPostProcessor {
 
 
     public void setOffset(Vector2 v) {
+        if (firstOffset) {
+            lastOffset = v;
+            firstOffset = false;
+        } else {
+            lastOffset = offset;
+        }
         offset = v;
     }
 

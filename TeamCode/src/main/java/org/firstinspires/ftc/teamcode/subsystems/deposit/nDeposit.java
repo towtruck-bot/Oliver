@@ -56,10 +56,10 @@ public class nDeposit {
     public static double transferArm = 0.4578, transferClaw = -1.1, transferBufferZ = 12, transferZ = 7.9;
     public static double holdArm = -0.4646, holdClaw = -0.6533, holdZ = 0.0;
     public static double raiseArmBufferRotation = 0.346,  sampleArm = -2.177, sampleLongDepoArm = -2.6734, sampleTargetArm = sampleArm, sampleClaw = 0;
-    public static double sampleLZ = 15, sampleHZ = 28, sampleLongLZ = 18, sampleLongHZ = 31.5, speciZ = 18, targetZ = sampleHZ;
+    public static double sampleLZ = 15, sampleHZ = 28, sampleLongLZ = 18, sampleLongHZ = 31.5, speciZ = 12.4, targetZ = sampleHZ;
     public static double outtakeArm = -2.9225, outtakeClaw = -0.00169, outtakeZ = 0.0;
-    public static double specimenIntakeArm = -2.9278, specimenIntakeClaw = 0.3436, specimenIntakeZ = 0;
-    public static double specimenDepositArm = -0.1, specimenDepositClaw = -1.2;
+    public static double specimenIntakeArm = -2.635, specimenIntakeClaw = 1.0419, specimenIntakeZ = 0;
+    public static double specimenDepositArm = -0.3087, specimenDepositClaw = 0.0507;
     public static double minVel = 1.1;
     private boolean holding = false;
     private long depositStart = 0;

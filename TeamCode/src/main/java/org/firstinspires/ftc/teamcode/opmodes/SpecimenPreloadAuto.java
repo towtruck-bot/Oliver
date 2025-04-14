@@ -5,17 +5,172 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.Robot;
+import org.firstinspires.ftc.teamcode.subsystems.deposit.nDeposit;
 import org.firstinspires.ftc.teamcode.subsystems.drive.Drivetrain;
+import org.firstinspires.ftc.teamcode.subsystems.intake.nClawIntake;
 import org.firstinspires.ftc.teamcode.utils.Globals;
 import org.firstinspires.ftc.teamcode.utils.LogUtil;
 import org.firstinspires.ftc.teamcode.utils.Pose2d;
 import org.firstinspires.ftc.teamcode.utils.RunMode;
 
-@Autonomous(name = "SpecimenPreloadBlueAuto", preselectTeleOp = "A. Teleop")
+@Autonomous(name = "Specimen Auto", preselectTeleOp = "A. Teleop")
 @Config
-public class SpecimenPreloadBlueAuto extends LinearOpMode {
+public class SpecimenPreloadAuto extends LinearOpMode {
     private Robot robot;
 
+    public static double[] dX = {-6.0, -8.0, -4.0, -2.0, 0.0, 2.0, 4.0};
+    public static double dY = 25.85;
+
+    public static double p1x, p1y, b1x, b1y;
+    public static double p2x, p2y, b2x, b2y;
+    public static double b3x, b3y;
+    public static double ix, iy, sx, sy;
+
+    public void runOpMode(){
+        Globals.RUNMODE = RunMode.AUTO;
+        Globals.isRed = false;
+        Globals.hasSamplePreload = false;
+        Globals.hasSpecimenPreload = true;
+
+        robot = new Robot(hardwareMap);
+        robot.setAbortChecker(() -> !isStopRequested());
+        LogUtil.init();
+
+        robot.sensors.resetPosAndIMU();
+
+        robot.ndeposit.state = nDeposit.State.HOLD;
+        robot.ndeposit.presetDepositHeight(true, true);
+
+        // TODO: Implement to emulate goToPointWIthIntake. Use vision? or dynamic intakeAt
+        robot.nclawIntake.setGrabMethod(nClawIntake.GrabMethod.MANUAL_TARGET);
+        robot.nclawIntake.setTargetType(nClawIntake.Target.GLOBAL);
+        robot.nclawIntake.setGrab(false);
+        robot.nclawIntake.setRetryGrab(true);
+
+        while(opModeInInit() && !isStopRequested()){
+            robot.sensors.setOdometryPosition(-0.5 * Globals.ROBOT_WIDTH, 72.0 - Globals.ROBOT_REVERSE_LENGTH, Math.toRadians(270));
+            robot.update();
+        }
+
+        Globals.autoStartTime = System.currentTimeMillis();
+
+        // Score preload
+        robot.ndeposit.startSpecimenDeposit();
+        robot.drivetrain.goToPoint(
+                new Pose2d(dX[0], dY, Math.toRadians(270)),
+                false,
+                true,
+                1.0
+        );
+        robot.waitWhile(() -> robot.drivetrain.isBusy());
+        robot.ndeposit.deposit();
+
+        // Get ground 1
+        robot.drivetrain.goToPoint(
+                new Pose2d(p1x, p1y, Math.atan2(p1y - b1y, p1x - b1x)),
+                false,
+                true,
+                1.0
+        );
+        robot.nclawIntake.setGrab(false);
+        robot.nclawIntake.setTargetPose(new Pose2d(b1x, b1y, Math.PI / 2));
+        robot.nclawIntake.extend();
+        robot.waitWhile(() -> robot.drivetrain.isBusy() || !robot.nclawIntake.isExtended());
+
+        robot.nclawIntake.setGrab(true);
+        robot.waitWhile(() -> !robot.nclawIntake.hasSample());
+
+        robot.drivetrain.goToPoint(
+                new Pose2d(p2x, p2y, -Math.PI),
+                false,
+                true,
+                1.0
+        );
+        robot.waitWhile(() -> !robot.nclawIntake.isTransferReady());
+
+        robot.nclawIntake.finishTransfer();
+        robot.ndeposit.finishTransfer();
+        robot.waitWhile(() -> robot.drivetrain.isBusy());
+
+        robot.ndeposit.outtake();
+        robot.nclawIntake.setExtendoTargetPos(12.0);
+        robot.nclawIntake.extend();
+        robot.waitWhile(() -> !robot.ndeposit.isOuttakeDone());
+
+        // Get ground 2
+        robot.nclawIntake.setGrab(false);
+        robot.nclawIntake.setTargetPose(new Pose2d(b2x, b2y, Math.PI /2));
+        robot.nclawIntake.extend();
+        robot.waitWhile(() -> !robot.nclawIntake.isExtended());
+
+        robot.nclawIntake.setGrab(true);
+        robot.waitWhile(() -> !robot.nclawIntake.isTransferReady());
+
+        robot.nclawIntake.finishTransfer();
+        robot.ndeposit.finishTransfer();
+        robot.waitWhile(() -> !robot.ndeposit.isTransferFinished());
+
+        robot.ndeposit.outtake();
+        robot.nclawIntake.setExtendoTargetPos(12.0);
+        robot.nclawIntake.extend();
+        robot.waitWhile(() -> !robot.ndeposit.isOuttakeDone());
+
+        // Get ground 3
+        robot.nclawIntake.setGrab(false);
+        robot.nclawIntake.setTargetPose(new Pose2d(b3x, b3y, Math.PI /2));
+        robot.nclawIntake.extend();
+        robot.waitWhile(() -> !robot.nclawIntake.isExtended());
+
+        robot.nclawIntake.setGrab(true);
+        robot.waitWhile(() -> !robot.nclawIntake.isTransferReady());
+
+        robot.nclawIntake.finishTransfer();
+        robot.ndeposit.finishTransfer();
+        robot.waitWhile(() -> !robot.ndeposit.isTransferFinished());
+
+        // Cycle
+        for(int i = 1; i < 6; i++){
+            robot.drivetrain.goToPoint(
+                    new Pose2d(ix, iy, -Math.PI),
+                    false,
+                    true,
+                    1.0
+            );
+            robot.ndeposit.startSpecimenIntake();
+            robot.waitWhile(() -> robot.drivetrain.isBusy());
+
+            robot.ndeposit.grab();
+            robot.waitWhile(() -> robot.ndeposit.isGrabDone());
+
+            robot.drivetrain.goToPoint(
+                    new Pose2d(sx, sy, -Math.PI / 2),
+                    false,
+                    true,
+                1.0
+            );
+            robot.ndeposit.startSpecimenDeposit();
+            robot.waitWhile(() -> robot.drivetrain.isBusy());
+
+            robot.drivetrain.goToPoint(
+                    new Pose2d(dX[i], dY, -Math.PI / 2),
+                    false,
+                    true,
+                    1.0
+            );
+            robot.waitWhile(() -> robot.drivetrain.isBusy());
+
+            robot.ndeposit.deposit();
+
+            robot.drivetrain.goToPoint(
+                    new Pose2d(sx, sy, -Math.PI / 2),
+                    false,
+                    true,
+                    1.0
+            );
+            robot.waitWhile(() -> robot.drivetrain.isBusy());
+        }
+    }
+/*
     public static boolean enablePreload = true, enableGround = true, enableScore = true;
 
     public static double g1x = -47, g2x = -57, g3x = -63.5;
@@ -164,4 +319,5 @@ public class SpecimenPreloadBlueAuto extends LinearOpMode {
     public void park() {
         robot.goToPoint(new Pose2d(setupX - 6.0, setupY, Math.PI / 2.0), null, false, true, 1.0);
     }
+*/
 }

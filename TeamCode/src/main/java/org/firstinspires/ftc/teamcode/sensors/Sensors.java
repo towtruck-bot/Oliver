@@ -10,7 +10,6 @@ import org.firstinspires.ftc.teamcode.utils.DashboardUtil;
 import org.firstinspires.ftc.teamcode.utils.Globals;
 import org.firstinspires.ftc.teamcode.utils.LogUtil;
 import org.firstinspires.ftc.teamcode.utils.Pose2d;
-import org.firstinspires.ftc.teamcode.utils.REVColorSensorV3;
 import org.firstinspires.ftc.teamcode.utils.RunMode;
 import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 import org.firstinspires.ftc.teamcode.utils.priority.PriorityMotor;
@@ -29,6 +28,7 @@ public class Sensors {
     public static double slidesInchesPerTick = 35.3 / 1950;
 
     private int extendoEncoder;
+    private int slidesNewZero = 0;
     public static double extendoInchesPerTick = 19.0 / 467;
 
     private final AnalogInput[] analogEncoders = new AnalogInput[2];
@@ -45,15 +45,19 @@ public class Sensors {
         voltage = robot.hardwareMap.voltageSensor.iterator().next().getVoltage();
 
         if (Globals.RUNMODE != RunMode.TELEOP) {
-            resetSlidesEncoders();
+            hardwareResetSlidesEncoders();
         }
     }
 
-    public void resetSlidesEncoders() {
+    public void hardwareResetSlidesEncoders() {
         robot.hardwareMap.get(DcMotor.class, "leftRear").setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         robot.hardwareMap.get(DcMotor.class, "leftRear").setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         robot.hardwareMap.get(DcMotor.class, "rightFront").setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         robot.hardwareMap.get(DcMotor.class, "rightFront").setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+    }
+
+    public void softwareResetSlidesEncoders() {
+        slidesNewZero = slidesEncoder;
     }
 
     public void update() {
@@ -105,7 +109,7 @@ public class Sensors {
     public Pose2d getVelocity() {return odometry.getVelocity();}
 
     public double getSlidesPos() {
-        return slidesEncoder * slidesInchesPerTick;
+        return (slidesEncoder - slidesNewZero) * slidesInchesPerTick;
     }
 
     public double getSlidesVel() {
@@ -128,13 +132,13 @@ public class Sensors {
         LogUtil.extendoCurrentPos.set(getExtendoPos());
 
         TelemetryUtil.packet.put("Slides : position", getSlidesPos());
-        TelemetryUtil.packet.put("Slides : encoder", this.slidesEncoder);
+        TelemetryUtil.packet.put("Slides : encoder", slidesEncoder - slidesNewZero);
         LogUtil.slidesCurrentPos.set(getSlidesPos());
 
         Pose2d currentPos = getOdometryPosition();
-        TelemetryUtil.packet.put("driveCurrentX", currentPos.x);
-        TelemetryUtil.packet.put("driveCurrentY", currentPos.y);
-        TelemetryUtil.packet.put("driveCurrentAngle (deg)", Math.toDegrees(currentPos.heading));
+        TelemetryUtil.packet.put("pinpointX", currentPos.x);
+        TelemetryUtil.packet.put("pinpointY", currentPos.y);
+        TelemetryUtil.packet.put("pinpoint Angle (deg)", Math.toDegrees(currentPos.heading));
         Canvas fieldOverlay = TelemetryUtil.packet.fieldOverlay();
         DashboardUtil.drawRobot(fieldOverlay, currentPos, getExtendoPos(), "#00ff00");
         LogUtil.driveCurrentX.set(currentPos.x);

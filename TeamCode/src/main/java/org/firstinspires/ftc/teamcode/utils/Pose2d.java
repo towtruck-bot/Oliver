@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.utils;
 
+import android.annotation.SuppressLint;
+
 import androidx.annotation.NonNull;
 
 public class Pose2d implements Cloneable {
@@ -59,5 +61,10 @@ public class Pose2d implements Cloneable {
     @Override
     public Pose2d clone() {
         return new Pose2d(x, y, heading);
+    }
+
+    @SuppressLint("DefaultLocale")
+    public String toString() {
+        return String.format("(%.3f, %.3f, %.3f", x, y, heading);
     }
 }

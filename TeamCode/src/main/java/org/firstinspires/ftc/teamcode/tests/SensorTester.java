@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.tests;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -13,7 +14,10 @@ import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 import java.util.Locale;
 
 @TeleOp(group = "Test")
+@Config
 public class SensorTester extends LinearOpMode {
+    public static boolean intakeLight = true;
+
     @Override
     public void runOpMode() throws InterruptedException {
         Globals.RUNMODE = RunMode.TESTER;
@@ -21,6 +25,9 @@ public class SensorTester extends LinearOpMode {
 
         Robot robot = new Robot(hardwareMap);
         Sensors sensors = robot.sensors;
+
+        robot.sensors.setOdometryPosition(48.0 - Globals.ROBOT_REVERSE_LENGTH, 72.0 - Globals.ROBOT_WIDTH / 2, Math.PI);
+        robot.update();
 
         waitForStart();
 
@@ -34,7 +41,7 @@ public class SensorTester extends LinearOpMode {
             Pose2d pos = sensors.getOdometryPosition();
             String data = String.format(Locale.US, "{X: %.3f, Y: %.3f, H: %.3f}", pos.getX(), pos.getY(), pos.getHeading());
 
-            robot.nclawIntake.intakeLight.setState(gamepad1.x);
+            robot.nclawIntake.intakeLight.setState(intakeLight);
 
             telemetry.addData("Position", data);
             telemetry.addData("Slides position", sensors.getSlidesPos());

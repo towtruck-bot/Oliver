@@ -39,7 +39,7 @@ public class SpecimenPreloadAuto extends LinearOpMode {
         robot.sensors.resetPosAndIMU();
 
         robot.ndeposit.state = nDeposit.State.HOLD;
-        robot.ndeposit.presetDepositHeight(true, true);
+        robot.ndeposit.presetDepositHeight(true, true, false);
 
         // TODO: Implement to emulate goToPointWIthIntake. Use vision? or dynamic intakeAt
         robot.nclawIntake.setGrabMethod(nClawIntake.GrabMethod.MANUAL_TARGET);

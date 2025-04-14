@@ -28,7 +28,7 @@ public class SamplePreloadAuto extends LinearOpMode {
     // GP depo positions
     public static double dx1 = 63, dy1 = 53.3;
     public static double dx2 = 64.3, dy2 = 54.3;
-    public static double dx3 = 65.2, dy3 = 52.6;
+    public static double dx3 = 65.2, dy3 = 53.6;
 
     public void runOpMode(){
         Globals.isRed = false;
@@ -44,10 +44,12 @@ public class SamplePreloadAuto extends LinearOpMode {
 
         robot.ndeposit.state = nDeposit.State.HOLD;
         robot.nclawIntake.setGrabMethod(nClawIntake.GrabMethod.MANUAL_TARGET);
-        robot.ndeposit.presetDepositHeight(false, true, false);
+        robot.nclawIntake.setTargetType(nClawIntake.Target.GLOBAL);
         robot.nclawIntake.setGrab(false);
         robot.nclawIntake.setRetryGrab(true);
-        robot.nclawIntake.setTargetType(nClawIntake.Target.GLOBAL);
+
+        robot.ndeposit.presetDepositHeight(false, true, false);
+        robot.nclawIntake.disableRestrictedHoldPos();
 
         while (opModeInInit() && !isStopRequested()) {
             robot.sensors.setOdometryPosition(48.0 - Globals.ROBOT_REVERSE_LENGTH, 72.0 - Globals.ROBOT_WIDTH / 2, Math.PI);
@@ -140,7 +142,7 @@ public class SamplePreloadAuto extends LinearOpMode {
         robot.waitWhile(() -> !robot.nclawIntake.hasSample());
         // Go to under bucket
         robot.drivetrain.goToPoint(
-                new Pose2d(dx3, dy3, Math.toRadians(275)),
+                new Pose2d(dx3, dy3, Math.toRadians(272.5)),
                 false,
                 true,
                 1.0
@@ -150,7 +152,12 @@ public class SamplePreloadAuto extends LinearOpMode {
         robot.nclawIntake.finishTransfer();
         robot.ndeposit.finishTransfer();
 
+        robot.waitWhile(() -> !robot.ndeposit.isTransferFinished());
+        robot.ndeposit.deposit();
 
+        robot.waitWhile(() -> !robot.ndeposit.isDepositFinished());
+
+        /*
         robot.nclawIntake.setGrabMethod(nClawIntake.GrabMethod.SEARCH_HOVER_MG);
         robot.waitWhile(() -> robot.nclawIntake.hasSample());
 
@@ -202,7 +209,7 @@ public class SamplePreloadAuto extends LinearOpMode {
             robot.ndeposit.startSampleDeposit();
             pickUp.y -= 4;
         }
-
+*/
         /*robot.drivetrain.goToPoint(
                 new Pose2d(dx3, dy3 + 5, Math.toRadians(260)),
                 false,

@@ -6,22 +6,27 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.utils.LogUtil;
+import org.firstinspires.ftc.teamcode.utils.PID;
 import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 import org.firstinspires.ftc.teamcode.utils.Utils;
 import org.firstinspires.ftc.teamcode.utils.priority.PriorityMotor;
 
 @Config
 public class Slides {
-    public static double maxVel = 55.75589743589743;
-    public static double kP = 0.8;
-    public static double kA = 46;
-    public static double kStatic = 0.08;
-    public static double kStaticRamp = (0.5 - kStatic)/35.3;
-    public static double minPower = 0.3;
-    public static double minPowerThresh = 2;
+    //public static double maxVel = 55.75589743589743;
+    //public static double kP = 0.8;
+    //public static double kA = 46;
+    public static double kStaticRamp = 0.2;
+    public static double minKStaticLength = 3;
+    //public static double minPower = 0.3;
+    //public static double minPowerThresh = 2;
     public static double forceDownPower = -0.40;
     public static double forceDownThresh = 5;
     public static double maxSlidesHeight = 35.3;
+    public static PID pid = new PID(0.3, 0, 0.001);
+    private int concurrence = 0;
+    private double slidesTargetDelta = 0;
+    private boolean justZeroed = false;
 
     public final PriorityMotor slidesMotors;
     private final Robot robot;
@@ -59,7 +64,7 @@ public class Slides {
      * Pretty misleading function name -- Eric
      * @return power
      */
-    private double feedforward() {
+    /*private double feedforward() {
         double error = targetLength - length;
         TelemetryUtil.packet.put("Slides : error", error);
         TelemetryUtil.packet.put("Slides : targetLength", targetLength);
@@ -70,7 +75,7 @@ public class Slides {
             return length <= 0.5 ? forceDownPower / 2 : forceDownPower;
         }
         return (error * (maxVel / kA)) * kP + kStatic + kStaticRamp * targetLength + ((Math.abs(error) > minPowerThresh) ? minPower * Math.signum(error) : 0);
-    }
+    }*/
 
     public boolean manualMode = false;
 
@@ -81,15 +86,39 @@ public class Slides {
 
         if (!manualMode) {
 //            if (!(Globals.RUNMODE == RunMode.TESTER)) {
-            double pow = feedforward();
+            TelemetryUtil.packet.put("slidesError", targetLength-length);
+            double pow = pid.update(targetLength - length, -1.0, 1.0) + ((length > minKStaticLength) ? (kStaticRamp / maxSlidesHeight) * length : 0);//feedforward();
+            if (length <= forceDownThresh && targetLength == 0)
+                pow = forceDownPower;
+
+            // We can auto reset the slides position
+            if (targetLength == 0 && length <= 1)
+                concurrence++;
+            else
+                concurrence = 0;
+
+            if (concurrence >= 4 && slidesTargetDelta >= 10) {
+                robot.sensors.resetSlidesEncoders();
+                justZeroed = true;
+            }
+
             TelemetryUtil.packet.put("Slides: Power", pow);
+            TelemetryUtil.packet.put("Slides : concurrence", concurrence);
+            TelemetryUtil.packet.put("Slides : targetDelta", slidesTargetDelta);
             slidesMotors.setTargetPower(Math.max(Math.min(pow, 1), -1));
 //            }
         }
     }
 
     public void setTargetLength(double length) {
-        targetLength = Utils.minMaxClip(length, 0, maxSlidesHeight);
+        double tl = Utils.minMaxClip(length, 0, maxSlidesHeight);
+        if (justZeroed && tl > 0) {
+            slidesTargetDelta = 0;
+            justZeroed = false;
+        } else
+            slidesTargetDelta += Math.abs(tl - targetLength);
+
+        targetLength = tl;
     }
 
     public void setTargetPowerFORCED(double power) {

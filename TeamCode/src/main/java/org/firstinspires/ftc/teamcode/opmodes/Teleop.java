@@ -6,10 +6,13 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.subsystems.deposit.nDeposit;
+import org.firstinspires.ftc.teamcode.subsystems.intake.IntakeExtension;
+import org.firstinspires.ftc.teamcode.subsystems.intake.IntakeTurret;
 import org.firstinspires.ftc.teamcode.subsystems.intake.nClawIntake;
 import org.firstinspires.ftc.teamcode.utils.AngleUtil;
 import org.firstinspires.ftc.teamcode.utils.ButtonToggle;
 import org.firstinspires.ftc.teamcode.utils.Globals;
+import org.firstinspires.ftc.teamcode.utils.Pose2d;
 import org.firstinspires.ftc.teamcode.utils.RunMode;
 import org.firstinspires.ftc.teamcode.utils.LogUtil;
 import org.firstinspires.ftc.teamcode.utils.Utils;
@@ -19,8 +22,11 @@ import org.firstinspires.ftc.teamcode.utils.Utils;
 public class Teleop extends LinearOpMode {
     public static double slidesInc = 0.4;
     public static double extendoInc = 0.4;
+    public static double verticalExtensionSpeed = 0.5;
+    public static double horizontalExtensionSpeed = 0.35;
     public static double intakeClawRotationInc = 0.1;
     public static double intakeTurretRotationInc = -0.1;
+    public static double extensionPreset = 15;
 
     public void runOpMode() {
         Globals.RUNMODE = RunMode.TELEOP;
@@ -56,8 +62,9 @@ public class Teleop extends LinearOpMode {
 
         while (opModeInInit()) {
             robot.update();
-            robot.ndeposit.presetDepositHeight(speciMode, high);
+            robot.ndeposit.presetDepositHeight(speciMode, high, false);
         }
+        robot.nclawIntake.setTargetPose(new Pose2d(extensionPreset, 0, 0));
 
         while (!isStopRequested()) {
             robot.update();
@@ -67,20 +74,20 @@ public class Teleop extends LinearOpMode {
                 robot.nclawIntake.setTargetType(nClawIntake.Target.RELATIVE);
             } else {
                 robot.nclawIntake.setGrabMethod(nClawIntake.GrabMethod.MANUAL_AIM);
-                robot.nclawIntake.setTargetType(nClawIntake.Target.MANUAL);
+                robot.nclawIntake.setTargetType(nClawIntake.Target.RELATIVE);
             }
             robot.nclawIntake.setRetryGrab(false);
 
             if (x_1.isClicked(gamepad1.x) || b_2.isClicked(gamepad2.b)) {
                 speciMode = !speciMode;
                 intakeMode = false;
-                robot.ndeposit.presetDepositHeight(speciMode, high);
+                robot.ndeposit.presetDepositHeight(speciMode, high, false);
                 if (speciMode) gamepad1.rumble(250);
                 else gamepad1.rumble(100);
             }
             if (b_1.isClicked(gamepad1.b)) {
                 high = !high;
-                robot.ndeposit.presetDepositHeight(speciMode, high);
+                robot.ndeposit.presetDepositHeight(speciMode, high, false);
             }
             if (y_1.isClicked(gamepad1.y)) {
                 autoGrab = !autoGrab;
@@ -106,6 +113,7 @@ public class Teleop extends LinearOpMode {
                     else if (robot.nclawIntake.state == nClawIntake.State.READY || robot.nclawIntake.state == nClawIntake.State.TRANSFER_WAIT) {
                         robot.nclawIntake.extend();
                         intakeMode = true;
+                        robot.nclawIntake.target.heading = robot.nclawIntake.target.y = 0;
                         turretAngle = 0;
                         clawAngle = 0;
                     }
@@ -134,13 +142,19 @@ public class Teleop extends LinearOpMode {
 
             // Manualy adjust the slides height during deposit
             if (intakeMode) {
-                double turretControl1 = robot.drivetrain.smoothControls(gamepad1.right_stick_x);
+                double t = robot.nclawIntake.intakeTurret.getTargetTurretRotation();
+                robot.nclawIntake.setTargetPose(new Pose2d(
+                    Utils.minMaxClip(robot.nclawIntake.target.x - gamepad1.right_stick_y * verticalExtensionSpeed, IntakeTurret.extendoOffset, IntakeTurret.extendoOffset + IntakeExtension.maxExtendoLength + IntakeTurret.turretLengthTip * -Math.cos(t)),
+                    Utils.minMaxClip(robot.nclawIntake.target.y - gamepad1.right_stick_x * horizontalExtensionSpeed, -IntakeTurret.turretLengthTip, IntakeTurret.turretLengthTip),
+                    robot.nclawIntake.target.heading + intakeClawRotationInc * (gamepad1.left_trigger - gamepad1.right_trigger))
+                );
+                /*double turretControl1 = robot.drivetrain.smoothControls(gamepad1.right_stick_x);
                 double extendoControl1 = robot.drivetrain.smoothControls(-gamepad1.right_stick_y);
                 robot.nclawIntake.setExtendoTargetPos(robot.nclawIntake.getExtendoTargetPos() + extendoInc * extendoControl1);
                 clawAngle += intakeClawRotationInc * (gamepad1.left_trigger - gamepad1.right_trigger);
                 turretAngle += intakeTurretRotationInc * turretControl1;
                 clawAngle = AngleUtil.mirroredClipAngle(clawAngle);
-                turretAngle = Utils.minMaxClip(turretAngle, -1.7, 1.7);
+                turretAngle = Utils.minMaxClip(turretAngle, -1.7, 1.7);*/
             } else {
                 double slidesControl1 = robot.drivetrain.smoothControls(-gamepad1.right_stick_y);
                 robot.ndeposit.setDepositHeight(robot.ndeposit.getDepositHeight() + slidesInc * slidesControl1);

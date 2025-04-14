@@ -32,12 +32,16 @@ public class nClawIntake {
     // turretBufferAng -> angle that allows for any rotation to occur with the turret still inside the robot. use in any retract/extend states
 
     public static double transferClawRotation = 0;
-    public static double hoverAngle = 0.232;
+    public static double restrictedHoverAngle = 1.0645;
+    public static double normalHoverAngle = 0.232;
+    public static double hoverAngle = normalHoverAngle;
     public static double turretRetractedAngle = 2.4345, turretSearchAngle = 0.625, turretTransferAngle = 2.05, turretGrabAngle = -0.4557;
     public static double turretTransferRotation = 3.165;
     public static double minExtension = 2; // What we require before giving full range of motion
     private long hoverStart = 0;
+    private long lowerStart = 0;
     public static double hoverDelay = 150;
+    public static double lowerDelay = 250;
     public static double transferExtension = 0;
     public static double turretSearchRotation = 3.165;
 
@@ -217,6 +221,7 @@ public class nClawIntake {
                 if (intakeTurret.inPosition(Math.toRadians(5)) && (grabMethod == GrabMethod.MANUAL_AIM || System.currentTimeMillis() - hoverStart > hoverDelay)) {
                     if (!grabMethod.manualGrab || grab) {
                         state = State.LOWER;
+                        lowerStart = System.currentTimeMillis();
                     }
                 }
 
@@ -228,7 +233,7 @@ public class nClawIntake {
                 intakeTurret.setClawState(false);
 
                 // everything in position before grabbing
-                if (intakeTurret.inPosition(Math.toRadians(2))) {
+                if (intakeTurret.inPosition(Math.toRadians(2)) && System.currentTimeMillis() - lowerStart >= lowerDelay) {
                     consecutivePSPositives = psReads = 0;
                     state = State.GRAB_CLOSE;
                 }
@@ -574,5 +579,13 @@ public class nClawIntake {
             hoverStart = System.currentTimeMillis();
             state = State.HOVER;
         }
+    }
+
+    public void enableRestrictedHoldPos() {
+        hoverAngle = restrictedHoverAngle;
+    }
+
+    public void disableRestrictedHoldPos() {
+        hoverAngle = normalHoverAngle;
     }
 }

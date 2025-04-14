@@ -97,7 +97,7 @@ public class IntakeTurret {
         double xError = target.x;
         double yError = target.y;
 
-        if(Math.abs(yError) < turretLengthTip) {
+        if(Math.abs(yError) <= turretLengthTip) {
             targetLength = xError - extendoOffset - Math.sqrt(turretLengthTip * turretLengthTip - yError * yError)/* - yError / turretLength*/;
             setTurretRotation(Math.PI + Math.atan2(yError, Math.sqrt(turretLengthTip * turretLengthTip - yError * yError)));
             setClawRotation(AngleUtil.mirroredClipAngleTolerence(target.heading - getTurretRotation(), Math.toRadians(20)));
@@ -150,6 +150,10 @@ public class IntakeTurret {
 
     public double getTurretRotation() {
         return turretRotation.getCurrentAngle() / (3.524 / Math.PI);
+    }
+
+    public double getTargetTurretRotation() {
+        return turretRotation.getTargetAngle() / (3.524 / Math.PI);
     }
 
     public double getClawRotation() {
@@ -207,4 +211,5 @@ public class IntakeTurret {
     public boolean clawInPosition() {
         return claw.inPosition();
     }
+
 }

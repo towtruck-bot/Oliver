@@ -28,7 +28,7 @@ public class SamplePreloadAuto extends LinearOpMode {
     // GP depo positions
     public static double dx1 = 63, dy1 = 53.3;
     public static double dx2 = 63.5, dy2 = 53.4;
-    public static double dx3 = 66, dy3 = 53.4;
+    public static double dx3 = 64.99, dy3 = 52.518;
 
     public void runOpMode(){
         Globals.isRed = false;
@@ -44,7 +44,7 @@ public class SamplePreloadAuto extends LinearOpMode {
 
         robot.ndeposit.state = nDeposit.State.HOLD;
         robot.nclawIntake.setGrabMethod(nClawIntake.GrabMethod.MANUAL_TARGET);
-        robot.ndeposit.presetDepositHeight(false, true);
+        robot.ndeposit.presetDepositHeight(false, true, false);
         robot.nclawIntake.setGrab(false);
         robot.nclawIntake.setRetryGrab(true);
         robot.nclawIntake.setTargetType(nClawIntake.Target.GLOBAL);
@@ -65,12 +65,12 @@ public class SamplePreloadAuto extends LinearOpMode {
             1.0
         );
         //robot.nclawIntake.setTargetPose(new Pose2d(bx1, by1, Math.PI / 2));
-        robot.nclawIntake.setExtendoTargetPos(7);
+        robot.nclawIntake.setExtendoTargetPos(5);
         robot.nclawIntake.setTargetType(nClawIntake.Target.MANUAL);
         robot.nclawIntake.extend();
         robot.update(); // Sigh.. - Eric
 
-        robot.waitWhile(() -> robot.drivetrain.targetPoint.getDistanceFromPoint(robot.sensors.getOdometryPosition()) > 10);
+        robot.waitWhile(() -> robot.drivetrain.targetPoint.getDistanceFromPoint(robot.sensors.getOdometryPosition()) > 8.5);
         robot.nclawIntake.setExtendoTargetPos(15);
         robot.update();
 
@@ -111,9 +111,11 @@ public class SamplePreloadAuto extends LinearOpMode {
         robot.waitWhile(() -> !robot.nclawIntake.isExtended());
         robot.nclawIntake.setGrab(true);
         robot.waitWhile(() -> !robot.nclawIntake.hasSample());
+        robot.ndeposit.presetDepositHeight(false, true, true);
+        robot.nclawIntake.enableRestrictedHoldPos();
         // Go to under bucket
         robot.drivetrain.goToPoint(
-            new Pose2d(dx3, dy3, Math.toRadians(276)),
+            new Pose2d(dx3, dy3, Math.toRadians(272)),
             false,
             true,
             1.0
@@ -138,7 +140,7 @@ public class SamplePreloadAuto extends LinearOpMode {
         robot.waitWhile(() -> !robot.nclawIntake.hasSample());
         // Go to under bucket
         robot.drivetrain.goToPoint(
-                new Pose2d(dx3, dy3, Math.toRadians(276)),
+                new Pose2d(dx3, dy3, Math.toRadians(272)),
                 false,
                 true,
                 1.0
@@ -157,12 +159,14 @@ public class SamplePreloadAuto extends LinearOpMode {
         for (int i = 0; i < 3; i++) {
             robot.waitWhile(() -> robot.drivetrain.isBusy() || !robot.ndeposit.isDepositReady());
             robot.ndeposit.deposit();
+            robot.ndeposit.presetDepositHeight(false, true, false);
+            robot.nclawIntake.disableRestrictedHoldPos();
             robot.nclawIntake.removeKnown();
             robot.nclawIntake.setExtendoTargetPos(10);
             robot.nclawIntake.extend();
 
             robot.drivetrain.goToPoint(
-                new Pose2d(30, pickUp.y, Math.toRadians(210)),
+                new Pose2d(33, pickUp.y, Math.toRadians(210)),
                 false,
                 false,
                 1.0
@@ -170,7 +174,7 @@ public class SamplePreloadAuto extends LinearOpMode {
 
             robot.waitWhile(() -> robot.drivetrain.targetPoint.getDistanceFromPoint(robot.sensors.getOdometryPosition()) > 5);
             robot.drivetrain.goToPoint(
-                new Pose2d(27, pickUp.y, Math.PI),
+                new Pose2d(30, pickUp.y, Math.PI),
                 false,
                 true,
                 1.0
@@ -183,18 +187,18 @@ public class SamplePreloadAuto extends LinearOpMode {
 
             robot.waitWhile(() -> !robot.nclawIntake.hasSample());
             // Go to under bucket
-            Spline s = new Spline(robot.sensors.getOdometryPosition(), 7)
+            Spline s2 = new Spline(robot.sensors.getOdometryPosition(), 7)
                 .setReversed(true)
-                .addPoint(new Pose2d(30, pickUp.y, Math.toRadians(210)))
+                .addPoint(new Pose2d(33, pickUp.y - 5, Math.toRadians(210)))
                 .addPoint(62, 55, Math.toRadians(242));
-            robot.drivetrain.setPath(s);
+            robot.drivetrain.setPath(s2);
             robot.drivetrain.state = Drivetrain.State.FOLLOW_SPLINE;
             robot.drivetrain.setMaxPower(0.5);
             robot.waitWhile(() -> !robot.nclawIntake.isTransferReady() || !robot.ndeposit.isTransferReady());
             robot.nclawIntake.finishTransfer();
             robot.ndeposit.finishTransfer();
 
-            robot.waitWhile(() -> robot.sensors.getOdometryPosition().getDistanceFromPoint(s.getLastPoint()) > 12);
+            robot.waitWhile(() -> robot.sensors.getOdometryPosition().getDistanceFromPoint(s2.getLastPoint()) > 24);
             robot.ndeposit.startSampleDeposit();
         }
 

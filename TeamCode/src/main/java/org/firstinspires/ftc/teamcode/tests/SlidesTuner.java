@@ -13,12 +13,7 @@ import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 @TeleOp
 @Config
 public class SlidesTuner extends LinearOpMode {
-    public static nDeposit.State state = nDeposit.State.IDLE;
-    private static double largestVel = 0;
-    public static boolean powerMode = false;
-    public static boolean hangMotor = false;
-    public static double hangMotorPower = 0;
-    public static double power = 0;
+    public static double length = 0;
 
     public void runOpMode() {
         Robot robot = new Robot(hardwareMap);
@@ -29,24 +24,8 @@ public class SlidesTuner extends LinearOpMode {
         waitForStart();
 
         while (!isStopRequested()) {
-            if (!powerMode) {
-                robot.ndeposit.holdSlides = true;
-                robot.ndeposit.state = state;
-            } else {
-                robot.ndeposit.state = nDeposit.State.TEST;
-                robot.ndeposit.slides.slidesMotors.setPowerForced(power);
-                if (Math.abs(robot.sensors.getSlidesVel()) > largestVel)
-                    largestVel = Math.abs(robot.sensors.getSlidesVel());
-                TelemetryUtil.packet.put("Slides vel", robot.sensors.getSlidesVel());
-                TelemetryUtil.packet.put("Slides: largestVel", largestVel);
-                TelemetryUtil.sendTelemetry();
-                robot.sensors.update();
-                continue;
-            }
-
-            if (hangMotor) {
-                robot.hang.hangMotor.setTargetPower(hangMotorPower);
-            }
+            robot.ndeposit.state = nDeposit.State.TEST;
+            robot.ndeposit.setDepositHeight(length);
 
             //TelemetryUtil.packet.put("Slides: Error", targetSlidesHeight - robot.ndeposit.slides.getLength());
             //TelemetryUtil.packet.put("Slides: Position", robot.ndeposit.slides.getLength());

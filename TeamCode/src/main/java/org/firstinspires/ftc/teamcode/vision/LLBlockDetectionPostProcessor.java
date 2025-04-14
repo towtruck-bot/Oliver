@@ -40,8 +40,8 @@ public class LLBlockDetectionPostProcessor {
     private boolean detecting = false;
     private Vector2 offset = new Vector2(0, 0);
     public static int pollRate = 100;
-    public static int maxAngX = 14;
-    public static int maxAngY = 14;
+    public static int maxAngX = 100;
+    public static int maxAngY = 100;
     private double lastOrientation = 0;
     private double orientation = 0;
     private Pose2d lastBlockPosition;
@@ -145,6 +145,7 @@ public class LLBlockDetectionPostProcessor {
             // Attempt to update heading value with the new value
             List<List<Double>> corners = cr.getTargetCorners();
             // TelemetryUtil.packet.put("LL corners.size", corners.size()); Stop.
+            double area = 0;
             if (corners.size() == 4) { // I don't care enough to get this to work with stupid detections
                 Vector2[] vcorners = new Vector2[corners.size()];
                 canvas.setStroke("#606060");
@@ -185,6 +186,15 @@ public class LLBlockDetectionPostProcessor {
                     }
                 }
 
+                // Use length and width to get area
+                double width = Math.sqrt(Math.pow(vcorners[cl0].x - vcorners[l0].x, 2) + Math.pow(vcorners[cl0].y - vcorners[l0].y, 2));
+                double length = Math.sqrt(Math.pow(largestDistance, 2) - width * width);
+                area = width * length;
+
+                TelemetryUtil.packet.put("BlockWidth", width);
+                TelemetryUtil.packet.put("BlockLength", length);
+                TelemetryUtil.packet.put("BlockArea", area);
+
                 // Average the 2 small sides
                 double h1 = AngleUtil.mirroredClipAngleTolerence(Math.atan2(vcorners[l0].y - vcorners[cl0].y, vcorners[l0].x - vcorners[cl0].x), Math.toRadians(20));
                 double h2 = AngleUtil.mirroredClipAngleTolerence(Math.atan2(vcorners[cl1].y - vcorners[l1].y, vcorners[cl1].x - vcorners[l1].x), Math.toRadians(20));
@@ -196,15 +206,20 @@ public class LLBlockDetectionPostProcessor {
 
             // If robot is moving very fast then it will only use drivetrain translational values to calculate new block pos
             Vector2 velocityVector = new Vector2(
-                robot.sensors.getVelocity().x,
-                robot.sensors.getVelocity().y
+                    robot.sensors.getVelocity().x,
+                    robot.sensors.getVelocity().y
             );
             double weightedAvg = velocityVector.mag() / Drivetrain.maxVelocity;
+            weightedAvg = 0; // Yuh - Eric
 
             blockPos.x = expectedNewBlockPose.x * weightedAvg + x * (1 - weightedAvg);
             blockPos.y = expectedNewBlockPose.y * weightedAvg + y * (1 - weightedAvg);
             blockPos.heading = expectedNewBlockPose.heading * weightedAvg + heading * (1 - weightedAvg);
 
+            if ((area <= 10000 || area >= 14000) && detections >= 1) { // Pre worlds jank - Eric
+                blockPos = expectedNewBlockPose.clone();
+                newDetections = detections;
+            }
         }
 
         if (lastBlockPosition == null)
@@ -296,7 +311,7 @@ public class LLBlockDetectionPostProcessor {
     }
 
     public boolean isStable() {
-        return velocityLowPass < 0.1 && detections >= 2; // Detections >= 2 allows us to have a velocity
+        return velocityLowPass < 1 && detections >= 2; // Detections >= 2 allows us to have a velocity
     }
 
     public double getVelocityLowPass() {

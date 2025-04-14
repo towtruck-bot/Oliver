@@ -54,7 +54,7 @@ public class IntakeWithLL extends LinearOpMode {
         while (opModeIsActive()) {
             robot.nclawIntake.setGrabMethod(grabMethod);
             robot.vision.setOffset(robot.nclawIntake.getIntakeRelativeToRobot());
-            Pose2d blockPos = robot.vision.getBlockPos();
+            Pose2d blockPos = robot.vision.getClosestValidBlock().getPose();
 
 /*
             TelemetryUtil.packet.put("blockPos.x", blockPos.x);
@@ -124,7 +124,6 @@ public class IntakeWithLL extends LinearOpMode {
                 setGrab = false;
             }*/
 
-            TelemetryUtil.packet.put("velocityLowPass", robot.vision.getVelocityLowPass());
             //robot.nclawIntake.setIntakeLength(extensionLength);
             robot.drivetrain.drive(gamepad1);
 

@@ -16,6 +16,7 @@ import org.firstinspires.ftc.teamcode.utils.RunMode;
 import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 import org.firstinspires.ftc.teamcode.utils.Utils;
 import org.firstinspires.ftc.teamcode.utils.Vector2;
+import org.firstinspires.ftc.teamcode.vision.LLBlockDetectionPostProcessor;
 
 @Config
 public class nClawIntake {
@@ -44,6 +45,7 @@ public class nClawIntake {
     public static double lowerDelay = 250;
     public static double transferExtension = 0;
     public static double turretSearchRotation = 3.165;
+    public static LLBlockDetectionPostProcessor.Block targetBlock = null;
 
     private boolean grab = false;
     private boolean sampleStatus = false;
@@ -175,7 +177,7 @@ public class nClawIntake {
             case SEARCH:
                 aimAtKnown();
 
-                if (intakeTurret.extendoInPosition() && !robot.vision.isDetecting()) {
+                if (intakeTurret.turretAngInPosition() && !robot.vision.isDetecting()) {
                     robot.vision.startDetection();
                     intakeLight.setState(true);
                 }
@@ -187,8 +189,6 @@ public class nClawIntake {
 
                 intakeTurret.setClawState(false);
 
-                Log.i("CHECKING IT", robot.vision.isStable() + " stable");
-                Log.i("CHECKING IT", robot.vision.gottenFirstContact() + " first contact");
                 Log.i("CHECKING IT", intakeTurret.rotInPosition() + " rot in pos");
                 switch (grabMethod) {
                     case CONTINUOUS_SEARCH_MG:
@@ -196,17 +196,13 @@ public class nClawIntake {
                             break;
                     case SEARCH_HOVER_MG:
                     case AUTOGRAB:
-                        if (!(robot.vision.isStable() && robot.vision.gottenFirstContact() && intakeTurret.inPosition() && intakeTurret.extendoInPosition()))
+                        LLBlockDetectionPostProcessor.Block b = robot.vision.getClosestValidBlock();
+                        if (!(b != null && intakeTurret.inPosition() && intakeTurret.extendoInPosition()))
                             break;
+                        targetBlock = b;
 
                         hoverStart = System.currentTimeMillis();
-                        Pose2d p = robot.vision.getBlockPos();
-                        target = new Pose2d(
-                            p.x,
-                            p.y,
-                            -p.heading
-                        );
-                        targetType = Target.RELATIVE; // Kind of needed here or else its weird
+
                         robot.vision.stopDetection();
                         state = State.HOVER;
                         break;
@@ -281,6 +277,8 @@ public class nClawIntake {
 
                 if (sampleStatus && intakeTurret.clawInPosition()) {
                     known = null;
+                    robot.vision.removeBlock(targetBlock);
+                    targetBlock = null;
                     state = State.START_RETRACT;
                     robot.ndeposit.startTransfer();
                     intakeLight.setState(false);
@@ -565,6 +563,15 @@ public class nClawIntake {
                 intakeTurret.setTurretArmTarget(turretGrabAngle);
                 break;
             }
+        }
+
+        if (targetBlock != null) {
+            target = new Pose2d(
+                targetBlock.getX(),
+                targetBlock.getY(),
+                -targetBlock.getHeading()
+            );
+            targetType = Target.RELATIVE; // Kind of needed here or else its weird
         }
     }
 

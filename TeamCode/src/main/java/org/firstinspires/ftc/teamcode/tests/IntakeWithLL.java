@@ -54,7 +54,6 @@ public class IntakeWithLL extends LinearOpMode {
         while (opModeIsActive()) {
             robot.nclawIntake.setGrabMethod(grabMethod);
             robot.vision.setOffset(robot.nclawIntake.getIntakeRelativeToRobot());
-            Pose2d blockPos = robot.vision.getBlockPos();
 
 /*
             TelemetryUtil.packet.put("blockPos.x", blockPos.x);
@@ -64,9 +63,6 @@ public class IntakeWithLL extends LinearOpMode {
 */
 
             Canvas c = TelemetryUtil.packet.fieldOverlay();
-            c.setStroke("#444400");
-            c.strokeCircle(blockPos.x, blockPos.y, 3);
-            c.strokeLine(blockPos.x, blockPos.y, blockPos.x + 5 * Math.sin(blockPos.heading), blockPos.y + 5 * Math.cos(blockPos.heading));
 
             if (y1.isClicked(gamepad1.y)) robot.nclawIntake.extend();
 
@@ -124,7 +120,6 @@ public class IntakeWithLL extends LinearOpMode {
                 setGrab = false;
             }*/
 
-            TelemetryUtil.packet.put("velocityLowPass", robot.vision.getVelocityLowPass());
             //robot.nclawIntake.setIntakeLength(extensionLength);
             robot.drivetrain.drive(gamepad1);
 

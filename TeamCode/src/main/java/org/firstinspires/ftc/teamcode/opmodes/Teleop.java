@@ -128,7 +128,10 @@ public class Teleop extends LinearOpMode {
             if (robot.nclawIntake.isOut()) {
                 rb_1.isClicked(gamepad1.right_bumper);
                 robot.nclawIntake.setGrab(gamepad1.right_bumper);
+
+                robot.drivetrain.setBrakePad(robot.drivetrain.vdrive.mag() < 0.1 && Math.abs(robot.drivetrain.vturn) < 0.1);
             } else {
+                robot.drivetrain.setBrakePad(false);
                 if (rb_1.isClicked(gamepad1.right_bumper)) {
                     if (robot.ndeposit.isHolding()) {
                         robot.ndeposit.deposit();

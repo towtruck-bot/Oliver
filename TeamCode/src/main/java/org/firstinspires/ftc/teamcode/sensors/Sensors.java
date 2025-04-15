@@ -12,6 +12,7 @@ import org.firstinspires.ftc.teamcode.utils.LogUtil;
 import org.firstinspires.ftc.teamcode.utils.Pose2d;
 import org.firstinspires.ftc.teamcode.utils.RunMode;
 import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
+import org.firstinspires.ftc.teamcode.utils.Vector2;
 import org.firstinspires.ftc.teamcode.utils.priority.PriorityMotor;
 
 @Config
@@ -34,6 +35,10 @@ public class Sensors {
     private final AnalogInput[] analogEncoders = new AnalogInput[2];
     public double[] analogVoltages = new double[analogEncoders.length];
 
+    private Pose2d formerPoint;
+    private long lastTime = System.currentTimeMillis();
+    private Vector2 instantVelo;
+
     public Sensors(Robot robot) {
         this.robot = robot;
 
@@ -47,6 +52,16 @@ public class Sensors {
         if (Globals.RUNMODE != RunMode.TELEOP) {
             hardwareResetSlidesEncoders();
         }
+    }
+
+    public void calculateCurrentVelo(){
+        Pose2d currentPoint = odometry.getPosition();
+        long currentTime = System.currentTimeMillis();
+        instantVelo.x = (currentPoint.x - formerPoint.x) / (currentTime - lastTime);
+        instantVelo.y = (currentPoint.y - formerPoint.y) / (currentTime - lastTime);
+
+        formerPoint = currentPoint;
+        lastTime = currentTime;
     }
 
     public void hardwareResetSlidesEncoders() {

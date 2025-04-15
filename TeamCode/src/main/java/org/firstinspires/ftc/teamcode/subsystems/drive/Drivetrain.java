@@ -531,10 +531,16 @@ public class Drivetrain {
         finalTurnPID.resetIntegral();
     }
 
+    public Vector2 vdrive;
+    public double vturn;
+
     public void setMoveVector(Vector2 moveVector, double turn) {
         TelemetryUtil.packet.put("Drivetrain : motor x", moveVector.x);
         TelemetryUtil.packet.put("Drivetrain : motor y", moveVector.y);
         TelemetryUtil.packet.put("Drivetrain : motor turn", turn);
+
+        vdrive = moveVector;
+        vturn = turn;
 
         double[] powers = {
                 moveVector.x - turn - moveVector.y,
@@ -764,6 +770,14 @@ public class Drivetrain {
                 canvas.strokeLine(last.x, last.y, next.x, next.y);
                 last = next;
             }
+        }
+    }
+
+    public void setBrakePad(boolean down){
+        if(down){
+            brakePad.setTargetAngle(downAngle);
+        }else{
+            brakePad.setTargetAngle(raiseAngle);
         }
     }
 

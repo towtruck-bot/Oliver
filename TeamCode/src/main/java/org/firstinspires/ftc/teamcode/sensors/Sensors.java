@@ -63,7 +63,17 @@ public class Sensors {
         formerPoint = currentPoint;
         lastTime = currentTime;
     }
+    private boolean isStopped = true;
+    private double confidence = 0.0, confidenceAlpha = 0.125, confidenceThresh = 0.75;
+    public void stopConfidence(){
+        confidence *= (1 - confidenceAlpha);
 
+        if(instantVelo.mag() < 0.5){
+            confidence += confidenceAlpha;
+        }
+
+        isStopped = confidence >= confidenceThresh;
+    }
     public void hardwareResetSlidesEncoders() {
         robot.hardwareMap.get(DcMotor.class, "leftRear").setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         robot.hardwareMap.get(DcMotor.class, "leftRear").setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);

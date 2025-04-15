@@ -40,6 +40,7 @@ public class Teleop extends LinearOpMode {
         // Gamepad 1
         ButtonToggle lb_1 = new ButtonToggle();
         ButtonToggle rb_1 = new ButtonToggle();
+        ButtonToggle a_1 = new ButtonToggle();
         ButtonToggle b_1 = new ButtonToggle();
         ButtonToggle x_1 = new ButtonToggle();
         ButtonToggle y_1 = new ButtonToggle();
@@ -58,6 +59,8 @@ public class Teleop extends LinearOpMode {
         boolean intakeMode = false;
         boolean high = true;
         boolean autoGrab = false;
+        boolean forceBrakePad = false;
+        boolean manualBrake = false;
 
         while (opModeInInit()) {
             robot.update();
@@ -82,7 +85,7 @@ public class Teleop extends LinearOpMode {
                 speciMode = !speciMode;
                 intakeMode = false;
                 robot.ndeposit.presetDepositHeight(speciMode, high, false);
-                if (speciMode) gamepad1.rumble(250);
+                if (speciMode) gamepad1.rumble(200);
                 else gamepad1.rumble(100);
             }
             if (b_1.isClicked(gamepad1.b)) {
@@ -91,12 +94,23 @@ public class Teleop extends LinearOpMode {
             }
             if (y_1.isClicked(gamepad1.y)) {
                 autoGrab = !autoGrab;
-                if (autoGrab) gamepad1.rumble(250);
+                if (autoGrab) gamepad1.rumble(200);
                 else gamepad1.rumble(100);
             }
             if (lsb_1.isClicked(gamepad1.left_stick_button)) {
                 intakeMode = !intakeMode && !speciMode;
                 robot.ndeposit.holdSlides = false;
+            }
+            if (a_1.releasedAndNotHeldPreviously(gamepad1.a, 200)) {
+                manualBrake = !manualBrake;
+                forceBrakePad = true;
+                if (manualBrake) gamepad1.rumble(200);
+                else gamepad1.rumble(100);
+            }
+            if (a_1.isHeld(gamepad1.a, 200)) {
+                if (forceBrakePad) gamepad1.rumble(250);
+                manualBrake = false;
+                forceBrakePad = false;
             }
 
             if (lb_1.isClicked(gamepad1.left_bumper)) {
@@ -142,6 +156,7 @@ public class Teleop extends LinearOpMode {
                     }
                 }
             }
+            if (forceBrakePad) robot.drivetrain.setBrakePad(manualBrake);
 
             // Manualy adjust the slides height during deposit
             if (intakeMode) {

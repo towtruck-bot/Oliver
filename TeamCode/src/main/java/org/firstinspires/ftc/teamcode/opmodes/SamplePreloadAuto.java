@@ -29,7 +29,7 @@ public class SamplePreloadAuto extends LinearOpMode {
     public static double dx1 = 63, dy1 = 53.3;
     public static double dx2 = 64.3, dy2 = 53.6;
 //    public static double dx3 = 65.2, dy3 = 53.6;
-    public static double dx3 = 65.395 + 1.5 * Math.cos(272.0638), dy3 = 54.38457 +  1.5 * Math.sin(272.0638);
+    public static double dx3 = 65.395 + 1.2 * Math.cos(Math.toRadians(272.0638)), dy3 = 54.38457 + 1.2 * Math.sin(Math.toRadians(272.0638));
 
     public void runOpMode(){
         Globals.isRed = false;

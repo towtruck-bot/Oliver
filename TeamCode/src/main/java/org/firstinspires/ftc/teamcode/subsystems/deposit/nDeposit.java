@@ -53,7 +53,7 @@ public class nDeposit {
     public final Slides slides;
     private final Arm arm;
 
-    public static double transferArm = 0.4578, transferClaw = -1.1, transferBufferZ = 12, transferZ = 7.9;
+    public static double transferArm = 0.4365, transferClaw = -0.905, transferBufferZ = 12, transferZ = 7.6;
     public static double holdArm = -0.4646, holdClaw = -0.6533, holdZ = 0.0;
     public static double raiseArmBufferRotation = 0.346,  sampleArm = -2.177, sampleLongDepoArm = -2.6734, sampleTargetArm = sampleArm, sampleClaw = 0;
     public static double sampleLZ = 15, sampleHZ = 28, sampleLongLZ = 18, sampleLongHZ = 31.5, speciZ = 12.4, targetZ = sampleHZ;
@@ -234,7 +234,7 @@ public class nDeposit {
                 arm.clawClose();
 
                 if (arm.clawInPosition()) {
-                    state = State.HOLD;
+                    state = State.SPECIMEN_RAISE;
                 }
                 break;
             case SPECIMEN_RAISE:

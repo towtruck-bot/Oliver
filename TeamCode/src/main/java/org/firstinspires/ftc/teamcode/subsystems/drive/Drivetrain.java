@@ -384,8 +384,8 @@ public class Drivetrain {
     boolean stop = true;
     double maxPower = 1.0;
 
-    public static double xThreshold = 2.0;
-    public static double yThreshold = 2.0;
+    public static double xThreshold = 1.5;
+    public static double yThreshold = 1.5;
     public static double turnThreshold = 5;
 
     public static double eaThresh = 32;
@@ -397,7 +397,7 @@ public class Drivetrain {
 
     public static PID finalXPID = new PID(0.007, 0.0001,0.0012);
     public static PID finalYPID = new PID(0.05, 0.0,0.005);
-    public static PID finalTurnPID = new PID(0.025, 0.0013,0.001);
+    public static PID finalTurnPID = new PID(0.002, 0.001,0.001);
 
     public static PID rotateTeleopPID = new PID(1.0,0.0001,0.01);
 
@@ -407,9 +407,9 @@ public class Drivetrain {
     public static PID slidesUpYPID = new PID(0.04, 0, 0);
     public static PID slidesUpTurnPID = new PID(0.2, 0, 0.01);
 
-    public static double finalXThreshold = 0.4;
-    public static double finalYThreshold = 0.4;
-    public static double finalTurnThreshold = 3.0;
+    public static double finalXThreshold = 5;
+    public static double finalYThreshold = 5;
+    public static double finalTurnThreshold = 2.5;
 
     double fwd, strafe, turn, turnAdjustThreshold, finalTargetPointDistance;
 
@@ -594,12 +594,12 @@ public class Drivetrain {
     }
 
     // TeleOp
-    public void drive(Gamepad gamepad) {
+    public void drive(Gamepad gamepad, boolean speciMode) {
         resetMinPowersToOvercomeFriction();
         state = State.DRIVE;
 
-        double forward = smoothControls(gamepad.left_stick_y);
-        double strafe = smoothControls(gamepad.left_stick_x);
+        double forward = smoothControls(gamepad.left_stick_y * (speciMode ? -1 : 1));
+        double strafe = smoothControls(gamepad.left_stick_x * (speciMode ? -1 : 1));
         double turn = smoothControls(-gamepad.right_stick_x);
 
         if (intakeDriveMode) {

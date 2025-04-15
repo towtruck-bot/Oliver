@@ -123,9 +123,9 @@ public class LLBlockDetectionPostProcessor {
         public Pose2d getGlobalPose() {
             Pose2d p = robot.sensors.getOdometryPosition();
             return new Pose2d(
-                pose.x * Math.cos(p.heading) + pose.y * Math.sin(p.heading),
-                -pose.x * Math.sin(p.heading) + pose.y * Math.cos(p.heading),
-                pose.heading + p.heading
+                (pose.x) * Math.cos(-p.heading) + (pose.y) * Math.sin(-p.heading) + p.x,
+                -(pose.x) * Math.sin(-p.heading) + (pose.y) * Math.cos(-p.heading) + p.y,
+                pose.heading - p.heading
             );
         }
     }
@@ -175,11 +175,18 @@ public class LLBlockDetectionPostProcessor {
      * If you didn't do this you're stupid btw
      */
     public void update() {
+        TelemetryUtil.packet.put("vision : offsetX", offset.x);
+        TelemetryUtil.packet.put("vision : offsetY", offset.y);
+        TelemetryUtil.packet.put("vision : orientation", orientation);
         Canvas canvas = TelemetryUtil.packet.fieldOverlay();
-        canvas.setStroke("#444400");
         for (Block b : blocks) {
+            canvas.setStroke("#888800");
             canvas.strokeCircle(b.getX(), b.getY(), 3);
             canvas.strokeLine(b.getX(), b.getY(), b.getX() + 5 * Math.sin(b.getHeading()), b.getY() + 5 * Math.cos(b.getHeading()));
+
+            /*canvas.setStroke("#444400");
+            canvas.strokeCircle(b.getGlobalPose().x, b.getGlobalPose().y, 3);
+            canvas.strokeLine(b.getGlobalPose().x, b.getGlobalPose().y, b.getGlobalPose().x + 5 * Math.sin(b.getGlobalPose().heading), b.getGlobalPose().y + 5 * Math.cos(b.getGlobalPose().heading));*/
         }
 
         TelemetryUtil.packet.put("LL connected", ll.isConnected());
@@ -264,6 +271,8 @@ public class LLBlockDetectionPostProcessor {
                         dist = d;
                     }
                 }
+
+                TelemetryUtil.packet.put("BlockArea", area);
 
                 if (area >= 11000 && area <= 14000) {
                     if (b == null) {

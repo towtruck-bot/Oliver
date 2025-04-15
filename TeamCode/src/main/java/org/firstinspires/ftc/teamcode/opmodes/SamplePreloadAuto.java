@@ -27,8 +27,9 @@ public class SamplePreloadAuto extends LinearOpMode {
 
     // GP depo positions
     public static double dx1 = 63, dy1 = 53.3;
-    public static double dx2 = 64.3, dy2 = 54.3;
-    public static double dx3 = 65.2, dy3 = 53.6;
+    public static double dx2 = 64.3, dy2 = 53.6;
+//    public static double dx3 = 65.2, dy3 = 53.6;
+    public static double dx3 = 65.395 + 1.5 * Math.cos(272.0638), dy3 = 54.38457 +  1.5 * Math.sin(272.0638);
 
     public void runOpMode(){
         Globals.isRed = false;
@@ -50,6 +51,7 @@ public class SamplePreloadAuto extends LinearOpMode {
 
         robot.ndeposit.presetDepositHeight(false, true, false);
         robot.nclawIntake.disableRestrictedHoldPos();
+        robot.nclawIntake.setAutoEnableCamera(false);
 
         while (opModeInInit() && !isStopRequested()) {
             robot.sensors.setOdometryPosition(48.0 - Globals.ROBOT_REVERSE_LENGTH, 72.0 - Globals.ROBOT_WIDTH / 2, Math.PI);
@@ -72,7 +74,7 @@ public class SamplePreloadAuto extends LinearOpMode {
         robot.nclawIntake.extend();
         robot.update(); // Sigh.. - Eric
 
-        robot.waitWhile(() -> robot.drivetrain.targetPoint.getDistanceFromPoint(robot.sensors.getOdometryPosition()) > 8.5);
+        robot.waitWhile(() -> robot.drivetrain.targetPoint.getDistanceFromPoint(robot.sensors.getOdometryPosition()) > 9.5);
         robot.nclawIntake.setExtendoTargetPos(15);
         robot.update();
 
@@ -117,8 +119,8 @@ public class SamplePreloadAuto extends LinearOpMode {
         robot.nclawIntake.enableRestrictedHoldPos();
         // Go to under bucket
         robot.drivetrain.goToPoint(
-            new Pose2d(dx3, dy3, Math.toRadians(275)),
-            false,
+            new Pose2d(dx3, dy3, Math.toRadians(272.0638)),
+            true,
             true,
             1.0
         );
@@ -142,8 +144,8 @@ public class SamplePreloadAuto extends LinearOpMode {
         robot.waitWhile(() -> !robot.nclawIntake.hasSample());
         // Go to under bucket
         robot.drivetrain.goToPoint(
-                new Pose2d(dx3, dy3, Math.toRadians(272.5)),
-                false,
+                new Pose2d(dx3, dy3, Math.toRadians(272.0638)),
+                true,
                 true,
                 1.0
         );
@@ -188,6 +190,9 @@ public class SamplePreloadAuto extends LinearOpMode {
             );
 
             robot.nclawIntake.setKnownIntakePose(new Pose2d(pickUp.x, pickUp.y, 0));
+
+            robot.waitWhile(() -> !robot.nclawIntake.isExtended());
+            robot.nclawIntake.manualEnableCamera();
 
             robot.waitWhile(() -> robot.vision.getClosestValidBlock() == null || !robot.nclawIntake.isExtended());
             robot.nclawIntake.setGrab(true);

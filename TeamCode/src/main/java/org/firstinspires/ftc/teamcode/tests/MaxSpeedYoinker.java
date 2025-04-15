@@ -29,7 +29,7 @@ public class MaxSpeedYoinker extends LinearOpMode {
         waitForStart();
 
         while (opModeIsActive()) {
-            robot.drivetrain.drive(gamepad1);
+            robot.drivetrain.drive(gamepad1, false);
             Pose2d velocity = robot.sensors.getVelocity();
             Vector3 sV = new Vector3(
                     velocity.x,

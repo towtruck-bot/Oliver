@@ -28,7 +28,8 @@ public class IntakeExtension {
     public static PID extendoPID = new PID(0.4, 0.05, 0.005);
     public static double slidesTolerance = 0.6;
     public static double slidesDeadZone = 0.2;
-    public static double slidesKeepInPow = -0.6;
+    public static double slidesForceInPow = -0.6;
+    public static double slidesKeepInPow = -0.2;
     public static double slidesForcePullPow = -0.8;
     private boolean forcePull = false;
     private boolean ignoreKeepIn = false;
@@ -61,6 +62,10 @@ public class IntakeExtension {
             }
 
             if (targetLength == 0 && extendoCurrentPos <= 4 && !ignoreKeepIn)
+                pow = slidesForceInPow;
+
+            // Sorry..
+            if (targetLength == 0 && extendoCurrentPos <= 0.75 && !ignoreKeepIn)
                 pow = slidesKeepInPow;
 
             if (forcePull) {

@@ -36,7 +36,7 @@ public class nClawIntake {
     public static double restrictedHoverAngle = 1.0645;
     public static double normalHoverAngle = 0.232;
     public static double hoverAngle = normalHoverAngle;
-    public static double turretRetractedAngle = 2.4345, turretSearchAngle = 0.625, turretTransferAngle = 2.12, turretGrabAngle = -0.4557;
+    public static double turretRetractedAngle = 2.4345, turretSearchAngle = 0.625, turretTransferAngle = 1.9937, turretGrabAngle = -0.4557;
     public static double turretTransferRotation = 3.165;
     public static double minExtension = 2; // What we require before giving full range of motion
     private long hoverStart = 0;
@@ -60,6 +60,7 @@ public class nClawIntake {
     private Target targetType = Target.RELATIVE;
     private GrabMethod grabMethod = GrabMethod.CONTINUOUS_SEARCH_MG;
     private Pose2d known = null;
+    private boolean autoEnableCamera = false;
     private boolean retryGrab = false;
 
     private double manualTurretAngle, manualClawAngle;
@@ -177,9 +178,8 @@ public class nClawIntake {
             case SEARCH:
                 aimAtKnown();
 
-                if (intakeTurret.turretAngInPosition() && !robot.vision.isDetecting()) {
-                    robot.vision.startDetection();
-                    intakeLight.setState(true);
+                if (intakeTurret.turretAngInPosition() && !robot.vision.isDetecting() && intakeTurret.intakeExtension.inPosition() && autoEnableCamera) {
+                    manualEnableCamera();
                 }
 
                 if (robot.vision.isDetecting()) {
@@ -232,6 +232,7 @@ public class nClawIntake {
                 if (intakeTurret.inPosition(Math.toRadians(2)) && System.currentTimeMillis() - lowerStart >= lowerDelay) {
                     consecutivePSPositives = psReads = 0;
                     state = State.GRAB_CLOSE;
+                    robot.vision.removeBlock(targetBlock);
                 }
                 break;
             case GRAB_CLOSE:
@@ -277,7 +278,6 @@ public class nClawIntake {
 
                 if (sampleStatus && intakeTurret.clawInPosition()) {
                     known = null;
-                    robot.vision.removeBlock(targetBlock);
                     targetBlock = null;
                     state = State.START_RETRACT;
                     robot.ndeposit.startTransfer();
@@ -596,5 +596,14 @@ public class nClawIntake {
 
     public void disableRestrictedHoldPos() {
         hoverAngle = normalHoverAngle;
+    }
+
+    public void setAutoEnableCamera(boolean state) {
+        autoEnableCamera = state;
+    }
+
+    public void manualEnableCamera() {
+        robot.vision.startDetection();
+        intakeLight.setState(true);
     }
 }

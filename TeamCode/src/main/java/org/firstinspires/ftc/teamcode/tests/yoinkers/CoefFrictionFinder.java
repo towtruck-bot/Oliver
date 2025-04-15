@@ -25,7 +25,7 @@ public class CoefFrictionFinder extends LinearOpMode {
         waitForStart();
 
         while (opModeIsActive()) {
-            robot.drivetrain.drive(gamepad1);
+            robot.drivetrain.drive(gamepad1, false);
 
             // We don't be driving no more
             if (gamepad1.right_stick_x + gamepad1.right_stick_y + gamepad1.left_stick_x + gamepad1.right_stick_y == 0) {

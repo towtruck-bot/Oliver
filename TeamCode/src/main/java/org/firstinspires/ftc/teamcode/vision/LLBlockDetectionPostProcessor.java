@@ -130,7 +130,7 @@ public class LLBlockDetectionPostProcessor {
         }
     }
 
-    interface BlockFilter {
+    public interface BlockFilter {
         boolean call(Block b);
     }
 
@@ -365,6 +365,10 @@ public class LLBlockDetectionPostProcessor {
     }
 
     public Block getClosestValidBlock() {
+        return getClosestValidBlock(offset, blocks);
+    }
+
+    public static Block getClosestValidBlock(Vector2 offset, LinkedList<Block> blocks) {
         if (blocks.size() <= 0)
             return null;
 
@@ -380,5 +384,13 @@ public class LLBlockDetectionPostProcessor {
         }
 
         return closest;
+    }
+
+    public LinkedList<Block> getBlocks() {
+        return blocks;
+    }
+
+    public Vector2 getOffset() {
+        return offset;
     }
 }

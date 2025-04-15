@@ -38,6 +38,7 @@ public class IntakeWithLL extends LinearOpMode {
 
         robot.drivetrain.setPoseEstimate(new Pose2d(0, 0, 0));
 
+        robot.nclawIntake.setAutoEnableCamera(true);
         waitForStart();
 
         //robot.nclawIntake.extend();

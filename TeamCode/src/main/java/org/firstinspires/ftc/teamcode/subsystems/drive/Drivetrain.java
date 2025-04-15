@@ -13,6 +13,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigurationType;
 
 import org.firstinspires.ftc.teamcode.Robot;
@@ -32,6 +33,8 @@ import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 import org.firstinspires.ftc.teamcode.utils.Vector2;
 import org.firstinspires.ftc.teamcode.utils.priority.HardwareQueue;
 import org.firstinspires.ftc.teamcode.utils.priority.PriorityMotor;
+import org.firstinspires.ftc.teamcode.utils.priority.PriorityServo;
+import org.firstinspires.ftc.teamcode.utils.priority.nPriorityServo;
 import org.firstinspires.ftc.teamcode.vision.Vision;
 
 import java.util.Arrays;
@@ -52,6 +55,7 @@ public class Drivetrain {
     public State state = State.IDLE;
 
     public PriorityMotor leftFront, leftRear, rightRear, rightFront;
+    public nPriorityServo brakePad;
     private final List<PriorityMotor> motors;
 
     private final HardwareQueue hardwareQueue;
@@ -64,6 +68,8 @@ public class Drivetrain {
     public boolean intakeDriveMode = false;
     public static double slowSpeed = 0.6;
     public static double pval = 1.5;
+    public static double raiseAngle = 1.945;
+    public static double downAngle = 0;
 
     public Drivetrain(Vision vision, Robot robot) {
         HardwareMap hardwareMap = robot.hardwareMap;
@@ -93,7 +99,18 @@ public class Drivetrain {
             4, 5, sensors
         );
 
+        brakePad = new nPriorityServo(
+            new Servo[] {robot.hardwareMap.get(Servo.class, "brakePad")},
+            "brakekPad",
+            nPriorityServo.ServoType.HITEC,
+            0, 1, 0,
+            new boolean[] {false},
+            1.0, 5
+        );
+
         motors = Arrays.asList(leftFront, leftRear, rightRear, rightFront);
+        hardwareQueue.addDevice(brakePad);
+        raiseBreakPad();
 
         configureMotors();
 
@@ -748,6 +765,14 @@ public class Drivetrain {
                 last = next;
             }
         }
+    }
+
+    public void raiseBreakPad() {
+        brakePad.setTargetAngle(raiseAngle);
+    }
+
+    public void putDownBreakPad() {
+        brakePad.setTargetPos(downAngle);
     }
 
     // CURRENTLY UNUSED v

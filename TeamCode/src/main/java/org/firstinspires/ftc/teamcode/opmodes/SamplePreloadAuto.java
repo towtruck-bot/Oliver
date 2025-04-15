@@ -16,6 +16,9 @@ import org.firstinspires.ftc.teamcode.utils.Globals;
 import org.firstinspires.ftc.teamcode.utils.LogUtil;
 import org.firstinspires.ftc.teamcode.utils.Pose2d;
 import org.firstinspires.ftc.teamcode.utils.RunMode;
+import org.firstinspires.ftc.teamcode.vision.LLBlockDetectionPostProcessor;
+
+import java.util.LinkedList;
 
 @Autonomous(name = "Sample Auto", preselectTeleOp = "A. Teleop")
 @Config
@@ -29,7 +32,7 @@ public class SamplePreloadAuto extends LinearOpMode {
     public static double dx1 = 63, dy1 = 53.3;
     public static double dx2 = 64.3, dy2 = 53.6;
 //    public static double dx3 = 65.2, dy3 = 53.6;
-    public static double dx3 = 65.395 + 1.2 * Math.cos(Math.toRadians(272.0638)), dy3 = 54.38457 + 1.2 * Math.sin(Math.toRadians(272.0638));
+    public static double dx3 = 65.395 + 1.1 * Math.cos(Math.toRadians(272.0638)), dy3 = 54.38457 + 1.1 * Math.sin(Math.toRadians(272.0638));
 
     public void runOpMode(){
         Globals.isRed = false;
@@ -74,7 +77,7 @@ public class SamplePreloadAuto extends LinearOpMode {
         robot.nclawIntake.extend();
         robot.update(); // Sigh.. - Eric
 
-        robot.waitWhile(() -> robot.drivetrain.targetPoint.getDistanceFromPoint(robot.sensors.getOdometryPosition()) > 9.5);
+        robot.waitWhile(() -> robot.drivetrain.targetPoint.getDistanceFromPoint(robot.sensors.getOdometryPosition()) > 10.5);
         robot.nclawIntake.setExtendoTargetPos(15);
         robot.update();
 
@@ -135,6 +138,7 @@ public class SamplePreloadAuto extends LinearOpMode {
         robot.nclawIntake.extend();
 
         robot.waitWhile(() -> robot.drivetrain.isBusy() || !robot.ndeposit.isDepositReady());
+        robot.drivetrain.putDownBreakPad();
         robot.ndeposit.deposit();
         robot.waitWhile(() -> !robot.ndeposit.isDepositFinished());
 
@@ -143,16 +147,17 @@ public class SamplePreloadAuto extends LinearOpMode {
         robot.nclawIntake.setGrab(true);
         robot.waitWhile(() -> !robot.nclawIntake.hasSample());
         // Go to under bucket
-        robot.drivetrain.goToPoint(
+        /*robot.drivetrain.goToPoint(
                 new Pose2d(dx3, dy3, Math.toRadians(272.0638)),
                 true,
                 true,
                 1.0
-        );
+        );*/
         robot.waitWhile(() -> !robot.nclawIntake.isTransferReady() || !robot.ndeposit.isTransferReady());
         robot.ndeposit.startSampleDeposit();
         robot.nclawIntake.finishTransfer();
         robot.ndeposit.finishTransfer();
+        robot.drivetrain.raiseBreakPad();
 
         //robot.waitWhile(() -> !robot.ndeposit.isTransferFinished());
         //robot.ndeposit.deposit();
@@ -168,6 +173,7 @@ public class SamplePreloadAuto extends LinearOpMode {
         for (int i = 0; i < 3; i++) {
             robot.waitWhile(() -> robot.drivetrain.isBusy() || !robot.ndeposit.isDepositReady());
             robot.ndeposit.deposit();
+            robot.waitWhile(() -> !robot.ndeposit.isDepositFinished());
             robot.ndeposit.presetDepositHeight(false, true, false);
             robot.nclawIntake.disableRestrictedHoldPos();
             robot.nclawIntake.removeKnown();
@@ -181,7 +187,7 @@ public class SamplePreloadAuto extends LinearOpMode {
                 1.0
             );
 
-            robot.waitWhile(() -> robot.drivetrain.targetPoint.getDistanceFromPoint(robot.sensors.getOdometryPosition()) > 5);
+            robot.waitWhile(() -> robot.drivetrain.targetPoint.getDistanceFromPoint(robot.sensors.getOdometryPosition()) > 3.5);
             robot.drivetrain.goToPoint(
                 new Pose2d(30, pickUp.y, Math.PI),
                 false,
@@ -212,7 +218,15 @@ public class SamplePreloadAuto extends LinearOpMode {
 
             robot.waitWhile(() -> robot.sensors.getOdometryPosition().getDistanceFromPoint(s2.getLastPoint()) > 24);
             robot.ndeposit.startSampleDeposit();
-            if (robot.vision.getClosestValidBlock() != null)
+
+            LinkedList<LLBlockDetectionPostProcessor.Block> blocks = robot.vision.getBlocks();
+            LLBlockDetectionPostProcessor.filterBlocks(blocks, (LLBlockDetectionPostProcessor.Block b) ->
+                    b.getX() >= 0 && b.getX() <= 20 &&
+                    Math.abs(b.getY()) < 22
+            );
+
+
+            if (LLBlockDetectionPostProcessor.getClosestValidBlock(robot.vision.getOffset(), blocks) != null)
                 pickUp = robot.vision.getClosestValidBlock().getGlobalPose().clone();
             else
                 pickUp.y -= 4;

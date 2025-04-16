@@ -55,7 +55,7 @@ public class Robot {
     private long lastClickTime = -1;
     public static long bufferClickDuration = 500;
 
-    private Func abortChecker;
+    private Func abortChecker = null;
 
     public Robot(HardwareMap hardwareMap) {
         this.hardwareMap = hardwareMap;
@@ -84,13 +84,18 @@ public class Robot {
     }
 
     public void update() {
-        if (!((boolean) this.abortChecker.call())) return;
         START_LOOP();
         this.updateSubsystems();
         this.updateTelemetry();
     }
 
+
     private void updateSubsystems() {
+        if (this.abortChecker != null && !((boolean) this.abortChecker.call())) {
+            this.hardwareQueue.update();
+            return;
+        }
+
         this.sensors.update();
 
         drivetrain.update();

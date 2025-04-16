@@ -287,7 +287,6 @@ public class nClawIntake {
                     state = State.START_RETRACT;
                     robot.ndeposit.startTransfer();
                     intakeLight.setState(false);
-                    retryCounter = 0;
                 }
 
                 break;
@@ -396,7 +395,7 @@ public class nClawIntake {
 
     public int getRetryCounter() { return retryCounter; }
     public void resetRetryCounter() { retryCounter = 0; }
-
+    public void forceDryCycle() {sampleStatus = true; }
     public void finishTransfer() {
         finishTransferRequest = state == State.TRANSFER_WAIT;
     }

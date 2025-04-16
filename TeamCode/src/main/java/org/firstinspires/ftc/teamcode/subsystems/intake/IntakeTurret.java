@@ -55,7 +55,7 @@ public class IntakeTurret {
                 nPriorityServo.ServoType.AXON_MAX,
                 0, 1, 0.179,
                 new boolean[] {false},
-                1.0, 5
+                3.0, 7.0
         );
         robot.hardwareQueue.addDevice(turretArm);
 
@@ -101,7 +101,7 @@ public class IntakeTurret {
             targetLength = xError - extendoOffset - Math.sqrt(turretLengthTip * turretLengthTip - yError * yError)/* - yError / turretLength*/;
             setTurretRotation(Math.PI + Math.atan2(yError, Math.sqrt(turretLengthTip * turretLengthTip - yError * yError)));
             setClawRotation(AngleUtil.mirroredClipAngleTolerence(target.heading - getTurretRotation(), Math.toRadians(20)));
-            setTurretArmTarget(nClawIntake.turretGrabAngle);
+            setTurretArmTarget(nClawIntake.turretGrabAngle, 0.7);
         }
     }
 
@@ -136,6 +136,10 @@ public class IntakeTurret {
     public void setTurretArmTarget(double t) {
         turretArm.setTargetAngle(t);
         //turretArmTarget = t;
+    }
+
+    public void setTurretArmTarget(double t, double power){
+        turretArm.setTargetAngle(t, power);
     }
 
     public void setTurretRotation(double t) {

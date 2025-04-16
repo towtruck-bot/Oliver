@@ -34,7 +34,7 @@ public class SamplePreloadAuto extends LinearOpMode {
 //    public static double dx3 = 65.2, dy3 = 53.6;
     public static double dx3 = 65.395 + 1.1 * Math.cos(Math.toRadians(272.0638)), dy3 = 54.38457 + 1.1 * Math.sin(Math.toRadians(272.0638));
 
-    public void runOpMode(){
+    public void runOpMode() {
         Globals.isRed = false;
         Globals.RUNMODE = RunMode.AUTO;
         Globals.hasSamplePreload = true;
@@ -66,10 +66,10 @@ public class SamplePreloadAuto extends LinearOpMode {
         // Preload
         robot.ndeposit.startSampleDeposit();
         robot.drivetrain.goToPoint(
-            new Pose2d(dx1, dy1, Math.atan2(by1 - dy1, bx1 - dx1)),
-            false,
-            true,
-            1.0
+                new Pose2d(dx1, dy1, Math.atan2(by1 - dy1, bx1 - dx1)),
+                false,
+                true,
+                1.0
         );
         //robot.nclawIntake.setTargetPose(new Pose2d(bx1, by1, Math.PI / 2));
         robot.nclawIntake.setExtendoTargetPos(5);
@@ -94,10 +94,10 @@ public class SamplePreloadAuto extends LinearOpMode {
 
         // Go to under bucket
         robot.drivetrain.goToPoint(
-            new Pose2d(dx2, dy2, Math.toRadians(257)),
-            false,
-            true,
-            1.0
+                new Pose2d(dx2, dy2, Math.toRadians(257)),
+                false,
+                true,
+                1.0
         );
         robot.waitWhile(() -> !robot.nclawIntake.isTransferReady());
         robot.ndeposit.startSampleDeposit(); // This effectively buffers it
@@ -122,10 +122,10 @@ public class SamplePreloadAuto extends LinearOpMode {
         robot.nclawIntake.enableRestrictedHoldPos();
         // Go to under bucket
         robot.drivetrain.goToPoint(
-            new Pose2d(dx3, dy3, Math.toRadians(272.0638)),
-            true,
-            true,
-            1.0
+                new Pose2d(dx3, dy3, Math.toRadians(272.0638)),
+                true,
+                true,
+                1.0
         );
         robot.waitWhile(() -> !robot.nclawIntake.isTransferReady() || !robot.ndeposit.isTransferReady());
         robot.ndeposit.startSampleDeposit(); // This effectively buffers it
@@ -181,18 +181,18 @@ public class SamplePreloadAuto extends LinearOpMode {
             robot.nclawIntake.extend();
 
             robot.drivetrain.goToPoint(
-                new Pose2d(33, pickUp.y, Math.toRadians(210)),
-                false,
-                false,
-                1.0
+                    new Pose2d(33, pickUp.y, Math.toRadians(210)),
+                    false,
+                    false,
+                    1.0
             );
 
             robot.waitWhile(() -> robot.drivetrain.targetPoint.getDistanceFromPoint(robot.sensors.getOdometryPosition()) > 3.5);
             robot.drivetrain.goToPoint(
-                new Pose2d(30, pickUp.y, Math.PI),
-                false,
-                true,
-                1.0
+                    new Pose2d(30, pickUp.y, Math.PI),
+                    false,
+                    true,
+                    1.0
             );
 
             robot.nclawIntake.setKnownIntakePose(new Pose2d(pickUp.x, pickUp.y, 0));
@@ -206,9 +206,9 @@ public class SamplePreloadAuto extends LinearOpMode {
             robot.waitWhile(() -> !robot.nclawIntake.hasSample());
             // Go to under bucket
             Spline s2 = new Spline(robot.sensors.getOdometryPosition(), 7)
-                .setReversed(true)
-                .addPoint(new Pose2d(33, pickUp.y - 5, Math.toRadians(210)))
-                .addPoint(62, 55, Math.toRadians(242));
+                    .setReversed(true)
+                    .addPoint(new Pose2d(33, pickUp.y - 5, Math.toRadians(210)))
+                    .addPoint(62, 55, Math.toRadians(242));
             robot.drivetrain.setPath(s2);
             robot.drivetrain.state = Drivetrain.State.FOLLOW_SPLINE;
             robot.drivetrain.setMaxPower(0.5);
@@ -222,7 +222,7 @@ public class SamplePreloadAuto extends LinearOpMode {
             LinkedList<LLBlockDetectionPostProcessor.Block> blocks = robot.vision.getBlocks();
             LLBlockDetectionPostProcessor.filterBlocks(blocks, (LLBlockDetectionPostProcessor.Block b) ->
                     b.getX() >= 0 && b.getX() <= 20 &&
-                    Math.abs(b.getY()) < 22
+                            Math.abs(b.getY()) < 22
             );
 
 
@@ -232,17 +232,14 @@ public class SamplePreloadAuto extends LinearOpMode {
                 pickUp.y -= 4;
         }
 
-        /*robot.drivetrain.goToPoint(
-                new Pose2d(dx3, dy3 + 5, Math.toRadians(260)),
-                false,
-                true,
-                1.0
-        );*/
+        RobotLog.i("Auto total time: " + (System.currentTimeMillis() - Globals.autoStartTime));
+    }
 
-        // TODO: Remember to set auto grab to true, set use camera to true, and DONT use grab
 
-        // Depo 3
-        /*robot.goToPoint(
+}
+
+/*
+        robot.goToPoint(
             new Pose2d(dx3, dy3, Math.atan2(by3 - dy3, bx3 - dx3)),
             () -> !(robot.drivetrain.targetPoint.getDistanceFromPoint(robot.sensors.getOdometryPosition()) < 7),
             false,
@@ -269,12 +266,9 @@ public class SamplePreloadAuto extends LinearOpMode {
         robot.ndeposit.startSampleDeposit();
         robot.waitWhile(() -> robot.drivetrain.isBusy() || !robot.ndeposit.isSampleUp());
         robot.ndeposit.finishSampleDeposit();
-        robot.waitWhile(() -> !robot.ndeposit.isSampleDepositDone());*/
+        robot.waitWhile(() -> !robot.ndeposit.isSampleDepositDone());
 
-        RobotLog.i("Auto total time: " + (System.currentTimeMillis() - Globals.autoStartTime));
-
-        // Depo 5, 6, 7
-        /*for(int cycle = 1; cycle <= 3; cycle++) {
+        for(int cycle = 1; cycle <= 3; cycle++) {
             // Spline to submersible
             robot.drivetrain.setFinalAdjustment(false);
             robot.drivetrain.setPath(
@@ -306,11 +300,11 @@ public class SamplePreloadAuto extends LinearOpMode {
             robot.waitWhile(() -> !robot.nclawIntake.grabFinished());
 
             // Go to bottom of high bucket to ndeposit
-//            robot.drivetrain.goToPoint(
-//                    new Pose2d(dx4, dy4, Math.atan2(dy4 - 72.0, dx4 - 72.0) + Math.PI),
-//                    true,
-//                    true,
-//                    1.0);
+            robot.drivetrain.goToPoint(
+                    new Pose2d(dx4, dy4, Math.atan2(dy4 - 72.0, dx4 - 72.0) + Math.PI),
+                    true,
+                    true,
+                    1.0);
             robot.drivetrain.setFinalAdjustment(false);
             robot.drivetrain.setPath(
                 new Spline(new Pose2d(52.0, 24.0, Math.PI),4)
@@ -333,38 +327,38 @@ public class SamplePreloadAuto extends LinearOpMode {
             robot.waitWhile(() -> !robot.ndeposit.isSampleUp());
             robot.ndeposit.finishSampleDeposit();
             robot.waitWhile(() -> !robot.ndeposit.isSampleDepositDone());
-        }*/
+        }
     }
 
-//        moveToBelowBucket();
-//        initialMove();
-//        score();
-//
-//        if (enableg1) {
-//            getGround(bx1, by);
-//            moveToBelowBucket();
-//            score();
-//        }
-//
-//        if (enableg2) {
-//            getGround(bx2, by);
-//            moveToBelowBucket();
-//            score();
-//        }
-//
-//        if (enableg3) {
-//            getGround(bx3, by);
-//            moveToBelowBucket();
-//            score();
-//        }
-//
-//        if (enabler) {
-//            goToTeleOpStart();
-//        } else {
-//            robot.waitWhile(() -> !robot.ndeposit.isRetractDone());
-//        }
+        moveToBelowBucket();
+        initialMove();
+        score();
 
-    /*public void doInitialization() {
+        if (enableg1) {
+            getGround(bx1, by);
+            moveToBelowBucket();
+            score();
+        }
+
+        if (enableg2) {
+            getGround(bx2, by);
+            moveToBelowBucket();
+            score();
+        }
+
+        if (enableg3) {
+            getGround(bx3, by);
+            moveToBelowBucket();
+            score();
+        }
+
+        if (enabler) {
+            goToTeleOpStart();
+        } else {
+            robot.waitWhile(() -> !robot.ndeposit.isRetractDone());
+        }
+
+    public void doInitialization() {
         Globals.isRed = false;
         Globals.RUNMODE = RunMode.AUTO;
         Globals.hasSamplePreload = true;
@@ -462,5 +456,5 @@ public class SamplePreloadAuto extends LinearOpMode {
         robot.ndeposit.setDepositHeight(9.6);
         robot.goToPoint(new Pose2d(fx, fy, fh), null, true, true, 0.9);
         robot.waitWhile(() -> true);
-    }*/
-}
+    }
+*/

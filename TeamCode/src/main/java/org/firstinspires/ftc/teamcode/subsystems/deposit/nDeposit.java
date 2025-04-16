@@ -90,6 +90,7 @@ public class nDeposit {
         switch (state) {
             case IDLE:
                 moveToHoldPoses();
+                holding = false;
 
                 if (transferRequested) {
                     state = State.TRANSFER_BUFFER;
@@ -100,7 +101,6 @@ public class nDeposit {
                     specimenIntakeRequested = false;
                 }
                 break;
-
             case TRANSFER_BUFFER:
                 slides.setTargetLength(transferBufferZ);
                 arm.setArmRotation(transferArm, 1.0);

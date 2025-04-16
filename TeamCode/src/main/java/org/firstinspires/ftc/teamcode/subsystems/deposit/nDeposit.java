@@ -63,7 +63,7 @@ public class nDeposit {
     public static double specimenIntakeArm = -2.635, specimenIntakeClaw = 1.0419, specimenIntakeZ = 0;
     public static double specimenDepositArm = -0.3087, specimenDepositClaw = 0.0507;
     public static double hangArm = -1.0;
-    public static double minVel = 1.1;
+    public static double minVel = 4;
     private boolean holding = false;
     private long depositStart = 0;
     private double slidesVelWeightedAvg = 0;
@@ -403,12 +403,21 @@ public class nDeposit {
                 arm.inPosition();
     }
 
+    // For some reason, i think the first two conditions can cause it to chuck? removing to see if it helps
     public boolean isDepositFinished() {
-        return ((state == State.SAMPLE_DEPOSIT ||
+        return /*((state == State.SAMPLE_DEPOSIT ||
                 state == State.SPECIMEN_DEPOSIT) &&
-                arm.clawInPosition()) ||
+                arm.clawInPosition()) ||*/
                 state == State.RETRACT ||
                 state == State.IDLE;
+    }
+
+    public boolean isFullRetract(){
+        return state == State.IDLE;
+    }
+
+    public boolean isSafeHeight(){
+        return state == State.SAMPLE_RAISE && slides.getLength() >= 5;
     }
 
     public boolean isHolding() {

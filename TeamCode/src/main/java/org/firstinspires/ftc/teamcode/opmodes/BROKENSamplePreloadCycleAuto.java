@@ -23,21 +23,28 @@ import org.firstinspires.ftc.teamcode.vision.LLBlockDetectionPostProcessor;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
-@Autonomous(name = "Sample Auto", preselectTeleOp = "A. Teleop")
+@Autonomous(name = "Borken Sample Cycle Auto", preselectTeleOp = "A. Teleop")
 @Config
 public class BROKENSamplePreloadCycleAuto extends LinearOpMode {
     private Robot robot;
 
     // Block positions
-    public static double bx1 = 50.8, by1 = 27, bx2 = 60.2, by2 = 28, bx3 = 69.3, by3 = 28;
+    public static double bx1 = 50.4, by1 = 27, bx2 = 59.6, by2 = 27, bx3 = 69.7, by3 = 27;
 
     // P/G/C depo positions
-    public static double dx1 = 63, dy1 = 53.4;
-    public static double dx2 = 64.6, dy2 = 53.4;
-    public static double dx3 = 65.395 + 0.7 * Math.cos(Math.toRadians(272.0638)) + 0.25, dy3 = 54.38457 + 0.7 * Math.sin(Math.toRadians(272.0638));
+    public static double dx1 = 63, dy1 = 53.3;
+    public static double dx2 = 64.3, dy2 = 53.6;
+    public static double dx3 = 65.395 + 1.1 * Math.cos(Math.toRadians(272.0638)), dy3 = 54.38457 + 1.1 * Math.sin(Math.toRadians(272.0638));
 
+    public Pose2d pickUp;
     public int targetSampleIndex = 0;
-    public long startTime = System.currentTimeMillis();
+    public long scanStart = System.currentTimeMillis();
+
+    public enum State{
+        SCANNING,
+        PECKING
+    };
+    State state = State.SCANNING;
 
     public void runOpMode() {
         Globals.isRed = false;
@@ -158,7 +165,7 @@ public class BROKENSamplePreloadCycleAuto extends LinearOpMode {
         robot.nclawIntake.finishTransfer();
         robot.ndeposit.finishTransfer();
 
-        robot.waitWhile(() -> robot.nclawIntake.hasSample());
+        robot.waitWhile(() -> robot.nclawIntake.hasSample() || !robot.ndeposit.isSafeHeight());
         robot.nclawIntake.setGrab(false);
         robot.nclawIntake.setTargetPose(new Pose2d(bx2, by2, Math.PI / 2));
         robot.nclawIntake.extend();
@@ -197,7 +204,7 @@ public class BROKENSamplePreloadCycleAuto extends LinearOpMode {
         robot.nclawIntake.finishTransfer();
         robot.ndeposit.finishTransfer();
 
-        robot.waitWhile(() -> robot.nclawIntake.hasSample());
+        robot.waitWhile(() -> robot.nclawIntake.hasSample() || !robot.ndeposit.isSafeHeight());
         robot.nclawIntake.setGrab(false);
         robot.nclawIntake.setTargetPose(new Pose2d(bx3, by3, Math.PI / 2));
         robot.nclawIntake.extend();
@@ -233,144 +240,15 @@ public class BROKENSamplePreloadCycleAuto extends LinearOpMode {
         robot.nclawIntake.finishTransfer();
         robot.ndeposit.finishTransfer();
 
-        // NOTE: following blurb should happen in the cycle loop, its only out here so we can tune 4 positions
         robot.waitWhile(() -> robot.drivetrain.isBusy() || !robot.ndeposit.isDepositReady());
         robot.ndeposit.deposit();
+        robot.drivetrain.raiseBreakPad();
 
-        robot.waitWhile(() -> !robot.ndeposit.isDepositFinished() || true);
-//        robot.ndeposit.presetDepositHeight(false, true, false);
-//        robot.drivetrain.raiseBreakPad();
-//        robot.nclawIntake.disableRestrictedHoldPos();
-//        robot.nclawIntake.removeKnown();
-//        robot.nclawIntake.resetRetryCounter();
+        robot.waitWhile(() -> !robot.ndeposit.isFullRetract());
 
-//        robot.nclawIntake.setGrabMethod(nClawIntake.GrabMethod.SEARCH_HOVER_MG);
-//        robot.waitWhile(() -> robot.nclawIntake.hasSample());
+        for(targetSampleIndex = 0; targetSampleIndex < targets.size();) {
+            pickUp = targets.get(targetSampleIndex);
 
-        Pose2d pickUpper = new Pose2d(0, 0, 0);
-
-        while (targetSampleIndex < targets.size() && !isStopRequested()) {
-            pickUpper = targets.get(targetSampleIndex);
-
-            robot.nclawIntake.setExtendoTargetPos(10);
-            robot.nclawIntake.extend();
-
-            robot.drivetrain.goToPoint(
-                    new Pose2d(33.0, Utils.minMaxClip(pickUpper.y, -17, 17), Math.toRadians(210)),
-                    false,
-                    false,
-                    1.0
-            );
-
-            robot.waitWhile(() -> robot.drivetrain.targetPoint.getDistanceFromPoint(robot.sensors.getOdometryPosition()) > 3.5);
-
-
-            //robot.waitWhile(() -> robot.drivetrain.targetPoint.getDistanceFromPoint(robot.sensors.getOdometryPosition()) > 1.5);
-            robot.drivetrain.goToPoint(
-                    new Pose2d(30.0, Utils.minMaxClip(pickUpper.y, -17, 17), Math.PI),
-                    false,
-                    true,
-                    1.0
-            );
-
-            robot.nclawIntake.setKnownIntakePose(new Pose2d(pickUpper.x, pickUpper.y, 0));
-            robot.nclawIntake.aimAtKnown();
-
-            robot.waitWhile(() -> !robot.nclawIntake.isExtended());
-            robot.nclawIntake.manualEnableCamera();
-
-            startTime = System.currentTimeMillis();
-            robot.waitWhile(() -> {
-                if(System.currentTimeMillis() - startTime >= 500){
-                    grabbed[targetSampleIndex] = true;
-                    do {
-                        targetSampleIndex = (targetSampleIndex + 1) % targets.size();
-                    } while (grabbed[targetSampleIndex]  && !isStopRequested());
-                    return false;
-                }
-                return robot.vision.getClosestValidBlock() == null || !robot.nclawIntake.isExtended();
-            });
-            robot.nclawIntake.setGrab(true);
-
-            robot.waitWhile(() -> {
-                if (robot.nclawIntake.getRetryCounter() >= 2) {
-                    robot.nclawIntake.resetRetryCounter();
-                    grabbed[targetSampleIndex] = false;
-
-                    do {
-                        targetSampleIndex = (targetSampleIndex + 1) % targets.size();
-                    } while (grabbed[targetSampleIndex]  && !isStopRequested());
-
-                    Pose2d currentPos = robot.sensors.getOdometryPosition();
-                    Pose2d nextBlock = targets.get(targetSampleIndex);
-
-                    robot.nclawIntake.setKnownIntakePose(nextBlock);
-                    robot.nclawIntake.aimAtKnown();
-
-                    double dx = nextBlock.x - currentPos.x;
-                    double dy = nextBlock.y - currentPos.y;
-
-                    double relYError = -Math.sin(currentPos.heading) * dx + Math.cos(currentPos.heading)*dy;
-
-                    if (Math.abs(relYError) > IntakeTurret.turretLengthLL * 0.35) {
-                        robot.drivetrain.goToPoint(
-                                new Pose2d(currentPos.x, currentPos.y, Math.atan2(nextBlock.y - currentPos.y,nextBlock.x - currentPos.x)),
-                                false,
-                                true,
-                                0.3
-                        );
-                    }
-                }
-                return !robot.nclawIntake.hasSample();
-            });
-            grabbed[targetSampleIndex] = true;
-
-            // Go to under bucket
-            Spline s2 = new Spline(robot.sensors.getOdometryPosition(), 7)
-                    .setReversed(true)
-                    .addPoint(new Pose2d(38, robot.sensors.getOdometryPosition().y, Math.toRadians(210)))
-                    .addPoint(62, 55, Math.toRadians(242));
-
-            robot.drivetrain.setPath(s2);
-            robot.drivetrain.state = Drivetrain.State.FOLLOW_SPLINE;
-            robot.drivetrain.setMaxPower(0.5);
-
-            robot.waitWhile(() -> !robot.nclawIntake.isTransferReady() || !robot.ndeposit.isTransferReady());
-            robot.nclawIntake.finishTransfer();
-            robot.ndeposit.finishTransfer();
-
-            robot.waitWhile(() -> robot.sensors.getOdometryPosition().getDistanceFromPoint(s2.getLastPoint()) > 24);
-            robot.ndeposit.startSampleDeposit();
-
-            robot.waitWhile(() -> robot.drivetrain.isBusy() || !robot.ndeposit.isDepositReady());
-            robot.ndeposit.deposit();
-
-            robot.waitWhile(() -> !robot.ndeposit.isDepositFinished());
-            robot.ndeposit.presetDepositHeight(false, true, false);
-            robot.drivetrain.raiseBreakPad();
-            robot.nclawIntake.disableRestrictedHoldPos();
-            robot.nclawIntake.removeKnown();
-
-            LinkedList<LLBlockDetectionPostProcessor.Block> blocks = robot.vision.getBlocks();
-            LLBlockDetectionPostProcessor.filterBlocks(blocks, (LLBlockDetectionPostProcessor.Block b) -> {
-                        Pose2d b_global = b.getGlobalPose();
-                        return Math.abs(b_global.getX()) <= 20 && Math.abs(b_global.getY()) < 22;
-                    }
-            );
-
-            // If another valid block exists at that point, do not go to next best since this is still closests and best area. simply update that point, and then i-- so the i++ works out
-            if (LLBlockDetectionPostProcessor.getClosestValidBlock(robot.vision.getOffset(), blocks) != null) {
-                targets.set(targetSampleIndex, robot.vision.getClosestValidBlock().getGlobalPose().clone());
-            } else {
-                targetSampleIndex++;
-            }
-        }
-
-        /*
-        for (int i = 0; i < 3; i++) {
-            robot.waitWhile(() -> robot.drivetrain.isBusy() || !robot.ndeposit.isDepositReady());
-            robot.ndeposit.deposit();
-            robot.waitWhile(() -> !robot.ndeposit.isDepositFinished());
             robot.ndeposit.presetDepositHeight(false, true, false);
             robot.nclawIntake.disableRestrictedHoldPos();
             robot.nclawIntake.removeKnown();
@@ -378,7 +256,7 @@ public class BROKENSamplePreloadCycleAuto extends LinearOpMode {
             robot.nclawIntake.extend();
 
             robot.drivetrain.goToPoint(
-                    new Pose2d(33, pickUp.y, Math.toRadians(210)),
+                    new Pose2d(33, Utils.minMaxClip(pickUp.y, -16, 16), Math.toRadians(210)),
                     false,
                     false,
                     1.0
@@ -386,7 +264,7 @@ public class BROKENSamplePreloadCycleAuto extends LinearOpMode {
 
             robot.waitWhile(() -> robot.drivetrain.targetPoint.getDistanceFromPoint(robot.sensors.getOdometryPosition()) > 3.5);
             robot.drivetrain.goToPoint(
-                    new Pose2d(30, pickUp.y, Math.PI),
+                    new Pose2d(28, Utils.minMaxClip(pickUp.y, -16, 16), Math.PI),
                     false,
                     true,
                     1.0
@@ -396,48 +274,104 @@ public class BROKENSamplePreloadCycleAuto extends LinearOpMode {
 
             robot.waitWhile(() -> !robot.nclawIntake.isExtended());
             robot.nclawIntake.manualEnableCamera();
+            robot.nclawIntake.resetRetryCounter();
 
-            robot.waitWhile(() -> robot.vision.getClosestValidBlock() == null || !robot.nclawIntake.isExtended());
-            robot.nclawIntake.setGrab(true);
+            // Mini FSM that goes through the targets array searching for a viable grab.
+            // SCANNING -> Search for a new sample that may require moving the robot. keep on interating through if no sample can be found. This may require movement shifts
+            // PECKING -> Attempt grabs. If it cannot be picked up within 2 tires, move on to the next possible position. However, this requires rescanning
+            while (!robot.nclawIntake.hasSample()) {
+                switch (state) {
+                    case SCANNING:
+                        scanStart = System.currentTimeMillis();
 
-            robot.waitWhile(() -> !robot.nclawIntake.hasSample());
-            // Go to under bucket
-            Spline s2 = new Spline(robot.sensors.getOdometryPosition(), 7)
-                    .setReversed(true)
-                    .addPoint(new Pose2d(33, pickUp.y - 5, Math.toRadians(210)))
-                    .addPoint(62, 55, Math.toRadians(242));
-            robot.drivetrain.setPath(s2);
-            robot.drivetrain.state = Drivetrain.State.FOLLOW_SPLINE;
-            robot.drivetrain.setMaxPower(0.5);
-            robot.waitWhile(() -> !robot.nclawIntake.isTransferReady() || !robot.ndeposit.isTransferReady());
-            robot.nclawIntake.finishTransfer();
-            robot.ndeposit.finishTransfer();
+                        robot.waitWhile(() -> {
+                            if (System.currentTimeMillis() - scanStart >= 500) {
+                                if(robot.nclawIntake.getRetryCounter() < 2){
+                                    grabbed[targetSampleIndex] = true;
+                                    robot.nclawIntake.resetRetryCounter();
+                                }
 
-            robot.waitWhile(() -> robot.sensors.getOdometryPosition().getDistanceFromPoint(s2.getLastPoint()) > 24);
-            robot.ndeposit.startSampleDeposit();
+                                while(grabbed[targetSampleIndex]){
+                                    targetSampleIndex = (targetSampleIndex + 1) % targets.size();
+                                }
 
-            LinkedList<LLBlockDetectionPostProcessor.Block> blocks = robot.vision.getBlocks();
-            LLBlockDetectionPostProcessor.filterBlocks(blocks, (LLBlockDetectionPostProcessor.Block b) -> {
-                        Pose2d b_global = b.getGlobalPose();
-                        return Math.abs(b_global.getX()) <= 20 && Math.abs(b_global.getY()) < 22;
-                    }
-            );
+                                scanStart = System.currentTimeMillis();
+                                pickUp = targets.get(targetSampleIndex);
 
-            if (LLBlockDetectionPostProcessor.getClosestValidBlock(robot.vision.getOffset(), blocks) != null)
-                pickUp = robot.vision.getClosestValidBlock().getGlobalPose().clone();
-            else
-                pickUp.y -= 4;
+                                Pose2d currPos = robot.sensors.getOdometryPosition();
+                                if (Math.abs(currPos.y - pickUp.y) > IntakeTurret.turretLengthLL * 0.75) {
+                                    robot.drivetrain.goToPoint(
+                                            new Pose2d(currPos.x, Utils.minMaxClip(pickUp.y, -16, 16), currPos.heading),
+                                            false,
+                                            true,
+                                            1.0
+                                    );
+                                }
+                            }
+
+                            if (robot.vision.getClosestValidBlock() != null && robot.nclawIntake.isExtended()) {
+                                state = State.PECKING;
+                                return false;
+                            }
+                            return true;
+                        });
+                        break;
+                    case PECKING:
+                        robot.nclawIntake.removeKnown();
+                        robot.nclawIntake.setKnownIntakePose(pickUp);
+                        robot.nclawIntake.setGrab(true);
+                        robot.nclawIntake.resetRetryCounter();
+
+                        robot.waitWhile(() -> {
+                            if (robot.nclawIntake.getRetryCounter() > 2) {
+                                robot.nclawIntake.setGrab(false);
+                                robot.nclawIntake.manualEnableCamera();
+
+                                // Do this here and not in SCANNING to avoid marking a failed grab as a failed scan
+                                grabbed[targetSampleIndex] = false;
+                                targetSampleIndex++;
+
+                                state = State.SCANNING;
+                                return false;
+                            }
+                            return !robot.nclawIntake.hasSample();
+                        });
+                        break;
+                }
+
+                Pose2d currentPos = robot.sensors.getOdometryPosition();
+                Spline s2 = new Spline(currentPos, 7)
+                        .setReversed(true)
+                        .addPoint(new Pose2d(currentPos.x + 6, currentPos.y, Math.PI))
+                        .addPoint(62, 55, Math.toRadians(242));
+                robot.drivetrain.state = Drivetrain.State.FOLLOW_SPLINE;
+                robot.drivetrain.setPath(s2);
+                robot.drivetrain.setMaxPower(0.5);
+
+                robot.waitWhile(() -> !robot.nclawIntake.isTransferReady() || !robot.ndeposit.isTransferReady());
+                robot.nclawIntake.finishTransfer();
+                robot.ndeposit.finishTransfer();
+
+                robot.waitWhile(() -> robot.sensors.getOdometryPosition().getDistanceFromPoint(s2.getLastPoint()) > 24);
+                robot.ndeposit.startSampleDeposit();
+
+                LinkedList<LLBlockDetectionPostProcessor.Block> blocks = robot.vision.getBlocks();
+                LLBlockDetectionPostProcessor.filterBlocks(blocks, (LLBlockDetectionPostProcessor.Block b) ->
+                        b.getX() >= 0 && b.getX() <= 20 &&
+                                Math.abs(b.getY()) < 22
+                );
+
+                if (LLBlockDetectionPostProcessor.getClosestValidBlock(robot.vision.getOffset(), blocks) != null) {
+                    pickUp = robot.vision.getClosestValidBlock().getGlobalPose().clone();
+                    grabbed[targetSampleIndex] = false;
+                } else {
+                    targetSampleIndex++;
+                }
+            }
         }
-        */
 
         RobotLog.i("Auto total time: " + (System.currentTimeMillis() - Globals.autoStartTime));
     }
-
-//    public void avoidPeckyThing(){
-//        while(!robot.nclawIntake.hasSample()){
-//
-//        }
-//    }
 }
 
 /*
@@ -660,3 +594,214 @@ public class BROKENSamplePreloadCycleAuto extends LinearOpMode {
         robot.waitWhile(() -> true);
     }
 */
+/*
+            scanStart = System.currentTimeMillis();
+            robot.waitWhile(() ->{
+               if(System.currentTimeMillis() - scanStart >= 500){
+                    grabbed[targetSampleIndex] = true;
+                    do {
+                        targetSampleIndex = (targetSampleIndex + 1) % targets.size();
+                    }while(grabbed[targetSampleIndex]);
+
+                    scanStart = System.currentTimeMillis();
+                    pickUp = targets.get(targetSampleIndex);
+
+                    Pose2d currPos = robot.sensors.getOdometryPosition();
+                    if(Math.abs(currPos.y - pickUp.y) > IntakeTurret.turretLengthLL * 0.75){
+                        robot.drivetrain.goToPoint(
+                                new Pose2d(currPos.x, Utils.minMaxClip(pickUp.y, -16, 16), currPos.heading),
+                                false,
+                                true,
+                                1.0
+                        );
+                    }
+               }
+               return robot.vision.getClosestValidBlock() == null || !robot.nclawIntake.isExtended();
+            });
+
+            robot.nclawIntake.setGrab(true);
+
+            robot.waitWhile(() -> {
+
+                return !robot.nclawIntake.hasSample();
+            });
+        }
+
+        while (targetSampleIndex < targets.size() && !isStopRequested()) {
+            pickUpper = targets.get(targetSampleIndex);
+
+            robot.nclawIntake.setExtendoTargetPos(10);
+            robot.nclawIntake.extend();
+
+            robot.drivetrain.goToPoint(
+                    new Pose2d(33.0, Utils.minMaxClip(pickUpper.y, -17, 17), Math.toRadians(210)),
+                    false,
+                    false,
+                    1.0
+            );
+
+            robot.waitWhile(() -> robot.drivetrain.targetPoint.getDistanceFromPoint(robot.sensors.getOdometryPosition()) > 3.5);
+
+            robot.drivetrain.goToPoint(
+                    new Pose2d(30.0, Utils.minMaxClip(pickUpper.y, -17, 17), Math.PI),
+                    false,
+                    true,
+                    1.0
+            );
+
+            robot.nclawIntake.setKnownIntakePose(new Pose2d(pickUpper.x, pickUpper.y, 0));
+            robot.nclawIntake.aimAtKnown();
+
+            robot.waitWhile(() -> !robot.nclawIntake.isExtended());
+            robot.nclawIntake.manualEnableCamera();
+
+            startTime = System.currentTimeMillis();
+            robot.waitWhile(() -> {
+                if(System.currentTimeMillis() - startTime >= 500){
+                    grabbed[targetSampleIndex] = true;
+                    do {
+                        targetSampleIndex = (targetSampleIndex + 1) % targets.size();
+                    } while (grabbed[targetSampleIndex]  && !isStopRequested());
+                    return false;
+                }
+                return robot.vision.getClosestValidBlock() == null || !robot.nclawIntake.isExtended();
+            });
+            robot.nclawIntake.setGrab(true);
+
+            robot.waitWhile(() -> {
+                if (robot.nclawIntake.getRetryCounter() >= 2) {
+                    robot.nclawIntake.resetRetryCounter();
+                    grabbed[targetSampleIndex] = false;
+
+                    do {
+                        targetSampleIndex = (targetSampleIndex + 1) % targets.size();
+                    } while (grabbed[targetSampleIndex]  && !isStopRequested());
+
+                    Pose2d currentPos = robot.sensors.getOdometryPosition();
+                    Pose2d nextBlock = targets.get(targetSampleIndex);
+
+                    robot.nclawIntake.setKnownIntakePose(nextBlock);
+                    robot.nclawIntake.aimAtKnown();
+
+                    double dx = nextBlock.x - currentPos.x;
+                    double dy = nextBlock.y - currentPos.y;
+
+                    double relYError = -Math.sin(currentPos.heading) * dx + Math.cos(currentPos.heading)*dy;
+
+                    if (Math.abs(relYError) > IntakeTurret.turretLengthLL * 0.35) {
+                        robot.drivetrain.goToPoint(
+                                new Pose2d(currentPos.x, currentPos.y, Math.atan2(nextBlock.y - currentPos.y,nextBlock.x - currentPos.x)),
+                                false,
+                                true,
+                                0.3
+                        );
+                    }
+                }
+                return !robot.nclawIntake.hasSample();
+            });
+            grabbed[targetSampleIndex] = true;
+
+            // Go to under bucket
+            Spline s2 = new Spline(robot.sensors.getOdometryPosition(), 7)
+                    .setReversed(true)
+                    .addPoint(new Pose2d(38, robot.sensors.getOdometryPosition().y, Math.toRadians(210)))
+                    .addPoint(62, 55, Math.toRadians(242));
+
+            robot.drivetrain.setPath(s2);
+            robot.drivetrain.state = Drivetrain.State.FOLLOW_SPLINE;
+            robot.drivetrain.setMaxPower(0.5);
+
+            robot.waitWhile(() -> !robot.nclawIntake.isTransferReady() || !robot.ndeposit.isTransferReady());
+            robot.nclawIntake.finishTransfer();
+            robot.ndeposit.finishTransfer();
+
+            robot.waitWhile(() -> robot.sensors.getOdometryPosition().getDistanceFromPoint(s2.getLastPoint()) > 24);
+            robot.ndeposit.startSampleDeposit();
+
+            robot.waitWhile(() -> robot.drivetrain.isBusy() || !robot.ndeposit.isDepositReady());
+            robot.ndeposit.deposit();
+
+            robot.waitWhile(() -> !robot.ndeposit.isDepositFinished());
+            robot.ndeposit.presetDepositHeight(false, true, false);
+            robot.drivetrain.raiseBreakPad();
+            robot.nclawIntake.disableRestrictedHoldPos();
+            robot.nclawIntake.removeKnown();
+
+            LinkedList<LLBlockDetectionPostProcessor.Block> blocks = robot.vision.getBlocks();
+            LLBlockDetectionPostProcessor.filterBlocks(blocks, (LLBlockDetectionPostProcessor.Block b) -> {
+                        Pose2d b_global = b.getGlobalPose();
+                        return Math.abs(b_global.getX()) <= 20 && Math.abs(b_global.getY()) < 22;
+                    }
+            );
+
+            // If another valid block exists at that point, do not go to next best since this is still closests and best area. simply update that point, and then i-- so the i++ works out
+            if (LLBlockDetectionPostProcessor.getClosestValidBlock(robot.vision.getOffset(), blocks) != null) {
+                targets.set(targetSampleIndex, robot.vision.getClosestValidBlock().getGlobalPose().clone());
+            } else {
+                targetSampleIndex++;
+            }
+        }
+
+
+        for (int i = 0; i < 3; i++) {
+            robot.waitWhile(() -> robot.drivetrain.isBusy() || !robot.ndeposit.isDepositReady());
+            robot.ndeposit.deposit();
+            robot.waitWhile(() -> !robot.ndeposit.isDepositFinished());
+            robot.ndeposit.presetDepositHeight(false, true, false);
+            robot.nclawIntake.disableRestrictedHoldPos();
+            robot.nclawIntake.removeKnown();
+            robot.nclawIntake.setExtendoTargetPos(10);
+            robot.nclawIntake.extend();
+
+            robot.drivetrain.goToPoint(
+                    new Pose2d(33, pickUp.y, Math.toRadians(210)),
+                    false,
+                    false,
+                    1.0
+            );
+
+            robot.waitWhile(() -> robot.drivetrain.targetPoint.getDistanceFromPoint(robot.sensors.getOdometryPosition()) > 3.5);
+            robot.drivetrain.goToPoint(
+                    new Pose2d(30, pickUp.y, Math.PI),
+                    false,
+                    true,
+                    1.0
+            );
+
+            robot.nclawIntake.setKnownIntakePose(new Pose2d(pickUp.x, pickUp.y, 0));
+
+            robot.waitWhile(() -> !robot.nclawIntake.isExtended());
+            robot.nclawIntake.manualEnableCamera();
+
+            robot.waitWhile(() -> robot.vision.getClosestValidBlock() == null || !robot.nclawIntake.isExtended());
+            robot.nclawIntake.setGrab(true);
+
+            robot.waitWhile(() -> !robot.nclawIntake.hasSample());
+            // Go to under bucket
+            Spline s2 = new Spline(robot.sensors.getOdometryPosition(), 7)
+                    .setReversed(true)
+                    .addPoint(new Pose2d(33, pickUp.y - 5, Math.toRadians(210)))
+                    .addPoint(62, 55, Math.toRadians(242));
+            robot.drivetrain.setPath(s2);
+            robot.drivetrain.state = Drivetrain.State.FOLLOW_SPLINE;
+            robot.drivetrain.setMaxPower(0.5);
+            robot.waitWhile(() -> !robot.nclawIntake.isTransferReady() || !robot.ndeposit.isTransferReady());
+            robot.nclawIntake.finishTransfer();
+            robot.ndeposit.finishTransfer();
+
+            robot.waitWhile(() -> robot.sensors.getOdometryPosition().getDistanceFromPoint(s2.getLastPoint()) > 24);
+            robot.ndeposit.startSampleDeposit();
+
+            LinkedList<LLBlockDetectionPostProcessor.Block> blocks = robot.vision.getBlocks();
+            LLBlockDetectionPostProcessor.filterBlocks(blocks, (LLBlockDetectionPostProcessor.Block b) -> {
+                        Pose2d b_global = b.getGlobalPose();
+                        return Math.abs(b_global.getX()) <= 20 && Math.abs(b_global.getY()) < 22;
+                    }
+            );
+
+            if (LLBlockDetectionPostProcessor.getClosestValidBlock(robot.vision.getOffset(), blocks) != null)
+                pickUp = robot.vision.getClosestValidBlock().getGlobalPose().clone();
+            else
+                pickUp.y -= 4;
+        }
+    */

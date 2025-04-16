@@ -3,7 +3,6 @@ package org.firstinspires.ftc.teamcode.subsystems.intake;
 import android.util.Log;
 
 import com.acmerobotics.dashboard.config.Config;
-import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 
 import org.firstinspires.ftc.teamcode.Robot;
@@ -28,6 +27,7 @@ public class IntakeExtension {
     public static PID extendoPID = new PID(0.4, 0.05, 0.005);
     public static double slidesTolerance = 0.6;
     public static double slidesDeadZone = 0.2;
+    public static double slidesForceInThresh = 6;
     public static double slidesForceInPow = -0.5;
     public static double slidesKeepInPow = -0.2;
     public static double slidesForcePullPow = -0.7;
@@ -61,12 +61,10 @@ public class IntakeExtension {
                 pow = extendoPID.update(this.targetLength - this.extendoCurrentPos, -0.7, 0.7);
             }
 
-            if (targetLength == 0 && extendoCurrentPos <= 4 && !ignoreKeepIn)
-                pow = slidesForceInPow;
+            if (targetLength == 0 && extendoCurrentPos <= slidesForceInThresh && !ignoreKeepIn) pow = slidesForceInPow;
 
             // Sorry..
-            if (targetLength == 0 && extendoCurrentPos <= 0.75 && !ignoreKeepIn)
-                pow = slidesKeepInPow;
+            if (targetLength == 0 && extendoCurrentPos <= 0.75 && !ignoreKeepIn) pow = slidesKeepInPow;
 
             if (forcePull) {
                 pow = slidesForcePullPow;

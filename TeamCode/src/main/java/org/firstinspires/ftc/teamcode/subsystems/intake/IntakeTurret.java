@@ -22,7 +22,7 @@ public class IntakeTurret {
 
     private boolean closed;
     public static double clawOpenAngle = 0.0;
-    public static double clawCloseAngle = 1.054;
+    public static double clawCloseAngle = 1.03;
 
     public IntakeTurret(Robot robot) {
         this.robot = robot;

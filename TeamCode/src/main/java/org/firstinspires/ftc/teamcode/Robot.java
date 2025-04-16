@@ -89,7 +89,6 @@ public class Robot {
         this.updateTelemetry();
     }
 
-
     private void updateSubsystems() {
         if (this.abortChecker != null && !((boolean) this.abortChecker.call())) {
             this.hardwareQueue.update();

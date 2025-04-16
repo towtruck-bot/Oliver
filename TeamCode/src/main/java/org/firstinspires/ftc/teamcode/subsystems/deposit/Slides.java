@@ -19,7 +19,7 @@ public class Slides {
     public static double minKStaticLength = 3;
     //public static double minPower = 0.3;
     //public static double minPowerThresh = 2;
-    public static double forceDownPower = -0.35;
+    public static double forceDownPower = -0.15;
     public static double forceDownThresh = 5;
     public static double maxSlidesHeight = 35.3;
     public static PID pid = new PID(0.3, 0, 0.001);

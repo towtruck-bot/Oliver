@@ -68,6 +68,7 @@ public class Teleop extends LinearOpMode {
         }
         robot.nclawIntake.setTargetPose(new Pose2d(extensionPreset, 0, 0));
         robot.nclawIntake.setAutoEnableCamera(true);
+        robot.nclawIntake.disableRestrictedHoldPos();
 
         while (!isStopRequested()) {
             robot.update();

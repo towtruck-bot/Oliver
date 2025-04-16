@@ -55,12 +55,12 @@ public class nDeposit {
     public final Slides slides;
     private final Arm arm;
 
-    public static double transferArm = 0.4365, transferClaw = -0.920, transferBufferZ = 12, transferZ = 7.6;
+    public static double transferArm = 0.4365, transferClaw = -0.928, transferBufferZ = 12, transferZ = 7.6;
     public static double holdArm = -0.4646, holdClaw = -0.6533, holdZ = 0.0;
     public static double raiseArmBufferRotation = 0.346,  sampleArm = -2.177, sampleLongDepoArm = -2.6734, sampleTargetArm = sampleArm, sampleClaw = 0;
-    public static double sampleLZ = 15, sampleHZ = 28, sampleLongLZ = 18, sampleLongHZ = 31.5, speciZ = 12.4, targetZ = sampleHZ;
+    public static double sampleLZ = 15, sampleHZ = 28, sampleLongLZ = 18, sampleLongHZ = 31.5, speciZ = 9.8, targetZ = sampleHZ;
     public static double outtakeArm = -2.9225, outtakeClaw = -0.00169, outtakeZ = 0.0;
-    public static double specimenIntakeArm = -2.635, specimenIntakeClaw = 1.0419, specimenIntakeZ = 0;
+    public static double specimenIntakeArm = -2.72, specimenIntakeClaw = 1.0419, specimenIntakeZ = 0;
     public static double specimenDepositArm = -0.3087, specimenDepositClaw = 0.0507;
     public static double hangArm = -1.0;
     public static double minVel = 4;
@@ -416,6 +416,12 @@ public class nDeposit {
         return state == State.IDLE;
     }
 
+    public void forceRetract(){
+        transferRequested = false;
+        specimenIntakeRequested = false;
+
+        state = State.RETRACT;
+    }
     public boolean isSafeHeight(){
         return state == State.SAMPLE_RAISE && slides.getLength() >= 5;
     }

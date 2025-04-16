@@ -19,12 +19,12 @@ public class SpecimenPreloadAuto extends LinearOpMode {
     private Robot robot;
 
     public static double[] dX = {-6.0, -8.0, -4.0, -2.0, 0.0, 2.0, 4.0};
-    public static double dY = 25.85;
+    public static double dY = 31.85;
 
     public static double p1x, p1y, b1x, b1y;
     public static double p2x, p2y, b2x, b2y;
     public static double b3x, b3y;
-    public static double ix, iy, sx, sy;
+    public static double ix = -40, iy = 60.5, sx = 0, sy = 48;
 
     public void runOpMode(){
         Globals.RUNMODE = RunMode.AUTO;
@@ -48,7 +48,7 @@ public class SpecimenPreloadAuto extends LinearOpMode {
         robot.nclawIntake.setRetryGrab(true);
 
         while(opModeInInit() && !isStopRequested()){
-            robot.sensors.setOdometryPosition(-0.5 * Globals.ROBOT_WIDTH, 72.0 - Globals.ROBOT_REVERSE_LENGTH, Math.toRadians(270));
+            robot.sensors.setOdometryPosition(-0.5 * Globals.ROBOT_WIDTH, 70.0 - Globals.ROBOT_REVERSE_LENGTH, Math.toRadians(270));
             robot.update();
         }
 
@@ -65,6 +65,7 @@ public class SpecimenPreloadAuto extends LinearOpMode {
         robot.waitWhile(() -> robot.drivetrain.isBusy());
         robot.ndeposit.deposit();
 
+        /*
         // Get ground 1
         robot.drivetrain.goToPoint(
                 new Pose2d(p1x, p1y, Math.atan2(p1y - b1y, p1x - b1x)),
@@ -127,11 +128,11 @@ public class SpecimenPreloadAuto extends LinearOpMode {
         robot.nclawIntake.finishTransfer();
         robot.ndeposit.finishTransfer();
         robot.waitWhile(() -> !robot.ndeposit.isTransferFinished());
-
+        */
         // Cycle
         for(int i = 1; i < 6; i++){
             robot.drivetrain.goToPoint(
-                    new Pose2d(ix, iy, -Math.PI),
+                    new Pose2d(ix, iy, -Math.PI/2),
                     false,
                     true,
                     1.0

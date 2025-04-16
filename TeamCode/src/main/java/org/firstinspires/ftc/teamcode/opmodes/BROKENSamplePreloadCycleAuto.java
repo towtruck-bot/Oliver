@@ -244,6 +244,8 @@ public class BROKENSamplePreloadCycleAuto extends LinearOpMode {
         robot.ndeposit.deposit();
         robot.drivetrain.raiseBreakPad();
 
+        robot.waitWhile(() -> !robot.ndeposit.isDepositFinished());
+        robot.ndeposit.forceRetract();
         robot.waitWhile(() -> !robot.ndeposit.isFullRetract());
 
         for(targetSampleIndex = 0; targetSampleIndex < targets.size();) {
@@ -252,7 +254,7 @@ public class BROKENSamplePreloadCycleAuto extends LinearOpMode {
             robot.ndeposit.presetDepositHeight(false, true, false);
             robot.nclawIntake.disableRestrictedHoldPos();
             robot.nclawIntake.removeKnown();
-            robot.nclawIntake.setExtendoTargetPos(10);
+            robot.nclawIntake.setExtendoTargetPos(8);
             robot.nclawIntake.extend();
 
             robot.drivetrain.goToPoint(
@@ -264,7 +266,7 @@ public class BROKENSamplePreloadCycleAuto extends LinearOpMode {
 
             robot.waitWhile(() -> robot.drivetrain.targetPoint.getDistanceFromPoint(robot.sensors.getOdometryPosition()) > 3.5);
             robot.drivetrain.goToPoint(
-                    new Pose2d(28, Utils.minMaxClip(pickUp.y, -16, 16), Math.PI),
+                    new Pose2d(30, Utils.minMaxClip(pickUp.y, -17.5, 17.5), Math.PI),
                     false,
                     true,
                     1.0
@@ -280,6 +282,7 @@ public class BROKENSamplePreloadCycleAuto extends LinearOpMode {
             // SCANNING -> Search for a new sample that may require moving the robot. keep on interating through if no sample can be found. This may require movement shifts
             // PECKING -> Attempt grabs. If it cannot be picked up within 2 tires, move on to the next possible position. However, this requires rescanning
             while (!robot.nclawIntake.hasSample()) {
+                Log.i("JAMES", state + "");
                 switch (state) {
                     case SCANNING:
                         scanStart = System.currentTimeMillis();
@@ -294,14 +297,17 @@ public class BROKENSamplePreloadCycleAuto extends LinearOpMode {
                                 while(grabbed[targetSampleIndex]){
                                     targetSampleIndex = (targetSampleIndex + 1) % targets.size();
                                 }
+                                Log.i("JAMES", "took too long, new index is " + targetSampleIndex);
 
                                 scanStart = System.currentTimeMillis();
                                 pickUp = targets.get(targetSampleIndex);
+                                robot.nclawIntake.removeKnown();
+                                robot.nclawIntake.setKnownIntakePose(pickUp);
 
                                 Pose2d currPos = robot.sensors.getOdometryPosition();
                                 if (Math.abs(currPos.y - pickUp.y) > IntakeTurret.turretLengthLL * 0.75) {
                                     robot.drivetrain.goToPoint(
-                                            new Pose2d(currPos.x, Utils.minMaxClip(pickUp.y, -16, 16), currPos.heading),
+                                            new Pose2d(currPos.x, Utils.minMaxClip(pickUp.y, -17.5, 17.5), currPos.heading),
                                             false,
                                             true,
                                             1.0
@@ -311,16 +317,14 @@ public class BROKENSamplePreloadCycleAuto extends LinearOpMode {
 
                             if (robot.vision.getClosestValidBlock() != null && robot.nclawIntake.isExtended()) {
                                 state = State.PECKING;
+                                robot.nclawIntake.resetRetryCounter();
                                 return false;
                             }
                             return true;
                         });
                         break;
                     case PECKING:
-                        robot.nclawIntake.removeKnown();
-                        robot.nclawIntake.setKnownIntakePose(pickUp);
                         robot.nclawIntake.setGrab(true);
-                        robot.nclawIntake.resetRetryCounter();
 
                         robot.waitWhile(() -> {
                             if (robot.nclawIntake.getRetryCounter() > 2) {

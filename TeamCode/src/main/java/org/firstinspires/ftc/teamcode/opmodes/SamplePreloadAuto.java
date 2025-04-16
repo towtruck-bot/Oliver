@@ -104,7 +104,7 @@ public class SamplePreloadAuto extends LinearOpMode {
         robot.nclawIntake.finishTransfer();
         robot.ndeposit.finishTransfer();
 
-        robot.waitWhile(() -> robot.nclawIntake.hasSample());
+        robot.waitWhile(() -> robot.nclawIntake.hasSample() || !robot.ndeposit.isSafeHeight());
         robot.nclawIntake.setGrab(false);
         robot.nclawIntake.setTargetPose(new Pose2d(bx2, by2, Math.PI / 2));
         robot.nclawIntake.extend();
@@ -132,7 +132,7 @@ public class SamplePreloadAuto extends LinearOpMode {
         robot.nclawIntake.finishTransfer();
         robot.ndeposit.finishTransfer();
 
-        robot.waitWhile(() -> robot.nclawIntake.hasSample());
+        robot.waitWhile(() -> robot.nclawIntake.hasSample() || !robot.ndeposit.isSafeHeight());
         robot.nclawIntake.setGrab(false);
         robot.nclawIntake.setTargetPose(new Pose2d(bx3, by3, Math.PI / 2));
         robot.nclawIntake.extend();

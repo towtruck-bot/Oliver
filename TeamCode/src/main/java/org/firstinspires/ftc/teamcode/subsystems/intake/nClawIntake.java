@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.subsystems.intake;
 
 import android.util.Log;
 
+import com.acmerobotics.dashboard.canvas.Canvas;
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.util.RobotLog;
@@ -62,6 +63,7 @@ public class nClawIntake {
     private Pose2d known = null;
     private boolean autoEnableCamera = false;
     private boolean retryGrab = false;
+    private int retryCounter = 0;
 
     private double manualTurretAngle, manualClawAngle;
 
@@ -247,6 +249,9 @@ public class nClawIntake {
                 }
 
                 if (psReads >= 35) {
+                    if(Globals.RUNMODE != RunMode.TELEOP){
+                        retryCounter++;
+                    }
                     if (!retryGrab) grab = false;
                     if (grabMethod.useCamera) {
                         state = State.SEARCH;
@@ -282,6 +287,7 @@ public class nClawIntake {
                     state = State.START_RETRACT;
                     robot.ndeposit.startTransfer();
                     intakeLight.setState(false);
+                    retryCounter = 0;
                 }
 
                 break;
@@ -387,6 +393,9 @@ public class nClawIntake {
         intakeTurret.update();
         updateTelemetry();
     }
+
+    public int getRetryCounter() { return retryCounter; }
+    public void resetRetryCounter() { retryCounter = 0; }
 
     public void finishTransfer() {
         finishTransferRequest = state == State.TRANSFER_WAIT;
@@ -547,6 +556,10 @@ public class nClawIntake {
             case GLOBAL: {
                 double deltaX = (target.x - robot.sensors.getOdometryPosition().x);
                 double deltaY = (target.y - robot.sensors.getOdometryPosition().y);
+
+                Canvas canvas = TelemetryUtil.packet.fieldOverlay();
+                canvas.setFill("#c000c0");
+                canvas.fillCircle(target.x, target.y, 1);
 
                 // convert error into direction robot is facing
                 intakeTurret.intakeAt(new Pose2d(

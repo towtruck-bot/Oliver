@@ -54,7 +54,7 @@ public class Sensors {
         }
     }
 
-    public void calculateCurrentVelo(){
+    public void calculateCurrentVelo() {
         Pose2d currentPoint = odometry.getPosition();
         long currentTime = System.currentTimeMillis();
         instantVelo.x = (currentPoint.x - formerPoint.x) / (currentTime - lastTime);
@@ -65,10 +65,10 @@ public class Sensors {
     }
     private boolean isStopped = true;
     private double confidence = 0.0, confidenceAlpha = 0.125, confidenceThresh = 0.75;
-    public void stopConfidence(){
+    public void stopConfidence() {
         confidence *= (1 - confidenceAlpha);
 
-        if(instantVelo.mag() < 0.5){
+        if (instantVelo.mag() < 0.5) {
             confidence += confidenceAlpha;
         }
 

@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.opmodes;
 
+import android.util.Log;
+
 import com.acmerobotics.dashboard.config.Config;
 import com.google.ar.core.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
@@ -11,13 +13,16 @@ import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.subsystems.deposit.nDeposit;
 import org.firstinspires.ftc.teamcode.subsystems.drive.Drivetrain;
 import org.firstinspires.ftc.teamcode.subsystems.drive.Spline;
+import org.firstinspires.ftc.teamcode.subsystems.intake.IntakeTurret;
 import org.firstinspires.ftc.teamcode.subsystems.intake.nClawIntake;
 import org.firstinspires.ftc.teamcode.utils.Globals;
 import org.firstinspires.ftc.teamcode.utils.LogUtil;
 import org.firstinspires.ftc.teamcode.utils.Pose2d;
 import org.firstinspires.ftc.teamcode.utils.RunMode;
+import org.firstinspires.ftc.teamcode.utils.Utils;
 import org.firstinspires.ftc.teamcode.vision.LLBlockDetectionPostProcessor;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 
 @Autonomous(name = "Sample Auto", preselectTeleOp = "A. Teleop")
@@ -26,13 +31,15 @@ public class SamplePreloadAuto extends LinearOpMode {
     private Robot robot;
 
     // Block positions
-    public static double bx1 = 50.4, by1 = 27, bx2 = 59.6, by2 = 27, bx3 = 69.7, by3 = 27;
+    public static double bx1 = 50.4, by1 = 28, bx2 = 59.6, by2 = 28, bx3 = 69, by3 = 28;
 
-    // GP depo positions
+    // P/G/C depo positions
     public static double dx1 = 63, dy1 = 53.3;
     public static double dx2 = 64.3, dy2 = 53.6;
-//    public static double dx3 = 65.2, dy3 = 53.6;
-    public static double dx3 = 65.395 + 1.1 * Math.cos(Math.toRadians(272.0638)), dy3 = 54.38457 + 1.1 * Math.sin(Math.toRadians(272.0638));
+    public static double dx3 = 65.395 + 1.05 * Math.cos(Math.toRadians(272.0638)), dy3 = 54.38457 + 1.05 * Math.sin(Math.toRadians(272.0638));
+
+    public int targetSampleIndex = 0;
+    public long startTime = System.currentTimeMillis();
 
     public void runOpMode() {
         Globals.isRed = false;
@@ -56,9 +63,34 @@ public class SamplePreloadAuto extends LinearOpMode {
         robot.nclawIntake.disableRestrictedHoldPos();
         robot.nclawIntake.setAutoEnableCamera(false);
 
+        SubmersibleSelectionGUI gui = new SubmersibleSelectionGUI();
+
         while (opModeInInit() && !isStopRequested()) {
+            gui.drawSub(gamepad1, telemetry);
+        }
+
+        for (int i = 0; i < 5; ++i) {
             robot.sensors.setOdometryPosition(48.0 - Globals.ROBOT_REVERSE_LENGTH, 72.0 - Globals.ROBOT_WIDTH / 2, Math.PI);
             robot.update();
+        }
+        LogUtil.drivePositionReset = true;
+        robot.update();
+
+        // Sorting Driver input in order of closest target
+        ArrayList<Pose2d> input = gui.getDriverSelect();
+        ArrayList<Pose2d> targets = new ArrayList<>();
+        boolean[] grabbed = new boolean[input.size()];
+        Pose2d targetPoint = new Pose2d(7, 12);
+
+        int len = input.size();
+        for (int i = 0; i < len; i++) {
+            Pose2d best = new Pose2d(100, 100);
+            for (Pose2d p : input) {
+                best = targetPoint.getDistanceFromPoint(p) < targetPoint.getDistanceFromPoint(best) ? p : best;
+            }
+            targets.add(best);
+            input.remove(best);
+            grabbed[i] = false;
         }
 
         Globals.autoStartTime = System.currentTimeMillis();
@@ -71,7 +103,6 @@ public class SamplePreloadAuto extends LinearOpMode {
                 true,
                 1.0
         );
-        //robot.nclawIntake.setTargetPose(new Pose2d(bx1, by1, Math.PI / 2));
         robot.nclawIntake.setExtendoTargetPos(5);
         robot.nclawIntake.setTargetType(nClawIntake.Target.MANUAL);
         robot.nclawIntake.extend();
@@ -87,7 +118,7 @@ public class SamplePreloadAuto extends LinearOpMode {
         robot.nclawIntake.setTargetType(nClawIntake.Target.GLOBAL);
         robot.waitWhile(() -> !robot.ndeposit.isDepositFinished());
 
-        // Depo 1
+        // Depo Ground 1 + intake Ground 2
         robot.waitWhile(() -> !robot.nclawIntake.isExtended());
         robot.nclawIntake.setGrab(true);
         robot.waitWhile(() -> !robot.nclawIntake.hasSample());
@@ -113,8 +144,7 @@ public class SamplePreloadAuto extends LinearOpMode {
         robot.ndeposit.deposit();
         robot.waitWhile(() -> !robot.ndeposit.isDepositFinished());
 
-
-        // Depo 2
+        // Depo Ground 2 + intake Ground 3
         robot.waitWhile(() -> !robot.nclawIntake.isExtended());
         robot.nclawIntake.setGrab(true);
         robot.waitWhile(() -> !robot.nclawIntake.hasSample());
@@ -142,7 +172,7 @@ public class SamplePreloadAuto extends LinearOpMode {
         robot.ndeposit.deposit();
         robot.waitWhile(() -> !robot.ndeposit.isDepositFinished());
 
-        // Depo 3
+        // Depo Ground 3
         robot.waitWhile(() -> !robot.nclawIntake.isExtended());
         robot.nclawIntake.setGrab(true);
         robot.waitWhile(() -> !robot.nclawIntake.hasSample());
@@ -168,8 +198,125 @@ public class SamplePreloadAuto extends LinearOpMode {
         robot.nclawIntake.setGrabMethod(nClawIntake.GrabMethod.SEARCH_HOVER_MG);
         robot.waitWhile(() -> robot.nclawIntake.hasSample());
 
-        Pose2d pickUp = new Pose2d(12, 12, 0);
+        Pose2d pickUpper = new Pose2d(0, 0, 0);
 
+        while (targetSampleIndex < targets.size() && !isStopRequested()) {
+            pickUpper = targets.get(targetSampleIndex);
+            Log.i("JAMES", pickUpper.x + " " + pickUpper.y + " " + pickUpper.heading);
+
+            robot.waitWhile(() -> robot.drivetrain.isBusy() || !robot.ndeposit.isDepositReady());
+            robot.ndeposit.deposit();
+
+            robot.waitWhile(() -> !robot.ndeposit.isDepositFinished());
+            robot.ndeposit.presetDepositHeight(false, true, false);
+            robot.nclawIntake.disableRestrictedHoldPos();
+            robot.nclawIntake.removeKnown();
+            robot.nclawIntake.setExtendoTargetPos(10);
+            robot.nclawIntake.extend();
+
+            robot.drivetrain.goToPoint(
+                    new Pose2d(33.0, Utils.minMaxClip(pickUpper.y, -17, 17), Math.toRadians(210)),
+                    false,
+                    false,
+                    1.0
+            );
+
+            robot.waitWhile(() -> robot.drivetrain.targetPoint.getDistanceFromPoint(robot.sensors.getOdometryPosition()) > 3.5);
+
+
+            //robot.waitWhile(() -> robot.drivetrain.targetPoint.getDistanceFromPoint(robot.sensors.getOdometryPosition()) > 1.5);
+            robot.drivetrain.goToPoint(
+                    new Pose2d(30.0, Utils.minMaxClip(pickUpper.y, -17, 17), Math.PI),
+                    false,
+                    true,
+                    1.0
+            );
+
+            robot.nclawIntake.setKnownIntakePose(new Pose2d(pickUpper.x, pickUpper.y, 0));
+            robot.nclawIntake.aimAtKnown();
+
+            robot.waitWhile(() -> !robot.nclawIntake.isExtended());
+            robot.nclawIntake.manualEnableCamera();
+
+            startTime = System.currentTimeMillis();
+            robot.waitWhile(() -> {
+                if(System.currentTimeMillis() - startTime >= 500){
+                    grabbed[targetSampleIndex] = true;
+                    do {
+                        targetSampleIndex = (targetSampleIndex + 1) % targets.size();
+                    } while (grabbed[targetSampleIndex]  && !isStopRequested());
+                    return false;
+                }
+                return robot.vision.getClosestValidBlock() == null || !robot.nclawIntake.isExtended();
+            });
+            robot.nclawIntake.setGrab(true);
+
+            robot.waitWhile(() -> {
+                if (robot.nclawIntake.getRetryCounter() >= 2) {
+                    robot.nclawIntake.resetRetryCounter();
+                    grabbed[targetSampleIndex] = false;
+
+                    do {
+                        targetSampleIndex = (targetSampleIndex + 1) % targets.size();
+                    } while (grabbed[targetSampleIndex]  && !isStopRequested());
+
+                    Pose2d currentPos = robot.sensors.getOdometryPosition();
+                    Pose2d nextBlock = targets.get(targetSampleIndex);
+
+                    robot.nclawIntake.setKnownIntakePose(nextBlock);
+                    robot.nclawIntake.aimAtKnown();
+
+                    double dx = nextBlock.x - currentPos.x;
+                    double dy = nextBlock.y - currentPos.y;
+
+                    double relYError = -Math.sin(currentPos.heading) * dx + Math.cos(currentPos.heading)*dy;
+
+                    if (Math.abs(relYError) > IntakeTurret.turretLengthLL * 0.35) {
+                        robot.drivetrain.goToPoint(
+                                new Pose2d(currentPos.x, currentPos.y, Math.atan2(-nextBlock.y + currentPos.y,-nextBlock.x + currentPos.x)),
+                                false,
+                                true,
+                                0.3
+                        );
+                    }
+                }
+                return !robot.nclawIntake.hasSample();
+            });
+            grabbed[targetSampleIndex] = true;
+
+            // Go to under bucket
+            Spline s2 = new Spline(robot.sensors.getOdometryPosition(), 7)
+                    .setReversed(true)
+                    .addPoint(new Pose2d(38, robot.sensors.getOdometryPosition().y, Math.toRadians(210)))
+                    .addPoint(62, 55, Math.toRadians(242));
+
+            robot.drivetrain.setPath(s2);
+            robot.drivetrain.state = Drivetrain.State.FOLLOW_SPLINE;
+            robot.drivetrain.setMaxPower(0.5);
+
+            robot.waitWhile(() -> !robot.nclawIntake.isTransferReady() || !robot.ndeposit.isTransferReady());
+            robot.nclawIntake.finishTransfer();
+            robot.ndeposit.finishTransfer();
+
+            robot.waitWhile(() -> robot.sensors.getOdometryPosition().getDistanceFromPoint(s2.getLastPoint()) > 24);
+            robot.ndeposit.startSampleDeposit();
+
+            LinkedList<LLBlockDetectionPostProcessor.Block> blocks = robot.vision.getBlocks();
+            LLBlockDetectionPostProcessor.filterBlocks(blocks, (LLBlockDetectionPostProcessor.Block b) -> {
+                        Pose2d b_global = b.getGlobalPose();
+                        return Math.abs(b_global.getX()) <= 20 && Math.abs(b_global.getY()) < 22;
+                    }
+            );
+
+            // If another valid block exists at that point, do not go to next best since this is still closests and best area. simply update that point, and then i-- so the i++ works out
+            if (LLBlockDetectionPostProcessor.getClosestValidBlock(robot.vision.getOffset(), blocks) != null) {
+                targets.set(targetSampleIndex, robot.vision.getClosestValidBlock().getGlobalPose().clone());
+            } else {
+                targetSampleIndex++;
+            }
+        }
+
+        /*
         for (int i = 0; i < 3; i++) {
             robot.waitWhile(() -> robot.drivetrain.isBusy() || !robot.ndeposit.isDepositReady());
             robot.ndeposit.deposit();
@@ -220,22 +367,27 @@ public class SamplePreloadAuto extends LinearOpMode {
             robot.ndeposit.startSampleDeposit();
 
             LinkedList<LLBlockDetectionPostProcessor.Block> blocks = robot.vision.getBlocks();
-            LLBlockDetectionPostProcessor.filterBlocks(blocks, (LLBlockDetectionPostProcessor.Block b) ->
-                    b.getX() >= 0 && b.getX() <= 20 &&
-                            Math.abs(b.getY()) < 22
+            LLBlockDetectionPostProcessor.filterBlocks(blocks, (LLBlockDetectionPostProcessor.Block b) -> {
+                        Pose2d b_global = b.getGlobalPose();
+                        return Math.abs(b_global.getX()) <= 20 && Math.abs(b_global.getY()) < 22;
+                    }
             );
-
 
             if (LLBlockDetectionPostProcessor.getClosestValidBlock(robot.vision.getOffset(), blocks) != null)
                 pickUp = robot.vision.getClosestValidBlock().getGlobalPose().clone();
             else
                 pickUp.y -= 4;
         }
+        */
 
         RobotLog.i("Auto total time: " + (System.currentTimeMillis() - Globals.autoStartTime));
     }
 
-
+//    public void avoidPeckyThing(){
+//        while(!robot.nclawIntake.hasSample()){
+//
+//        }
+//    }
 }
 
 /*

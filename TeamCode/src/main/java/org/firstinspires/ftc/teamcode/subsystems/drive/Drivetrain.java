@@ -746,6 +746,7 @@ public class Drivetrain {
         TelemetryUtil.packet.put("driveState", state);
         LogUtil.driveState.set(state.toString());
 
+        TelemetryUtil.packet.put("Drivetrain : atPoint", atPoint());
         TelemetryUtil.packet.put("Drivetrain : intakeDriveMode", intakeDriveMode);
         TelemetryUtil.packet.put("Drivetrain : xError", xError);
         TelemetryUtil.packet.put("Drivetrain : yError", yError);

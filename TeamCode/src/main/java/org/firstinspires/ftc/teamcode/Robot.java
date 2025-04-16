@@ -84,6 +84,7 @@ public class Robot {
     }
 
     public void update() {
+        if (!((boolean) this.abortChecker.call())) return;
         START_LOOP();
         this.updateSubsystems();
         this.updateTelemetry();
@@ -97,8 +98,6 @@ public class Robot {
         ndeposit.update();
         hang.update();
         vision.update();
-
-        //this.robotFSM();
 
         hardwareQueue.update();
     }

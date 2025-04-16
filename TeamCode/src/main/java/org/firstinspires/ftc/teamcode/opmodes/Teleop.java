@@ -21,8 +21,8 @@ import org.firstinspires.ftc.teamcode.utils.Utils;
 public class Teleop extends LinearOpMode {
     public static double slidesInc = 0.4;
     public static double extendoInc = 0.4;
-    public static double verticalExtensionSpeed = 0.5;
-    public static double horizontalExtensionSpeed = 0.35;
+    public static double extendoXSpeed = 0.5;
+    public static double extendoYSpeed = 0.35;
     public static double intakeClawRotationInc = 0.1;
     public static double intakeTurretRotationInc = -0.1;
     public static double extensionPreset = 15;
@@ -81,7 +81,7 @@ public class Teleop extends LinearOpMode {
             }
             robot.nclawIntake.setRetryGrab(false);
 
-            if (x_1.isClicked(gamepad1.x) || b_2.isClicked(gamepad2.b)) {
+            if (x_1.isClicked(gamepad1.x)) {
                 speciMode = !speciMode;
                 intakeMode = false;
                 robot.ndeposit.presetDepositHeight(speciMode, high, false);
@@ -107,13 +107,13 @@ public class Teleop extends LinearOpMode {
                     else gamepad1.rumble(100);
                 }
             }
-            if (a_1.releasedAndNotHeldPreviously(gamepad1.a, 200)) {
+            if (a_1.releasedAndNotHeldPreviously(gamepad1.a && !gamepad1.start, 200)) {
                 manualBrake = !manualBrake;
                 forceBrakePad = true;
                 if (manualBrake) gamepad1.rumble(200);
                 else gamepad1.rumble(100);
             }
-            if (a_1.isHeld(gamepad1.a, 200)) {
+            if (a_1.isHeld(gamepad1.a && !gamepad1.start, 200)) {
                 if (forceBrakePad) gamepad1.rumble(250);
                 manualBrake = false;
                 forceBrakePad = false;
@@ -168,8 +168,8 @@ public class Teleop extends LinearOpMode {
             if (intakeMode) {
                 double t = robot.nclawIntake.intakeTurret.getTargetTurretRotation();
                 robot.nclawIntake.setTargetPose(new Pose2d(
-                    Utils.minMaxClip(robot.nclawIntake.target.x - gamepad1.right_stick_y * verticalExtensionSpeed, 0, IntakeTurret.extendoOffset + IntakeExtension.maxExtendoLength + IntakeTurret.turretLengthTip * -Math.cos(t)),
-                    Utils.minMaxClip(robot.nclawIntake.target.y - gamepad1.right_stick_x * horizontalExtensionSpeed, -IntakeTurret.turretLengthTip, IntakeTurret.turretLengthTip),
+                    Utils.minMaxClip(robot.nclawIntake.target.x - gamepad1.right_stick_y * extendoXSpeed, 0, IntakeTurret.extendoOffset + IntakeExtension.maxExtendoLength + IntakeTurret.turretLengthTip * -Math.cos(t)),
+                    Utils.minMaxClip(robot.nclawIntake.target.y - gamepad1.right_stick_x * extendoYSpeed, -IntakeTurret.turretLengthTip, IntakeTurret.turretLengthTip),
                     robot.nclawIntake.target.heading + intakeClawRotationInc * (gamepad1.left_trigger - gamepad1.right_trigger))
                 );
                 /*double turretControl1 = robot.drivetrain.smoothControls(gamepad1.right_stick_x);
@@ -203,7 +203,7 @@ public class Teleop extends LinearOpMode {
             robot.drivetrain.drive(gamepad1, speciMode);
 
             // Toggle Alliance
-            if (x_2.isClicked(gamepad2.x)) Globals.isRed = !Globals.isRed;
+            //if (x_2.isClicked(gamepad2.x)) Globals.isRed = !Globals.isRed;
 
             // Increment/Decrement Intake Slides
             // Up --> increase, Down --> decrease on right joystick
@@ -221,7 +221,18 @@ public class Teleop extends LinearOpMode {
                 robot.ndeposit.setDepositHeight(robot.ndeposit.getDepositHeight() - slidesInc);
             }
 
-            // hang (both drivers)
+            // hang
+            if (b_2.isClicked(gamepad2.b && !gamepad2.start)) {
+                robot.ndeposit.hangSafety = !robot.ndeposit.hangSafety;
+                if (robot.ndeposit.hangSafety) {
+                    robot.ndeposit.setDepositHeight(robot.ndeposit.slides.getLength());
+                    robot.ndeposit.holdSlides = true;
+                    gamepad1.rumble(200);
+                } else {
+                    gamepad1.rumble(100);
+                }
+            }
+
             int hangLeftDir = 0, hangRightDir = 0;
             //for (Gamepad gamepad : new Gamepad[]{gamepad1, gamepad2}) {
             if (gamepad1.dpad_up) { ++hangLeftDir; ++hangRightDir; }
@@ -242,29 +253,33 @@ public class Teleop extends LinearOpMode {
             if (hangRightDir > 0) robot.hang.rightUp();
             else if (hangRightDir < 0) robot.hang.rightPull();
             else robot.hang.rightOff();
+
             if (gamepad2.right_bumper) robot.hang.l3Pull();
             else if (gamepad2.left_bumper) robot.hang.l3Up();
             else robot.hang.l3Off();
             if (gamepad2.right_trigger >= triggerHardThresh) {
                 robot.ndeposit.hangState = nDeposit.HangState.PULL;
+                robot.hang.l3Pull();
             } else if (gamepad2.left_trigger >= triggerHardThresh || gamepad1.touchpad) {
                 robot.ndeposit.hangState = nDeposit.HangState.OUT;
             }
 
             // Used to keep extendo in during hang
-            if (gamepad1.back || gamepad2.back) robot.nclawIntake.intakeTurret.intakeExtension.forcePullIn();
+            if (robot.ndeposit.hangSafety != (gamepad1.back || gamepad2.back)) robot.nclawIntake.intakeTurret.intakeExtension.forcePullIn();
 
             telemetry.addData("speciMode", speciMode);
             telemetry.addData("intakeMode", intakeMode);
             telemetry.addData("high", high);
             telemetry.addData("autoGrab", autoGrab);
+            telemetry.addData("holdSlides", robot.ndeposit.holdSlides);
+            telemetry.addData("hangSafety", robot.ndeposit.hangSafety);
             telemetry.addData("Intake target pos", robot.nclawIntake.getExtendoTargetPos());
             telemetry.addData("Deposit height", robot.ndeposit.getDepositHeight());
-            telemetry.addData("isRed", Globals.isRed);
             telemetry.addData("Intake current length", robot.sensors.getExtendoPos());
             telemetry.addData("Slides current length", robot.sensors.getSlidesPos());
             telemetry.addData("claw angle", clawAngle);
             telemetry.addData("turret angle", turretAngle);
+            telemetry.addData("isRed", Globals.isRed);
             telemetry.update();
         }
     }

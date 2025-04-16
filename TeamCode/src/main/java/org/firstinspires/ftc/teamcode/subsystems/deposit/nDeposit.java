@@ -28,6 +28,7 @@ public class nDeposit {
         SPECIMEN_RAISE,
         SPECIMEN_DEPOSIT,
         RETRACT,
+        HANG_SAFETY,
         TEST
     };
     public State state = State.IDLE;
@@ -47,7 +48,8 @@ public class nDeposit {
     }
 
     public HangState hangState = HangState.OFF;
-    public boolean holdSlides = false;
+    public boolean holdSlides = false, hangSafety = false;
+    public static double hangPullPow = -0.8, hangUpPow = 0.7;
 
     private final Robot robot;
     public final Slides slides;
@@ -60,6 +62,7 @@ public class nDeposit {
     public static double outtakeArm = -2.9225, outtakeClaw = -0.00169, outtakeZ = 0.0;
     public static double specimenIntakeArm = -2.635, specimenIntakeClaw = 1.0419, specimenIntakeZ = 0;
     public static double specimenDepositArm = -0.3087, specimenDepositClaw = 0.0507;
+    public static double hangArm = -1.0;
     public static double minVel = 1.1;
     private boolean holding = false;
     private long depositStart = 0;
@@ -279,13 +282,14 @@ public class nDeposit {
         }
 
         if (hangState == HangState.PULL) {
-            slides.setTargetPowerFORCED(-0.9);
+            slides.setTargetPowerFORCED(hangPullPow);
             targetZ = slides.getLength() - 0.5;
         } else if (hangState == HangState.OUT) {
-            slides.setTargetPowerFORCED(0.7);
+            slides.setTargetPowerFORCED(hangUpPow);
             targetZ = slides.getLength() + 0.5;
         }
         if (hangState != HangState.OFF) holdSlides = true;
+        if (hangSafety) arm.setArmRotation(hangArm, 1.0);
         if (holdSlides) slides.setTargetLength(targetZ);
         hangState = HangState.OFF;
 

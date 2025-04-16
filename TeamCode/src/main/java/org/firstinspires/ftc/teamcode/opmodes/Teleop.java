@@ -98,8 +98,14 @@ public class Teleop extends LinearOpMode {
                 else gamepad1.rumble(100);
             }
             if (lsb_1.isClicked(gamepad1.left_stick_button)) {
-                intakeMode = !intakeMode && !speciMode;
-                robot.ndeposit.holdSlides = false;
+                if (robot.ndeposit.holdSlides) {
+                    robot.ndeposit.holdSlides = false;
+                    gamepad1.rumble(250);
+                } else {
+                    intakeMode = !intakeMode && !speciMode;
+                    if (intakeMode) gamepad1.rumble(200);
+                    else gamepad1.rumble(100);
+                }
             }
             if (a_1.releasedAndNotHeldPreviously(gamepad1.a, 200)) {
                 manualBrake = !manualBrake;
@@ -143,7 +149,7 @@ public class Teleop extends LinearOpMode {
                 rb_1.isClicked(gamepad1.right_bumper);
                 robot.nclawIntake.setGrab(gamepad1.right_bumper);
 
-                robot.drivetrain.setBrakePad(robot.drivetrain.vdrive.mag() < 0.1 && Math.abs(robot.drivetrain.vturn) < 0.1);
+                robot.drivetrain.setBrakePad(robot.drivetrain.vdrive.mag() <= 0.05 && (intakeMode || Math.abs(gamepad1.right_stick_y) <= 0.05));
             } else {
                 robot.drivetrain.setBrakePad(false);
                 if (rb_1.isClicked(gamepad1.right_bumper)) {

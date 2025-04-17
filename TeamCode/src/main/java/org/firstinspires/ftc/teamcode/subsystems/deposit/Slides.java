@@ -91,7 +91,7 @@ public class Slides {
                 pow = forceDownPower;
 
             // We can auto reset the slides position
-            if (targetLength == 0 && length <= 1)
+            if (targetLength == 0 && length <= 2)
                 concurrence++;
             else
                 concurrence = 0;

@@ -185,11 +185,6 @@ public class nClawIntake {
                     manualEnableCamera();
                 }
 
-                if (robot.vision.isDetecting()) {
-                    robot.vision.setOffset(robot.nclawIntake.getIntakeRelativeToRobot());
-                    robot.vision.setNewOrientation(intakeTurret.getTurretRotation() - Math.PI);
-                }
-
                 intakeTurret.setTight(true);
                 intakeTurret.setClawState(false);
 
@@ -411,6 +406,11 @@ public class nClawIntake {
             case TEST:
                 intakeTurret.setIntakeExtension(intakeSetTargetPos);
                 break;
+        }
+
+        if (robot.vision.isDetecting()) {
+            robot.vision.setOffset(robot.nclawIntake.getIntakeRelativeToRobot());
+            robot.vision.setNewOrientation(intakeTurret.getTurretRotation() - Math.PI);
         }
 
         intakeTurret.update();

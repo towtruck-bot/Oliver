@@ -119,7 +119,7 @@ public class nDeposit {
                 arm.clawOpen();
                 slidesVelWeightedAvg = slides.getVel() * 0.5 + slidesVelWeightedAvg * 0.5;
 
-                if (slides.getLength() <= transferZ + 0.2 && Math.abs(slidesVelWeightedAvg) < minVel) {
+                if (slides.getLength() <= transferZ + 0.1 && Math.abs(slidesVelWeightedAvg) < minVel) {
                     state = State.TRANSFER_FINISH;
                     //robot.nclawIntake.finishTransfer(); // Just to make sure you're not being stupid - Eric
                     requestFinishTransfer = false;

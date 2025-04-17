@@ -37,24 +37,24 @@ public class nClawIntake {
     public static double restrictedHoverAngle = 1.0645;
     public static double normalHoverAngle = 0.232;
     public static double hoverAngle = normalHoverAngle;
-    public static double turretRetractedAngle = 2.4345, turretSearchAngle = 0.625, turretTransferAngle = 1.91, turretGrabAngle = -0.4557;
+    public static double turretRetractedAngle = 2.4345, turretSearchAngle = 0.625, turretBufferStart = 1.2616, turretBufferEnd = 1.7797,turretTransferAngle = 2.4387, turretGrabAngle = -0.4557;
     public static double turretTransferRotation = 3.165;
     public static double minExtension = 2; // What we require before giving full range of motion
     private long hoverStart = 0;
     private long lowerStart = 0;
     public static double hoverDelay = 150;
     public static double lowerDelay = 250;
-    public static double transferExtension = 0;
+    public static double transferExtension = 0, bufferExtension = 7;
     public static double turretSearchRotation = 3.165;
     public static LLBlockDetectionPostProcessor.Block targetBlock = null;
 
     private boolean grab = false;
     private boolean sampleStatus = false;
-    //private boolean useCamera = true;
     private boolean finishTransferRequest = false;
     private boolean extendRequest = false;
-    public Pose2d target;
+    //private boolean useCamera = true
     //public boolean manualGrab = false;
+    public Pose2d target;
     public static int blockPickUpPSThreashold = 263;
     private int psReads = 0;
     private int consecutivePSPositives = 0;
@@ -94,6 +94,7 @@ public class nClawIntake {
         LOWER,
         GRAB_CLOSE,
         START_RETRACT,
+        RELEASE_BUFFER,
         RETRACT,
         READY,
         TRANSFER_WAIT,
@@ -189,6 +190,7 @@ public class nClawIntake {
                     robot.vision.setNewOrientation(intakeTurret.getTurretRotation() - Math.PI);
                 }
 
+                intakeTurret.setTight(true);
                 intakeTurret.setClawState(false);
 
                 Log.i("CHECKING IT", intakeTurret.rotInPosition() + " rot in pos");
@@ -214,7 +216,8 @@ public class nClawIntake {
             case HOVER:
                 aimAtTarget();
                 intakeTurret.setTurretArmTarget(hoverAngle);
-                intakeTurret.setClawState(false);
+                intakeTurret.setTight(true);
+                if (grabMethod != GrabMethod.MANUAL_AIM || intakeTurret.intakeExtension.inPosition(1) && intakeTurret.turretAngInPosition()) intakeTurret.setClawState(false);
 
                 if (intakeTurret.inPosition(Math.toRadians(5)) && (grabMethod == GrabMethod.MANUAL_AIM || System.currentTimeMillis() - hoverStart > hoverDelay)) {
                     if (!grabMethod.manualGrab || grab) {
@@ -293,18 +296,19 @@ public class nClawIntake {
             case START_RETRACT:
                 intakeTurret.intakeExtension.disableIgnoreKeepIn();
                 // Get the arm in a proper angle for a full retract
-                intakeTurret.setIntakeExtension(minExtension);
+                intakeTurret.setIntakeExtension(bufferExtension);
                 intakeTurret.setClawRotation(transferClawRotation);
-                intakeTurret.setTurretArmTarget(turretTransferAngle);
+                intakeTurret.setTurretArmTarget(turretBufferStart);
                 intakeTurret.setTurretRotation(turretTransferRotation);
 
+                intakeTurret.setTight(false);
                 intakeTurret.setClawState(grab);
 
                 // if grab failed go back to search
                 if (intakeTurret.turretAngInPosition(Math.toRadians(30)) && intakeTurret.turretRotInPosition(Math.toRadians(30))) {
                     // If we have a sample, transfer otherwise just retract into it
                     if (sampleStatus)
-                        state = State.TRANSFER_WAIT;
+                        state = State.RELEASE_BUFFER;
                     else {
                         state = State.RETRACT;
                         grab = false;
@@ -339,11 +343,30 @@ public class nClawIntake {
                 intakeTurret.setTurretArmTarget(turretRetractedAngle);
                 intakeTurret.setTurretRotation(turretTransferRotation);
 
+                intakeTurret.setTight(true);
                 intakeTurret.setClawState(false);
 
                 if (extendRequest) {
                     doExtend();
                     extendRequest = false;
+                }
+                break;
+            case RELEASE_BUFFER:
+                intakeTurret.setIntakeExtension(minExtension);
+                intakeTurret.setClawRotation(transferClawRotation);
+                intakeTurret.setTurretArmTarget(turretBufferEnd, 0.6);
+                intakeTurret.setTurretRotation(turretTransferRotation);
+
+                intakeTurret.setTight(false);
+                intakeTurret.setClawState(true);
+
+                if (extendRequest) {
+                    doExtend();
+                    extendRequest = false;
+                }
+
+                if(intakeTurret.turretArm.inPosition()){
+                    state = State.TRANSFER_WAIT;
                 }
                 break;
             case TRANSFER_WAIT:
@@ -353,6 +376,7 @@ public class nClawIntake {
                 intakeTurret.setTurretArmTarget(turretTransferAngle);
                 intakeTurret.setTurretRotation(turretTransferRotation);
 
+                intakeTurret.setTight(false);
                 intakeTurret.setClawState(true);
 
                 if (extendRequest) {

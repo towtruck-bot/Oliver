@@ -8,7 +8,7 @@ import org.firstinspires.ftc.teamcode.sensors.Sensors;
 import org.firstinspires.ftc.teamcode.utils.priority.PriorityServo;
 import org.firstinspires.ftc.teamcode.utils.priority.nPriorityServo;
 
-//@Config
+@Config
 public class Arm {
     public final Sensors sensors;
 
@@ -16,7 +16,7 @@ public class Arm {
     public final nPriorityServo clawRotation;
     public final nPriorityServo claw;
 
-    public static double openRad = 1.2456, closeRad = 0.17;
+    public static double openRad = 1.2456, closeRad = 0.15, closeLooseRad = 0.25;
 
     public Arm(Robot robot){
         this.sensors = robot.sensors;
@@ -61,29 +61,17 @@ public class Arm {
         robot.hardwareQueue.addDevice(claw);
     }
 
-    public void setArmRotation(double targetRad, double power){
-        armRotation.setTargetAngle(targetRad, power);
-    }
+    public void setArmRotation(double targetRad, double power) { armRotation.setTargetAngle(targetRad, power); }
 
-    public void setClawRotation(double targetRad, double power){
-        clawRotation.setTargetAngle(targetRad, power);
-    }
+    public void setClawRotation(double targetRad, double power) { clawRotation.setTargetAngle(targetRad, power); }
 
-    public void clawClose(){
-        claw.setTargetAngle(closeRad, 1.0);
-    }
+    public void clawClose() { claw.setTargetAngle(closeRad, 1.0); }
+    public void clawCloseLoose() { claw.setTargetAngle(closeLooseRad, 1.0); }
+    public void clawOpen() { claw.setTargetAngle(openRad, 1.0); }
 
-    public void clawOpen() {
-        claw.setTargetAngle(openRad, 1.0);
-    }
+    public boolean inPosition() { return armRotation.inPosition() && clawRotation.inPosition(); }
 
-    public boolean inPosition(){
-        return armRotation.inPosition() && clawRotation.inPosition();
-    }
-
-    public boolean clawInPosition(){
-        return claw.inPosition();
-    }
+    public boolean clawInPosition() { return claw.inPosition(); }
 
     public boolean armInPosition() { return armRotation.inPosition(); }
 }

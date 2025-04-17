@@ -7,8 +7,8 @@ public class Utils {
         return Math.min(Math.max(min, value), max);
     }
 
-    public static int minMaxClipInt(double value, double min, double max) {
-        return (int) Math.min(Math.max(min, value), max);
+    public static int minMaxClip(int value, int min, int max) {
+        return Math.min(Math.max(min, value), max);
     }
 
     public static double headingClip(double value) {

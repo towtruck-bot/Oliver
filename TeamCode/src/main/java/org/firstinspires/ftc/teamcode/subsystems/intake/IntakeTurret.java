@@ -22,7 +22,8 @@ public class IntakeTurret {
 
     private boolean closed;
     public static double clawOpenAngle = 0.0;
-    public static double clawCloseAngle = 1.03;
+    public static double clawCloseAngleLoose = 1.05;
+    public static double clawCloseAngleTight = 1.18;
 
     public IntakeTurret(Robot robot) {
         this.robot = robot;
@@ -117,9 +118,14 @@ public class IntakeTurret {
 
     public void setClawState(boolean closed) {
         this.closed = closed;
-        claw.setTargetAngle(this.closed ? clawCloseAngle : clawOpenAngle, 1.0);
+        claw.setTargetAngle(this.closed ? (tight ? clawCloseAngleTight : clawCloseAngleLoose) : clawOpenAngle, 1.0);
         TelemetryUtil.packet.put("intakeClawGrab", closed);
         LogUtil.intakeClawGrab.set(closed);
+    }
+
+    private boolean tight = true;
+    public void setTight(boolean b){
+        tight = b;
     }
 
     public void setIntakeExtension(double t) {

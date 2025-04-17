@@ -127,9 +127,13 @@ public class Teleop extends LinearOpMode {
                     // Finish specimen grab
                     else if (robot.ndeposit.state == nDeposit.State.SPECIMEN_INTAKE_WAIT) robot.ndeposit.grab();
                     else if (robot.ndeposit.state == nDeposit.State.HOLD) robot.ndeposit.startSpecimenDeposit();
-                    else robot.ndeposit.deposit();
+                    else {
+                        robot.ndeposit.deposit();
+                        robot.ndeposit.startSpecimenIntake();
+                    }
                 } else {
-                    if (robot.ndeposit.isDepositingSample()) robot.ndeposit.deposit();
+                    if (robot.ndeposit.state == nDeposit.State.SPECIMEN_INTAKE_WAIT) robot.ndeposit.returnToIdle();
+                    else if (robot.ndeposit.isDepositingSample()) robot.ndeposit.deposit();
                     // Begin sample intake
                     else if (robot.nclawIntake.state == nClawIntake.State.READY || robot.nclawIntake.state == nClawIntake.State.TRANSFER_WAIT) {
                         robot.nclawIntake.extend();
@@ -154,9 +158,9 @@ public class Teleop extends LinearOpMode {
             } else {
                 robot.drivetrain.setBrakePad(false);
                 if (rb_1.isClicked(gamepad1.right_bumper)) {
-                    if (robot.ndeposit.isHolding()) {
-                        robot.ndeposit.deposit();
-                    } else {
+                    if (robot.ndeposit.state == nDeposit.State.SPECIMEN_INTAKE_WAIT) robot.ndeposit.returnToIdle();
+                    else if (robot.ndeposit.isHolding()) robot.ndeposit.deposit();
+                    else {
                         robot.ndeposit.startSampleDeposit();
                         robot.nclawIntake.finishTransfer();
                         robot.ndeposit.finishTransfer();
@@ -228,9 +232,9 @@ public class Teleop extends LinearOpMode {
                 if (robot.ndeposit.hangSafety) {
                     robot.ndeposit.setDepositHeight(robot.ndeposit.slides.getLength());
                     robot.ndeposit.holdSlides = true;
-                    gamepad1.rumble(200);
+                    gamepad2.rumble(200);
                 } else {
-                    gamepad1.rumble(100);
+                    gamepad2.rumble(100);
                 }
             }
 

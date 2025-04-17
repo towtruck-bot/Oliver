@@ -9,14 +9,14 @@ import org.firstinspires.ftc.teamcode.subsystems.deposit.Deposit;
 import org.firstinspires.ftc.teamcode.subsystems.intake.ClawIntake;
 import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 
-@TeleOp(group = "Test")
-@Config
+//@TeleOp(group = "Test")
+//@Config
 public class ClawIntakeTester extends LinearOpMode {
     public static ClawIntake.ClawIntakeState stateDashboard = ClawIntake.ClawIntakeState.RETRACT;
     public static boolean set = true;
 
     public void runOpMode(){
-        Robot robot = new Robot(hardwareMap);
+        /*Robot robot = new Robot(hardwareMap);
 
         waitForStart();
 
@@ -31,6 +31,6 @@ public class ClawIntakeTester extends LinearOpMode {
             TelemetryUtil.packet.put("current state", robot.deposit.state);
 
             robot.update();
-        }
+        }*/
     }
 }

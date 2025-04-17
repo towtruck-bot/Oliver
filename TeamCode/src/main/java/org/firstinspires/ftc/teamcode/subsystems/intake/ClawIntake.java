@@ -18,7 +18,7 @@ import org.firstinspires.ftc.teamcode.utils.Utils;
 import org.firstinspires.ftc.teamcode.utils.priority.PriorityMotor;
 import org.firstinspires.ftc.teamcode.utils.priority.nPriorityServo;
 
-@Config
+//@Config
 public class ClawIntake {
     private final Robot robot;
 

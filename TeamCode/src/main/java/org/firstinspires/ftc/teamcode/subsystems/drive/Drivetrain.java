@@ -13,6 +13,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigurationType;
 
 import org.firstinspires.ftc.teamcode.Robot;
@@ -23,6 +24,7 @@ import org.firstinspires.ftc.teamcode.subsystems.drive.localizers.IMUMergeSoloLo
 import org.firstinspires.ftc.teamcode.subsystems.drive.localizers.Localizer;
 import org.firstinspires.ftc.teamcode.subsystems.drive.localizers.OneHundredMSIMULocalizer;
 import org.firstinspires.ftc.teamcode.subsystems.drive.localizers.TwoWheelLocalizer;
+import org.firstinspires.ftc.teamcode.subsystems.intake.IntakeTurret;
 import org.firstinspires.ftc.teamcode.utils.DashboardUtil;
 import org.firstinspires.ftc.teamcode.utils.LogUtil;
 import org.firstinspires.ftc.teamcode.utils.PID;
@@ -31,6 +33,7 @@ import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 import org.firstinspires.ftc.teamcode.utils.Vector2;
 import org.firstinspires.ftc.teamcode.utils.priority.HardwareQueue;
 import org.firstinspires.ftc.teamcode.utils.priority.PriorityMotor;
+import org.firstinspires.ftc.teamcode.utils.priority.nPriorityServo;
 import org.firstinspires.ftc.teamcode.vision.Vision;
 
 import java.util.Arrays;
@@ -51,6 +54,7 @@ public class Drivetrain {
     public State state = State.IDLE;
 
     public PriorityMotor leftFront, leftRear, rightRear, rightFront;
+    public nPriorityServo brakePad;
     private final List<PriorityMotor> motors;
 
     private final HardwareQueue hardwareQueue;
@@ -60,9 +64,11 @@ public class Drivetrain {
     public Vision vision;
     public Robot robot;
 
-    public boolean slow = false;
-    public static double slowSpeed = 0.4;
+    public boolean intakeDriveMode = false;
+    public static double slowSpeed = 0.6;
     public static double pval = 1.5;
+    public static double raiseAngle = 1.945;
+    public static double downAngle = 0;
 
     public Drivetrain(Vision vision, Robot robot) {
         HardwareMap hardwareMap = robot.hardwareMap;
@@ -92,7 +98,18 @@ public class Drivetrain {
             4, 5, sensors
         );
 
+        brakePad = new nPriorityServo(
+            new Servo[] {robot.hardwareMap.get(Servo.class, "brakePad")},
+            "brakekPad",
+            nPriorityServo.ServoType.HITEC,
+            0, 1, 0,
+            new boolean[] {false},
+            1.0, 5
+        );
+
         motors = Arrays.asList(leftFront, leftRear, rightRear, rightFront);
+        hardwareQueue.addDevice(brakePad);
+        raiseBreakPad();
 
         configureMotors();
 
@@ -130,11 +147,11 @@ public class Drivetrain {
         }
     }
 
-    public void setHalfMinPowersToOvercomeFriction() {
-        leftFront.setMinimumPowerToOvercomeStaticFriction(minPowersToOvercomeFriction[0] / 2);
-        leftRear.setMinimumPowerToOvercomeStaticFriction(minPowersToOvercomeFriction[1] / 2);
-        rightRear.setMinimumPowerToOvercomeStaticFriction(minPowersToOvercomeFriction[2] / 2);
-        rightFront.setMinimumPowerToOvercomeStaticFriction(minPowersToOvercomeFriction[3] / 2);
+    public void setFineMinPowersToOvercomeFriction() {
+        leftFront.setMinimumPowerToOvercomeStaticFriction(minPowersToOvercomeFriction[0] * 3 / 4);
+        leftRear.setMinimumPowerToOvercomeStaticFriction(minPowersToOvercomeFriction[1] * 3 / 4);
+        rightRear.setMinimumPowerToOvercomeStaticFriction(minPowersToOvercomeFriction[2] * 3 / 4);
+        rightFront.setMinimumPowerToOvercomeStaticFriction(minPowersToOvercomeFriction[3] * 3 / 4);
 
         for (PriorityMotor m : motors) {
             m.setMinimumPowerToOvercomeKineticFriction(0.195 / 2);
@@ -191,7 +208,7 @@ public class Drivetrain {
     double targetForwardPower = 0;
     double targetStrafePower = 0;
     double targetTurnPower = 0;
-    public static double maxVelocity = 20; // TODO: Tune me!
+    public static double maxVelocity = 78.77995865593925; // TODO: Tune me!
 
     long perfectHeadingTimeStart = System.currentTimeMillis();
 
@@ -217,7 +234,7 @@ public class Drivetrain {
             // determine index of next pose needed by finding ideal distance away(i.e. not a past point and not a too far ahead point)
             while (radiusToPath < pathRadius && pathIndex != path.poses.size()) {
                 radiusToPath = path.poses.get(pathIndex).getDistanceFromPoint(estimate);
-                if (lastRadius > radiusToPath && radiusToPath > pathRadius/3.0){
+                if (lastRadius > radiusToPath && radiusToPath > pathRadius/3.0) {
                     break;
                 }
                 lastRadius = radiusToPath;
@@ -235,7 +252,7 @@ public class Drivetrain {
             }
 
             // Essentially, if it is close enough then just do goToPoint. Otherwise spline
-            if (pathIndex == path.poses.size() && path.poses.get(path.poses.size()-1).getDistanceFromPoint(estimate) < finalPIDThreshold){
+            if (pathIndex == path.poses.size() && path.poses.get(path.poses.size()-1).getDistanceFromPoint(estimate) < finalPIDThreshold) {
                 state = State.GO_TO_POINT;
                 maxPower/=2;
                 path = null;
@@ -306,7 +323,7 @@ public class Drivetrain {
                 PIDF();
 
                 if (atPoint()) {
-                    if(moveNear){
+                    if(moveNear) {
                         state = State.ADJUST;
                     }
 
@@ -348,16 +365,9 @@ public class Drivetrain {
                 state = State.WAIT_AT_POINT;
                 break;
             case WAIT_AT_POINT:
-                if (moveNear) {
-                    if (!atHeading()) {
-                        state = State.ADJUST;
-                    }
-                } else {
-                    if (!atPointThresholds(finalAdjustment ? finalXThreshold : xThreshold, finalAdjustment ? finalYThreshold : yThreshold, finalAdjustment ? finalTurnThreshold: turnThreshold) || !(moveNear && atPoint())) {
-                        resetIntegrals();
-                        state = State.GO_TO_POINT;
-                    }
-                }
+                if (!atPoint()) state = State.GO_TO_POINT;
+                else if (moveNear && !atHeading()) state = State.ADJUST;
+
                 break;
             case DRIVE:
                 break;
@@ -390,8 +400,8 @@ public class Drivetrain {
     boolean stop = true;
     double maxPower = 1.0;
 
-    public static double xThreshold = 2.0;
-    public static double yThreshold = 2.0;
+    public static double xThreshold = 1.5;
+    public static double yThreshold = 1.5;
     public static double turnThreshold = 5;
 
     public static double eaThresh = 32;
@@ -403,7 +413,9 @@ public class Drivetrain {
 
     public static PID finalXPID = new PID(0.007, 0.0001,0.0012);
     public static PID finalYPID = new PID(0.05, 0.0,0.005);
-    public static PID finalTurnPID = new PID(0.025, 0.0013,0.001);
+    public static PID finalTurnPID = new PID(0.002, 0.001,0.001);
+
+    public static PID rotateTeleopPID = new PID(1.0,0.0001,0.01);
 
     public boolean slidesUp = false;
 
@@ -411,9 +423,9 @@ public class Drivetrain {
     public static PID slidesUpYPID = new PID(0.04, 0, 0);
     public static PID slidesUpTurnPID = new PID(0.2, 0, 0.01);
 
-    public static double finalXThreshold = 0.4;
-    public static double finalYThreshold = 0.4;
-    public static double finalTurnThreshold = 3.0;
+    public static double finalXThreshold = 5;
+    public static double finalYThreshold = 5;
+    public static double finalTurnThreshold = 2.5;
 
     double fwd, strafe, turn, turnAdjustThreshold, finalTargetPointDistance;
 
@@ -454,7 +466,7 @@ public class Drivetrain {
         if (moveNear) {
             strafe *= 0.25;
             if (atPoint()) {
-                setHalfMinPowersToOvercomeFriction();
+                setFineMinPowersToOvercomeFriction();
                 fwd = 0.0;
                 strafe = 0.0;
                 turn = Math.abs(turnError) > Math.toRadians(finalTurnThreshold) / 2 ? turnEAPID.update(turnError, -maxPower, maxPower) : 0;
@@ -518,10 +530,17 @@ public class Drivetrain {
         finalTurnPID.resetIntegral();
     }
 
-
-
+    public Vector2 vdrive;
+    public double vturn;
 
     public void setMoveVector(Vector2 moveVector, double turn) {
+        TelemetryUtil.packet.put("Drivetrain : motor x", moveVector.x);
+        TelemetryUtil.packet.put("Drivetrain : motor y", moveVector.y);
+        TelemetryUtil.packet.put("Drivetrain : motor turn", turn);
+
+        vdrive = moveVector;
+        vturn = turn;
+
         double[] powers = {
                 moveVector.x - turn - moveVector.y,
                 moveVector.x - turn + moveVector.y,
@@ -579,7 +598,7 @@ public class Drivetrain {
         }
     }
 
-    public void goToPoint(Pose2d targetPoint, boolean moveNear, boolean slowDown, boolean stop, double maxPower, boolean grab){
+    public void goToPoint(Pose2d targetPoint, boolean moveNear, boolean slowDown, boolean stop, double maxPower, boolean grab) {
         this.moveNear = moveNear;
         this.slowDown = slowDown;
         this.stop = stop;
@@ -595,23 +614,30 @@ public class Drivetrain {
             state = State.GO_TO_POINT; /*should use state = Drivetrain.DriveState.GO_TO_POINT*/
         }
     }
+
     // TeleOp
-    public void drive(Gamepad gamepad) {
+    public void drive(Gamepad gamepad, boolean speciMode) {
         resetMinPowersToOvercomeFriction();
         state = State.DRIVE;
 
-        double forward = smoothControls(gamepad.left_stick_y);
-        double strafe = smoothControls(gamepad.left_stick_x);
+        double forward = smoothControls(gamepad.left_stick_y * (speciMode ? -1 : 1));
+        double strafe = smoothControls(gamepad.left_stick_x * (speciMode ? -1 : 1));
         double turn = smoothControls(-gamepad.right_stick_x);
 
-        if (slow) {
+        if (intakeDriveMode) {
             forward *= slowSpeed;
             strafe *= slowSpeed;
-            turn *= slowSpeed;
+
+            // lock heading
+            turn = rotateTeleopPID.update(turnError, -maxPower, maxPower);
+            if (Math.abs(turnError) <= Math.toRadians(finalTurnThreshold) / 2) turn = 0;
+        } else {
+            targetPoint.heading = robot.sensors.getOdometryPosition().heading;
+            rotateTeleopPID.resetIntegral();
         }
 
         Vector2 drive = new Vector2(forward,strafe);
-        if (drive.mag() <= 0.05){
+        if (drive.mag() <= 0.05) {
             drive.mul(0);
         }
         setMoveVector(drive,turn);
@@ -622,12 +648,12 @@ public class Drivetrain {
     }
 
     // Getters & Setters
-    public double getTurnError(){
+    public double getTurnError() {
         return turnError;
     }
 
     private final double intakeOffset = 9.0;
-    public double getExtension(){
+    public double getExtension() {
         return xError - intakeOffset;
     }
 
@@ -666,20 +692,20 @@ public class Drivetrain {
         sensors.setOdometryPosition(pose2d);
     }
 
-    public double calcExtension(Pose2d start, Pose2d target){
+    public double calcExtension(Pose2d start, Pose2d target) {
         double deltaX = (target.x - start.x);
         double deltaY = (target.y - start.y);
         double angle = Math.atan2(deltaY, deltaX);
         // convert error into direction robot is facing
         xError = Math.cos(angle)*deltaX + Math.sin(angle)*deltaY;
-        return xError - intakeOffset;
+        return xError - intakeOffset + IntakeTurret.extendoOffset;
     }
 
     public boolean isBusy() {
         return state != State.WAIT_AT_POINT && state != State.IDLE;
     }
 
-    public void configureMotors(){
+    public void configureMotors() {
         for (PriorityMotor motor : motors) {
             MotorConfigurationType motorConfigurationType = motor.motor[0].getMotorType().clone();
             motorConfigurationType.setAchieveableMaxRPMFraction(1.0);
@@ -715,15 +741,18 @@ public class Drivetrain {
     }
 
     public void updateTelemetry() {
-        TelemetryUtil.packet.put("Drivetrain State", state);
+        TelemetryUtil.packet.put("Drivetrain : state", state);
+        TelemetryUtil.packet.put("driveState", state);
         LogUtil.driveState.set(state.toString());
 
-        TelemetryUtil.packet.put("Drivetrain:: xError", xError);
-        TelemetryUtil.packet.put("Drivetrain:: yError", yError);
-        TelemetryUtil.packet.put("Drivetrain:: turnError (deg)", Math.toDegrees(turnError));
-        TelemetryUtil.packet.put("Drivetrain:: xTarget", targetPoint.x);
-        TelemetryUtil.packet.put("Drivetrain:: yTarget", targetPoint.y);
-        TelemetryUtil.packet.put("Drivetrain:: turnTarget", Math.toDegrees(targetPoint.heading));
+        TelemetryUtil.packet.put("Drivetrain : atPoint", atPoint());
+        TelemetryUtil.packet.put("Drivetrain : intakeDriveMode", intakeDriveMode);
+        TelemetryUtil.packet.put("Drivetrain : xError", xError);
+        TelemetryUtil.packet.put("Drivetrain : yError", yError);
+        TelemetryUtil.packet.put("Drivetrain : turnError (deg)", Math.toDegrees(turnError));
+        TelemetryUtil.packet.put("Drivetrain : xTarget", targetPoint.x);
+        TelemetryUtil.packet.put("Drivetrain : yTarget", targetPoint.y);
+        TelemetryUtil.packet.put("Drivetrain : turnTarget (deg)", Math.toDegrees(targetPoint.heading));
         LogUtil.driveTargetX.set(targetPoint.x);
         LogUtil.driveTargetY.set(targetPoint.y);
         LogUtil.driveTargetAngle.set(targetPoint.heading);
@@ -742,6 +771,22 @@ public class Drivetrain {
                 last = next;
             }
         }
+    }
+
+    public void setBrakePad(boolean down){
+        if(down){
+            brakePad.setTargetAngle(downAngle);
+        }else{
+            brakePad.setTargetAngle(raiseAngle);
+        }
+    }
+
+    public void raiseBreakPad() {
+        brakePad.setTargetAngle(raiseAngle);
+    }
+
+    public void putDownBreakPad() {
+        brakePad.setTargetPos(downAngle);
     }
 
     // CURRENTLY UNUSED v
@@ -816,7 +861,7 @@ public class Drivetrain {
         Log.e("turn", turn + "");
 
         Vector2 drive = new Vector2(forward,strafe);
-        if (drive.mag() <= 0.05){
+        if (drive.mag() <= 0.05) {
             drive.mul(0);
         }
         setMoveVector(drive,turn);

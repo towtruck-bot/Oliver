@@ -2,51 +2,99 @@ package org.firstinspires.ftc.teamcode.subsystems.intake;
 
 import android.util.Log;
 
+import com.acmerobotics.dashboard.canvas.Canvas;
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
+import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.teamcode.Robot;
+import org.firstinspires.ftc.teamcode.subsystems.deposit.nDeposit;
 import org.firstinspires.ftc.teamcode.utils.Globals;
 import org.firstinspires.ftc.teamcode.utils.LogUtil;
 import org.firstinspires.ftc.teamcode.utils.Pose2d;
+import org.firstinspires.ftc.teamcode.utils.REVColorSensorV3;
 import org.firstinspires.ftc.teamcode.utils.RunMode;
 import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 import org.firstinspires.ftc.teamcode.utils.Utils;
+import org.firstinspires.ftc.teamcode.utils.Vector2;
+import org.firstinspires.ftc.teamcode.vision.LLBlockDetectionPostProcessor;
 
 @Config
 public class nClawIntake {
     private final Robot robot;
 
-    private final IntakeTurret intakeTurret;
+    public final IntakeTurret intakeTurret;
 
-    private final DigitalChannel intakeLight;
+    private final REVColorSensorV3 colorSensorV3;
 
-    private double intakeSetTargetPos = 0;
+    public final DigitalChannel intakeLight;
+
+    private double intakeSetTargetPos;
 
     // turretBufferAng -> angle that allows for any rotation to occur with the turret still inside the robot. use in any retract/extend states
 
-    public static double transferRotation = 0, grabRotation = 0.0;
-    public static double turretBufferAngle = 1.2506, turretRetractedAngle = 2.7, turretSearchAngle = Math.PI, turretTransferAngle = 0.133, turretGrabAngle = -Math.toRadians(15);
-    public static double turretPreRotation = 0.7, turretSearchRotation = 3.14, turretTransferRotation = 0, turretGrabRotation = 0.0;
-    public static double turretPastSidePlatesRotation = 1.7;
-    public static double minExtension = 7;
+    public static double transferClawRotation = 0;
+    public static double restrictedHoverAngle = 1.0645;
+    public static double normalHoverAngle = 0.232;
+    public static double hoverAngle = normalHoverAngle;
+    public static double turretRetractedAngle = 2.4345, turretSearchAngle = 0.625, turretBufferStart = 1.2616, turretBufferEnd = 1.7797,turretTransferAngle = 2.4387, turretGrabAngle = -0.4557;
+    public static double turretTransferRotation = 3.165;
+    public static double minExtension = 2; // What we require before giving full range of motion
+    private long hoverStart = 0;
+    private long lowerStart = 0;
+    public static double hoverDelay = 150;
     public static double lowerDelay = 250;
+    public static double transferExtension = 0, bufferExtension = 7;
+    public static double turretSearchRotation = 3.165;
+    public static LLBlockDetectionPostProcessor.Block targetBlock = null;
 
     private boolean grab = false;
     private boolean sampleStatus = false;
-    private boolean useCamera = true;
     private boolean finishTransferRequest = false;
+    private boolean extendRequest = false;
+    //private boolean useCamera = true
+    //public boolean manualGrab = false;
     public Pose2d target;
-    private long lowerStart = 0;
+    public static int blockPickUpPSThreashold = 263;
+    private int psReads = 0;
+    private int consecutivePSPositives = 0;
+    private Target targetType = Target.RELATIVE;
+    private GrabMethod grabMethod = GrabMethod.CONTINUOUS_SEARCH_MG;
+    private Pose2d known = null;
+    private boolean autoEnableCamera = false;
+    private boolean retryGrab = false;
+    private int retryCounter = 0;
+
+    private double manualTurretAngle, manualClawAngle;
+
+    public enum Target {
+        RELATIVE,
+        GLOBAL,
+        MANUAL
+    }
+
+    public enum GrabMethod {
+        MANUAL_AIM(false, true),
+        MANUAL_TARGET(false, true),
+        CONTINUOUS_SEARCH_MG(true, true),
+        SEARCH_HOVER_MG(true, true),
+        AUTOGRAB(true, false);
+
+        private final boolean useCamera, manualGrab;
+
+        GrabMethod(boolean useCamera, boolean manualGrab) {
+            this.useCamera = useCamera;
+            this.manualGrab = manualGrab;
+        }
+    }
 
     public enum State {
-        START_EXTEND,
-        MID_EXTEND,
-        FULL_EXTEND,
         SEARCH,
+        HOVER,
         LOWER,
         GRAB_CLOSE,
         START_RETRACT,
+        RELEASE_BUFFER,
         RETRACT,
         READY,
         TRANSFER_WAIT,
@@ -62,36 +110,38 @@ public class nClawIntake {
         intakeTurret = new IntakeTurret(this.robot);
 
         intakeLight = robot.hardwareMap.get(DigitalChannel.class, "intakeLight");
+        colorSensorV3 = robot.hardwareMap.get(REVColorSensorV3.class, "intakeClawColorSensor");
+        colorSensorV3.configurePS(REVColorSensorV3.PSResolution.EIGHT, REVColorSensorV3.PSMeasureRate.m6p25s);
+        colorSensorV3.sendControlRequest(new REVColorSensorV3.ControlRequest()
+            .enableFlag(REVColorSensorV3.ControlFlag.PROX_SENSOR_ENABLED)
+        );
         intakeLight.setMode(DigitalChannel.Mode.OUTPUT);
         intakeLight.setState(false);
-
-        if (Globals.RUNMODE != RunMode.TELEOP) {
-            resetExtendoEncoders();
-        }
 
         intakeSetTargetPos = 15;
 
         target = new Pose2d(0, 0, 0);
+//        intakeTurret.turretArm.servos[0].getController().pwmEnable();
     }
 
     //general update for entire class
     public void update() {
         switch (state) {
-            case START_EXTEND:
+            /*case START_EXTEND:
                 // Pre-rotate the turret + claw servos
                 intakeTurret.setIntakeExtension(minExtension);
                 intakeTurret.setTurretArmTarget(turretBufferAngle);
                 intakeTurret.setTurretRotation(turretPreRotation);
-                intakeTurret.setClawRotation(target.heading);
+                intakeTurret.setClawRotation(0);
 
                 intakeTurret.setClawState(grab);
 
                 // Wait for extension past certain length or for the buffer ang to be reached, meaning we can full send rotation
-                if (intakeTurret.extendoInPosition() || intakeTurret.turretAngInPosition()) {
-                    if (intakeSetTargetPos > minExtension)
+                if (intakeTurret.turretAngInPosition()) {
+                    //if (intakeSetTargetPos > minExtension)
                         state = State.FULL_EXTEND;
-                    else
-                        state = State.MID_EXTEND;
+                    //else
+                    //    state = State.MID_EXTEND;
                 }
                 break;
             case MID_EXTEND:
@@ -99,9 +149,9 @@ public class nClawIntake {
                 intakeTurret.setIntakeExtension(minExtension);
                 intakeTurret.setTurretArmTarget(turretBufferAngle);
                 intakeTurret.setTurretRotation(turretPastSidePlatesRotation);
-                intakeTurret.setClawRotation(target.heading);
+                intakeTurret.setClawRotation(0);
 
-                if (intakeTurret.turretAngInPosition())
+                if (intakeTurret.turretRotInPosition())
                     state = State.FULL_EXTEND;
                 break;
             case FULL_EXTEND:
@@ -109,97 +159,162 @@ public class nClawIntake {
                 intakeTurret.setIntakeExtension(intakeSetTargetPos);
                 intakeTurret.setTurretArmTarget(turretSearchAngle);
                 intakeTurret.setTurretRotation(turretSearchRotation);
-                intakeTurret.setClawRotation(target.heading);
+                intakeTurret.setClawRotation(0);
 
                 intakeTurret.setClawState(grab);
 
                 // Wait for full extension and turret in position before starting search
-                if (intakeTurret.extendoInPosition() && intakeTurret.turretRotInPosition()) {
-                    if (useCamera)
+                if (intakeTurret.extendoInPosition(1.0) && intakeTurret.turretRotInPosition()) {
+                    grab = false;
+                    sampleStatus = false;
+                    if (grabMethod.useCamera) {
                         state = State.SEARCH;
-                    else {
-                        lowerStart = System.currentTimeMillis();
-                        state = State.LOWER;
+                        robot.vision.startDetection();
+                        robot.vision.setOffset(robot.nclawIntake.getIntakeRelativeToRobot());
+                        intakeLight.setState(true);
+                    } else {
+                        hoverStart = System.currentTimeMillis();
+                        state = State.HOVER;
                     }
-                    intakeLight.setState(true);
                 }
-                break;
+                break;*/
             case SEARCH:
-                // Begin Serach, just hold positions
-                intakeTurret.setIntakeExtension(intakeSetTargetPos);
-                intakeTurret.setClawRotation(target.heading);
-                intakeTurret.setTurretArmTarget(turretSearchAngle);
-                intakeTurret.setTurretRotation(turretSearchRotation);
+                aimAtKnown();
 
+                if (intakeTurret.turretAngInPosition() && !robot.vision.isDetecting() && intakeTurret.intakeExtension.inPosition() && autoEnableCamera) {
+                    manualEnableCamera();
+                }
+
+                intakeTurret.setTight(true);
                 intakeTurret.setClawState(false);
 
-                // Use grab as a flag for whether or not a block has been found
-                if (grab && intakeTurret.rotInPosition()) {
-                    lowerStart = System.currentTimeMillis();
-                    state = State.LOWER;
+                Log.i("CHECKING IT", intakeTurret.rotInPosition() + " rot in pos");
+                switch (grabMethod) {
+                    case CONTINUOUS_SEARCH_MG:
+                        if (!grab)
+                            break;
+                    case SEARCH_HOVER_MG:
+                    case AUTOGRAB:
+                        LLBlockDetectionPostProcessor.Block b = robot.vision.getClosestValidBlock();
+                        if (!(b != null && intakeTurret.inPosition() && intakeTurret.extendoInPosition()))
+                            break;
+                        targetBlock = b;
+
+                        hoverStart = System.currentTimeMillis();
+
+                        robot.vision.stopDetection();
+                        state = State.HOVER;
+                        break;
                 }
                 break;
-            case LOWER:
-                // intakeAt method should hopefully calculate new extension, new turretAngle + Rotation, and move in to grab
-                if (useCamera) {
-                    intakeTurret.intakeAt(target);
-                } else {
-                    intakeTurret.setIntakeExtension(intakeSetTargetPos);
-                    intakeTurret.setClawRotation(grabRotation);
-                    intakeTurret.setTurretArmTarget(turretGrabAngle);
-                    intakeTurret.setTurretRotation(turretGrabRotation);
+
+            case HOVER:
+                aimAtTarget();
+                intakeTurret.setTurretArmTarget(hoverAngle);
+                intakeTurret.setTight(true);
+                if (grabMethod != GrabMethod.MANUAL_AIM || intakeTurret.intakeExtension.inPosition(1) && intakeTurret.turretAngInPosition()) intakeTurret.setClawState(false);
+
+                if (intakeTurret.inPosition(Math.toRadians(5)) && (grabMethod == GrabMethod.MANUAL_AIM || System.currentTimeMillis() - hoverStart > hoverDelay)) {
+                    if (!grabMethod.manualGrab || grab) {
+                        state = State.LOWER;
+                        lowerStart = System.currentTimeMillis();
+                    }
                 }
+
+                break;
+
+            case LOWER: // Slam it down sometimes so we need to hover
+                aimAtTarget();
 
                 intakeTurret.setClawState(false);
 
                 // everything in position before grabbing
-                if (intakeTurret.inPosition() && intakeTurret.extendoInPosition() && (System.currentTimeMillis() - lowerStart) > lowerDelay) {
+                if (intakeTurret.inPosition(Math.toRadians(2)) && System.currentTimeMillis() - lowerStart >= lowerDelay) {
+                    consecutivePSPositives = psReads = 0;
                     state = State.GRAB_CLOSE;
+                    robot.vision.removeBlock(targetBlock);
                 }
                 break;
             case GRAB_CLOSE:
-                // Grab the block and wait for a confirmtion that we have the block
-                if (useCamera) {
-                    intakeTurret.intakeAt(target);
-                } else {
-                    intakeTurret.setIntakeExtension(intakeSetTargetPos);
-                    intakeTurret.setClawRotation(grabRotation);
-                    intakeTurret.setTurretArmTarget(turretGrabAngle);
-                    intakeTurret.setTurretRotation(turretGrabRotation);
+                aimAtTarget();
+
+                if (grabMethod == GrabMethod.MANUAL_AIM) {
+                    sampleStatus = grab;
+                    intakeTurret.setClawState(grab);
+                    if (intakeTurret.clawInPosition()) intakeTurret.setTurretArmTarget(hoverAngle);
+                    if (!grab) state = State.HOVER;
+                    break;
                 }
+
+                if (psReads >= 35) {
+                    if(Globals.RUNMODE != RunMode.TELEOP){
+                        retryCounter++;
+                    }
+                    if (!retryGrab) grab = false;
+                    if (grabMethod.useCamera) {
+                        state = State.SEARCH;
+                        robot.vision.startDetection();
+                        intakeLight.setState(true);
+                    } else {
+                        hoverStart = System.currentTimeMillis();
+                        state = State.HOVER;
+                    }
+                    break;
+                }
+
+                int val = colorSensorV3.readPS();
+                Log.e("colorSensorPS Value", val + "");
+                if (val > blockPickUpPSThreashold) {
+                    consecutivePSPositives++;
+                } else
+                    consecutivePSPositives = 0;
+                psReads++;
 
                 // grab
-                intakeTurret.setClawState(true);
+                grab = true;
+                intakeTurret.setClawState(grab);
 
                 // begin retract once grab finished
-                if (sampleStatus) {
-                    state = State.START_RETRACT;
+                if (consecutivePSPositives >= 20) {
+                    sampleStatus = true;
                 }
+
+                if (sampleStatus && intakeTurret.clawInPosition()) {
+                    known = null;
+                    targetBlock = null;
+                    state = State.START_RETRACT;
+                    robot.ndeposit.startTransfer();
+                    intakeLight.setState(false);
+                }
+
                 break;
             case START_RETRACT:
+                intakeTurret.intakeExtension.disableIgnoreKeepIn();
                 // Get the arm in a proper angle for a full retract
-                intakeTurret.setIntakeExtension(minExtension);
-                intakeTurret.setClawRotation(transferRotation);
-                intakeTurret.setTurretArmTarget(turretBufferAngle);
-                intakeTurret.setTurretRotation(turretPastSidePlatesRotation);
+                intakeTurret.setIntakeExtension(bufferExtension);
+                intakeTurret.setClawRotation(transferClawRotation);
+                intakeTurret.setTurretArmTarget(turretBufferStart);
+                intakeTurret.setTurretRotation(turretTransferRotation);
 
+                intakeTurret.setTight(false);
                 intakeTurret.setClawState(grab);
 
                 // if grab failed go back to search
-                if (intakeTurret.turretAngInPosition()) {
+                if (intakeTurret.turretAngInPosition(Math.toRadians(30)) && intakeTurret.turretRotInPosition(Math.toRadians(30))) {
                     // If we have a sample, transfer otherwise just retract into it
                     if (sampleStatus)
-                        state = State.TRANSFER_WAIT;
+                        state = State.RELEASE_BUFFER;
                     else {
                         state = State.RETRACT;
                         grab = false;
+                        if (robot.ndeposit.state == nDeposit.State.TRANSFER_BUFFER) robot.ndeposit.returnToIdle();
                     }
                 }
                 break;
             case RETRACT:
                 // full retract into transfer
                 intakeTurret.setIntakeExtension(0.0);
-                intakeTurret.setClawRotation(transferRotation);
+                intakeTurret.setClawRotation(transferClawRotation);
                 intakeTurret.setTurretArmTarget(turretRetractedAngle);
                 intakeTurret.setTurretRotation(turretTransferRotation);
 
@@ -210,37 +325,71 @@ public class nClawIntake {
                     state = State.READY;
                     this.intakeLight.setState(false);
                 }
+
+                if (extendRequest) {
+                    doExtend();
+                    extendRequest = false;
+                }
                 break;
             case READY:
                 // hold in start position, everything tucked in while moving so defense can be played. no sample ver
                 intakeTurret.setIntakeExtension(0.0);
-                intakeTurret.setClawRotation(transferRotation);
+                intakeTurret.setClawRotation(transferClawRotation);
                 intakeTurret.setTurretArmTarget(turretRetractedAngle);
                 intakeTurret.setTurretRotation(turretTransferRotation);
 
+                intakeTurret.setTight(true);
                 intakeTurret.setClawState(false);
+
+                if (extendRequest) {
+                    doExtend();
+                    extendRequest = false;
+                }
+                break;
+            case RELEASE_BUFFER:
+                intakeTurret.setIntakeExtension(minExtension);
+                intakeTurret.setClawRotation(transferClawRotation);
+                intakeTurret.setTurretArmTarget(turretBufferEnd, 0.6);
+                intakeTurret.setTurretRotation(turretTransferRotation);
+
+                intakeTurret.setTight(false);
+                intakeTurret.setClawState(true);
+
+                if (extendRequest) {
+                    doExtend();
+                    extendRequest = false;
+                }
+
+                if(intakeTurret.turretArm.inPosition()){
+                    state = State.TRANSFER_WAIT;
+                }
                 break;
             case TRANSFER_WAIT:
                 // hold in transfer position
-                intakeTurret.setIntakeExtension(0.0);
-                intakeTurret.setClawRotation(transferRotation);
+                intakeTurret.setIntakeExtension(transferExtension);
+                intakeTurret.setClawRotation(transferClawRotation);
                 intakeTurret.setTurretArmTarget(turretTransferAngle);
                 intakeTurret.setTurretRotation(turretTransferRotation);
 
+                intakeTurret.setTight(false);
                 intakeTurret.setClawState(true);
 
+                if (extendRequest) {
+                    doExtend();
+                    extendRequest = false;
+                }
                 // Complete transfer can only be called in TRANSFER_WAIT, must have everything correct
                 // used to release intake grip on sample, should be called in deposit after the deposit has a firm grip
                 // TODO: check endAffector.inPosition()
-                if (intakeTurret.inPosition() && finishTransferRequest) {
+                else if (Globals.RUNMODE == RunMode.TELEOP ? finishTransferRequest && robot.ndeposit.isHolding() : finishTransferRequest && intakeTurret.inPosition() && intakeTurret.extendoInPosition() && robot.ndeposit.isHolding()) {
                     state = State.TRANSFER_END;
                     finishTransferRequest = false;
                     sampleStatus = false;
                 }
                 break;
             case TRANSFER_END:
-                intakeTurret.setIntakeExtension(0.0);
-                intakeTurret.setClawRotation(transferRotation);
+                intakeTurret.setIntakeExtension(transferExtension);
+                intakeTurret.setClawRotation(transferClawRotation);
                 intakeTurret.setTurretArmTarget(turretTransferAngle);
                 intakeTurret.setTurretRotation(turretTransferRotation);
 
@@ -248,7 +397,7 @@ public class nClawIntake {
 
                 // once the grab is finished, send back to RETRACT. false grab changes from HOLD to READY
                 // no need to worry about whacking stuff b/c both states require rotation to be in the turretTransferRot value
-                if (intakeTurret.grabInPosition()) {
+                if (robot.ndeposit.retractReady()) {
                     state = State.RETRACT;
                     grab = false;
                 }
@@ -259,35 +408,28 @@ public class nClawIntake {
                 break;
         }
 
+        if (robot.vision.isDetecting()) {
+            robot.vision.setOffset(robot.nclawIntake.getIntakeRelativeToRobot());
+            robot.vision.setNewOrientation(intakeTurret.getTurretRotation() - Math.PI);
+        }
+
         intakeTurret.update();
         updateTelemetry();
     }
 
-    public void useCamera(boolean val) {
-        useCamera = val;
-    }
-
-    // TODO: Determine minMaxClips for setters
-    public void setTurretGrabRot(double t) {
-        turretGrabRotation = t;
-    }
-
+    public int getRetryCounter() { return retryCounter; }
+    public void resetRetryCounter() { retryCounter = 0; }
+    public void forceDryCycle() {sampleStatus = true; }
     public void finishTransfer() {
         finishTransferRequest = state == State.TRANSFER_WAIT;
     }
 
-
-    public void setClawRotation(double angle) {
-        if (angle > 1.7) {
-            angle = -1.7;
-        } else if (angle < -1.7) {
-            angle = 1.7;
-        }
-        grabRotation = angle;
+    public void setKnownIntakePose(Pose2d k) {
+        known = k.clone();
     }
 
-    public double getClawRotAngle() {
-        return grabRotation;
+    public void removeKnown() {
+        known = null;
     }
 
     public void setTargetPose(Pose2d t) {
@@ -295,26 +437,31 @@ public class nClawIntake {
     }
 
     public void extend() {
-        if (this.state == State.READY)
-            this.state = State.START_EXTEND;
+        extendRequest = true;
+    }
+
+    public boolean isOut() {
+        return state == State.SEARCH || state == State.HOVER || state == State.LOWER ||  state == State.GRAB_CLOSE;
     }
 
     public boolean isExtended() {
-        return state == State.SEARCH || state == State.LOWER || state == State.GRAB_CLOSE;
+        return isOut() && intakeTurret.extendoInPosition();
     }
 
     public void retract() {
-        this.state = State.START_RETRACT;
+        if (state != State.READY) {
+            this.state = State.START_RETRACT;
+            intakeLight.setState(false);
+            if (grab && grabMethod == GrabMethod.MANUAL_AIM) robot.ndeposit.startTransfer();
+        }
     }
 
     public boolean isRetracted() {
         return state == State.READY;
     }
 
-    public void grab(boolean closed) {
+    public void setGrab(boolean closed) {
         grab = closed;
-        if (!grab)
-            state = State.SEARCH;
     }
 
     // Confirm pickup
@@ -327,6 +474,7 @@ public class nClawIntake {
     }
 
     public boolean isTransferReady() {
+        RobotLog.e("TSPMO " + intakeTurret.inPosition() + " " + intakeTurret.extendoInPosition() + " " + (state == State.TRANSFER_WAIT));
         return intakeTurret.inPosition() && state == State.TRANSFER_WAIT;
     }
 
@@ -341,36 +489,157 @@ public class nClawIntake {
     //    return state == State.SEARCH;
     //}
 
-    public void setIntakeLength(double targetPos) {
+    public double getExtendoTargetPos() { return this.intakeSetTargetPos; }
+    public void setExtendoTargetPos(double targetPos) {
         this.intakeSetTargetPos = Utils.minMaxClip(targetPos, 1, 19);
+    }
+    public double getManualTurretAngle() { return this.manualTurretAngle; }
+    public void setManualTurretAngle(double targetPos) {
+        while (targetPos < -1.8) targetPos += 1.8 * 2;
+        while (targetPos > 1.8) targetPos -= 1.8 * 2;
+        this.manualTurretAngle = targetPos;
+    }
+    public double getManualClawAngle() { return this.manualClawAngle; }
+    public void setManualClawAngle(double targetPos) {
+        while (targetPos < -1.8) targetPos += 1.8 * 2;
+        while (targetPos > 1.8) targetPos -= 1.8 * 2;
+        this.manualClawAngle = targetPos;
     }
 
     public double getIntakeLength() {
         return intakeTurret.intakeExtension.getLength();
     }
 
-    public double getIntakeRelativeToRobot() {
-        return getIntakeLength() + IntakeTurret.extendoOffset;
-    }
-
-    public double getIntakeTargetPos() {
-        return this.intakeSetTargetPos;
+    public Vector2 getIntakeRelativeToRobot() {
+        return new Vector2(
+            getIntakeLength() + IntakeTurret.extendoOffset + Math.sin(intakeTurret.getTurretRotation() - Math.toRadians(90)) * IntakeTurret.turretLengthLL,
+            -IntakeTurret.turretLengthLL * Math.cos(intakeTurret.getTurretRotation() - Math.toRadians(90))
+        );
     }
 
 //    public void forcePullIn() { forcePull = true; }
 
     public void updateTelemetry() {
-        TelemetryUtil.packet.put("ClawIntake.clawRotationAlignAngle", grabRotation);
-        LogUtil.intakeClawRotationAngle.set(grabRotation);
-        TelemetryUtil.packet.put("ClawIntake.grab", grab);
-        LogUtil.intakeClawGrab.set(grab);
-        TelemetryUtil.packet.put("ClawIntake clawRotation angle", intakeTurret.getClawRotation());
-        TelemetryUtil.packet.put("ClawIntake State", this.state);
+        TelemetryUtil.packet.put("ClawIntake : clawRotation angle", intakeTurret.getClawRotation());
+        TelemetryUtil.packet.put("ClawIntake : manualTurretAngle", manualTurretAngle);
+        TelemetryUtil.packet.put("ClawIntake : manualClawAngle", manualClawAngle);
+        TelemetryUtil.packet.put("ClawIntake : grab", grab);
+        TelemetryUtil.packet.put("ClawIntake : grabMethod", grabMethod);
+        TelemetryUtil.packet.put("ClawIntake : targetType", targetType);
+        TelemetryUtil.packet.put("ClawIntake : state", this.state);
+        TelemetryUtil.packet.put("intakeState", this.state);
         LogUtil.intakeState.set(this.state.toString());
+        TelemetryUtil.packet.put("LL : Target X", target.x);
+        TelemetryUtil.packet.put("LL : Target Y", target.y);
+        TelemetryUtil.packet.put("LL : Target Heading", target.heading);
+
     }
 
-    public void resetExtendoEncoders() {
-        Log.e("RESETTTING", "RESTETING EXTENDO *************");
-        intakeTurret.intakeExtension.resetExtendoEncoders();
+    public void setGrabMethod(GrabMethod grabMethod) {
+        this.grabMethod = grabMethod;
+    }
+
+    public int readPS() {
+        return colorSensorV3.readPS();
+    }
+
+    public void setTargetType(Target targetType) {
+        this.targetType = targetType;
+    }
+
+    public void aimAtKnown() {
+        Log.e("THIS THING IS KNOWN", known == null ? "null" : known.toString());
+        if (known != null) {
+            // Begin Search, dynamic correction
+            Pose2d curr = robot.sensors.getOdometryPosition();
+            double deltaX = (known.x - curr.x);
+            double deltaY = (known.y - curr.y);
+
+            double relX = Math.cos(curr.heading)*deltaX + Math.sin(curr.heading)*deltaY;
+            double relY = -Math.sin(curr.heading)*deltaX + Math.cos(curr.heading)*deltaY;
+
+            intakeTurret.extendTo(new Vector2(relX, relY));
+            intakeTurret.setTurretArmTarget(turretSearchAngle);
+            intakeTurret.setClawRotation(target.heading);
+        } else {
+            // Begin Search, just hold positions
+            intakeTurret.setIntakeExtension(intakeSetTargetPos);
+            intakeTurret.setClawRotation(target.heading);
+            intakeTurret.setTurretArmTarget(turretSearchAngle);
+            intakeTurret.setTurretRotation(turretSearchRotation);
+        }
+    }
+
+    public void aimAtTarget() {
+        switch (targetType) {
+            case RELATIVE: {
+                intakeTurret.intakeAt(target);
+                break;
+            }
+            case GLOBAL: {
+                double deltaX = (target.x - robot.sensors.getOdometryPosition().x);
+                double deltaY = (target.y - robot.sensors.getOdometryPosition().y);
+
+                Canvas canvas = TelemetryUtil.packet.fieldOverlay();
+                canvas.setFill("#c000c0");
+                canvas.fillCircle(target.x, target.y, 1);
+
+                // convert error into direction robot is facing
+                intakeTurret.intakeAt(new Pose2d(
+                    Math.cos(robot.sensors.getOdometryPosition().heading) * deltaX + Math.sin(robot.sensors.getOdometryPosition().heading) * deltaY,
+                    -Math.sin(robot.sensors.getOdometryPosition().heading) * deltaX + Math.cos(robot.sensors.getOdometryPosition().heading) * deltaY,
+                    target.heading - robot.sensors.getOdometryPosition().heading
+                ));
+                break;
+            }
+            case MANUAL: {
+                intakeTurret.setIntakeExtension(intakeSetTargetPos);
+                intakeTurret.setTurretRotation(Math.PI + manualTurretAngle);
+                intakeTurret.setClawRotation(manualClawAngle);
+                intakeTurret.setTurretArmTarget(turretGrabAngle);
+                break;
+            }
+        }
+
+        if (targetBlock != null) {
+            target = new Pose2d(
+                targetBlock.getX(),
+                targetBlock.getY(),
+                -targetBlock.getHeading()
+            );
+            targetType = Target.RELATIVE; // Kind of needed here or else its weird
+        }
+    }
+
+    public void setRetryGrab(boolean retryGrab) {
+        this.retryGrab = retryGrab;
+    }
+
+    private void doExtend() {
+        intakeTurret.intakeExtension.ignoreKeepIn();
+        if (grabMethod.useCamera) {
+            state = State.SEARCH;
+            robot.vision.setOffset(robot.nclawIntake.getIntakeRelativeToRobot());
+        } else {
+            hoverStart = System.currentTimeMillis();
+            state = State.HOVER;
+        }
+    }
+
+    public void enableRestrictedHoldPos() {
+        hoverAngle = restrictedHoverAngle;
+    }
+
+    public void disableRestrictedHoldPos() {
+        hoverAngle = normalHoverAngle;
+    }
+
+    public void setAutoEnableCamera(boolean state) {
+        autoEnableCamera = state;
+    }
+
+    public void manualEnableCamera() {
+        robot.vision.startDetection();
+        intakeLight.setState(true);
     }
 }

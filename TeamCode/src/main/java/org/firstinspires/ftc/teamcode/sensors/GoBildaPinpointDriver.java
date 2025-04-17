@@ -437,8 +437,8 @@ public class GoBildaPinpointDriver extends I2cDeviceSynchDevice<I2cDeviceSynchSi
      */
     public Pose2d getVelocity(){
         return new Pose2d(
-                xVelocity,
-                yVelocity,
-                hVelocity);
+                xVelocity/25.4,
+                yVelocity/25.4,
+                hVelocity/25.4);
     }
 }

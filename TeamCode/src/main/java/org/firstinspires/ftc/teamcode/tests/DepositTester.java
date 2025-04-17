@@ -8,14 +8,14 @@ import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.subsystems.deposit.Deposit;
 import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 
-@TeleOp(group = "Test")
-@Config
+//@TeleOp(group = "Test")
+//@Config
 public class DepositTester extends LinearOpMode {
     public static Deposit.State stateDashboard = Deposit.State.RETRACT;
     public static boolean set = true;
 
     public void runOpMode(){
-        Robot robot = new Robot(hardwareMap);
+        /*Robot robot = new Robot(hardwareMap);
 
         waitForStart();
 
@@ -28,6 +28,6 @@ public class DepositTester extends LinearOpMode {
             TelemetryUtil.packet.put("current state", robot.deposit.state);
 
             robot.update();
-        }
+        }*/
     }
 }

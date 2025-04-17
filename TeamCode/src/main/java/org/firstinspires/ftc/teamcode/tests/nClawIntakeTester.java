@@ -35,7 +35,7 @@ public class nClawIntakeTester extends LinearOpMode {
         Robot robot = new Robot(hardwareMap);
 
         waitForStart();
-        robot.deposit.retract();
+        //robot.deposit.retract();
 
         while(!isStopRequested()){
             if(setState) {
@@ -53,13 +53,11 @@ public class nClawIntakeTester extends LinearOpMode {
                 confirmTransfer = !confirmTransfer;
             }
             if (setGrab) {
-                robot.nclawIntake.grab(grab);
+                robot.nclawIntake.setGrab(grab);
                 setGrab = !setGrab;
             }
 
-            robot.nclawIntake.setIntakeLength(targetLength);
-            robot.nclawIntake.useCamera(useCamera);
-
+            robot.nclawIntake.setExtendoTargetPos(targetLength);
 
             if (!crankThatSoulaBoy)
                 robot.nclawIntake.setTargetPose(new Pose2d(targetX, targetY, targetHeading));

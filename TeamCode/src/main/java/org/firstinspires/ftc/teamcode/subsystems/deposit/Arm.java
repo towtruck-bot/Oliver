@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.sensors.Sensors;
+import org.firstinspires.ftc.teamcode.utils.priority.PriorityServo;
 import org.firstinspires.ftc.teamcode.utils.priority.nPriorityServo;
 
 @Config
@@ -15,7 +16,7 @@ public class Arm {
     public final nPriorityServo clawRotation;
     public final nPriorityServo claw;
 
-    public static double sampleOpenRad = 0.4, speciOpenRad = 0.25, closeRad = 0.0;
+    public static double openRad = 1.2456, closeRad = 0.15, closeLooseRad = 0.25;
 
     public Arm(Robot robot){
         this.sensors = robot.sensors;
@@ -24,12 +25,12 @@ public class Arm {
                 new Servo[] {robot.hardwareMap.get(Servo.class, "depositArmRotationL"), robot.hardwareMap.get(Servo.class, "depositArmRotationR")},
                 "depositArmRotation",
                 nPriorityServo.ServoType.AXON_MINI,
-                0.34,
-                1.0,
-                0.89,
+                0.335,
+                0.982,
+                0.871,
                 new boolean[] {false, true},
                 1.0,
-                2.0
+                2.0 // Tee hee - eric
         );
         robot.hardwareQueue.addDevice(armRotation);
 
@@ -38,7 +39,7 @@ public class Arm {
                 "depositClawRotation",
                 nPriorityServo.ServoType.AXON_MAX,
                 0,
-                0.67,
+                1,
                 0.32,
                 new boolean[] {true},
                 1.0,
@@ -50,9 +51,9 @@ public class Arm {
                 new Servo[] {robot.hardwareMap.get(Servo.class, "depositClaw")},
                 "depositClaw",
                 nPriorityServo.ServoType.AXON_MINI,
-                0.086,
-                0.146,
-                0.086,
+                0.028,
+                0.238,
+                0,
                 new boolean[] {false},
                 1.0,
                 2.0
@@ -60,33 +61,17 @@ public class Arm {
         robot.hardwareQueue.addDevice(claw);
     }
 
-    public void setArmRotation(double targetRad, double power){
-        armRotation.setTargetAngle(targetRad, power);
-    }
+    public void setArmRotation(double targetRad, double power) { armRotation.setTargetAngle(targetRad, power); }
 
-    public void setClawRotation(double targetRad, double power){
-        clawRotation.setTargetAngle(targetRad, power);
-    }
+    public void setClawRotation(double targetRad, double power) { clawRotation.setTargetAngle(targetRad, power); }
 
-    public void sampleOpen(){
-        claw.setTargetAngle(sampleOpenRad, 1.0);
-    }
+    public void clawClose() { claw.setTargetAngle(closeRad, 1.0); }
+    public void clawCloseLoose() { claw.setTargetAngle(closeLooseRad, 1.0); }
+    public void clawOpen() { claw.setTargetAngle(openRad, 1.0); }
 
-    public void speciOpen(){
-        claw.setTargetAngle(speciOpenRad, 1.0);
-    }
+    public boolean inPosition() { return armRotation.inPosition() && clawRotation.inPosition(); }
 
-    public void clawClose(){
-        claw.setTargetAngle(closeRad, 1.0);
-    }
-
-    public boolean inPosition(){
-        return armRotation.inPosition() && clawRotation.inPosition();
-    }
-
-    public boolean clawInPosition(){
-        return claw.inPosition();
-    }
+    public boolean clawInPosition() { return claw.inPosition(); }
 
     public boolean armInPosition() { return armRotation.inPosition(); }
 }

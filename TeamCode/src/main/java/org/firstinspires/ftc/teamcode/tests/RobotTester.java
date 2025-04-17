@@ -10,13 +10,13 @@ import org.firstinspires.ftc.teamcode.utils.Globals;
 import org.firstinspires.ftc.teamcode.utils.RunMode;
 import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 
-@Config
-@TeleOp(group = "Test")
+//@Config
+//@TeleOp(group = "Test")
 public class RobotTester extends LinearOpMode {
 
     @Override
     public void runOpMode() {
-        Globals.RUNMODE = RunMode.TESTER;
+        /*Globals.RUNMODE = RunMode.TESTER;
 
         Robot robot = new Robot(hardwareMap);
 
@@ -79,6 +79,6 @@ public class RobotTester extends LinearOpMode {
             telemetry.addData("intake claw rotation", robot.clawIntake.getClawRotAngle());
             telemetry.addData("deposit height", robot.deposit.getDepositHeight());
             telemetry.update();
-        }
+        }*/
     }
 }

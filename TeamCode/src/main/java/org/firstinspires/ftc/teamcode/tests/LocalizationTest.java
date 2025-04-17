@@ -44,7 +44,7 @@ public class LocalizationTest extends LinearOpMode {
         }
 
         while(!isStopRequested()) {
-            robot.drivetrain.drive(gamepad1);
+            robot.drivetrain.drive(gamepad1, false);
             Pose2d pos = robot.drivetrain.getPoseEstimate();
             TelemetryUtil.packet.put("x: ", pos.x);
             TelemetryUtil.packet.put("y: ", pos.y);

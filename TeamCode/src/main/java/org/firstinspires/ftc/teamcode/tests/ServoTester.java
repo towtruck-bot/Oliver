@@ -67,8 +67,8 @@ public class ServoTester extends LinearOpMode {
         waitForStart();
         while (!isStopRequested()) {
             START_LOOP();
-            hardwareQueue.update();
             robot.sensors.update();
+            hardwareQueue.update();
 
             numLoops ++;
 

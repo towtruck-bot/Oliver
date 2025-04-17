@@ -9,6 +9,9 @@ import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.utils.Globals;
 import org.firstinspires.ftc.teamcode.utils.RunMode;
 import org.firstinspires.ftc.teamcode.utils.Vector2;
+import org.firstinspires.ftc.teamcode.utils.Pose2d;
+
+import java.util.ArrayList;
 
 @Autonomous(name = "ParkAuto", preselectTeleOp = "A. Teleop")
 public class ParkAuto extends LinearOpMode {
@@ -21,8 +24,17 @@ public class ParkAuto extends LinearOpMode {
 
         robot = new Robot(hardwareMap);
 
+        SubmersibleSelectionGUI gui = new SubmersibleSelectionGUI();
+
         while (opModeInInit()) {
+            gui.drawSub(gamepad1, telemetry);
             robot.update();
+        }
+
+        ArrayList<Pose2d> targets = gui.getDriverSelect();
+
+        for(Pose2d p : targets){
+            Log.i("Driver Target", p.x + " " + p.y + " " + p.heading);
         }
 
         double startTime = System.currentTimeMillis();

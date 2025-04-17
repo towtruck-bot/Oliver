@@ -41,6 +41,7 @@ public class SubmersibleSelectionGUI {
     private boolean flash = true;
     private long timer = System.currentTimeMillis();
     private final ButtonToggle down = new ButtonToggle(), up = new ButtonToggle(), left = new ButtonToggle(), right = new ButtonToggle(), place = new ButtonToggle();
+    private final ButtonToggle preset = new ButtonToggle();
 
     public void drawSub(Gamepad gamepad, Telemetry tele) {
         for (int j = 0; j < asciiWidth; j++) {
@@ -93,6 +94,12 @@ public class SubmersibleSelectionGUI {
         if (System.currentTimeMillis() - timer >= 500) {
             timer = System.currentTimeMillis();
             flash = !flash;
+        }
+
+        if (preset.isClicked(gamepad.y)) {
+            sub[asciiLen-3][asciiWidth-5] = true;
+            sub[asciiLen-3][asciiWidth-6] = true;
+            sub[asciiLen-3][asciiWidth-7] = true;
         }
     }
 }

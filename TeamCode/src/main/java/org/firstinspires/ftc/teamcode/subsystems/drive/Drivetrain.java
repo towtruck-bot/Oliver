@@ -33,7 +33,6 @@ import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 import org.firstinspires.ftc.teamcode.utils.Vector2;
 import org.firstinspires.ftc.teamcode.utils.priority.HardwareQueue;
 import org.firstinspires.ftc.teamcode.utils.priority.PriorityMotor;
-import org.firstinspires.ftc.teamcode.utils.priority.PriorityServo;
 import org.firstinspires.ftc.teamcode.utils.priority.nPriorityServo;
 import org.firstinspires.ftc.teamcode.vision.Vision;
 
@@ -148,11 +147,11 @@ public class Drivetrain {
         }
     }
 
-    public void setHalfMinPowersToOvercomeFriction() {
-        leftFront.setMinimumPowerToOvercomeStaticFriction(minPowersToOvercomeFriction[0] / 2);
-        leftRear.setMinimumPowerToOvercomeStaticFriction(minPowersToOvercomeFriction[1] / 2);
-        rightRear.setMinimumPowerToOvercomeStaticFriction(minPowersToOvercomeFriction[2] / 2);
-        rightFront.setMinimumPowerToOvercomeStaticFriction(minPowersToOvercomeFriction[3] / 2);
+    public void setFineMinPowersToOvercomeFriction() {
+        leftFront.setMinimumPowerToOvercomeStaticFriction(minPowersToOvercomeFriction[0] * 3 / 4);
+        leftRear.setMinimumPowerToOvercomeStaticFriction(minPowersToOvercomeFriction[1] * 3 / 4);
+        rightRear.setMinimumPowerToOvercomeStaticFriction(minPowersToOvercomeFriction[2] * 3 / 4);
+        rightFront.setMinimumPowerToOvercomeStaticFriction(minPowersToOvercomeFriction[3] * 3 / 4);
 
         for (PriorityMotor m : motors) {
             m.setMinimumPowerToOvercomeKineticFriction(0.195 / 2);
@@ -467,7 +466,7 @@ public class Drivetrain {
         if (moveNear) {
             strafe *= 0.25;
             if (atPoint()) {
-                setHalfMinPowersToOvercomeFriction();
+                setFineMinPowersToOvercomeFriction();
                 fwd = 0.0;
                 strafe = 0.0;
                 turn = Math.abs(turnError) > Math.toRadians(finalTurnThreshold) / 2 ? turnEAPID.update(turnError, -maxPower, maxPower) : 0;

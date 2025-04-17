@@ -29,12 +29,12 @@ public class BROKENSamplePreloadCycleAuto extends LinearOpMode {
     private Robot robot;
 
     // Block positions
-    public static double bx1 = 50.4, by1 = 27.6, bx2 = 60.0, by2 = 27.6, bx3 = 69.7, by3 = 27.6;
+    public static double bx1 = 50.4, by1 = 27.6, bx2 = 60.3, by2 = 27.6, bx3 = 69.7, by3 = 27.6;
 
     // P/G/C depo positions
-    public static double dx1 = 63, dy1 = 53.8;
+    public static double dx1 = 63, dy1 = 54;
     public static double dx2 = 64.3, dy2 = 53.6;
-    public static double dx3 = 65.5 /*+ 1.2 * Math.cos(Math.toRadians(272.0638))*/, dy3 = 52.78457 /*+ 1.2 * Math.sin(Math.toRadians(272.0638))*/;
+    public static double dx3 = 65.395 + 1.1 * Math.cos(Math.toRadians(272.0638)), dy3 = 54.38457 + 1.1 * Math.sin(Math.toRadians(272.0638));
 
     public Pose2d pickUp;
     public int targetSampleIndex = 0;
@@ -198,7 +198,7 @@ public class BROKENSamplePreloadCycleAuto extends LinearOpMode {
         robot.nclawIntake.enableRestrictedHoldPos();
         // Go to under bucket
         robot.drivetrain.goToPoint(
-                new Pose2d(dx3, dy3, Math.toRadians(271)),
+                new Pose2d(dx3, dy3, Math.toRadians(272.0638)),
                 true,
                 true,
                 1.0
@@ -368,7 +368,7 @@ public class BROKENSamplePreloadCycleAuto extends LinearOpMode {
             robot.waitWhile(() -> robot.sensors.getOdometryPosition().getDistanceFromPoint(s2.getLastPoint()) > 24);
             robot.ndeposit.startSampleDeposit();
 
-            robot.waitWhile(() -> robot.ndeposit.isDepositReady());
+            robot.waitWhile(() -> !robot.ndeposit.isDepositReady());
             robot.ndeposit.deposit();
 
             LinkedList<LLBlockDetectionPostProcessor.Block> blocks = robot.vision.getBlocks();

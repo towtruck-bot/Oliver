@@ -46,7 +46,7 @@ public class nClawIntake {
     public static double lowerDelay = 250;
     public static double transferExtension = 0, bufferExtension = 7;
     public static double turretSearchRotation = 3.165;
-    public static LLBlockDetectionPostProcessor.Block targetBlock = null;
+    public static LLBlockDetectionPostProcessor.Block visionTargetBlock = null;
 
     private boolean grab = false;
     private boolean sampleStatus = false;
@@ -198,7 +198,7 @@ public class nClawIntake {
                         LLBlockDetectionPostProcessor.Block b = robot.vision.getClosestValidBlock();
                         if (!(b != null && intakeTurret.inPosition() && intakeTurret.extendoInPosition()))
                             break;
-                        targetBlock = b;
+                        visionTargetBlock = b;
 
                         hoverStart = System.currentTimeMillis();
 
@@ -232,7 +232,7 @@ public class nClawIntake {
                 if (intakeTurret.inPosition(Math.toRadians(2)) && System.currentTimeMillis() - lowerStart >= lowerDelay) {
                     consecutivePSPositives = psReads = 0;
                     state = State.GRAB_CLOSE;
-                    robot.vision.removeBlock(targetBlock);
+                    robot.vision.removeBlock(visionTargetBlock);
                 }
                 break;
             case GRAB_CLOSE:
@@ -281,7 +281,7 @@ public class nClawIntake {
 
                 if (sampleStatus && intakeTurret.clawInPosition()) {
                     known = null;
-                    targetBlock = null;
+                    visionTargetBlock = null;
                     state = State.START_RETRACT;
                     robot.ndeposit.startTransfer();
                     intakeLight.setState(false);
@@ -419,10 +419,8 @@ public class nClawIntake {
 
     public int getRetryCounter() { return retryCounter; }
     public void resetRetryCounter() { retryCounter = 0; }
-    public void forceDryCycle() {sampleStatus = true; }
-    public void finishTransfer() {
-        finishTransferRequest = state == State.TRANSFER_WAIT;
-    }
+    public void forceDryCycle() { sampleStatus = true; }
+    public void finishTransfer() { finishTransferRequest = state == State.TRANSFER_WAIT; }
 
     public void setKnownIntakePose(Pose2d k) {
         known = k.clone();
@@ -571,6 +569,8 @@ public class nClawIntake {
     }
 
     public void aimAtTarget() {
+        TelemetryUtil.packet.put("ClawIntake : target", target);
+
         switch (targetType) {
             case RELATIVE: {
                 intakeTurret.intakeAt(target);
@@ -601,19 +601,17 @@ public class nClawIntake {
             }
         }
 
-        if (targetBlock != null) {
+        if (visionTargetBlock != null) {
             target = new Pose2d(
-                targetBlock.getX(),
-                targetBlock.getY(),
-                -targetBlock.getHeading()
+                visionTargetBlock.getX(),
+                visionTargetBlock.getY(),
+                -visionTargetBlock.getHeading()
             );
             targetType = Target.RELATIVE; // Kind of needed here or else its weird
         }
     }
 
-    public void setRetryGrab(boolean retryGrab) {
-        this.retryGrab = retryGrab;
-    }
+    public void setRetryGrab(boolean retryGrab) { this.retryGrab = retryGrab; }
 
     private void doExtend() {
         intakeTurret.intakeExtension.ignoreKeepIn();
@@ -621,6 +619,7 @@ public class nClawIntake {
             state = State.SEARCH;
             robot.vision.setOffset(robot.nclawIntake.getIntakeRelativeToRobot());
         } else {
+            visionTargetBlock = null;
             hoverStart = System.currentTimeMillis();
             state = State.HOVER;
         }

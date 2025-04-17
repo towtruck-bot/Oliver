@@ -23,7 +23,7 @@ import org.firstinspires.ftc.teamcode.vision.LLBlockDetectionPostProcessor;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
-@Autonomous(name = "Borken Sample Cycle Auto", preselectTeleOp = "A. Teleop")
+@Autonomous(name = "Broken Sample Cycle Auto", preselectTeleOp = "A. Teleop")
 @Config
 public class BROKENSamplePreloadCycleAuto extends LinearOpMode {
     private Robot robot;
@@ -45,7 +45,6 @@ public class BROKENSamplePreloadCycleAuto extends LinearOpMode {
         PECKING
     }
 
-    ;
     State state = State.SCANNING;
 
     public void runOpMode() {
@@ -56,7 +55,6 @@ public class BROKENSamplePreloadCycleAuto extends LinearOpMode {
 
         robot = new Robot(hardwareMap);
         robot.setAbortChecker(() -> !isStopRequested());
-        LogUtil.init();
 
         robot.sensors.resetPosAndIMU();
 
@@ -80,6 +78,7 @@ public class BROKENSamplePreloadCycleAuto extends LinearOpMode {
             robot.update();
         }
 
+        if (!isStopRequested()) LogUtil.init();
         LogUtil.drivePositionReset = true;
         robot.update();
 
@@ -255,7 +254,8 @@ public class BROKENSamplePreloadCycleAuto extends LinearOpMode {
 
         robot.nclawIntake.setGrabMethod(nClawIntake.GrabMethod.SEARCH_HOVER_MG);
 
-        for (targetSampleIndex = 0; targetSampleIndex < targets.size(); ) {
+        targetSampleIndex = 0;
+        while (targetSampleIndex < targets.size() && !isStopRequested()) {
             pickUp = targets.get(targetSampleIndex);
 
             robot.ndeposit.presetDepositHeight(false, true, false);
@@ -289,7 +289,7 @@ public class BROKENSamplePreloadCycleAuto extends LinearOpMode {
             // Mini FSM that goes through the targets array searching for a viable grab.
             // SCANNING -> Search for a new sample that may require moving the robot. keep on interating through if no sample can be found. This may require movement shifts
             // PECKING -> Attempt grabs. If it cannot be picked up within 2 tires, move on to the next possible position. However, this requires rescanning
-            while (!robot.nclawIntake.hasSample()) {
+            while (!isStopRequested() && !robot.nclawIntake.hasSample()) {
                 Log.i("JAMES", state + " is state");
                 switch (state) {
                     case SCANNING:
@@ -302,7 +302,7 @@ public class BROKENSamplePreloadCycleAuto extends LinearOpMode {
                                     robot.nclawIntake.resetRetryCounter();
                                 }
 
-                                while (grabbed[targetSampleIndex]) {
+                                while (!isStopRequested() && grabbed[targetSampleIndex]) {
                                     targetSampleIndex = (targetSampleIndex + 1) % targets.size();
                                 }
                                 Log.i("JAMES", "took too long, new index is " + targetSampleIndex);

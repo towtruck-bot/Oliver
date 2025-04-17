@@ -93,12 +93,11 @@ public class IntakeTurret {
     public static double turretLengthTip = 4.8;
     public static double turretLengthLL = 2.3;
     public static double extendoOffset = 6;
-    public static double stupidConstant = -0.25;
     public void intakeAt(Pose2d target) {
         double xError = target.x;
         double yError = target.y;
 
-        if(Math.abs(yError) <= turretLengthTip) {
+        if (Math.abs(yError) <= turretLengthTip) {
             targetLength = xError - extendoOffset - Math.sqrt(turretLengthTip * turretLengthTip - yError * yError)/* - yError / turretLength*/;
             setTurretRotation(Math.PI + Math.atan2(yError, Math.sqrt(turretLengthTip * turretLengthTip - yError * yError)));
             setClawRotation(AngleUtil.mirroredClipAngleTolerence(target.heading - getTurretRotation(), Math.toRadians(20)));

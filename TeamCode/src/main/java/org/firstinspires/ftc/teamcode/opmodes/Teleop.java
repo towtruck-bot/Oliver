@@ -35,7 +35,6 @@ public class Teleop extends LinearOpMode {
 
         Robot robot = new Robot(hardwareMap);
         robot.setAbortChecker(() -> !isStopRequested());
-        LogUtil.init();
 
         // Gamepad 1
         ButtonToggle lb_1 = new ButtonToggle();
@@ -62,13 +61,18 @@ public class Teleop extends LinearOpMode {
         boolean forceBrakePad = false;
         boolean manualBrake = false;
 
+        robot.ndeposit.hangSafety = true;
         while (opModeInInit()) {
             robot.update();
             robot.ndeposit.presetDepositHeight(speciMode, high, false);
         }
+        robot.ndeposit.hangSafety = false;
         robot.nclawIntake.setTargetPose(new Pose2d(extensionPreset, 0, 0));
         robot.nclawIntake.setAutoEnableCamera(true);
         robot.nclawIntake.disableRestrictedHoldPos();
+
+        if (!isStopRequested()) LogUtil.init();
+        LogUtil.drivePositionReset = true;
 
         while (!isStopRequested()) {
             robot.update();
@@ -189,8 +193,8 @@ public class Teleop extends LinearOpMode {
                 robot.ndeposit.setDepositHeight(robot.ndeposit.getDepositHeight() + slidesInc * slidesControl1);
             }
 
-            robot.nclawIntake.setManualClawAngle(clawAngle - turretAngle);
-            robot.nclawIntake.setManualTurretAngle(turretAngle);
+            //robot.nclawIntake.setManualClawAngle(clawAngle - turretAngle);
+            //robot.nclawIntake.setManualTurretAngle(turretAngle);
 
             // Reset encoders in case something breaks
             if (rsb_1.isClicked(gamepad1.right_stick_button)) {
@@ -272,19 +276,21 @@ public class Teleop extends LinearOpMode {
             // Used to keep extendo in during hang
             if (robot.ndeposit.hangSafety != (gamepad1.back || gamepad2.back)) robot.nclawIntake.intakeTurret.intakeExtension.forcePullIn();
 
-            telemetry.addData("speciMode", speciMode);
-            telemetry.addData("intakeMode", intakeMode);
+            telemetry.addData("* speciMode", speciMode);
+            telemetry.addData("* intakeMode", intakeMode);
             telemetry.addData("high", high);
             telemetry.addData("autoGrab", autoGrab);
-            telemetry.addData("holdSlides", robot.ndeposit.holdSlides);
-            telemetry.addData("hangSafety", robot.ndeposit.hangSafety);
-            telemetry.addData("Intake target pos", robot.nclawIntake.getExtendoTargetPos());
-            telemetry.addData("Deposit height", robot.ndeposit.getDepositHeight());
-            telemetry.addData("Intake current length", robot.sensors.getExtendoPos());
+            telemetry.addData("* holdSlides", robot.ndeposit.holdSlides);
+            telemetry.addData("* hangSafety", robot.ndeposit.hangSafety);
+            telemetry.addData("* ClawIntake target", robot.nclawIntake.target);
+            telemetry.addData("ClawIntake isOut", robot.nclawIntake.isOut());
+            telemetry.addData("Extendo current length", robot.sensors.getExtendoPos());
+            telemetry.addData("Extendo target pos", robot.nclawIntake.getExtendoTargetPos());
             telemetry.addData("Slides current length", robot.sensors.getSlidesPos());
-            telemetry.addData("claw angle", clawAngle);
-            telemetry.addData("turret angle", turretAngle);
-            telemetry.addData("isRed", Globals.isRed);
+            telemetry.addData("Deposit height", robot.ndeposit.getDepositHeight());
+            //telemetry.addData("claw angle", clawAngle);
+            //telemetry.addData("turret angle", turretAngle);
+            //telemetry.addData("isRed", Globals.isRed);
             telemetry.update();
         }
     }

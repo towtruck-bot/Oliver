@@ -20,7 +20,7 @@ import org.firstinspires.ftc.teamcode.vision.LLBlockDetectionPostProcessor;
 
 import java.util.LinkedList;
 
-@Autonomous(name = "Sample Auto", preselectTeleOp = "A. Teleop")
+@Autonomous(name = "Sample Preload Auto", preselectTeleOp = "A. Teleop")
 @Config
 public class SamplePreloadAuto extends LinearOpMode {
     private Robot robot;
@@ -34,14 +34,14 @@ public class SamplePreloadAuto extends LinearOpMode {
     //    public static double dx3 = 65.2, dy3 = 53.6;
     public static double dx3 = 65.395 + 1.1 * Math.cos(Math.toRadians(272.0638)), dy3 = 54.38457 + 1.1 * Math.sin(Math.toRadians(272.0638));
 
-    public void runOpMode(){
+    public void runOpMode() {
         Globals.isRed = false;
         Globals.RUNMODE = RunMode.AUTO;
         Globals.hasSamplePreload = true;
         Globals.hasSpecimenPreload = false;
 
         robot = new Robot(hardwareMap);
-        robot.setAbortChecker(() -> !isStopRequested());
+        robot.setStopChecker(() -> !isStopRequested());
         LogUtil.init();
 
         robot.sensors.resetPosAndIMU();
@@ -138,7 +138,7 @@ public class SamplePreloadAuto extends LinearOpMode {
         robot.nclawIntake.extend();
 
         robot.waitWhile(() -> robot.drivetrain.isBusy() || !robot.ndeposit.isDepositReady());
-        robot.drivetrain.putDownBreakPad();
+        robot.drivetrain.setBrakePad(true);
         robot.ndeposit.deposit();
         robot.waitWhile(() -> !robot.ndeposit.isDepositFinished());
 
@@ -157,7 +157,7 @@ public class SamplePreloadAuto extends LinearOpMode {
         robot.ndeposit.startSampleDeposit();
         robot.nclawIntake.finishTransfer();
         robot.ndeposit.finishTransfer();
-        robot.drivetrain.raiseBreakPad();
+        robot.drivetrain.setBrakePad(false);
 
         //robot.waitWhile(() -> !robot.ndeposit.isTransferFinished());
         //robot.ndeposit.deposit();

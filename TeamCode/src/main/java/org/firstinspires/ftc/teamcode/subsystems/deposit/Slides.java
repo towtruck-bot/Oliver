@@ -22,7 +22,7 @@ public class Slides {
     public static double forceDownPower = -0.2;
     public static double forceDownThresh = 5;
     public static double maxSlidesHeight = 35.3;
-    public static PID pid = new PID(0.3, 0, 0.001);
+    public static PID pid = new PID(0.3, 0.005, 0.001);
     private int concurrence = 0;
     private double slidesTargetDelta = 0;
     private boolean justZeroed = false;
@@ -85,27 +85,27 @@ public class Slides {
 
         if (!manualMode) {
 //            if (!(Globals.RUNMODE == RunMode.TESTER)) {
-            TelemetryUtil.packet.put("slidesError", targetLength-length);
-            double pow = pid.update(targetLength - length, -1.0, 1.0) + ((length > minKStaticLength) ? (kStaticRamp / maxSlidesHeight) * length : 0);//feedforward();
+            TelemetryUtil.packet.put("slidesError", targetLength - length);
+            double pow = pid.update(targetLength - length, -1.0, 1.0) + ((length > minKStaticLength) ? kStaticRamp / maxSlidesHeight * length : 0);//feedforward();
             if (length <= forceDownThresh && targetLength == 0)
                 pow = forceDownPower;
 
             // We can auto reset the slides position
-            if (targetLength == 0 && length <= 2)
-                concurrence++;
-            else
-                concurrence = 0;
+            if (targetLength == 0 && length <= 2) ++concurrence;
+            else concurrence = 0;
 
-            if (concurrence >= 4 && slidesTargetDelta >= 10) {
+            if (concurrence >= 10 && slidesTargetDelta >= 10) {
                 robot.sensors.softwareResetSlidesEncoders();
                 justZeroed = true;
             }
+
+            if (this.inPosition(0.3)) pid.resetIntegral();
 
             TelemetryUtil.packet.put("Slides : Power", pow);
             TelemetryUtil.packet.put("Slides : Target", targetLength);
             TelemetryUtil.packet.put("Slides : concurrence", concurrence);
             TelemetryUtil.packet.put("Slides : targetDelta", slidesTargetDelta);
-            slidesMotors.setTargetPower(Math.max(Math.min(pow, 1), -1));
+            slidesMotors.setTargetPower(Utils.minMaxClip(pow, -1, 1));
 //            }
         }
     }

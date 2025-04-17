@@ -236,6 +236,7 @@ public class nClawIntake {
                 }
                 break;
             case GRAB_CLOSE:
+                if (visionTargetBlock != null) Log.i("ERIC LOG", visionTargetBlock.getArea() + " is area of target block with x and y " + visionTargetBlock.getGlobalPose().getX() + " " + visionTargetBlock.getGlobalPose().getY());
                 aimAtTarget();
 
                 if (grabMethod == GrabMethod.MANUAL_AIM) {

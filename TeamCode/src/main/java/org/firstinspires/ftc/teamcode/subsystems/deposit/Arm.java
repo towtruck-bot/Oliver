@@ -18,7 +18,7 @@ public class Arm {
 
     public static double openRad = 1.2456, closeRad = 0.15, closeLooseRad = 0.25;
 
-    public Arm(Robot robot){
+    public Arm(Robot robot) {
         this.sensors = robot.sensors;
 
         armRotation = new nPriorityServo(

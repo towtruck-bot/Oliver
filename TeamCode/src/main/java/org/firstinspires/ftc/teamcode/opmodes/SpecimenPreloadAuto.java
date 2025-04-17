@@ -33,7 +33,7 @@ public class SpecimenPreloadAuto extends LinearOpMode {
         Globals.hasSpecimenPreload = true;
 
         robot = new Robot(hardwareMap);
-        robot.setAbortChecker(() -> !isStopRequested());
+        robot.setStopChecker(() -> !isStopRequested());
         LogUtil.init();
 
         robot.sensors.resetPosAndIMU();

@@ -18,7 +18,7 @@ public class PurePursuitTest extends LinearOpMode {
         Robot robot = new Robot(hardwareMap);
 
         robot.drivetrain.setPoseEstimate(new Pose2d(0, 0, 0));
-        robot.setAbortChecker(() -> !isStopRequested());
+        robot.setStopChecker(() -> !isStopRequested());
 
         Spline path = new Spline(0, 0,0, 3);
         path.addPoint(40, 30, Math.PI/2);

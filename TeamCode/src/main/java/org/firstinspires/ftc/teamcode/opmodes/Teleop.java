@@ -34,7 +34,7 @@ public class Teleop extends LinearOpMode {
         Globals.hasSpecimenPreload = false;
 
         Robot robot = new Robot(hardwareMap);
-        robot.setAbortChecker(() -> !isStopRequested());
+        robot.setStopChecker(() -> !isStopRequested());
 
         // Gamepad 1
         ButtonToggle lb_1 = new ButtonToggle();
@@ -64,6 +64,7 @@ public class Teleop extends LinearOpMode {
         robot.ndeposit.hangSafety = true;
         while (opModeInInit()) {
             robot.update();
+            if (!robot.ndeposit.arm.armInPosition()) robot.nclawIntake.state = nClawIntake.State.START_RETRACT;
             robot.ndeposit.presetDepositHeight(speciMode, high, false);
         }
         robot.ndeposit.hangSafety = false;

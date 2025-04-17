@@ -109,7 +109,7 @@ public class Drivetrain {
 
         motors = Arrays.asList(leftFront, leftRear, rightRear, rightFront);
         hardwareQueue.addDevice(brakePad);
-        raiseBreakPad();
+        setBrakePad(false);
 
         configureMotors();
 
@@ -411,9 +411,9 @@ public class Drivetrain {
     public static PID turnPID = new PID(0.25,0.0,0.01);
     public static PID turnEAPID = new PID(0.025, 0.0, 0.0015);
 
-    public static PID finalXPID = new PID(0.007, 0.0001,0.0012);
+    public static PID finalXPID = new PID(0.007, 0.0,0.0012);
     public static PID finalYPID = new PID(0.05, 0.0,0.005);
-    public static PID finalTurnPID = new PID(0.002, 0.001,0.001);
+    public static PID finalTurnPID = new PID(0.002, 0.0,0.001);
 
     public static PID rotateTeleopPID = new PID(1.0,0.0001,0.01);
 
@@ -773,20 +773,8 @@ public class Drivetrain {
         }
     }
 
-    public void setBrakePad(boolean down){
-        if(down){
-            brakePad.setTargetAngle(downAngle);
-        }else{
-            brakePad.setTargetAngle(raiseAngle);
-        }
-    }
-
-    public void raiseBreakPad() {
-        brakePad.setTargetAngle(raiseAngle);
-    }
-
-    public void putDownBreakPad() {
-        brakePad.setTargetPos(downAngle);
+    public void setBrakePad(boolean down) {
+        brakePad.setTargetAngle(down ? downAngle : raiseAngle);
     }
 
     // CURRENTLY UNUSED v

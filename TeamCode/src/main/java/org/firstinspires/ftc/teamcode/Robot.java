@@ -20,6 +20,8 @@ import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 import org.firstinspires.ftc.teamcode.utils.priority.HardwareQueue;
 import org.firstinspires.ftc.teamcode.vision.LLBlockDetectionPostProcessor;
 
+import java.util.function.Supplier;
+
 public class Robot {
     public final HardwareMap hardwareMap;
     public final HardwareQueue hardwareQueue;
@@ -55,7 +57,7 @@ public class Robot {
     private long lastClickTime = -1;
     public static long bufferClickDuration = 500;
 
-    private Func abortChecker = null;
+    private Supplier<Boolean> stopChecker = null;
 
     public Robot(HardwareMap hardwareMap) {
         this.hardwareMap = hardwareMap;
@@ -90,7 +92,7 @@ public class Robot {
     }
 
     private void updateSubsystems() {
-        if (this.abortChecker != null && !((boolean) this.abortChecker.call())) {
+        if (this.stopChecker != null && !this.stopChecker.get()) {
             this.hardwareQueue.update();
             return;
         }
@@ -325,10 +327,10 @@ boolean wasClicked;
     }*/
 
     /**
-     * Sets the condition that should abort waiting (waitWhile, goToPoint)
+     * Sets the condition that should abort waiting (waitWhile)
      * @param func the function to check (return false to abort)
      */
-    public void setAbortChecker(Func func) { this.abortChecker = func; }
+    public void setStopChecker(Supplier<Boolean> func) { this.stopChecker = func; }
 
     /**
      * Waits while a condition is true
@@ -337,7 +339,7 @@ boolean wasClicked;
     public void waitWhile(Func func) {
         do {
             update();
-        } while (((boolean) this.abortChecker.call()) && ((boolean) func.call()));
+        } while (this.stopChecker.get() && ((boolean) func.call()));
     }
 
     /**
@@ -348,7 +350,7 @@ boolean wasClicked;
         long start = System.currentTimeMillis();
         do {
             update();
-        } while (((boolean) this.abortChecker.call()) && System.currentTimeMillis() - start < duration);
+        } while (this.stopChecker.get() && System.currentTimeMillis() - start < duration);
     }
 
 //    public void goToPoint(Pose2d pose, Func func, boolean moveNear, boolean slowDown, boolean stop, double maxPower) {
@@ -364,7 +366,7 @@ boolean wasClicked;
         drivetrain.goToPoint(pose, finalAdjustment, stop, maxPower); // need this to start the process so thresholds don't immediately become true
         do {
             update();
-        } while (((boolean) this.abortChecker.call()) && (func == null || (boolean) func.call()) && System.currentTimeMillis() - start <= 5000 && drivetrain.isBusy());
+        } while (this.stopChecker.get() && (func == null || (boolean) func.call()) && System.currentTimeMillis() - start <= 5000 && drivetrain.isBusy());
     }
 
 //    public void goToPointWithIntake(Pose2d pose, Func func, boolean moveNear, boolean slowDown, boolean stop, double maxPower) {
@@ -405,7 +407,7 @@ boolean wasClicked;
 
         do {
             update();
-        } while (((boolean) this.abortChecker.call()) && (func == null || (boolean) func.call()) && System.currentTimeMillis() - start <= 10000 && drivetrain.isBusy());
+        } while (this.stopChecker.get() && (func == null || (boolean) func.call()) && System.currentTimeMillis() - start <= 10000 && drivetrain.isBusy());
     }
 
     private void updateTelemetry() {

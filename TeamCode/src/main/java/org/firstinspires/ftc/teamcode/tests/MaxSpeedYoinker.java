@@ -20,7 +20,7 @@ public class MaxSpeedYoinker extends LinearOpMode {
         Globals.RUNMODE = RunMode.TESTER;
         Globals.TESTING_DISABLE_CONTROL = false;
         Robot robot = new Robot(hardwareMap);
-        robot.setAbortChecker(() -> !isStopRequested());
+        robot.setStopChecker(() -> !isStopRequested());
         double maxXSpeed = 0;
         double maxYSpeed = 0;
         double maxHeadingSpeed = 0;

@@ -23,18 +23,19 @@ import org.firstinspires.ftc.teamcode.vision.LLBlockDetectionPostProcessor;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
-@Autonomous(name = "Broken Sample Cycle Auto", preselectTeleOp = "A. Teleop")
+@Autonomous(name = "Sample Cycle Auto", preselectTeleOp = "A. Teleop")
 @Config
-public class BROKENSamplePreloadCycleAuto extends LinearOpMode {
+public class SamplePreloadCycleAuto extends LinearOpMode {
     private Robot robot;
 
     // Block positions
     public static double bx1 = 50.4, by1 = 27.6, bx2 = 60.3, by2 = 27.6, bx3 = 69.7, by3 = 27.6;
 
     // P/G/C depo positions
-    public static double dx1 = 63, dy1 = 54;
-    public static double dx2 = 64.3, dy2 = 53.6;
-    public static double dx3 = 65.395 + 1.1 * Math.cos(Math.toRadians(272.0638)), dy3 = 54.38457 + 1.1 * Math.sin(Math.toRadians(272.0638));
+    public static double dx1 = 63, dy1 = 53;
+    public static double dx2 = 64.3, dy2 = 52.5;
+    public static double dx3 = 65.395 + 1.5 * Math.cos(Math.toRadians(272.0638)), dy3 = 54.38457 + 1.5 * Math.sin(Math.toRadians(272.0638));
+    public static double dcx = 62, dcy = 55;
 
     public Pose2d pickUp;
     public int targetSampleIndex = 0;
@@ -54,7 +55,7 @@ public class BROKENSamplePreloadCycleAuto extends LinearOpMode {
         Globals.hasSpecimenPreload = false;
 
         robot = new Robot(hardwareMap);
-        robot.setAbortChecker(() -> !isStopRequested());
+        robot.setStopChecker(() -> !isStopRequested());
 
         robot.sensors.resetPosAndIMU();
 
@@ -68,7 +69,7 @@ public class BROKENSamplePreloadCycleAuto extends LinearOpMode {
         robot.nclawIntake.disableRestrictedHoldPos();
         robot.nclawIntake.setAutoEnableCamera(false);
 
-        robot.drivetrain.raiseBreakPad();
+        robot.drivetrain.setBrakePad(false);
 
         SubmersibleSelectionGUI gui = new SubmersibleSelectionGUI();
 
@@ -214,7 +215,7 @@ public class BROKENSamplePreloadCycleAuto extends LinearOpMode {
         robot.nclawIntake.extend();
 
         robot.waitWhile(() -> robot.drivetrain.isBusy() || !robot.ndeposit.isDepositReady());
-        robot.drivetrain.putDownBreakPad();
+        robot.drivetrain.setBrakePad(true);
         robot.ndeposit.deposit();
         robot.waitWhile(() -> !robot.ndeposit.isDepositFinished());
 
@@ -246,11 +247,11 @@ public class BROKENSamplePreloadCycleAuto extends LinearOpMode {
 
         robot.waitWhile(() -> robot.drivetrain.isBusy() || !robot.ndeposit.isDepositReady());
         robot.ndeposit.deposit();
-        robot.drivetrain.raiseBreakPad();
+        robot.drivetrain.setBrakePad(false);
 
         robot.waitWhile(() -> !robot.ndeposit.isDepositFinished());
         robot.ndeposit.forceRetract();
-        robot.waitWhile(() -> !robot.ndeposit.isFullRetract());
+        //robot.waitWhile(() -> !robot.ndeposit.isFullRetract());
 
         robot.nclawIntake.setGrabMethod(nClawIntake.GrabMethod.SEARCH_HOVER_MG);
 
@@ -356,7 +357,7 @@ public class BROKENSamplePreloadCycleAuto extends LinearOpMode {
             Spline s2 = new Spline(currentPos, 7)
                     .setReversed(true)
                     .addPoint(new Pose2d(currentPos.x + 6, currentPos.y, Math.PI))
-                    .addPoint(62, 55, Math.toRadians(242));
+                    .addPoint(dcx, dcy, Math.toRadians(242));
             robot.drivetrain.state = Drivetrain.State.FOLLOW_SPLINE;
             robot.drivetrain.setPath(s2);
             robot.drivetrain.setMaxPower(0.5);

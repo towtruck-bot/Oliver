@@ -44,7 +44,7 @@ public class nDeposit {
 
     private final Robot robot;
     public final Slides slides;
-    private final Arm arm;
+    public final Arm arm;
 
     // public static double transferArm = 0.4365, transferClaw = -0.928, transferBufferZ = 12, transferZ = 7.6;
     public static double transferArm = 0.5217, transferClaw = -1.8, transferBufferZ = 12, transferZ = 7.4;
@@ -104,7 +104,7 @@ public class nDeposit {
 
                 arm.clawOpen();
 
-                if (Globals.RUNMODE == RunMode.TELEOP ? requestFinishTransfer : requestFinishTransfer && robot.nclawIntake.isTransferReady() && slides.inPosition(1) && arm.inPosition()) {
+                if (Globals.RUNMODE == RunMode.TELEOP ? requestFinishTransfer : requestFinishTransfer && robot.nclawIntake.isTransferReady() && slides.inPosition(1.5) && arm.inPosition()) {
                     state = State.TRANSFER_WAIT;
                     slidesVelWeightedAvg = slides.getVel();
                 }
@@ -119,7 +119,7 @@ public class nDeposit {
                 arm.clawOpen();
                 slidesVelWeightedAvg = slides.getVel() * 0.5 + slidesVelWeightedAvg * 0.5;
 
-                if (slides.inPosition(0.2) && Math.abs(slidesVelWeightedAvg) < minVel) {
+                if (slides.getLength() <= transferZ + 0.3 && Math.abs(slidesVelWeightedAvg) < minVel) {
                     state = State.TRANSFER_FINISH;
                     //robot.nclawIntake.finishTransfer(); // Just to make sure you're not being stupid - Eric
                     requestFinishTransfer = false;

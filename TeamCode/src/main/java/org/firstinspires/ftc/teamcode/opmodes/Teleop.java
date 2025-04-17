@@ -184,7 +184,7 @@ public class Teleop extends LinearOpMode {
                 turretAngle += intakeTurretRotationInc * turretControl1;
                 clawAngle = AngleUtil.mirroredClipAngle(clawAngle);
                 turretAngle = Utils.minMaxClip(turretAngle, -1.7, 1.7);*/
-            } else {
+            } else if (robot.ndeposit.state == nDeposit.State.SAMPLE_RAISE || robot.ndeposit.state == nDeposit.State.SAMPLE_WAIT) {
                 double slidesControl1 = robot.drivetrain.smoothControls(-gamepad1.right_stick_y);
                 robot.ndeposit.setDepositHeight(robot.ndeposit.getDepositHeight() + slidesInc * slidesControl1);
             }

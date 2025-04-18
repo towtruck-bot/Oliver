@@ -170,6 +170,9 @@ public class LLBlockDetectionPostProcessor {
         ll.pipelineSwitch(block.pipelineIndex);
     }
 
+    private boolean connection = true;
+    public boolean getConnection() { return connection;}
+
     /**
      * <b>IMPORTANT</b>: Update the localizer before<br>
      * If you didn't do this you're stupid btw
@@ -203,6 +206,7 @@ public class LLBlockDetectionPostProcessor {
         TelemetryUtil.packet.put("LL connected", ll.isConnected());
         if (!ll.isConnected()) {
             Log.e("ERROR BIG", "Limelight Broke");
+            connection = false;
         }
 
         long loopStart = System.currentTimeMillis();

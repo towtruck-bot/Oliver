@@ -13,7 +13,7 @@ import org.firstinspires.ftc.teamcode.utils.LogUtil;
 import org.firstinspires.ftc.teamcode.utils.Pose2d;
 import org.firstinspires.ftc.teamcode.utils.RunMode;
 
-@Autonomous(name = "Specimen Auto", preselectTeleOp = "A. Teleop")
+@Autonomous(name = "A. Specimen Auto", preselectTeleOp = "A. Teleop")
 @Config
 public class SpecimenPreloadAuto extends LinearOpMode {
     private Robot robot;
@@ -24,9 +24,9 @@ public class SpecimenPreloadAuto extends LinearOpMode {
     public static double p1x, p1y, b1x, b1y;
     public static double p2x, p2y, b2x, b2y;
     public static double b3x, b3y;
-    public static double ix = -40, iy = 60.5, sx = 0, sy = 48;
+    public static double ix = -40, iy = 61.8, sx = 0, sy = 48;
 
-    public void runOpMode(){
+    public void runOpMode() {
         Globals.RUNMODE = RunMode.AUTO;
         Globals.isRed = false;
         Globals.hasSamplePreload = false;
@@ -34,7 +34,6 @@ public class SpecimenPreloadAuto extends LinearOpMode {
 
         robot = new Robot(hardwareMap);
         robot.setStopChecker(() -> !isStopRequested());
-        LogUtil.init();
 
         robot.sensors.resetPosAndIMU();
 
@@ -47,10 +46,14 @@ public class SpecimenPreloadAuto extends LinearOpMode {
         robot.nclawIntake.setGrab(false);
         robot.nclawIntake.setRetryGrab(true);
 
-        while(opModeInInit() && !isStopRequested()){
-            robot.sensors.setOdometryPosition(-0.5 * Globals.ROBOT_WIDTH, 70.0 - Globals.ROBOT_REVERSE_LENGTH, Math.toRadians(270));
+        while (opModeInInit() && !isStopRequested()) {
+            robot.sensors.setOdometryPosition(-0.5 * Globals.ROBOT_WIDTH, 70.5 - Globals.ROBOT_REVERSE_LENGTH, Math.toRadians(270));
             robot.update();
         }
+
+        if (!isStopRequested()) LogUtil.init();
+        LogUtil.drivePositionReset = true;
+        robot.update();
 
         Globals.autoStartTime = System.currentTimeMillis();
 
@@ -130,7 +133,7 @@ public class SpecimenPreloadAuto extends LinearOpMode {
         robot.waitWhile(() -> !robot.ndeposit.isTransferFinished());
         */
         // Cycle
-        for(int i = 1; i < 6; i++){
+        for (int i = 1; i < 6; i++) {
             robot.drivetrain.goToPoint(
                     new Pose2d(ix, iy, -Math.PI/2),
                     false,
@@ -149,7 +152,7 @@ public class SpecimenPreloadAuto extends LinearOpMode {
                     true,
                 1.0
             );
-            robot.ndeposit.startSpecimenDeposit();
+            //robot.ndeposit.startSpecimenDeposit();
             robot.waitWhile(() -> robot.drivetrain.isBusy());
 
             robot.drivetrain.goToPoint(
@@ -161,6 +164,7 @@ public class SpecimenPreloadAuto extends LinearOpMode {
             robot.waitWhile(() -> robot.drivetrain.isBusy());
 
             robot.ndeposit.deposit();
+            robot.ndeposit.startSpecimenIntake();
 
             robot.drivetrain.goToPoint(
                     new Pose2d(sx, sy, -Math.PI / 2),

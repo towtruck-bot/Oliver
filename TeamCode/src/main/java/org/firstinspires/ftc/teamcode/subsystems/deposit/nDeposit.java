@@ -433,7 +433,7 @@ public class nDeposit {
 
         state = State.RETRACT;
     }
-    public boolean isSafeHeight() { return state == State.SAMPLE_RAISE && slides.getLength() >= 5; }
+    public boolean isSafeHeight() { return isDepositingSample() && slides.getLength() >= 5; }
 
     public boolean isHolding() {
         return holding;

@@ -24,7 +24,8 @@ public class IntakeExtension {
 
     private double extendoCurrentPos = 0.0;
     private double targetLength = 0.0;
-    public static PID extendoPID = new PID(0.4, 0.28, 0.007);
+    public static PID extendoPID = new PID(0.4, 0.1, 0.007);
+    public static double minPow = 0.1;
     public static double slidesTolerance = 0.7;
     public static double slidesDeadZone = 0.3;
     public static double slidesForceInThresh = 6;
@@ -59,6 +60,7 @@ public class IntakeExtension {
                 pow = 0;
             } else {
                 pow = extendoPID.update(this.targetLength - this.extendoCurrentPos, -0.7, 0.7);
+                if (Math.abs(pow) < minPow) pow = minPow * Math.signum(pow);
             }
 
             if (targetLength == 0 && extendoCurrentPos <= slidesForceInThresh && !ignoreKeepIn) pow = slidesForceInPow;

@@ -4,21 +4,19 @@ import android.util.Log;
 
 import com.acmerobotics.dashboard.canvas.Canvas;
 import com.acmerobotics.dashboard.config.Config;
-import com.google.ar.core.Pose;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.hardware.limelightvision.LLResultTypes.ColorResult;
 
 import org.firstinspires.ftc.teamcode.Robot;
-import org.firstinspires.ftc.teamcode.subsystems.drive.Drivetrain;
 import org.firstinspires.ftc.teamcode.utils.AngleUtil;
-import org.firstinspires.ftc.teamcode.utils.Func;
 import org.firstinspires.ftc.teamcode.utils.Pose2d;
 import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 import org.firstinspires.ftc.teamcode.utils.Vector2;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.Predicate;
 
 @Config
 public class LLBlockDetectionPostProcessor {
@@ -130,10 +128,6 @@ public class LLBlockDetectionPostProcessor {
         }
     }
 
-    public interface BlockFilter {
-        boolean call(Block b);
-    }
-
     private LinkedList<Block> blocks;
     private final Limelight3A ll;
     private BlockColor blockColor;
@@ -204,6 +198,7 @@ public class LLBlockDetectionPostProcessor {
         }
 
         TelemetryUtil.packet.put("LL connected", ll.isConnected());
+        TelemetryUtil.packet.put("LL detecting", detecting);
         if (!ll.isConnected()) {
             Log.e("ERROR BIG", "Limelight Broke");
             connection = false;
@@ -297,11 +292,9 @@ public class LLBlockDetectionPostProcessor {
                         b.updateNewValues(newPose, width, height);
                 }
             }
-            canvas.setFill("#ffffff");
-            canvas.fillText("Vision is on", 24, 24, "8px Arial", 0);
-        } else {
-            canvas.setFill("#ffffff");
-            canvas.fillText("Vision is off", 24, 24, "8px Arial", 0);
+
+            //canvas.setFill("#ffffff");
+            //canvas.fillText("Vision is on", 24, 24, "8px Arial", 0);
         }
 
         for (Block b : blocks)
@@ -371,13 +364,11 @@ public class LLBlockDetectionPostProcessor {
         blocks.remove(b);
     }
 
-
-
-    public static LinkedList<Block> filterBlocks(LinkedList<Block> blocks, BlockFilter filter) {
+    public static LinkedList<Block> filterBlocks(LinkedList<Block> blocks, Predicate<Block> filter) {
         LinkedList<Block> output = new LinkedList<>();
 
         for (Block b : blocks) {
-            if (filter.call(b))
+            if (filter.test(b))
                 output.add(b);
         }
 
@@ -389,8 +380,7 @@ public class LLBlockDetectionPostProcessor {
     }
 
     public static Block getClosestValidBlock(Vector2 offset, LinkedList<Block> blocks) {
-        if (blocks.size() <= 0)
-            return null;
+        if (blocks.size() <= 0) return null;
 
         Block closest = blocks.get(0);
         double closestDist = closest.getPose().getDistanceFromPoint(new Pose2d(offset.x, offset.y, 0));
@@ -413,6 +403,7 @@ public class LLBlockDetectionPostProcessor {
     public Vector2 getOffset() {
         return offset;
     }
+    private double buffer = 1.5;
 
     public void hardwareStop() {
         ll.stop();

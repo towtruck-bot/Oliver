@@ -34,7 +34,7 @@ public class SamplePreloadCycleAuto extends LinearOpMode {
     private Robot robot;
 
     // Block positions
-    public static double bx1 = 50.4, by1 = 27.5, bx2 = 60.3, by2 = 27.5, bx3 = 69.7, by3 = 27.5;
+    public static double bx1 = 49.9, by1 = 27.5, bx2 = 59.8, by2 = 27.5, bx3 = 69.2, by3 = 27.5;
 
     // P/G/C depo positions
     public static double dx1 = 63, dy1 = 54.5;
@@ -45,6 +45,8 @@ public class SamplePreloadCycleAuto extends LinearOpMode {
     public Pose2d pickUp;
     public int targetSampleIndex = 0;
     public long scanStart = System.currentTimeMillis();
+
+    public static int scanTimeout = 1500;
 
     public enum State {
         SCANNING,
@@ -276,6 +278,8 @@ public class SamplePreloadCycleAuto extends LinearOpMode {
 
         targetSampleIndex = 0;
         while (targetSampleIndex < len && !isStopRequested()) {
+            TelemetryUtil.packet.put("Intake AUTO section", "go to");
+
             pickUp = targets[targetSampleIndex];
 
             robot.ndeposit.presetDepositHeight(false, true, false);
@@ -296,17 +300,21 @@ public class SamplePreloadCycleAuto extends LinearOpMode {
 
             robot.waitWhile(() -> robot.drivetrain.targetPoint.getDistanceFromPoint(robot.sensors.getOdometryPosition()) > 3.5);
             robot.drivetrain.goToPoint(
-            new Pose2d(30, Utils.minMaxClip(pickUp.y, -17.5, 17.5), Math.PI),
-            false,
-            true,
-            1.0
+                new Pose2d(30, Utils.minMaxClip(pickUp.y, -17.5, 17.5), Math.PI),
+                false,
+                true,
+                1.0
             );
 
             robot.nclawIntake.setKnownIntakePose(new Pose2d(pickUp.x, pickUp.y, 0));
 
-            robot.waitWhile(() -> !robot.nclawIntake.isExtended() );
+            TelemetryUtil.packet.put("Intake AUTO section", "extend");
+
+            robot.waitWhile(() -> !robot.nclawIntake.isExtended());
             robot.nclawIntake.manualEnableCamera();
             robot.nclawIntake.resetRetryCounter();
+
+            TelemetryUtil.packet.put("Intake AUTO section", "scan");
 
             // Mini FSM that goes through the targets array searching for a viable grab.
             // SCANNING -> Search for a new sample that may require moving the robot. keep on interating through if no sample can be found. This may require movement shifts
@@ -317,11 +325,9 @@ public class SamplePreloadCycleAuto extends LinearOpMode {
                         scanStart = System.currentTimeMillis();
 
                         robot.waitWhile(() -> {
-                            if (System.currentTimeMillis() - scanStart >= 500) {
-                                if (robot.nclawIntake.getRetryCounter() < 2) {
-                                    grabbed[targetSampleIndex] = true;
-                                    robot.nclawIntake.resetRetryCounter();
-                                }
+                            if (System.currentTimeMillis() - scanStart >= scanTimeout) {
+                                //grabbed[targetSampleIndex] = true;
+                                robot.nclawIntake.resetRetryCounter();
 
                                 do {
                                     targetSampleIndex = (targetSampleIndex + 1) % len;
@@ -351,6 +357,7 @@ public class SamplePreloadCycleAuto extends LinearOpMode {
                                 robot.nclawIntake.setGrab(true);
                                 return false;
                             }
+
                             return true;
                         });
                         break;
@@ -376,7 +383,11 @@ public class SamplePreloadCycleAuto extends LinearOpMode {
                         break;
                 }
             }
+
             state = State.SCANNING;
+            grabbed[targetSampleIndex] = true;
+
+            TelemetryUtil.packet.put("Intake AUTO section", "leave");
 
             Pose2d currentPos = robot.sensors.getOdometryPosition();
             Spline s2 = new Spline(currentPos, 7)
@@ -394,21 +405,24 @@ public class SamplePreloadCycleAuto extends LinearOpMode {
             robot.waitWhile(() -> robot.sensors.getOdometryPosition().getDistanceFromPoint(s2.getLastPoint()) > 24);
             robot.ndeposit.startSampleDeposit();
 
+            TelemetryUtil.packet.put("Intake AUTO section", "deposit");
+
             robot.waitWhile(() -> !robot.ndeposit.isDepositReady());
             robot.ndeposit.deposit();
 
             LinkedList<LLBlockDetectionPostProcessor.Block> blocks = robot.vision.getBlocks();
-            LLBlockDetectionPostProcessor.filterBlocks(blocks, (LLBlockDetectionPostProcessor.Block b) ->{
-                        Pose2d gb = b.getGlobalPose();
-                        return gb.getX() >= 0 && gb.getX() <= 18 && Math.abs(gb.getY()) < 22;
-                    }
-            );
+            blocks = LLBlockDetectionPostProcessor.filterBlocks(blocks, (LLBlockDetectionPostProcessor.Block b) -> {
+                Pose2d gb = b.getGlobalPose();
+                return gb.getX() >= 0 && gb.getX() <= 18 && Math.abs(gb.getY()) < 22;
+            });
 
             if (LLBlockDetectionPostProcessor.getClosestValidBlock(robot.vision.getOffset(), blocks) != null) {
                 targets[targetSampleIndex] = robot.vision.getClosestValidBlock().getGlobalPose();
                 grabbed[targetSampleIndex] = false;
             } else {
-                targetSampleIndex++;
+                do {
+                    targetSampleIndex = (targetSampleIndex + 1) % len;
+                } while (!isStopRequested() && grabbed[targetSampleIndex]);
             }
         }
         //robot.vision.hardwareStop();

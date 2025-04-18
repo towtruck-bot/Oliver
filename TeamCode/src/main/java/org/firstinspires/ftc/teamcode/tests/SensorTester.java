@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode.tests;
 
 import com.acmerobotics.dashboard.config.Config;
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -14,7 +13,7 @@ import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 
 import java.util.Locale;
 
-@Autonomous(group = "Test")
+@TeleOp(group = "Test")
 @Config
 public class SensorTester extends LinearOpMode {
     public static boolean intakeLight = true;

@@ -20,11 +20,7 @@ public class SubmersibleSelectionGUI {
     private int cursorX = asciiLen / 2, cursorY = asciiWidth / 2;
 
     public SubmersibleSelectionGUI() {
-        /*
-        sub[asciiLen-3][asciiWidth-5] = true;
-        sub[asciiLen-3][asciiWidth-6] = true;
-        sub[asciiLen-3][asciiWidth-7] = true;
-        */
+        for (int i = 10; i <= 16; ++i) for (int j = i % 2 == 0 ? 8 : 9; j <= 12; j += 2) sub[i][j] = true;
     }
 
     public ArrayList<Pose2d> getDriverSelect() {
@@ -105,9 +101,9 @@ public class SubmersibleSelectionGUI {
         }
 
         if (preset.isClicked(gamepad.y)) {
-            sub[asciiLen-3][asciiWidth-5] = true;
-            sub[asciiLen-3][asciiWidth-6] = true;
-            sub[asciiLen-3][asciiWidth-7] = true;
+            sub[asciiLen - 3][asciiWidth - 5] = true;
+            sub[asciiLen - 3][asciiWidth - 6] = true;
+            sub[asciiLen - 3][asciiWidth - 7] = true;
         }
     }
 }

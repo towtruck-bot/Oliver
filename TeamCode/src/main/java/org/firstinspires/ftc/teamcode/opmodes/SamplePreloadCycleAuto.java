@@ -6,7 +6,6 @@ import com.acmerobotics.dashboard.canvas.Canvas;
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.teamcode.Robot;
@@ -46,7 +45,7 @@ public class SamplePreloadCycleAuto extends LinearOpMode {
     public int targetSampleIndex = 0;
     public long scanStart = System.currentTimeMillis();
 
-    public static int scanTimeout = 1500;
+    public static int scanTimeout = 750;
 
     public enum State {
         SCANNING,
@@ -98,7 +97,7 @@ public class SamplePreloadCycleAuto extends LinearOpMode {
 
         // Sorting Driver input in order of closest target
         ArrayList<Pose2d> input = gui.getDriverSelect();
-        Pose2d targetPoint = new Pose2d(7, 12);
+        Pose2d targetPoint = new Pose2d(12, 12);
 
         ArrayList<Pose2d> inBounds = new ArrayList<>();
         for (Pose2d p : input) {
@@ -111,7 +110,7 @@ public class SamplePreloadCycleAuto extends LinearOpMode {
         int len = inBounds.size();
         boolean[] grabbed = new boolean[len];
         Pose2d[] targets = new Pose2d[len];
-        RobotLog.i(inBounds.toString() + " is inBounds first");
+        RobotLog.i(inBounds + " is inBounds first");
         for (int i = 0; i < len; i++) {
             Pose2d best = new Pose2d(100, 100);
             for (Pose2d p : inBounds) {
@@ -124,10 +123,12 @@ public class SamplePreloadCycleAuto extends LinearOpMode {
 
             Log.i("JAMES", best.x + " " + best.y + " " + best.heading);
         }
-        RobotLog.i(inBounds.toString() + " is inBounds after");
+        RobotLog.i(inBounds + " is inBounds after");
         RobotLog.i(Arrays.toString(targets) + " is targets after");
 
         robot.canvasDrawTasks.add((Canvas canvas) -> {
+            canvas.setFill("#c0c0c0");
+            canvas.fillCircle(targetPoint.x, targetPoint.y, 1);
             canvas.setFill("#ff00ff");
             if (len > 0) canvas.fillCircle(targets[targetSampleIndex].x, targets[targetSampleIndex].y, 2);
             for (int i = 0; i < len; i++) {
@@ -138,6 +139,7 @@ public class SamplePreloadCycleAuto extends LinearOpMode {
             Log.i("JAMES", state + " is state");
             TelemetryUtil.packet.put("Intake AUTO : state", state);
         });
+        TelemetryUtil.packet.put("Intake AUTO : section", "preloads");
 
         Globals.autoStartTime = System.currentTimeMillis();
 
@@ -278,7 +280,7 @@ public class SamplePreloadCycleAuto extends LinearOpMode {
 
         targetSampleIndex = 0;
         while (targetSampleIndex < len && !isStopRequested()) {
-            TelemetryUtil.packet.put("Intake AUTO section", "go to");
+            TelemetryUtil.packet.put("Intake AUTO : section", "go to");
 
             pickUp = targets[targetSampleIndex];
 
@@ -290,6 +292,10 @@ public class SamplePreloadCycleAuto extends LinearOpMode {
             robot.nclawIntake.setGrab(false);
             robot.nclawIntake.extend();
             robot.nclawIntake.resetRetryCounter();
+
+            Log.i("JAMES", "START" + robot.nclawIntake.state + " is state");
+            Log.i("JAMES", "START" + robot.nclawIntake.getIntakeLength() + " is extendo length");
+            Log.i("JAMES", "START" + robot.sensors.getOdometryPosition().x + " " + robot.sensors.getOdometryPosition().y + " " + robot.sensors.getOdometryPosition().heading);
 
             robot.drivetrain.goToPoint(
                 new Pose2d(33, Utils.minMaxClip(pickUp.y, -16, 16), Math.toRadians(210)),
@@ -308,13 +314,13 @@ public class SamplePreloadCycleAuto extends LinearOpMode {
 
             robot.nclawIntake.setKnownIntakePose(new Pose2d(pickUp.x, pickUp.y, 0));
 
-            TelemetryUtil.packet.put("Intake AUTO section", "extend");
+            TelemetryUtil.packet.put("Intake AUTO : section", "extend");
 
             robot.waitWhile(() -> !robot.nclawIntake.isExtended());
             robot.nclawIntake.manualEnableCamera();
             robot.nclawIntake.resetRetryCounter();
 
-            TelemetryUtil.packet.put("Intake AUTO section", "scan");
+            TelemetryUtil.packet.put("Intake AUTO : section", "scan");
 
             // Mini FSM that goes through the targets array searching for a viable grab.
             // SCANNING -> Search for a new sample that may require moving the robot. keep on interating through if no sample can be found. This may require movement shifts
@@ -387,7 +393,7 @@ public class SamplePreloadCycleAuto extends LinearOpMode {
             state = State.SCANNING;
             grabbed[targetSampleIndex] = true;
 
-            TelemetryUtil.packet.put("Intake AUTO section", "leave");
+            TelemetryUtil.packet.put("Intake AUTO : section", "leave");
 
             Pose2d currentPos = robot.sensors.getOdometryPosition();
             Spline s2 = new Spline(currentPos, 7)
@@ -405,7 +411,7 @@ public class SamplePreloadCycleAuto extends LinearOpMode {
             robot.waitWhile(() -> robot.sensors.getOdometryPosition().getDistanceFromPoint(s2.getLastPoint()) > 24);
             robot.ndeposit.startSampleDeposit();
 
-            TelemetryUtil.packet.put("Intake AUTO section", "deposit");
+            TelemetryUtil.packet.put("Intake AUTO : section", "deposit");
 
             robot.waitWhile(() -> !robot.ndeposit.isDepositReady());
             robot.ndeposit.deposit();
@@ -861,4 +867,4 @@ public class SamplePreloadCycleAuto extends LinearOpMode {
             else
                 pickUp.y -= 4;
         }
-    */
+*/

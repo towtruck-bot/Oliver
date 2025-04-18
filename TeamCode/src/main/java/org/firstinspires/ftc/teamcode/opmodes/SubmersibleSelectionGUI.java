@@ -8,7 +8,6 @@ import org.firstinspires.ftc.teamcode.utils.ButtonToggle;
 import org.firstinspires.ftc.teamcode.utils.Pose2d;
 import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 import org.firstinspires.ftc.teamcode.utils.Utils;
-
 import java.util.ArrayList;
 
 public class SubmersibleSelectionGUI {
@@ -20,7 +19,7 @@ public class SubmersibleSelectionGUI {
     private int cursorX = asciiLen / 2, cursorY = asciiWidth / 2;
 
     public SubmersibleSelectionGUI() {
-        for (int i = 10; i <= 16; ++i) for (int j = i % 2 == 0 ? 8 : 9; j <= 12; j += 2) sub[i][j] = true;
+        //preselect();
     }
 
     public ArrayList<Pose2d> getDriverSelect() {
@@ -29,12 +28,10 @@ public class SubmersibleSelectionGUI {
         for (int i = 0; i < asciiLen; i++) {
             for (int j = 0; j < asciiWidth; j++) {
                 if (sub[i][j]) {
-                    coords.add(
-                            new Pose2d(
-                                    (i + 0.5 - (double) asciiLen / 2.0) * length / (double) asciiLen,
-                                    (j + 0.5 - (double) asciiWidth / 2.0) * width / (double) asciiWidth
-                            )
-                    );
+                    coords.add(new Pose2d(
+                        (i + 0.5 - (double) asciiLen / 2.0) * length / (double) asciiLen,
+                        (j + 0.5 - (double) asciiWidth / 2.0) * width / (double) asciiWidth
+                    ));
                 }
             }
         }
@@ -100,10 +97,10 @@ public class SubmersibleSelectionGUI {
             flash = !flash;
         }
 
-        if (preset.isClicked(gamepad.y)) {
-            sub[asciiLen - 3][asciiWidth - 5] = true;
-            sub[asciiLen - 3][asciiWidth - 6] = true;
-            sub[asciiLen - 3][asciiWidth - 7] = true;
-        }
+        if (preset.isClicked(gamepad.y)) preselect();
+    }
+
+    private void preselect() {
+        for (int i = 11; i <= 18; ++i) for (int j = i % 2 == 0 ? 8 : 9; j <= 14; j += 2) sub[i][j] = true;
     }
 }

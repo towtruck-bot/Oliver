@@ -155,9 +155,7 @@ public class LLBlockDetectionPostProcessor {
         ll.start();
     }
 
-    public void stop() {
-        ll.stop();
-    }
+    public void stop() { ll.stop(); }
 
     public void setBlockColor(BlockColor block) {
         this.blockColor = block;
@@ -182,7 +180,7 @@ public class LLBlockDetectionPostProcessor {
             Pose2d abs = new Pose2d(
                 cur.x + rel.x * Math.cos(cur.heading) - rel.y * Math.sin(cur.heading),
                 cur.y + rel.x * Math.sin(cur.heading) + rel.y * Math.cos(cur.heading),
-                cur.heading - rel.heading
+                rel.heading - cur.heading
             );
             canvas.setStroke("#808080");
             canvas.strokeCircle(b.getX(), b.getY(), 3);
@@ -297,8 +295,7 @@ public class LLBlockDetectionPostProcessor {
             //canvas.fillText("Vision is on", 24, 24, "8px Arial", 0);
         }
 
-        for (Block b : blocks)
-            b.update();
+        for (Block b : blocks) b.update();
             /*if ((area <= 10000 || area >= 14000) && detections >= 1) { // Pre worlds jank - Eric
                 blockPos = expectedNewBlockPose.clone();
                 newDetections = detections;
@@ -325,9 +322,7 @@ public class LLBlockDetectionPostProcessor {
     /**
      * Stops detection
      */
-    public void stopDetection() {
-        detecting = false;
-    }
+    public void stopDetection() { detecting = false; }
 
 
     public void setOffset(Vector2 v) {
@@ -340,29 +335,17 @@ public class LLBlockDetectionPostProcessor {
         offset = v;
     }
 
-    private double getInchesX(double x) {
-        return 0.0162 + 0.114 * x + 1.76e-4 * x * x;
-    }
+    private double getInchesX(double x) { return 0.0162 + 0.114 * x + 1.76e-4 * x * x; }
 
-    private double getInchesY(double y) {
-        return 0.203 + 0.123 * y + -6.55e-5 * y * y;
-    }
+    private double getInchesY(double y) { return 0.203 + 0.123 * y + -6.55e-5 * y * y; }
 
-    public void setNewOrientation(double ang) {
-        orientation = ang;
-    }
+    public void setNewOrientation(double ang) { orientation = ang; }
 
-    public boolean isDetecting() {
-        return detecting;
-    }
+    public boolean isDetecting() { return detecting; }
 
-    public BlockColor getBlockColor() {
-        return blockColor;
-    }
+    public BlockColor getBlockColor() { return blockColor; }
 
-    public void removeBlock(Block b) {
-        blocks.remove(b);
-    }
+    public void removeBlock(Block b) { blocks.remove(b); }
 
     public static LinkedList<Block> filterBlocks(LinkedList<Block> blocks, Predicate<Block> filter) {
         LinkedList<Block> output = new LinkedList<>();
@@ -375,9 +358,7 @@ public class LLBlockDetectionPostProcessor {
         return output;
     }
 
-    public Block getClosestValidBlock() {
-        return getClosestValidBlock(offset, blocks);
-    }
+    public Block getClosestValidBlock() { return getClosestValidBlock(offset, blocks); }
 
     public static Block getClosestValidBlock(Vector2 offset, LinkedList<Block> blocks) {
         if (blocks.size() <= 0) return null;
@@ -396,14 +377,9 @@ public class LLBlockDetectionPostProcessor {
         return closest;
     }
 
-    public LinkedList<Block> getBlocks() {
-        return blocks;
-    }
+    public LinkedList<Block> getBlocks() { return blocks; }
 
-    public Vector2 getOffset() {
-        return offset;
-    }
-    private double buffer = 1.5;
+    public Vector2 getOffset() { return offset; }
 
     public void hardwareStop() {
         ll.stop();

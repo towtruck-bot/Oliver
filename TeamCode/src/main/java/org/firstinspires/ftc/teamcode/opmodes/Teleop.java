@@ -26,6 +26,7 @@ public class Teleop extends LinearOpMode {
     public static double intakeClawRotationInc = 0.1;
     public static double intakeTurretRotationInc = -0.1;
     public static double extensionPreset = 15;
+    public static double transitionDelay = 750;
 
     public void runOpMode() {
         Globals.RUNMODE = RunMode.TELEOP;
@@ -52,8 +53,8 @@ public class Teleop extends LinearOpMode {
 
         final double triggerThresh = 0.2;
         final double triggerHardThresh = 0.7;
-        double turretAngle = 0;
-        double clawAngle = 0;
+        //double turretAngle = 0;
+        //double clawAngle = 0;
         boolean speciMode = false;
         boolean intakeMode = false;
         boolean high = true;
@@ -61,13 +62,21 @@ public class Teleop extends LinearOpMode {
         boolean forceBrakePad = false;
         boolean manualBrake = false;
 
-        robot.ndeposit.hangSafety = true;
+        final double opmodeStart = System.currentTimeMillis();
+
+        robot.sensors.update();
+
+        robot.ndeposit.arm.setArmRotation(0.02, 1);
+        robot.nclawIntake.setExtendoTargetPos(robot.sensors.getExtendoPos() <= 4 ? robot.sensors.getExtendoPos() : 12);
+        robot.nclawIntake.intakeTurret.setTurretArmTarget(nClawIntake.restrictedHoverAngle);
+        robot.nclawIntake.intakeTurret.setTurretRotation(nClawIntake.turretTransferRotation);
         while (opModeInInit()) {
-            robot.update();
-            if (!robot.ndeposit.arm.armInPosition()) robot.nclawIntake.state = nClawIntake.State.START_RETRACT;
+            if (System.currentTimeMillis() < opmodeStart + transitionDelay) robot.nclawIntake.state = nClawIntake.State.TEST;
+            else if (robot.nclawIntake.state == nClawIntake.State.TEST) robot.nclawIntake.state = nClawIntake.State.RETRACT;
             robot.ndeposit.presetDepositHeight(speciMode, high, false);
+            robot.update();
         }
-        robot.ndeposit.hangSafety = false;
+        if (robot.nclawIntake.state == nClawIntake.State.TEST) robot.nclawIntake.state = nClawIntake.State.RETRACT;
         robot.nclawIntake.setTargetPose(new Pose2d(extensionPreset, 0, 0));
         robot.nclawIntake.setAutoEnableCamera(true);
         robot.nclawIntake.disableRestrictedHoldPos();
@@ -144,8 +153,8 @@ public class Teleop extends LinearOpMode {
                         robot.nclawIntake.extend();
                         intakeMode = true;
                         robot.nclawIntake.target.heading = robot.nclawIntake.target.y = 0;
-                        turretAngle = 0;
-                        clawAngle = 0;
+                        //turretAngle = 0;
+                        //clawAngle = 0;
                     }
                     // Manual retract
                     else robot.nclawIntake.retract();

@@ -185,10 +185,6 @@ public class IntakeTurret {
         return intakeExtension.inPosition();
     }
 
-    public boolean extendoInPosition(double t) {
-        return intakeExtension.inPosition(t); // AHDUHSADI STOP ABSTRACING  -eric
-    }
-
     public boolean rotInPosition() {
         return clawRotation.inPosition();
     }

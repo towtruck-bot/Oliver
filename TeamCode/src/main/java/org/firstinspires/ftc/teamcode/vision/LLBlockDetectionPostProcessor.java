@@ -180,13 +180,24 @@ public class LLBlockDetectionPostProcessor {
         TelemetryUtil.packet.put("vision : orientation", orientation);
         Canvas canvas = TelemetryUtil.packet.fieldOverlay();
         for (Block b : blocks) {
-            canvas.setStroke("#888800");
+            Pose2d rel = b.getPose();
+            Pose2d cur = robot.sensors.getOdometryPosition();
+            Pose2d abs = new Pose2d(
+                cur.x + rel.x * Math.cos(cur.heading) - rel.y * Math.sin(cur.heading),
+                cur.y + rel.x * Math.sin(cur.heading) + rel.y * Math.cos(cur.heading),
+                cur.heading - rel.heading
+            );
+            canvas.setStroke("#808080");
             canvas.strokeCircle(b.getX(), b.getY(), 3);
             canvas.strokeLine(b.getX(), b.getY(), b.getX() + 5 * Math.sin(b.getHeading()), b.getY() + 5 * Math.cos(b.getHeading()));
 
-            /*canvas.setStroke("#444400");
+            canvas.setStroke("#c04040");
+            canvas.strokeCircle(abs.x, abs.y, 2.5);
+            canvas.strokeLine(abs.x, abs.y, abs.x + 5 * Math.sin(abs.heading), abs.y + 5 * Math.cos(abs.heading));
+
+            canvas.setStroke("#4040c0");
             canvas.strokeCircle(b.getGlobalPose().x, b.getGlobalPose().y, 3);
-            canvas.strokeLine(b.getGlobalPose().x, b.getGlobalPose().y, b.getGlobalPose().x + 5 * Math.sin(b.getGlobalPose().heading), b.getGlobalPose().y + 5 * Math.cos(b.getGlobalPose().heading));*/
+            canvas.strokeLine(b.getGlobalPose().x, b.getGlobalPose().y, b.getGlobalPose().x + 5 * Math.sin(b.getGlobalPose().heading), b.getGlobalPose().y + 5 * Math.cos(b.getGlobalPose().heading));
         }
 
         TelemetryUtil.packet.put("LL connected", ll.isConnected());

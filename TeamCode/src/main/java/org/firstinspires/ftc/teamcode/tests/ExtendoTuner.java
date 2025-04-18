@@ -22,13 +22,13 @@ public class ExtendoTuner extends LinearOpMode {
 
         waitForStart();
 
-        while(!isStopRequested()){
+        while (!isStopRequested()) {
             robot.nclawIntake.intakeTurret.setTurretArmTarget(nClawIntake.turretSearchAngle);
             robot.nclawIntake.intakeTurret.setTurretRotation(nClawIntake.turretSearchRotation);
             robot.nclawIntake.setExtendoTargetPos(targetLength);
 
-            TelemetryUtil.packet.put("Extendo Target", robot.nclawIntake.getExtendoTargetPos());
-            TelemetryUtil.packet.put("Extendo Current Pos", robot.sensors.getExtendoPos());
+            //TelemetryUtil.packet.put("Extendo Target", robot.nclawIntake.getExtendoTargetPos());
+            //TelemetryUtil.packet.put("Extendo Current Pos", robot.sensors.getExtendoPos());
 
             robot.update();
         }

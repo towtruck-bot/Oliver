@@ -64,7 +64,7 @@ public class SubmersibleSelectionGUI {
         }
 
         tele.update();
-        TelemetryUtil.sendTelemetry();
+        //TelemetryUtil.sendTelemetry();
 
         if (down.isClicked(gamepad.dpad_down || gamepad.right_stick_y > 0.2)) {
             cursorY = Utils.minMaxClip(cursorY + 1, 0, asciiWidth - 1);

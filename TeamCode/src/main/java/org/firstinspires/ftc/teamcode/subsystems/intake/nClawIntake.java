@@ -248,7 +248,7 @@ public class nClawIntake {
                 }
 
                 if (psReads >= 35) {
-                    if(Globals.RUNMODE != RunMode.TELEOP){
+                    if (Globals.RUNMODE != RunMode.TELEOP) {
                         retryCounter++;
                     }
                     if (!retryGrab) grab = false;
@@ -361,9 +361,8 @@ public class nClawIntake {
                     extendRequest = false;
                 }
 
-                if(intakeTurret.turretArm.inPosition()){
-                    state = State.TRANSFER_WAIT;
-                }
+                if (intakeTurret.turretArm.inPosition()) state = State.TRANSFER_WAIT;
+
                 break;
             case TRANSFER_WAIT:
                 // hold in transfer position
@@ -459,8 +458,9 @@ public class nClawIntake {
         return state == State.READY;
     }
 
-    public void setGrab(boolean closed) {
-        grab = closed;
+    public void setGrab(boolean state) {
+        Log.i("JAMES", "setGrab " + state);
+        grab = state;
     }
 
     // Confirm pickup
@@ -473,7 +473,7 @@ public class nClawIntake {
     }
 
     public boolean isTransferReady() {
-        RobotLog.e("TSPMO " + intakeTurret.inPosition() + " " + intakeTurret.extendoInPosition() + " " + (state == State.TRANSFER_WAIT));
+        //RobotLog.e("TSPMO " + intakeTurret.inPosition() + " " + intakeTurret.extendoInPosition() + " " + (state == State.TRANSFER_WAIT));
         return intakeTurret.inPosition() && state == State.TRANSFER_WAIT;
     }
 
@@ -490,7 +490,7 @@ public class nClawIntake {
 
     public double getExtendoTargetPos() { return this.intakeSetTargetPos; }
     public void setExtendoTargetPos(double targetPos) {
-        this.intakeSetTargetPos = Utils.minMaxClip(targetPos, 1, 19);
+        this.intakeSetTargetPos = Utils.minMaxClip(targetPos, 1, IntakeExtension.maxExtendoLength);
     }
     public double getManualTurretAngle() { return this.manualTurretAngle; }
     public void setManualTurretAngle(double targetPos) {
@@ -519,19 +519,27 @@ public class nClawIntake {
 //    public void forcePullIn() { forcePull = true; }
 
     public void updateTelemetry() {
-        TelemetryUtil.packet.put("ClawIntake : clawRotation angle", intakeTurret.getClawRotation());
-        TelemetryUtil.packet.put("ClawIntake : manualTurretAngle", manualTurretAngle);
-        TelemetryUtil.packet.put("ClawIntake : manualClawAngle", manualClawAngle);
-        TelemetryUtil.packet.put("ClawIntake : grab", grab);
-        TelemetryUtil.packet.put("ClawIntake : grabMethod", grabMethod);
-        TelemetryUtil.packet.put("ClawIntake : targetType", targetType);
-        TelemetryUtil.packet.put("ClawIntake : state", this.state);
+        TelemetryUtil.packet.put("Intake : clawRotation angle", intakeTurret.getClawRotation());
+        TelemetryUtil.packet.put("Intake : manualTurretAngle", manualTurretAngle);
+        TelemetryUtil.packet.put("Intake : manualClawAngle", manualClawAngle);
+        TelemetryUtil.packet.put("Intake : grab", grab);
+        TelemetryUtil.packet.put("Intake : grabMethod", grabMethod);
+        TelemetryUtil.packet.put("Intake : targetType", targetType);
+        TelemetryUtil.packet.put("Intake : sampleStatus", sampleStatus);
+        TelemetryUtil.packet.put("Intake : retryCounter", retryCounter);
+        TelemetryUtil.packet.put("Intake : state", this.state);
         TelemetryUtil.packet.put("intakeState", this.state);
         LogUtil.intakeState.set(this.state.toString());
-        TelemetryUtil.packet.put("LL : Target X", target.x);
-        TelemetryUtil.packet.put("LL : Target Y", target.y);
-        TelemetryUtil.packet.put("LL : Target Heading", target.heading);
-
+        TelemetryUtil.packet.put("Intake : Target X", target.x);
+        TelemetryUtil.packet.put("Intake : Target Y", target.y);
+        TelemetryUtil.packet.put("Intake : Target Heading", target.heading);
+        TelemetryUtil.packet.put("Intake : visionTargetBlock", visionTargetBlock);
+        TelemetryUtil.packet.put("Intake | arm target", intakeTurret.turretArm.getTargetAngle());
+        TelemetryUtil.packet.put("Intake | arm inPosition", intakeTurret.turretAngInPosition());
+        TelemetryUtil.packet.put("Intake | turret target", intakeTurret.turretRotation.getTargetAngle());
+        TelemetryUtil.packet.put("Intake | turret inPosition", intakeTurret.turretRotInPosition());
+        TelemetryUtil.packet.put("Intake | claw target", intakeTurret.clawRotation.getTargetAngle());
+        TelemetryUtil.packet.put("Intake | claw inPosition", intakeTurret.clawInPosition());
     }
 
     public void setGrabMethod(GrabMethod grabMethod) {

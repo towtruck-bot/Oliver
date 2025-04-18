@@ -3,24 +3,21 @@ package org.firstinspires.ftc.teamcode;
 import static org.firstinspires.ftc.teamcode.utils.Globals.GET_LOOP_TIME;
 import static org.firstinspires.ftc.teamcode.utils.Globals.START_LOOP;
 
-import android.util.Log;
-
 import com.qualcomm.robotcore.hardware.HardwareMap;
-
 import org.firstinspires.ftc.teamcode.sensors.Sensors;
 import org.firstinspires.ftc.teamcode.subsystems.deposit.nDeposit;
 import org.firstinspires.ftc.teamcode.subsystems.drive.Drivetrain;
 import org.firstinspires.ftc.teamcode.subsystems.drive.Spline;
 import org.firstinspires.ftc.teamcode.subsystems.hang.Hang;
 import org.firstinspires.ftc.teamcode.subsystems.intake.nClawIntake;
-import org.firstinspires.ftc.teamcode.utils.Func;
 import org.firstinspires.ftc.teamcode.utils.LogUtil;
-import org.firstinspires.ftc.teamcode.utils.Pose2d;
 import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 import org.firstinspires.ftc.teamcode.utils.priority.HardwareQueue;
 import org.firstinspires.ftc.teamcode.vision.LLBlockDetectionPostProcessor;
-
-import java.util.function.Supplier;
+import com.acmerobotics.dashboard.canvas.Canvas;
+import java.util.ArrayList;
+import java.util.function.BooleanSupplier;
+import java.util.function.Consumer;
 
 public class Robot {
     public final HardwareMap hardwareMap;
@@ -32,6 +29,7 @@ public class Robot {
     public final Hang hang;
     public final LLBlockDetectionPostProcessor vision;
 
+/*
     public enum RobotState {
         RESET,
         IDLE,
@@ -56,8 +54,11 @@ public class Robot {
     private NextState nextState = NextState.DONE;
     private long lastClickTime = -1;
     public static long bufferClickDuration = 500;
+*/
 
-    private Supplier<Boolean> stopChecker = null;
+    private BooleanSupplier stopChecker = null;
+
+    public ArrayList<Consumer<Canvas>> canvasDrawTasks;
 
     public Robot(HardwareMap hardwareMap) {
         this.hardwareMap = hardwareMap;
@@ -81,6 +82,8 @@ public class Robot {
         vision = new LLBlockDetectionPostProcessor(this);
         vision.start();
 
+        canvasDrawTasks = new ArrayList<>();
+
         TelemetryUtil.setup();
         LogUtil.reset();
     }
@@ -92,7 +95,7 @@ public class Robot {
     }
 
     private void updateSubsystems() {
-        if (this.stopChecker != null && !this.stopChecker.get()) {
+        if (this.stopChecker != null && !this.stopChecker.getAsBoolean()) {
             this.hardwareQueue.update();
             return;
         }
@@ -254,13 +257,13 @@ boolean wasClicked;
     }
 */
 
-    /**
+    /*
      * Gets the Robot FSM's state. -- Daniel
      * @return the Robot FSM's state
      */
     //public RobotState getState() { return this.state; }
 
-    /**
+    /*
      * Sets what the robot will do next. Use in Teleop. -- Daniel
      *  <table>
      *      <tr>
@@ -312,13 +315,13 @@ boolean wasClicked;
      * An action can be requested slightly earlier than when the robot is ready to do it (buffer-click).
      * @param nextState what the robot will do next
      */
-    public void setNextState(NextState nextState) {
+    /*public void setNextState(NextState nextState) {
         Log.i("FSM", this.state + ", " + nextState);
         this.nextState = nextState;
         this.lastClickTime = System.nanoTime();
-    }
+    }*/
 
-    /**
+    /*
      * Restarts the current state. -- Daniel
      */
     /*public void restartState() {
@@ -330,16 +333,16 @@ boolean wasClicked;
      * Sets the condition that should abort waiting (waitWhile)
      * @param func the function to check (return false to abort)
      */
-    public void setStopChecker(Supplier<Boolean> func) { this.stopChecker = func; }
+    public void setStopChecker(BooleanSupplier func) { this.stopChecker = func; }
 
     /**
      * Waits while a condition is true
      * @param func the function to check
      */
-    public void waitWhile(Func func) {
+    public void waitWhile(BooleanSupplier func) {
         do {
             update();
-        } while (this.stopChecker.get() && ((boolean) func.call()));
+        } while (this.stopChecker.getAsBoolean() && func.getAsBoolean());
     }
 
     /**
@@ -350,16 +353,17 @@ boolean wasClicked;
         long start = System.currentTimeMillis();
         do {
             update();
-        } while (this.stopChecker.get() && System.currentTimeMillis() - start < duration);
+        } while (this.stopChecker.getAsBoolean() && System.currentTimeMillis() - start < duration);
     }
 
-//    public void goToPoint(Pose2d pose, Func func, boolean moveNear, boolean slowDown, boolean stop, double maxPower) {
-//        long start = System.currentTimeMillis();
-//        drivetrain.goToPoint(pose, moveNear, slowDown, stop, maxPower); // need this to start the process so thresholds don't immediately become true
-//        do {
-//            update();
-//        } while (((boolean) this.abortChecker.call()) && (func == null || (boolean) func.call()) && System.currentTimeMillis() - start <= 5000 && drivetrain.isBusy());
-//    }
+/*
+    public void goToPoint(Pose2d pose, Func func, boolean moveNear, boolean slowDown, boolean stop, double maxPower) {
+        long start = System.currentTimeMillis();
+        drivetrain.goToPoint(pose, moveNear, slowDown, stop, maxPower); // need this to start the process so thresholds don't immediately become true
+        do {
+            update();
+        } while (((boolean) this.abortChecker.call()) && (func == null || (boolean) func.call()) && System.currentTimeMillis() - start <= 5000 && drivetrain.isBusy());
+    }
 
     public void goToPoint(Pose2d pose, Func func, boolean finalAdjustment, boolean stop, double maxPower) {
         long start = System.currentTimeMillis();
@@ -369,36 +373,37 @@ boolean wasClicked;
         } while (this.stopChecker.get() && (func == null || (boolean) func.call()) && System.currentTimeMillis() - start <= 5000 && drivetrain.isBusy());
     }
 
-//    public void goToPointWithIntake(Pose2d pose, Func func, boolean moveNear, boolean slowDown, boolean stop, double maxPower) {
-//        long start = System.currentTimeMillis();
-//        drivetrain.goToPoint(pose, moveNear, slowDown, stop, maxPower, grab);
-//        setNextState(NextState.INTAKE_SAMPLE);
-//        nclawIntake.setIntakeLength(12.0);
-//
-//        do {
-//            update();
-//            nclawIntake.grab(!grab);
-//            if (drivetrain.state != Drivetrain.State.GO_TO_POINT) { /* Should use drivetrain.state == Drivetrain.DriveState.WAIT_AT_POINT*/
-//                nclawIntake.setIntakeLength(drivetrain.getExtension());
-//                nclawIntake.setClawRotation(Utils.headingClip(pose.heading - sensors.getOdometryPosition().heading));
-//                //TelemetryUtil.packet.put("auto aim", drivetrain.getExtension());
-//
-//                if (nclawIntake.isExtended() && drivetrain.state == Drivetrain.State.WAIT_AT_POINT) {
-//                    nclawIntake.grab(grab);
-//                }
-//            } else if (Math.abs(drivetrain.getTurnError()) < Math.toRadians(30)) {
-//                //TelemetryUtil.packet.put("auto aim", -1);
-//                nclawIntake.setIntakeLength(12.0);
-//            }
-//        } while (((boolean) this.abortChecker.call()) && (func == null || (boolean) func.call()) && System.currentTimeMillis() - start <= 5000 && !(
-//            grab ? nclawIntake.hasSample() && nclawIntake.hasSample() : !nclawIntake.hasSample() && nclawIntake.state == nClawIntake.State.
-//        ));
-//
-//        nclawIntake.grab(grab);
-//        setNextState(NextState.DONE);
-//    }
+    public void goToPointWithIntake(Pose2d pose, Func func, boolean moveNear, boolean slowDown, boolean stop, double maxPower) {
+        long start = System.currentTimeMillis();
+        drivetrain.goToPoint(pose, moveNear, slowDown, stop, maxPower, grab);
+        setNextState(NextState.INTAKE_SAMPLE);
+        nclawIntake.setIntakeLength(12.0);
 
-    public void followSpline(Spline spline, Func func) {
+        do {
+            update();
+            nclawIntake.grab(!grab);
+            if (drivetrain.state != Drivetrain.State.GO_TO_POINT) { // Should use drivetrain.state == Drivetrain.DriveState.WAIT_AT_POINT
+                nclawIntake.setIntakeLength(drivetrain.getExtension());
+                nclawIntake.setClawRotation(Utils.headingClip(pose.heading - sensors.getOdometryPosition().heading));
+                //TelemetryUtil.packet.put("auto aim", drivetrain.getExtension());
+
+                if (nclawIntake.isExtended() && drivetrain.state == Drivetrain.State.WAIT_AT_POINT) {
+                    nclawIntake.grab(grab);
+                }
+            } else if (Math.abs(drivetrain.getTurnError()) < Math.toRadians(30)) {
+                //TelemetryUtil.packet.put("auto aim", -1);
+                nclawIntake.setIntakeLength(12.0);
+            }
+        } while (((boolean) this.abortChecker.call()) && (func == null || (boolean) func.call()) && System.currentTimeMillis() - start <= 5000 && !(
+            grab ? nclawIntake.hasSample() && nclawIntake.hasSample() : !nclawIntake.hasSample() && nclawIntake.state == nClawIntake.State.
+        ));
+
+        nclawIntake.grab(grab);
+        setNextState(NextState.DONE);
+    }
+*/
+
+    public void followSpline(Spline spline, BooleanSupplier func) {
         long start = System.currentTimeMillis();
         drivetrain.setPath(spline);
         drivetrain.state = Drivetrain.State.FOLLOW_SPLINE;
@@ -407,7 +412,7 @@ boolean wasClicked;
 
         do {
             update();
-        } while (this.stopChecker.get() && (func == null || (boolean) func.call()) && System.currentTimeMillis() - start <= 10000 && drivetrain.isBusy());
+        } while (this.stopChecker.getAsBoolean() && (func == null || func.getAsBoolean()) && System.currentTimeMillis() - start <= 10000 && drivetrain.isBusy());
     }
 
     private void updateTelemetry() {
@@ -418,6 +423,10 @@ boolean wasClicked;
         //TelemetryUtil.packet.put("Robot.nextState", this.nextState.toString());
         //TelemetryUtil.packet.put("Globals::RUNMODE", Globals.RUNMODE);
         //TelemetryUtil.packet.put("Globals::TESTING_DISABLE_CONTROL", Globals.TESTING_DISABLE_CONTROL);
+
+        Canvas canvas = TelemetryUtil.packet.fieldOverlay();
+        for (Consumer<Canvas> task : canvasDrawTasks) task.accept(canvas);
+
         TelemetryUtil.packet.put("Loop Time", GET_LOOP_TIME());
         //LogUtil.loopTime.set(GET_LOOP_TIME());
         TelemetryUtil.sendTelemetry();

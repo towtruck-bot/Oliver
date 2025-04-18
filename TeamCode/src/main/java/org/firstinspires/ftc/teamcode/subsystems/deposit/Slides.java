@@ -85,7 +85,7 @@ public class Slides {
 
         if (!manualMode) {
 //            if (!(Globals.RUNMODE == RunMode.TESTER)) {
-            TelemetryUtil.packet.put("slidesError", targetLength - length);
+            TelemetryUtil.packet.put("Slides : Error", targetLength - length);
             double pow = pid.update(targetLength - length, -1.0, 1.0) + ((length > minKStaticLength) ? kStaticRamp / maxSlidesHeight * length : 0);//feedforward();
             if (length <= forceDownThresh && targetLength == 0)
                 pow = forceDownPower;
@@ -135,9 +135,7 @@ public class Slides {
     }
 
     public boolean inPosition(double threshold) {
-        if (targetLength <= threshold) {
-            return length <= threshold;
-        }
+        if (targetLength <= threshold) return length <= threshold;
         return Math.abs(targetLength - length) <= threshold;
     }
 

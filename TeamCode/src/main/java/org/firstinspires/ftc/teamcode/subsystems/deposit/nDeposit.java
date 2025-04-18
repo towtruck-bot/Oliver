@@ -54,7 +54,7 @@ public class nDeposit {
     public static double outtakeArm = -2.9225, outtakeClaw = -0.00169, outtakeZ = 0.0;
     public static double specimenIntakeArm = -2.8, specimenIntakeClaw = 1.55, specimenIntakeZ = 2.7;
     public static double specimenDepositArm = -0.3087, specimenDepositClaw = 0.0507, speciSwingThresh = 4;
-    public static double hangArm = Math.toRadians(-180);
+    public static double hangArm = Math.toRadians(-90);
     public static double minVel = 4;
     private boolean holding = false;
     private long depositStart = 0;
@@ -104,7 +104,7 @@ public class nDeposit {
 
                 arm.clawOpen();
 
-                if (Globals.RUNMODE == RunMode.TELEOP ? requestFinishTransfer : requestFinishTransfer && robot.nclawIntake.isTransferReady() && slides.inPosition(1.5) && arm.inPosition()) {
+                if (requestFinishTransfer && (Globals.RUNMODE == RunMode.TELEOP || (robot.nclawIntake.isTransferReady() && slides.inPosition(1) && arm.inPosition()))) {
                     state = State.TRANSFER_WAIT;
                     slidesVelWeightedAvg = slides.getVel();
                 }
@@ -296,15 +296,23 @@ public class nDeposit {
         if (holdSlides) slides.setTargetLength(targetZ);
         hangState = HangState.OFF;
 
-        TelemetryUtil.packet.put("arm target", arm.armRotation.getTargetAngle());
-        TelemetryUtil.packet.put("arm inPosition", arm.armInPosition());
-        TelemetryUtil.packet.put("claw target", arm.clawRotation.getTargetAngle());
-        TelemetryUtil.packet.put("claw inPosition", arm.clawInPosition());
-        TelemetryUtil.packet.put("slides target", slides.getTargetLength());
-        TelemetryUtil.packet.put("slides inPosition", slides.inPosition(1.0));
+        TelemetryUtil.packet.put("Deposit - requestFinishTransfer", requestFinishTransfer);
+        TelemetryUtil.packet.put("Deposit - transferRequested", transferRequested);
+        TelemetryUtil.packet.put("Deposit - releaseRequested", releaseRequested);
+        TelemetryUtil.packet.put("Deposit - sampleDepositRequested", sampleDepositRequested);
+        TelemetryUtil.packet.put("Deposit - outtakeRequested", outtakeRequested);
+        TelemetryUtil.packet.put("Deposit - specimenDepositRequested", specimenDepositRequested);
+        TelemetryUtil.packet.put("Deposit - specimenIntakeRequested", specimenIntakeRequested);
+        TelemetryUtil.packet.put("Deposit - grabRequested", grabRequested);
+        TelemetryUtil.packet.put("Deposit | arm target", arm.armRotation.getTargetAngle());
+        TelemetryUtil.packet.put("Deposit | arm inPosition", arm.armInPosition());
+        TelemetryUtil.packet.put("Deposit | claw rotation target", arm.clawRotation.getTargetAngle());
+        TelemetryUtil.packet.put("Deposit | claw rotation inPosition", arm.clawRotInPosition());
+        TelemetryUtil.packet.put("Slides target", slides.getTargetLength());
+        TelemetryUtil.packet.put("Slides inPosition", slides.inPosition(0.5));
     }
 
-    public void setByCoords(double armRad, double clawRad, double slidesHeight){
+    public void setByCoords(double armRad, double clawRad, double slidesHeight) {
         arm.setArmRotation(armRad, 1.0);
         arm.setClawRotation(clawRad, 1.0);
         slides.setTargetLength(slidesHeight);
@@ -396,7 +404,7 @@ public class nDeposit {
     }
 
     public boolean isTransferReady() {
-        return state == State.TRANSFER_BUFFER && arm.inPosition() && slides.inPosition(0.2);
+        return state == State.TRANSFER_BUFFER && arm.inPosition() && slides.inPosition(0.5);
     }
 
     public boolean isDepositReady() {
@@ -425,9 +433,7 @@ public class nDeposit {
 
         state = State.RETRACT;
     }
-    public boolean isSafeHeight(){
-        return state == State.SAMPLE_RAISE && slides.getLength() >= 5;
-    }
+    public boolean isSafeHeight() { return state == State.SAMPLE_RAISE && slides.getLength() >= 5; }
 
     public boolean isHolding() {
         return holding;

@@ -2,9 +2,11 @@ package org.firstinspires.ftc.teamcode.opmodes;
 
 import android.util.Log;
 
+import com.acmerobotics.dashboard.canvas.Canvas;
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.teamcode.Robot;
@@ -17,13 +19,15 @@ import org.firstinspires.ftc.teamcode.utils.Globals;
 import org.firstinspires.ftc.teamcode.utils.LogUtil;
 import org.firstinspires.ftc.teamcode.utils.Pose2d;
 import org.firstinspires.ftc.teamcode.utils.RunMode;
+import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 import org.firstinspires.ftc.teamcode.utils.Utils;
 import org.firstinspires.ftc.teamcode.vision.LLBlockDetectionPostProcessor;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
 
-@Autonomous(name = "Sample Cycle Auto", preselectTeleOp = "A. Teleop")
+//@Autonomous(name = "Sample Cycle Auto", preselectTeleOp = "A. Teleop")
+@TeleOp(name = "A. Sample Cycle Auto")
 @Config
 public class SamplePreloadCycleAuto extends LinearOpMode {
     private Robot robot;
@@ -32,8 +36,8 @@ public class SamplePreloadCycleAuto extends LinearOpMode {
     public static double bx1 = 50.4, by1 = 27.6, bx2 = 60.3, by2 = 27.6, bx3 = 69.7, by3 = 27.6;
 
     // P/G/C depo positions
-    public static double dx1 = 63, dy1 = 53;
-    public static double dx2 = 64.3, dy2 = 52.5;
+    public static double dx1 = 63, dy1 = 54;
+    public static double dx2 = 64.3, dy2 = 54;
     public static double dx3 = 65.395 + 1.5 * Math.cos(Math.toRadians(272.0638)), dy3 = 54.38457 + 1.5 * Math.sin(Math.toRadians(272.0638));
     public static double dcx = 62, dcy = 55;
 
@@ -85,8 +89,6 @@ public class SamplePreloadCycleAuto extends LinearOpMode {
 
         // Sorting Driver input in order of closest target
         ArrayList<Pose2d> input = gui.getDriverSelect();
-        ArrayList<Pose2d> targets = new ArrayList<>();
-        boolean[] grabbed = new boolean[input.size()];
         Pose2d targetPoint = new Pose2d(7, 12);
 
         ArrayList<Pose2d> inBounds = new ArrayList<>();
@@ -98,6 +100,8 @@ public class SamplePreloadCycleAuto extends LinearOpMode {
         }
 
         int len = inBounds.size();
+        boolean[] grabbed = new boolean[len];
+        Pose2d targets[] = new Pose2d[len];
         RobotLog.i(inBounds.toString() + " is inBounds first");
         for (int i = 0; i < len; i++) {
             Pose2d best = new Pose2d(100, 100);
@@ -105,28 +109,36 @@ public class SamplePreloadCycleAuto extends LinearOpMode {
                 best = targetPoint.getDistanceFromPoint(p) < targetPoint.getDistanceFromPoint(best) ? p : best;
             }
 
-            if (best.x != 100) {
-                targets.add(targets.size(), best);
-                inBounds.remove(best);
-                grabbed[i] = false;
+            targets[i] = best;
+            inBounds.remove(best);
+            grabbed[i] = false;
 
-                Log.i("JAMES", best.x + " " + best.y + " " + best.heading);
-            } else {
-                Log.i("JAMES", "OUT " + i);
-            }
+            Log.i("JAMES", best.x + " " + best.y + " " + best.heading);
         }
         RobotLog.i(inBounds.toString() + " is inBounds after");
         RobotLog.i(targets.toString() + " is targets after");
+
+        robot.canvasDrawTasks.add((Canvas canvas) -> {
+            canvas.setFill("#ff00ff");
+            canvas.fillCircle(targets[targetSampleIndex].x, targets[targetSampleIndex].y, 2);
+            for (int i = 0; i < len; i++) {
+                canvas.setFill(grabbed[i] ? "#ff0000" : "#0000ff");
+                canvas.fillCircle(targets[i].x, targets[i].y, 1);
+            }
+
+            Log.i("JAMES", state + " is state");
+            TelemetryUtil.packet.put("Intake AUTO : state", state);
+        });
 
         Globals.autoStartTime = System.currentTimeMillis();
 
         // Preload + intake Ground 1
         robot.ndeposit.startSampleDeposit();
         robot.drivetrain.goToPoint(
-                new Pose2d(dx1, dy1, Math.atan2(by1 - dy1, bx1 - dx1)),
-                false,
-                true,
-                1.0
+            new Pose2d(dx1, dy1, Math.atan2(by1 - dy1, bx1 - dx1)),
+            false,
+            true,
+            1.0
         );
         robot.nclawIntake.setExtendoTargetPos(5);
         robot.nclawIntake.setTargetType(nClawIntake.Target.MANUAL);
@@ -159,10 +171,10 @@ public class SamplePreloadCycleAuto extends LinearOpMode {
 
         // Go to under bucket
         robot.drivetrain.goToPoint(
-                new Pose2d(dx2, dy2, Math.toRadians(257)),
-                false,
-                true,
-                1.0
+            new Pose2d(dx2, dy2, Math.toRadians(257)),
+            false,
+            true,
+            1.0
         );
 
         robot.waitWhile(() -> !robot.nclawIntake.isTransferReady());
@@ -198,10 +210,10 @@ public class SamplePreloadCycleAuto extends LinearOpMode {
         robot.nclawIntake.enableRestrictedHoldPos();
         // Go to under bucket
         robot.drivetrain.goToPoint(
-                new Pose2d(dx3, dy3, Math.toRadians(272.0638)),
-                true,
-                true,
-                1.0
+            new Pose2d(dx3, dy3, Math.toRadians(272.0638)),
+            true,
+            true,
+            1.0
         );
 
         robot.waitWhile(() -> !robot.nclawIntake.isTransferReady() || !robot.ndeposit.isTransferReady());
@@ -235,10 +247,10 @@ public class SamplePreloadCycleAuto extends LinearOpMode {
         });
         // Go to under bucket
         /*robot.drivetrain.goToPoint(
-                new Pose2d(dx3, dy3, Math.toRadians(272.0638)),
-                true,
-                true,
-                1.0
+            new Pose2d(dx3, dy3, Math.toRadians(272.0638)),
+            true,
+            true,
+            1.0
         );*/
         robot.waitWhile(() -> !robot.nclawIntake.isTransferReady() || !robot.ndeposit.isTransferReady());
         robot.ndeposit.startSampleDeposit();
@@ -256,29 +268,30 @@ public class SamplePreloadCycleAuto extends LinearOpMode {
         robot.nclawIntake.setGrabMethod(nClawIntake.GrabMethod.SEARCH_HOVER_MG);
 
         targetSampleIndex = 0;
-        while (targetSampleIndex < targets.size() && !isStopRequested()) {
-            pickUp = targets.get(targetSampleIndex);
+        while (targetSampleIndex < len && !isStopRequested()) {
+            pickUp = targets[targetSampleIndex];
 
             robot.ndeposit.presetDepositHeight(false, true, false);
             robot.nclawIntake.disableRestrictedHoldPos();
             robot.nclawIntake.removeKnown();
             robot.nclawIntake.setExtendoTargetPos(8);
+            robot.nclawIntake.setGrab(false);
             robot.nclawIntake.extend();
             robot.nclawIntake.resetRetryCounter();
 
             robot.drivetrain.goToPoint(
-                    new Pose2d(33, Utils.minMaxClip(pickUp.y, -16, 16), Math.toRadians(210)),
-                    false,
-                    false,
-                    1.0
+                new Pose2d(33, Utils.minMaxClip(pickUp.y, -16, 16), Math.toRadians(210)),
+                false,
+                false,
+                1.0
             );
 
             robot.waitWhile(() -> robot.drivetrain.targetPoint.getDistanceFromPoint(robot.sensors.getOdometryPosition()) > 3.5);
             robot.drivetrain.goToPoint(
-                    new Pose2d(30, Utils.minMaxClip(pickUp.y, -17.5, 17.5), Math.PI),
-                    false,
-                    true,
-                    1.0
+            new Pose2d(30, Utils.minMaxClip(pickUp.y, -17.5, 17.5), Math.PI),
+            false,
+            true,
+            1.0
             );
 
             robot.nclawIntake.setKnownIntakePose(new Pose2d(pickUp.x, pickUp.y, 0));
@@ -286,12 +299,12 @@ public class SamplePreloadCycleAuto extends LinearOpMode {
             robot.waitWhile(() -> !robot.nclawIntake.isExtended());
             robot.nclawIntake.manualEnableCamera();
             robot.nclawIntake.resetRetryCounter();
+            state = State.SCANNING;
 
             // Mini FSM that goes through the targets array searching for a viable grab.
             // SCANNING -> Search for a new sample that may require moving the robot. keep on interating through if no sample can be found. This may require movement shifts
             // PECKING -> Attempt grabs. If it cannot be picked up within 2 tires, move on to the next possible position. However, this requires rescanning
             while (!isStopRequested() && !robot.nclawIntake.hasSample()) {
-                Log.i("JAMES", state + " is state");
                 switch (state) {
                     case SCANNING:
                         scanStart = System.currentTimeMillis();
@@ -303,13 +316,13 @@ public class SamplePreloadCycleAuto extends LinearOpMode {
                                     robot.nclawIntake.resetRetryCounter();
                                 }
 
-                                while (!isStopRequested() && grabbed[targetSampleIndex]) {
-                                    targetSampleIndex = (targetSampleIndex + 1) % targets.size();
-                                }
+                                do {
+                                    targetSampleIndex = (targetSampleIndex + 1) % len;
+                                } while (!isStopRequested() && grabbed[targetSampleIndex]);
                                 Log.i("JAMES", "took too long, new index is " + targetSampleIndex);
 
                                 scanStart = System.currentTimeMillis();
-                                pickUp = targets.get(targetSampleIndex);
+                                pickUp = targets[targetSampleIndex];
                                 robot.nclawIntake.removeKnown();
                                 robot.nclawIntake.setKnownIntakePose(pickUp);
 
@@ -334,7 +347,7 @@ public class SamplePreloadCycleAuto extends LinearOpMode {
                         });
                         break;
                     case PECKING:
-                        Log.i("JAMES", "in pecking, sampleStatus" + (robot.nclawIntake.hasSample() ? "haha its here something really troll is going on" : "its a fricking ghost"));
+                        Log.i("JAMES", "in pecking, sampleStatus " + (robot.nclawIntake.hasSample() ? "haha its here something really troll is going on" : "its a fricking ghost"));
                         robot.waitWhile(() -> {
                             if (robot.nclawIntake.getRetryCounter() > 2) {
                                 robot.nclawIntake.setGrab(false);
@@ -342,7 +355,9 @@ public class SamplePreloadCycleAuto extends LinearOpMode {
 
                                 // Do this here and not in SCANNING to avoid marking a failed grab as a failed scan
                                 grabbed[targetSampleIndex] = false;
-                                targetSampleIndex++;
+                                do {
+                                    targetSampleIndex = (targetSampleIndex + 1) % len;
+                                } while (!isStopRequested() && grabbed[targetSampleIndex]);
 
                                 state = State.SCANNING;
                                 return false;
@@ -355,9 +370,9 @@ public class SamplePreloadCycleAuto extends LinearOpMode {
 
             Pose2d currentPos = robot.sensors.getOdometryPosition();
             Spline s2 = new Spline(currentPos, 7)
-                    .setReversed(true)
-                    .addPoint(new Pose2d(currentPos.x + 6, currentPos.y, Math.PI))
-                    .addPoint(dcx, dcy, Math.toRadians(242));
+                .setReversed(true)
+                .addPoint(new Pose2d(currentPos.x + 6, currentPos.y, Math.PI))
+                .addPoint(dcx, dcy, Math.toRadians(242));
             robot.drivetrain.state = Drivetrain.State.FOLLOW_SPLINE;
             robot.drivetrain.setPath(s2);
             robot.drivetrain.setMaxPower(0.5);
@@ -374,8 +389,8 @@ public class SamplePreloadCycleAuto extends LinearOpMode {
 
             LinkedList<LLBlockDetectionPostProcessor.Block> blocks = robot.vision.getBlocks();
             LLBlockDetectionPostProcessor.filterBlocks(blocks, (LLBlockDetectionPostProcessor.Block b) ->
-                    b.getX() >= 0 && b.getX() <= 20 &&
-                            Math.abs(b.getY()) < 22
+                b.getX() >= 0 && b.getX() <= 20 &&
+                Math.abs(b.getY()) < 22
             );
 
             if (LLBlockDetectionPostProcessor.getClosestValidBlock(robot.vision.getOffset(), blocks) != null) {

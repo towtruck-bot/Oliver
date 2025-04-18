@@ -74,4 +74,5 @@ public class Arm {
     public boolean clawInPosition() { return claw.inPosition(); }
 
     public boolean armInPosition() { return armRotation.inPosition(); }
+    public boolean clawRotInPosition() { return clawRotation.inPosition(); }
 }

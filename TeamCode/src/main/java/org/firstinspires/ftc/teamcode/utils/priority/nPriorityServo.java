@@ -83,12 +83,12 @@ public class nPriorityServo extends PriorityDevice {
         return ang;
     }
 
-    public boolean inPosition(){
+    public boolean inPosition() {
         //Log.e("ERIC LOG", "inPosition is " + (Math.abs(targetAngle-currentAngle) < Math.toRadians(0.01)) + "");
         return Math.abs(targetAngle-currentAngle) < Math.toRadians(0.01);
     }
 
-    public boolean inPosition(double thresh){
+    public boolean inPosition(double thresh) {
         return Math.abs(targetAngle - currentAngle) < thresh;
     }
 

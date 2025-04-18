@@ -16,7 +16,7 @@ import org.firstinspires.ftc.teamcode.utils.priority.PriorityMotor;
 
 @Config
 public class IntakeExtension {
-    public static double maxExtendoLength = 19.5; // Actually 19
+    public static double maxExtendoLength = 18.5; // Actually 19
 
     private final Robot robot;
     public PriorityMotor extendoMotor;
@@ -24,9 +24,9 @@ public class IntakeExtension {
 
     private double extendoCurrentPos = 0.0;
     private double targetLength = 0.0;
-    public static PID extendoPID = new PID(0.4, 0.05, 0.005);
-    public static double slidesTolerance = 0.6;
-    public static double slidesDeadZone = 0.2;
+    public static PID extendoPID = new PID(0.4, 0.28, 0.007);
+    public static double slidesTolerance = 0.7;
+    public static double slidesDeadZone = 0.3;
     public static double slidesForceInThresh = 6;
     public static double slidesForceInPow = -0.6;
     public static double slidesKeepInPow = -0.2;
@@ -62,8 +62,6 @@ public class IntakeExtension {
             }
 
             if (targetLength == 0 && extendoCurrentPos <= slidesForceInThresh && !ignoreKeepIn) pow = slidesForceInPow;
-
-            // Sorry..
             if (targetLength == 0 && extendoCurrentPos <= 0.75 && !ignoreKeepIn) pow = slidesKeepInPow;
 
             if (forcePull) {
@@ -75,9 +73,10 @@ public class IntakeExtension {
         }
 
         TelemetryUtil.packet.put("Extendo Power", pow);
+        TelemetryUtil.packet.put("Extendo Target", targetLength);
         TelemetryUtil.packet.put("extendoTargetPos", targetLength);
         LogUtil.extendoTargetPos.set(targetLength);
-        TelemetryUtil.packet.put("Extendo Current Length", extendoCurrentPos);
+        //TelemetryUtil.packet.put("Extendo Current Length", extendoCurrentPos);
         TelemetryUtil.packet.put("Extendo inPosition", this.inPosition());
     }
 

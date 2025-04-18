@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.tests;
 
 import com.acmerobotics.dashboard.config.Config;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -13,7 +14,7 @@ import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
 
 import java.util.Locale;
 
-@TeleOp(group = "Test")
+@Autonomous(group = "Test")
 @Config
 public class SensorTester extends LinearOpMode {
     public static boolean intakeLight = true;
@@ -33,6 +34,7 @@ public class SensorTester extends LinearOpMode {
 
         while (!isStopRequested()) {
             robot.sensors.update();
+            robot.vision.update();
 
 //            telemetry.addData("leftOdo", sensors.getOdometry()[0]);
 //            telemetry.addData("rightOdo", sensors.getOdometry()[1]);
@@ -51,6 +53,7 @@ public class SensorTester extends LinearOpMode {
             telemetry.addData("Position", data);
             telemetry.addData("Slides position", sensors.getSlidesPos());
             telemetry.addData("extendo slides position", sensors.getExtendoPos());
+            telemetry.addData("Limelight connection", robot.vision.getConnection() ? "everything is fine" : "freaking packet yo");
             TelemetryUtil.packet.put("PS Value", robot.nclawIntake.readPS());
 
             telemetry.update();

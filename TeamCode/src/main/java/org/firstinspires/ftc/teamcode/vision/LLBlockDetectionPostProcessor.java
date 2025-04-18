@@ -413,4 +413,10 @@ public class LLBlockDetectionPostProcessor {
     public Vector2 getOffset() {
         return offset;
     }
+
+    public void hardwareStop() {
+        ll.stop();
+        ll.close();
+        ll.shutdown();
+    }
 }

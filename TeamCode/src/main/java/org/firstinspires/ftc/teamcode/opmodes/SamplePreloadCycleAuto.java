@@ -411,6 +411,7 @@ public class SamplePreloadCycleAuto extends LinearOpMode {
                 targetSampleIndex++;
             }
         }
+        //robot.vision.hardwareStop();
 
         RobotLog.i("Auto total time: " + (System.currentTimeMillis() - Globals.autoStartTime));
     }

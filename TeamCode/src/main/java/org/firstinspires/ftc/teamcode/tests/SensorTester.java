@@ -43,6 +43,11 @@ public class SensorTester extends LinearOpMode {
 
             robot.nclawIntake.intakeLight.setState(intakeLight);
 
+            if (!robot.vision.getConnection()) {
+                gamepad1.rumble(100);
+                gamepad2.rumble(100);
+            }
+
             telemetry.addData("Position", data);
             telemetry.addData("Slides position", sensors.getSlidesPos());
             telemetry.addData("extendo slides position", sensors.getExtendoPos());

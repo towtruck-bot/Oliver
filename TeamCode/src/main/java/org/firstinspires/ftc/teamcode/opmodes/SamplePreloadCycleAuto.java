@@ -304,7 +304,7 @@ public class SamplePreloadCycleAuto extends LinearOpMode {
 
             robot.nclawIntake.setKnownIntakePose(new Pose2d(pickUp.x, pickUp.y, 0));
 
-            robot.waitWhile(() -> !robot.nclawIntake.isExtended());
+            robot.waitWhile(() -> !robot.nclawIntake.isExtended() );
             robot.nclawIntake.manualEnableCamera();
             robot.nclawIntake.resetRetryCounter();
 
@@ -398,13 +398,14 @@ public class SamplePreloadCycleAuto extends LinearOpMode {
             robot.ndeposit.deposit();
 
             LinkedList<LLBlockDetectionPostProcessor.Block> blocks = robot.vision.getBlocks();
-            LLBlockDetectionPostProcessor.filterBlocks(blocks, (LLBlockDetectionPostProcessor.Block b) ->
-                b.getX() >= 0 && b.getX() <= 18 &&
-                Math.abs(b.getY()) < 22
+            LLBlockDetectionPostProcessor.filterBlocks(blocks, (LLBlockDetectionPostProcessor.Block b) ->{
+                        Pose2d gb = b.getGlobalPose();
+                        return gb.getX() >= 0 && gb.getX() <= 18 && Math.abs(gb.getY()) < 22;
+                    }
             );
 
             if (LLBlockDetectionPostProcessor.getClosestValidBlock(robot.vision.getOffset(), blocks) != null) {
-                targets[targetSampleIndex] = robot.vision.getClosestValidBlock().getGlobalPose().clone();
+                targets[targetSampleIndex] = robot.vision.getClosestValidBlock().getGlobalPose();
                 grabbed[targetSampleIndex] = false;
             } else {
                 targetSampleIndex++;

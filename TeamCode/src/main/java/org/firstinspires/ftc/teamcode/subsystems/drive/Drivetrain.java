@@ -425,7 +425,7 @@ public class Drivetrain {
 
     public static double finalXThreshold = 5;
     public static double finalYThreshold = 5;
-    public static double finalTurnThreshold = 2.5;
+    public static double finalTurnThreshold = 3;
 
     double fwd, strafe, turn, turnAdjustThreshold, finalTargetPointDistance;
 

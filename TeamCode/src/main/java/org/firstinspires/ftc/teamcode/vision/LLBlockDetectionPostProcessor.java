@@ -289,7 +289,7 @@ public class LLBlockDetectionPostProcessor {
 
                 TelemetryUtil.packet.put("BlockArea", area);
 
-                if (area >= 11000 && area <= 14000) {
+                if (area >= 11000 && area <= 14000 && robot.sensors.getVelocity().toVec3().getMag() < 0.7) {
                     if (b == null) {
                         b = new Block(newPose, width, height, blockColor);
                         blocks.add(b);
@@ -297,6 +297,11 @@ public class LLBlockDetectionPostProcessor {
                         b.updateNewValues(newPose, width, height);
                 }
             }
+            canvas.setFill("#ffffff");
+            canvas.fillText("Vision is on", 24, 24, "8px Arial", 0);
+        } else {
+            canvas.setFill("#ffffff");
+            canvas.fillText("Vision is off", 24, 24, "8px Arial", 0);
         }
 
         for (Block b : blocks)

@@ -19,6 +19,12 @@ public class SubmersibleSelectionGUI {
 
     private int cursorX = asciiLen / 2, cursorY = asciiWidth / 2;
 
+    public SubmersibleSelectionGUI() {
+        sub[asciiLen-3][asciiWidth-5] = true;
+        sub[asciiLen-3][asciiWidth-6] = true;
+        sub[asciiLen-3][asciiWidth-7] = true;
+    }
+
     public ArrayList<Pose2d> getDriverSelect() {
         ArrayList<Pose2d> coords = new ArrayList<>();
 

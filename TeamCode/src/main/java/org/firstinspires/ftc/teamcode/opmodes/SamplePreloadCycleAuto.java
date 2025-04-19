@@ -42,13 +42,13 @@ public class SamplePreloadCycleAuto extends LinearOpMode {
     public static double dcx = 62, dcy = 55;
     public static double six1 = 33, six2 = 26;
     public static double pkx = 23, pky = 12, pkz = 7;
+    public static double sampleFilterRangeX = 12, sampleFilterRangeY = 17;
 
     private Pose2d pickUp;
     private int targetSampleIndex = 0;
     private int len;
-    private long scanStart = System.currentTimeMillis();
-
-    public static int scanTimeout = 750;
+    private long scanStart = System.currentTimeMillis(), peckStart = System.currentTimeMillis();
+    public static int scanTimeout = 400, peckTimeout = 1000;
 
     public enum State {
         SCANNING,
@@ -106,7 +106,7 @@ public class SamplePreloadCycleAuto extends LinearOpMode {
         ArrayList<Pose2d> inBounds = new ArrayList<>();
         for (Pose2d p : input) {
             // Chuck away ones too close to the edge
-            if (Math.abs(p.x) <= 12 && Math.abs(p.y) <= 21) {
+            if (Math.abs(p.x) <= sampleFilterRangeX && Math.abs(p.y) <= sampleFilterRangeY) {
                 inBounds.add(p);
             }
         }
@@ -388,6 +388,8 @@ public class SamplePreloadCycleAuto extends LinearOpMode {
                         });
                         break;
                     case PECKING:
+                        peckStart = System.currentTimeMillis();
+
                         Log.i("JAMES", "in pecking, sampleStatus " + (robot.nclawIntake.hasSample() ? "haha its here something really troll is going on" : "its a fricking ghost"));
 
                         robot.drivetrain.setBrakePad(true);
@@ -400,7 +402,7 @@ public class SamplePreloadCycleAuto extends LinearOpMode {
                                 state = State.SCANNING;
                                 return false;
                             }
-                            if (robot.nclawIntake.getRetryCounter() > 2) {
+                            if (robot.nclawIntake.getRetryCounter() > 2 || System.currentTimeMillis() - peckStart >= peckTimeout) {
                                 robot.nclawIntake.setGrab(false);
                                 robot.nclawIntake.manualEnableCamera();
 

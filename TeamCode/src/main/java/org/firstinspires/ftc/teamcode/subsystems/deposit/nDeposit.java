@@ -376,7 +376,7 @@ public class nDeposit {
     }
 
     public boolean isGrabDone() {
-        return state == State.HOLD;
+        return state == State.HOLD || state == State.SPECIMEN_RAISE || state == State.SPECIMEN_DEPOSIT;
     }
 
     public void startSampleDeposit() {

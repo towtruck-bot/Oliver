@@ -27,7 +27,7 @@ public class SpecimenPreloadAuto extends LinearOpMode {
     public static double b3x = -69.7, b3y = 27.5;
     public static double ix = -40, iy = 61.8, sx = 0, sy = 48;
 
-    public static boolean useIntake = false;
+    public static boolean useIntake = true;
 
     public void runOpMode() {
         Globals.RUNMODE = RunMode.AUTO;
@@ -63,30 +63,32 @@ public class SpecimenPreloadAuto extends LinearOpMode {
         // Score preload
         robot.ndeposit.startSpecimenDeposit();
         robot.drivetrain.goToPoint(
-                new Pose2d(dX[0], dY, Math.toRadians(270)),
-                false,
-                true,
-                1.0
+            new Pose2d(dX[0], dY, Math.toRadians(270)),
+            false,
+            true,
+            1.0
         );
         robot.waitWhile(() -> robot.drivetrain.isBusy());
 
         robot.ndeposit.deposit();
         robot.drivetrain.goToPoint(
-                new Pose2d(sx, sy, -Math.PI  / 2),
-                false,
-                false,
-                1.0
+            new Pose2d(sx, sy, -Math.PI  / 2),
+            false,
+            false,
+            1.0
         );
-        robot.waitWhile(() -> robot.drivetrain.targetPoint.getDistanceFromPoint(robot.sensors.getOdometryPosition()) > 2);
+        robot.waitWhile(() -> robot.drivetrain.targetPoint.getDistanceFromPoint(robot.sensors.getOdometryPosition()) > 7);
 
         if (useIntake) {
-            groundIntake();
+            extendIntake();
         } else {
             pushIntake();
         }
 
+        robot.waitWhile(() -> true);
+
         // Cycle
-        for (int i = 1; i < 6; i++) {
+        for (int i = 1; i < 5; i++) {
             robot.drivetrain.goToPoint(
                 new Pose2d(ix, iy, -Math.PI/2),
                 false,
@@ -100,19 +102,19 @@ public class SpecimenPreloadAuto extends LinearOpMode {
             robot.waitWhile(() -> robot.ndeposit.isGrabDone());
 
             robot.drivetrain.goToPoint(
-                    new Pose2d(sx, sy, -Math.PI / 2),
-                    false,
-                    true,
+                new Pose2d(sx, sy, -Math.PI / 2),
+                false,
+                true,
                 1.0
             );
             //robot.ndeposit.startSpecimenDeposit();
             robot.waitWhile(() -> robot.drivetrain.isBusy());
 
             robot.drivetrain.goToPoint(
-                    new Pose2d(dX[i], dY, -Math.PI / 2),
-                    false,
-                    true,
-                    1.0
+                new Pose2d(dX[i], dY, -Math.PI / 2),
+                false,
+                true,
+                1.0
             );
             robot.waitWhile(() -> robot.drivetrain.isBusy());
 
@@ -120,22 +122,22 @@ public class SpecimenPreloadAuto extends LinearOpMode {
             robot.ndeposit.startSpecimenIntake();
 
             robot.drivetrain.goToPoint(
-                    new Pose2d(sx, sy, -Math.PI / 2),
-                    false,
-                    true,
-                    1.0
+                new Pose2d(sx, sy, -Math.PI / 2),
+                false,
+                true,
+                1.0
             );
             robot.waitWhile(() -> robot.drivetrain.isBusy());
         }
     }
 
-    public void groundIntake() {
+    public void extendIntake() {
         // Get ground 1
         robot.drivetrain.goToPoint(
-                new Pose2d(px, py, Math.atan2(py - b1y, px - b1x)),
-                false,
-                true,
-                1.0
+            new Pose2d(px, py, Math.atan2(py - b1y, px - b1x)),
+            false,
+            true,
+            1.0
         );
         robot.nclawIntake.setGrab(false);
         robot.nclawIntake.setTargetPose(new Pose2d(b1x, b1y, -Math.PI / 2));
@@ -149,6 +151,8 @@ public class SpecimenPreloadAuto extends LinearOpMode {
         robot.ndeposit.finishTransfer();
         robot.waitWhile(() -> robot.drivetrain.isBusy());
 
+        robot.waitWhile(() -> true);
+
         robot.ndeposit.outtake();
         robot.nclawIntake.setExtendoTargetPos(12.0);
         robot.nclawIntake.extend();
@@ -157,10 +161,10 @@ public class SpecimenPreloadAuto extends LinearOpMode {
         // Get ground 2
         robot.nclawIntake.setGrab(false);
         robot.drivetrain.goToPoint(
-                new Pose2d(px, py, Math.atan2(py - b2y, px - b2x)),
-                false,
-                true,
-                1.0
+            new Pose2d(px, py, Math.atan2(py - b2y, px - b2x)),
+            false,
+            true,
+            1.0
         );
         robot.nclawIntake.setTargetPose(new Pose2d(b2x, b2y, Math.PI /2));
         robot.nclawIntake.extend();
@@ -181,10 +185,10 @@ public class SpecimenPreloadAuto extends LinearOpMode {
         // Get ground 3
         robot.nclawIntake.setGrab(false);
         robot.drivetrain.goToPoint(
-                new Pose2d(px, py, Math.atan2(py - b3y, px - b3x)),
-                false,
-                true,
-                1.0
+            new Pose2d(px, py, Math.atan2(py - b3y, px - b3x)),
+            false,
+            true,
+            1.0
         );
         robot.nclawIntake.setTargetPose(new Pose2d(b3x, b3y, Math.PI /2));
         robot.nclawIntake.extend();
@@ -208,18 +212,18 @@ public class SpecimenPreloadAuto extends LinearOpMode {
 
     private void getBlockAt(double x, double y){
         robot.drivetrain.goToPoint(
-                new Pose2d(x + Globals.ROBOT_WIDTH / 2 + buffer, 48, -Math.PI / 2),
-                false,
-                false,
-                1.0
+            new Pose2d(x + Globals.ROBOT_WIDTH / 2 + buffer, 48, -Math.PI / 2),
+            false,
+            false,
+            1.0
         );
         robot.waitWhile(() -> robot.drivetrain.targetPoint.getDistanceFromPoint(robot.sensors.getOdometryPosition()) > 2.0);
 
         robot.drivetrain.goToPoint(
-                new Pose2d(x + Globals.ROBOT_WIDTH / 2 + buffer, y - Globals.ROBOT_REVERSE_LENGTH - buffer, -Math.PI / 2),
-                false,
-                true,
-                1.0
+            new Pose2d(x + Globals.ROBOT_WIDTH / 2 + buffer, y - Globals.ROBOT_REVERSE_LENGTH - buffer, -Math.PI / 2),
+            false,
+            true,
+            1.0
         );
         robot.waitWhile(() -> robot.drivetrain.targetPoint.getDistanceFromPoint(robot.sensors.getOdometryPosition()) > 1.0);
 
@@ -228,18 +232,18 @@ public class SpecimenPreloadAuto extends LinearOpMode {
 
         robot.drivetrain.setBrakePad(false);
         robot.drivetrain.goToPoint(
-                new Pose2d(x + Globals.ROBOT_WIDTH - 2 * buffer, y - Globals.ROBOT_REVERSE_LENGTH - buffer, -Math.PI / 2),
-                false,
-                false,
-                1.0
+            new Pose2d(x + Globals.ROBOT_WIDTH - 2 * buffer, y - Globals.ROBOT_REVERSE_LENGTH - buffer, -Math.PI / 2),
+            false,
+            false,
+            1.0
         );
         robot.waitWhile(() -> robot.drivetrain.targetPoint.getDistanceFromPoint(robot.sensors.getOdometryPosition()) > 1.0);
 
         robot.drivetrain.goToPoint(
-                new Pose2d(x + Globals.ROBOT_WIDTH - 2 * buffer, cy, -Math.PI / 2),
-                false,
-                true,
-                1.0
+            new Pose2d(x + Globals.ROBOT_WIDTH - 2 * buffer, cy, -Math.PI / 2),
+            false,
+            true,
+            1.0
         );
         robot.waitWhile(() -> robot.drivetrain.isBusy());
     }

@@ -47,7 +47,9 @@ public class nClawIntake {
     public static double transferExtension = 0, bufferExtension = 7;
     public static double turretSearchRotation = 3.165;
     public static LLBlockDetectionPostProcessor.Block visionTargetBlock = null;
+    public static double dodgeAngle = 0.4;
 
+    private boolean submersibleIntake = false, safeConfirm = false;
     private boolean grab = false;
     private boolean sampleStatus = false;
     private boolean finishTransferRequest = false;
@@ -89,6 +91,7 @@ public class nClawIntake {
     }
 
     public enum State {
+        DODGE,
         SEARCH,
         HOVER,
         LOWER,
@@ -178,6 +181,22 @@ public class nClawIntake {
                     }
                 }
                 break;*/
+            case DODGE:
+                intakeTurret.setTurretArmTarget(dodgeAngle);
+
+                if(extendRequest){
+                    doExtend();
+                    extendRequest = false;
+                }
+
+                if(safeConfirm){
+                    if(grabMethod.useCamera){
+                        state = State.SEARCH;
+                    }else{
+                        state = State.HOVER;
+                    }
+                }
+                break;
             case SEARCH:
                 aimAtKnown();
 
@@ -439,7 +458,7 @@ public class nClawIntake {
     }
 
     public boolean isOut() {
-        return state == State.SEARCH || state == State.HOVER || state == State.LOWER ||  state == State.GRAB_CLOSE;
+        return state == State.DODGE || state == State.SEARCH || state == State.HOVER || state == State.LOWER ||  state == State.GRAB_CLOSE;
     }
 
     public boolean isExtended() {
@@ -622,9 +641,16 @@ public class nClawIntake {
 
     public void setRetryGrab(boolean retryGrab) { this.retryGrab = retryGrab; }
 
+    public void setSubmersibleIntake(boolean b){
+        submersibleIntake = b;
+    }
+
     private void doExtend() {
         intakeTurret.intakeExtension.ignoreKeepIn();
-        if (grabMethod.useCamera) {
+
+        if(submersibleIntake){
+            state = State.DODGE;
+        } else if (grabMethod.useCamera) {
             state = State.SEARCH;
             robot.vision.setOffset(robot.nclawIntake.getIntakeRelativeToRobot());
         } else {

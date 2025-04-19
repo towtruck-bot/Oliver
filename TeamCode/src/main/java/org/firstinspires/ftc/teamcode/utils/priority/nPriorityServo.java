@@ -41,6 +41,7 @@ public class nPriorityServo extends PriorityDevice {
     protected final boolean[] reversed;
     private long lastLoopTime = Globals.LOOP_START;
     private boolean first = true; // Priority servo has a problem when the servos won't get set at the start if theyre set to 0
+    private boolean forceUpdate = false;
 
     /**
      * Basic initializer
@@ -122,9 +123,13 @@ public class nPriorityServo extends PriorityDevice {
         return currentAngle;
     }
 
+    public void setForceUpdate() { forceUpdate = true; }
+
     @Override
     protected void update() {
         //Log.e("Priority Servo Log", name + " is moving with power " + power);
+
+        forceUpdate = false;
 
         long currentTime = System.nanoTime();
         double timeSinceLastUpdate = ((double) currentTime - lastUpdateTime)/1.0E9;
@@ -225,8 +230,12 @@ public class nPriorityServo extends PriorityDevice {
         // Yuh that means it just updated. Dont even touch that thing
         if (priority == 0) {
             lastUpdateTime = System.nanoTime();
+            return 0;
         }
 
+        if (forceUpdate) priority += 1000;
+
+        Log.i("priority", name + " : " + priority);
         return priority;
     }
 }

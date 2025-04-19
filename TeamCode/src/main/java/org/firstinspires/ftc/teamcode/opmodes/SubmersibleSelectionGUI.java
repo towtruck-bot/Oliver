@@ -46,16 +46,16 @@ public class SubmersibleSelectionGUI {
 
     public void drawSub(Gamepad gamepad, Telemetry tele) {
         for (int j = 0; j < asciiWidth; j++) {
-            String curr = "";
+            StringBuilder curr = new StringBuilder();
             for (int i = asciiLen - 1; i >= 0; i--) {
                 if (flash && i == cursorX && j == cursorY) {
-                    curr += "x";
+                    curr.append("x");
                 } else {
-                    curr += sub[i][j] ? "#" : "_";
+                    curr.append(sub[i][j] ? "#" : "_");
                 }
             }
 
-            tele.addData((j >= 10 ? "" : "0") + j, curr);
+            tele.addData((j >= 10 ? "" : "0") + j, curr.toString());
         }
 
         Canvas canvas = TelemetryUtil.packet.fieldOverlay();
@@ -101,6 +101,6 @@ public class SubmersibleSelectionGUI {
     }
 
     private void preselect() {
-        for (int i = 11; i <= 18; ++i) for (int j = i % 2 == 0 ? 8 : 9; j <= 14; j += 2) sub[i][j] = true;
+        for (int i = 12; i <= 17; ++i) for (int j = i % 2 == 0 ? 8 : 9; j <= 12; j += 2) sub[i][j] = true;
     }
 }

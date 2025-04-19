@@ -1,16 +1,13 @@
 package org.firstinspires.ftc.teamcode.tests;
 
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.Robot;
-import org.firstinspires.ftc.teamcode.subsystems.drive.Drivetrain;
 import org.firstinspires.ftc.teamcode.utils.Globals;
 import org.firstinspires.ftc.teamcode.utils.Pose2d;
 import org.firstinspires.ftc.teamcode.utils.RunMode;
 import org.firstinspires.ftc.teamcode.utils.TelemetryUtil;
-import org.firstinspires.ftc.teamcode.utils.Vector2;
 import org.firstinspires.ftc.teamcode.utils.Vector3;
 
 @TeleOp
@@ -20,7 +17,6 @@ public class MaxSpeedYoinker extends LinearOpMode {
         Globals.RUNMODE = RunMode.TESTER;
         Globals.TESTING_DISABLE_CONTROL = false;
         Robot robot = new Robot(hardwareMap);
-        robot.setStopChecker(() -> !isStopRequested());
         double maxXSpeed = 0;
         double maxYSpeed = 0;
         double maxHeadingSpeed = 0;

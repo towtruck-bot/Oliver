@@ -44,7 +44,7 @@ public class SensorTester extends LinearOpMode {
 
             robot.nclawIntake.intakeLight.setState(intakeLight);
 
-            if (!robot.vision.getConnection()) {
+            if (!robot.vision.isConnected()) {
                 gamepad1.rumble(100);
                 gamepad2.rumble(100);
             }
@@ -52,7 +52,7 @@ public class SensorTester extends LinearOpMode {
             telemetry.addData("Position", data);
             telemetry.addData("Slides position", sensors.getSlidesPos());
             telemetry.addData("extendo slides position", sensors.getExtendoPos());
-            telemetry.addData("Limelight connection", robot.vision.getConnection() ? "everything is fine" : "freaking packet yo");
+            telemetry.addData("Limelight connection", robot.vision.isConnected() ? "everything is fine" : "freaking packet yo");
             TelemetryUtil.packet.put("PS Value", robot.nclawIntake.readPS());
 
             telemetry.update();

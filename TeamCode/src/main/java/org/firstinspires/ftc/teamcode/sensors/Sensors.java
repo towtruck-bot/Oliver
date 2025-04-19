@@ -37,7 +37,7 @@ public class Sensors {
 
     private Pose2d formerPoint;
     private long lastTime = System.currentTimeMillis();
-    private Vector2 instantVelo;
+    private Vector2 instantVelo = new Vector2();
 
     public Sensors(Robot robot) {
         this.robot = robot;
@@ -64,7 +64,8 @@ public class Sensors {
         lastTime = currentTime;
     }
     private boolean isStopped = true;
-    private double confidence = 0.0, confidenceAlpha = 0.125, confidenceThresh = 0.75;
+    private double confidence = 0.0;
+    private final double confidenceAlpha = 0.125, confidenceThresh = 0.75;
     public void stopConfidence() {
         confidence *= (1 - confidenceAlpha);
 
@@ -161,9 +162,13 @@ public class Sensors {
         LogUtil.slidesCurrentPos.set(getSlidesPos());
 
         Pose2d currentPos = getOdometryPosition();
-        TelemetryUtil.packet.put("pinpointX", currentPos.x);
-        TelemetryUtil.packet.put("pinpointY", currentPos.y);
-        TelemetryUtil.packet.put("pinpoint Angle (deg)", Math.toDegrees(currentPos.heading));
+        Pose2d vel = getVelocity();
+        TelemetryUtil.packet.put("Pinpoint : X", currentPos.x);
+        TelemetryUtil.packet.put("Pinpoint : Y", currentPos.y);
+        TelemetryUtil.packet.put("Pinpoint : Angle (deg)", Math.toDegrees(currentPos.heading));
+        TelemetryUtil.packet.put("Pinpoint : Velocity X (in/s)", vel.x);
+        TelemetryUtil.packet.put("Pinpoint : Velocity Y (in/s)", vel.y);
+        TelemetryUtil.packet.put("Pinpoint : Velocity Angle (deg/s)", Math.toDegrees(vel.heading));
         Canvas fieldOverlay = TelemetryUtil.packet.fieldOverlay();
         DashboardUtil.drawRobot(fieldOverlay, currentPos, getExtendoPos(), "#00ff00");
         LogUtil.driveCurrentX.set(currentPos.x);

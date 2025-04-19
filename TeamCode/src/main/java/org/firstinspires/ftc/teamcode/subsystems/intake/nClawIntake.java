@@ -5,7 +5,6 @@ import android.util.Log;
 import com.acmerobotics.dashboard.canvas.Canvas;
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
-import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.subsystems.deposit.nDeposit;
@@ -43,7 +42,7 @@ public class nClawIntake {
     private long hoverStart = 0;
     private long lowerStart = 0;
     public static double hoverDelay = 150;
-    public static double lowerDelay = 250;
+    public static double lowerDelay = 300;
     public static double transferExtension = 0, bufferExtension = 7;
     public static double turretSearchRotation = 3.165;
     public static LLBlockDetectionPostProcessor.Block visionTargetBlock = null;
@@ -553,12 +552,12 @@ public class nClawIntake {
         TelemetryUtil.packet.put("Intake : Target Y", target.y);
         TelemetryUtil.packet.put("Intake : Target Heading", target.heading);
         TelemetryUtil.packet.put("Intake : visionTargetBlock", visionTargetBlock);
-        TelemetryUtil.packet.put("Intake | arm target", intakeTurret.turretArm.getTargetAngle());
-        TelemetryUtil.packet.put("Intake | arm inPosition", intakeTurret.turretAngInPosition());
-        TelemetryUtil.packet.put("Intake | turret target", intakeTurret.turretRotation.getTargetAngle());
-        TelemetryUtil.packet.put("Intake | turret inPosition", intakeTurret.turretRotInPosition());
-        TelemetryUtil.packet.put("Intake | claw target", intakeTurret.clawRotation.getTargetAngle());
-        TelemetryUtil.packet.put("Intake | claw inPosition", intakeTurret.clawInPosition());
+        //TelemetryUtil.packet.put("Intake | arm target", intakeTurret.turretArm.getTargetAngle());
+        //TelemetryUtil.packet.put("Intake | arm inPosition", intakeTurret.turretAngInPosition());
+        //TelemetryUtil.packet.put("Intake | turret target", intakeTurret.turretRotation.getTargetAngle());
+        //TelemetryUtil.packet.put("Intake | turret inPosition", intakeTurret.turretRotInPosition());
+        //TelemetryUtil.packet.put("Intake | claw target", intakeTurret.clawRotation.getTargetAngle());
+        //TelemetryUtil.packet.put("Intake | claw inPosition", intakeTurret.clawInPosition());
     }
 
     public void setGrabMethod(GrabMethod grabMethod) {

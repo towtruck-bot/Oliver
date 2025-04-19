@@ -28,7 +28,7 @@ public class SpecimenPreloadAuto extends LinearOpMode {
     public static double b3x = -69.7, b3y = 27.5;
     public static double ix = -40, iy = 61.8, sx = 0, sy = 48;
 
-    public static boolean useIntake = true;
+    public static boolean useIntake = false;
 
     public void runOpMode() {
         Globals.RUNMODE = RunMode.AUTO;
@@ -80,19 +80,19 @@ public class SpecimenPreloadAuto extends LinearOpMode {
         );
         robot.waitWhile(() -> robot.drivetrain.targetPoint.getDistanceFromPoint(robot.sensors.getOdometryPosition()) > 2);
 
-        if(useIntake){
+        if (useIntake) {
             groundIntake();
-        }else{
+        } else {
             pushIntake();
         }
 
         // Cycle
         for (int i = 1; i < 6; i++) {
             robot.drivetrain.goToPoint(
-                    new Pose2d(ix, iy, -Math.PI/2),
-                    false,
-                    true,
-                    1.0
+                new Pose2d(ix, iy, -Math.PI/2),
+                false,
+                true,
+                1.0
             );
             robot.ndeposit.startSpecimenIntake();
             robot.waitWhile(() -> robot.drivetrain.isBusy());
@@ -130,7 +130,7 @@ public class SpecimenPreloadAuto extends LinearOpMode {
         }
     }
 
-    public void groundIntake(){
+    public void groundIntake() {
         // Get ground 1
         robot.drivetrain.goToPoint(
                 new Pose2d(px, py, Math.atan2(py - b1y, px - b1x)),
@@ -199,8 +199,7 @@ public class SpecimenPreloadAuto extends LinearOpMode {
         robot.waitWhile(() -> !robot.ndeposit.isTransferFinished());
     }
 
-
-    public void pushIntake(){
+    public void pushIntake() {
         getBlockAt(b1x, b1y);
         getBlockAt(b2x, b2y);
         getBlockAt(b3x, b3y);

@@ -33,7 +33,7 @@ public class SamplePreloadCycleAuto extends LinearOpMode {
     private Robot robot;
 
     // Block positions
-    public static double bx1 = 49.9, by1 = 27.5, bx2 = 59.8, by2 = 27.5, bx3 = 69.2, by3 = 27.5;
+    public static double bx1 = 49.9, by1 = 28, bx2 = 59.8, by2 = 28, bx3 = 69.2, by3 = 28;
 
     // P/G/C depo positions
     public static double dx1 = 63, dy1 = 54.5;
@@ -128,7 +128,7 @@ public class SamplePreloadCycleAuto extends LinearOpMode {
 
         robot.canvasDrawTasks.add((Canvas canvas) -> {
             canvas.setFill("#c0c0c0");
-            canvas.fillCircle(targetPoint.x, targetPoint.y, 1);
+            canvas.fillCircle(targetPoint.x, targetPoint.y, 2);
             canvas.setFill("#ff00ff");
             if (len > 0) canvas.fillCircle(targets[targetSampleIndex].x, targets[targetSampleIndex].y, 2);
             for (int i = 0; i < len; i++) {

@@ -50,10 +50,10 @@ public class nDeposit {
     public static double transferArm = 0.5217, transferClaw = -1.8, transferBufferZ = 12, transferZ = 7;
     public static double holdArm = -0.4646, holdClaw = -0.6533, holdZ = 0.0;
     public static double raiseArmBufferRotation = 0.346,  sampleArm = -2.177, sampleLongDepoArm = -2.6734, sampleTargetArm = sampleArm, sampleClaw = 0;
-    public static double sampleLZ = 15, sampleHZ = 30, sampleLongLZ = 18, sampleLongHZ = 33.5, speciZ = 11, targetZ = sampleHZ;
+    public static double sampleLZ = 15, sampleHZ = 30, sampleLongLZ = 18, sampleLongHZ = 33.5, speciZ = 14, targetZ = sampleHZ;
     public static double outtakeArm = -2.9225, outtakeClaw = -0.00169, outtakeZ = 0.0;
-    public static double specimenIntakeArm = -2.8, specimenIntakeClaw = 1.55, specimenIntakeZ = 2.7;
-    public static double specimenDepositArm = -0.3087, specimenDepositClaw = 0.0507, speciSwingThresh = 4;
+    public static double specimenIntakeArm = -5, specimenIntakeClaw = 0.2534, specimenIntakeZ = 0;
+    public static double specimenDepositArm = -0.6867, specimenDepositClaw = -1.5234, speciSwingThresh = 4;
     public static double hangArm = Math.toRadians(-90);
     public static double minVel = 4;
     private boolean holding = false;

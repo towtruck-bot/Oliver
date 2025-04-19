@@ -6,7 +6,6 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.subsystems.deposit.nDeposit;
-import org.firstinspires.ftc.teamcode.subsystems.drive.Drivetrain;
 import org.firstinspires.ftc.teamcode.subsystems.intake.nClawIntake;
 import org.firstinspires.ftc.teamcode.utils.Globals;
 import org.firstinspires.ftc.teamcode.utils.LogUtil;
@@ -19,14 +18,14 @@ public class SpecimenPreloadAuto extends LinearOpMode {
     private Robot robot;
 
     public static double[] dX = {-6.0, -8.0, -4.0, -2.0, 0.0, 2.0, 4.0};
-    public static double dY = 31.85;
+    public static double dY = 28.5;
 
     public static double px = -60, py = 48, cy = 58, mx = -28, my = 48;
 
-    public static double b1x = -50.4, b1y = 27.5;
-    public static double b2x = -60.3, b2y = 27.5;
-    public static double b3x = -69.7, b3y = 27.5;
-    public static double ix = -40, iy = 61.8, sx = 0, sy = 48;
+    public static double b1x = -49.4, b1y = 28;
+    public static double b2x = -60.3, b2y = 28;
+    public static double b3x = -67.4, b3y = 28;
+    public static double ix = -40, iy = 58.5, sx = 0, sy = 48;
 
     public static boolean useIntake = false;
 
@@ -37,17 +36,16 @@ public class SpecimenPreloadAuto extends LinearOpMode {
         Globals.hasSpecimenPreload = true;
 
         robot = new Robot(hardwareMap);
-        robot.setStopChecker(() -> !isStopRequested());
+        robot.setStopChecker(this::isStopRequested);
 
         robot.sensors.resetPosAndIMU();
 
-        robot.nclawIntake.setGrabMethod(nClawIntake.GrabMethod.MANUAL_TARGET);
-        robot.nclawIntake.setTargetType(nClawIntake.Target.GLOBAL);
+//        robot.nclawIntake.setGrabMethod(nClawIntake.GrabMethod.MANUAL_TARGET);
+//        robot.nclawIntake.setTargetType(nClawIntake.Target.GLOBAL);
 
         robot.ndeposit.state = nDeposit.State.HOLD;
         robot.ndeposit.presetDepositHeight(true, true, false);
 
-        // TODO: Implement to emulate goToPointWIthIntake. Use vision? or dynamic intakeAt
         robot.nclawIntake.setGrabMethod(nClawIntake.GrabMethod.MANUAL_TARGET);
         robot.nclawIntake.setTargetType(nClawIntake.Target.GLOBAL);
         robot.nclawIntake.setGrab(false);
@@ -76,22 +74,61 @@ public class SpecimenPreloadAuto extends LinearOpMode {
 
         robot.ndeposit.deposit();
         robot.drivetrain.goToPoint(
-                new Pose2d(sx, sy, -Math.PI / 2),
+                new Pose2d(mx, my, -Math.PI / 2),
                 false,
                 false,
                 1.0
         );
         robot.waitWhile(() -> robot.drivetrain.targetPoint.getDistanceFromPoint(robot.sensors.getOdometryPosition()) > 2);
+        robot.ndeposit.startSpecimenIntake();
 
         if (useIntake) {
-            groundIntake();
+            extendoIntake();
         } else {
             pushIntake();
+
+            robot.drivetrain.goToPoint(
+                    new Pose2d(-72.0 + Globals.ROBOT_WIDTH/2 + 1.5, iy, -Math.PI / 2),
+                    false,
+                    true,
+                    1.0
+            );
+            robot.waitWhile(() -> robot.drivetrain.isBusy());
+
+            robot.ndeposit.grab();
+            robot.waitWhile(() -> robot.ndeposit.isGrabDone());
+
+            robot.drivetrain.goToPoint(
+                    new Pose2d(sx, sy, -Math.PI / 2),
+                    false,
+                    true,
+                    1.0
+            );
+
+            robot.waitWhile(() -> robot.drivetrain.isBusy());
+
+            robot.drivetrain.goToPoint(
+                    new Pose2d(dX[1], dY, -Math.PI / 2),
+                    false,
+                    true,
+                    1.0
+            );
+            robot.waitWhile(() -> robot.drivetrain.isBusy());
+
+            robot.ndeposit.deposit();
+
+            robot.drivetrain.goToPoint(
+                    new Pose2d(mx, my, -Math.PI / 2),
+                    false,
+                    true,
+                    1.0
+            );
+            robot.waitWhile(() -> robot.drivetrain.isBusy());
         }
 
-        robot.nclawIntake.setGrabMethod(nClawIntake.GrabMethod.AUTOGRAB);
+        //robot.nclawIntake.setGrabMethod(nClawIntake.GrabMethod.AUTOGRAB);
         // Cycle
-        for (int i = 1; i < 6; i++) {
+        for (int i = 2; i < 6; i++) {
             robot.drivetrain.goToPoint(
                     new Pose2d(ix, iy, -Math.PI / 2),
                     false,
@@ -112,11 +149,14 @@ public class SpecimenPreloadAuto extends LinearOpMode {
             );
 
             // Extend out intake to prepare to search after depositing
+            /*
             robot.nclawIntake.setSubmersibleIntake(true);
             robot.nclawIntake.setGrab(false);
             robot.nclawIntake.setExtendoTargetPos(5.0);
             robot.ndeposit.startSpecimenDeposit();
             robot.waitWhile(() -> robot.drivetrain.isBusy() || !robot.nclawIntake.isExtended());
+            */
+            robot.waitWhile(() -> robot.drivetrain.isBusy());
 
             robot.drivetrain.goToPoint(
                     new Pose2d(dX[i], dY, -Math.PI / 2),
@@ -128,9 +168,11 @@ public class SpecimenPreloadAuto extends LinearOpMode {
 
             robot.ndeposit.deposit();
 
+            /*
             robot.nclawIntake.setGrab(true);
             double startTime = System.currentTimeMillis();
             robot.waitWhile(() -> startTime - System.currentTimeMillis() < 750 && !robot.nclawIntake.hasSample());
+
 
             if(robot.nclawIntake.hasSample()) {
                 robot.drivetrain.goToPoint(
@@ -149,18 +191,19 @@ public class SpecimenPreloadAuto extends LinearOpMode {
                 robot.ndeposit.outtake();
                 robot.waitWhile(() -> robot.ndeposit.isOuttakeDone());
             }else{
-                robot.drivetrain.goToPoint(
-                        new Pose2d(mx, my, -Math.PI / 2),
-                        false,
-                        true,
-                        1.0
-                );
-                robot.waitWhile(() -> robot.drivetrain.isBusy());
-            }
+
+             */
+            robot.drivetrain.goToPoint(
+                    new Pose2d(mx, my, -Math.PI / 2),
+                    false,
+                    true,
+                    1.0
+            );
+            robot.waitWhile(() -> robot.drivetrain.isBusy());
         }
     }
 
-    public void groundIntake() {
+    public void extendoIntake() {
         // Get ground 1
         robot.drivetrain.goToPoint(
                 new Pose2d(px, py, Math.atan2(b1y - py, b1x - px)),
@@ -172,6 +215,8 @@ public class SpecimenPreloadAuto extends LinearOpMode {
         robot.nclawIntake.setTargetPose(new Pose2d(b1x, b1y, -Math.PI / 2));
         robot.nclawIntake.extend();
         robot.waitWhile(() -> robot.drivetrain.isBusy() || !robot.nclawIntake.isExtended());
+
+        robot.waitWhile(() -> true);
 
         robot.nclawIntake.setGrab(true);
         robot.waitWhile(() -> !robot.nclawIntake.isTransferReady());
@@ -231,36 +276,32 @@ public class SpecimenPreloadAuto extends LinearOpMode {
     }
 
     public void pushIntake() {
-        getBlockAt(b1x, b1y);
-        getBlockAt(b2x, b2y);
-        getBlockAt(b3x, b3y);
+        getBlockAt(b1x, b1y, 0);
+        getBlockAt(b2x, b2y, 0);
+        getBlockAt(b3x, b3y, 1);
     }
 
     private double buffer = 2;
 
-    private void getBlockAt(double x, double y) {
+    private void getBlockAt(double x, double y, double offset) {
         robot.drivetrain.goToPoint(
-                new Pose2d(x + Globals.ROBOT_WIDTH / 2 + buffer, y - Globals.ROBOT_REVERSE_LENGTH - buffer, -Math.PI / 2),
+                new Pose2d(x + Globals.ROBOT_WIDTH / 2 + 3 * buffer, y - Globals.ROBOT_REVERSE_LENGTH - buffer, -Math.PI / 2),
                 false,
                 true,
                 1.0
         );
-        robot.waitWhile(() -> robot.drivetrain.targetPoint.getDistanceFromPoint(robot.sensors.getOdometryPosition()) > 1.0);
+        robot.waitWhile(() -> robot.drivetrain.isBusy());
 
-        robot.drivetrain.setBrakePad(true);
-        robot.waitWhile(() -> (robot.sensors.getVelocity().toVec3().getMag() > 1.0));
-
-        robot.drivetrain.setBrakePad(false);
         robot.drivetrain.goToPoint(
-                new Pose2d(x, y - Globals.ROBOT_REVERSE_LENGTH - buffer, -Math.PI / 2),
+                new Pose2d(x, y - Globals.ROBOT_REVERSE_LENGTH - 2 * buffer, -Math.PI / 2),
                 false,
                 false,
                 1.0
         );
-        robot.waitWhile(() -> robot.drivetrain.targetPoint.getDistanceFromPoint(robot.sensors.getOdometryPosition()) > 1.0);
+        robot.waitWhile(() -> robot.drivetrain.isBusy());
 
         robot.drivetrain.goToPoint(
-                new Pose2d(x + Globals.ROBOT_WIDTH - 2 * buffer, cy, -Math.PI / 2),
+                new Pose2d(x + Globals.ROBOT_WIDTH / 2 - buffer, cy - offset, -Math.PI / 2),
                 false,
                 true,
                 1.0

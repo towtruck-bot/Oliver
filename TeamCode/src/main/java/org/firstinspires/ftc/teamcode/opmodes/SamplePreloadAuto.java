@@ -1,11 +1,9 @@
 package org.firstinspires.ftc.teamcode.opmodes;
 
 import com.acmerobotics.dashboard.config.Config;
-import com.google.ar.core.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.RobotLog;
-import com.sun.tools.javac.code.TargetType;
 
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.subsystems.deposit.nDeposit;
@@ -41,7 +39,7 @@ public class SamplePreloadAuto extends LinearOpMode {
         Globals.hasSpecimenPreload = false;
 
         robot = new Robot(hardwareMap);
-        robot.setStopChecker(() -> !isStopRequested());
+        robot.setStopChecker(this::isStopRequested);
         LogUtil.init();
 
         robot.sensors.resetPosAndIMU();

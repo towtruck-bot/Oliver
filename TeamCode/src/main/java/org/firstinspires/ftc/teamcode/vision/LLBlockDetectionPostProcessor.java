@@ -128,7 +128,7 @@ public class LLBlockDetectionPostProcessor {
         }
     }
 
-    private LinkedList<Block> blocks;
+    private final LinkedList<Block> blocks;
     private final Limelight3A ll;
     private BlockColor blockColor;
     private Pose2d lastRobotPosition;
@@ -163,16 +163,16 @@ public class LLBlockDetectionPostProcessor {
     }
 
     private boolean connection = true;
-    public boolean getConnection() { return connection;}
+    public boolean isConnected() { return connection; }
 
     /**
      * <b>IMPORTANT</b>: Update the localizer before<br>
      * If you didn't do this you're stupid btw
      */
     public void update() {
-        TelemetryUtil.packet.put("vision : offsetX", offset.x);
-        TelemetryUtil.packet.put("vision : offsetY", offset.y);
-        TelemetryUtil.packet.put("vision : orientation", orientation);
+        TelemetryUtil.packet.put("LL : offsetX", offset.x);
+        TelemetryUtil.packet.put("LL : offsetY", offset.y);
+        TelemetryUtil.packet.put("LL : orientation", orientation);
         Canvas canvas = TelemetryUtil.packet.fieldOverlay();
         for (Block b : blocks) {
             Pose2d rel = b.getPose();
@@ -182,21 +182,22 @@ public class LLBlockDetectionPostProcessor {
                 cur.y + rel.x * Math.sin(cur.heading) + rel.y * Math.cos(cur.heading),
                 rel.heading - cur.heading
             );
+/*
             canvas.setStroke("#808080");
-            canvas.strokeCircle(b.getX(), b.getY(), 3);
-            canvas.strokeLine(b.getX(), b.getY(), b.getX() + 5 * Math.sin(b.getHeading()), b.getY() + 5 * Math.cos(b.getHeading()));
+            canvas.strokeCircle(b.getX(), b.getY(), 2);
+            canvas.strokeLine(b.getX(), b.getY(), b.getX() + 5 * Math.sin(b.getHeading()), b.getY() + 3 * Math.cos(b.getHeading()));
 
             canvas.setStroke("#c04040");
-            canvas.strokeCircle(abs.x, abs.y, 2.5);
-            canvas.strokeLine(abs.x, abs.y, abs.x + 5 * Math.sin(abs.heading), abs.y + 5 * Math.cos(abs.heading));
-
+            canvas.strokeCircle(abs.x, abs.y, 1.5);
+            canvas.strokeLine(abs.x, abs.y, abs.x + 5 * Math.sin(abs.heading), abs.y + 3 * Math.cos(abs.heading));
+*/
             canvas.setStroke("#4040c0");
-            canvas.strokeCircle(b.getGlobalPose().x, b.getGlobalPose().y, 3);
-            canvas.strokeLine(b.getGlobalPose().x, b.getGlobalPose().y, b.getGlobalPose().x + 5 * Math.sin(b.getGlobalPose().heading), b.getGlobalPose().y + 5 * Math.cos(b.getGlobalPose().heading));
+            canvas.strokeCircle(b.getGlobalPose().x, b.getGlobalPose().y, 2);
+            canvas.strokeLine(b.getGlobalPose().x, b.getGlobalPose().y, b.getGlobalPose().x + 3 * Math.sin(b.getGlobalPose().heading), b.getGlobalPose().y + 5 * Math.cos(b.getGlobalPose().heading));
         }
 
-        TelemetryUtil.packet.put("LL connected", ll.isConnected());
-        TelemetryUtil.packet.put("LL detecting", detecting);
+        TelemetryUtil.packet.put("LL : connected", ll.isConnected());
+        TelemetryUtil.packet.put("LL : detecting", detecting);
         if (!ll.isConnected()) {
             Log.e("ERROR BIG", "Limelight Broke");
             connection = false;
@@ -224,8 +225,10 @@ public class LLBlockDetectionPostProcessor {
                 List<List<Double>> corners = cr.getTargetCorners();
                 // This format sucks balls im changing it
                 Vector2[] vcorners = new Vector2[corners.size()];
+                canvas.setFill("#808080");
                 for (int i = 0; i < corners.size(); i++) {
                     vcorners[i] = new Vector2(corners.get(i).get(0), corners.get(i).get(1));
+                    canvas.fillCircle(vcorners[i].x / 10, vcorners[i].y / 10, 1);
                 }
 
                 int l0 = 0; // nyeh pointer !
@@ -280,9 +283,10 @@ public class LLBlockDetectionPostProcessor {
                     }
                 }
 
-                TelemetryUtil.packet.put("BlockArea", area);
+                TelemetryUtil.packet.put("LL : BlockArea", area);
+                TelemetryUtil.packet.put("LL : Robot Velocity", robot.sensors.getVelocity().toVec3().getMag());
 
-                if (area >= 11000 && area <= 14000 && robot.sensors.getVelocity().toVec3().getMag() < 0.7) {
+                if (area >= 10500 && area <= 12500 && robot.sensors.getVelocity().toVec3().getMag() <= 1.5) {
                     if (b == null) {
                         b = new Block(newPose, width, height, blockColor);
                         blocks.add(b);

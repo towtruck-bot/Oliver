@@ -6,7 +6,6 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.subsystems.deposit.nDeposit;
-import org.firstinspires.ftc.teamcode.subsystems.drive.Drivetrain;
 import org.firstinspires.ftc.teamcode.subsystems.intake.nClawIntake;
 import org.firstinspires.ftc.teamcode.utils.Globals;
 import org.firstinspires.ftc.teamcode.utils.LogUtil;
@@ -37,7 +36,7 @@ public class SpecimenPreloadAuto extends LinearOpMode {
         Globals.hasSpecimenPreload = true;
 
         robot = new Robot(hardwareMap);
-        robot.setStopChecker(() -> !isStopRequested());
+        robot.setStopChecker(this::isStopRequested);
 
         robot.sensors.resetPosAndIMU();
 
@@ -205,7 +204,7 @@ public class SpecimenPreloadAuto extends LinearOpMode {
         getBlockAt(b3x, b3y);
     }
 
-    private double buffer = 1.5;
+    private final double buffer = 1.5;
 
     private void getBlockAt(double x, double y){
         robot.drivetrain.goToPoint(

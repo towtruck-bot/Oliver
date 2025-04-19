@@ -90,12 +90,19 @@ public class Robot {
 
     public void update() {
         START_LOOP();
-        this.updateSubsystems();
-        this.updateTelemetry();
-    }
 
-    private void updateSubsystems() {
-        if (this.stopChecker != null && !this.stopChecker.getAsBoolean()) {
+        if (this.stopChecker != null && this.stopChecker.getAsBoolean()) {
+            /*Log.i("STOP", Globals.RUNMODE.toString());
+            if (Globals.RUNMODE == RunMode.AUTO) {
+                this.drivetrain.setBrakePad(false);
+                this.drivetrain.brakePad.setForceUpdate();
+                this.ndeposit.arm.armRotation.setTargetAngle(Math.toRadians(-135));
+                this.ndeposit.arm.armRotation.setForceUpdate();
+                this.ndeposit.arm.clawRotation.setTargetAngle(0);
+                this.ndeposit.arm.clawRotation.setForceUpdate();
+                this.ndeposit.arm.clawOpen();
+                this.ndeposit.arm.claw.setForceUpdate();
+            }*/
             this.hardwareQueue.update();
             return;
         }
@@ -109,6 +116,8 @@ public class Robot {
         vision.update();
 
         hardwareQueue.update();
+
+        this.updateTelemetry();
     }
 
 /* Main Robot FSM diagram: "robot_fsm_v2.png" https://drive.google.com/drive/folders/1sDZOtl4i8u25d1JrAI3fPGEy5iU4Kujq?usp=sharing
@@ -330,10 +339,12 @@ boolean wasClicked;
     }*/
 
     /**
-     * Sets the condition that should abort waiting (waitWhile)
-     * @param func the function to check (return false to abort)
+     * Sets the condition that should stop waiting (waitWhile)
+     * @param func the function to check (return true to stop)
      */
     public void setStopChecker(BooleanSupplier func) { this.stopChecker = func; }
+
+    public boolean isStopRequested() { return this.stopChecker.getAsBoolean(); }
 
     /**
      * Waits while a condition is true
@@ -342,7 +353,7 @@ boolean wasClicked;
     public void waitWhile(BooleanSupplier func) {
         do {
             update();
-        } while (this.stopChecker.getAsBoolean() && func.getAsBoolean());
+        } while (!this.stopChecker.getAsBoolean() && func.getAsBoolean());
     }
 
     /**
@@ -353,9 +364,14 @@ boolean wasClicked;
         long start = System.currentTimeMillis();
         do {
             update();
-        } while (this.stopChecker.getAsBoolean() && System.currentTimeMillis() - start < duration);
+        } while (!this.stopChecker.getAsBoolean() && System.currentTimeMillis() - start < duration);
     }
-
+/*
+    public void waitForNOSTOP(long duration) {
+        long start = System.currentTimeMillis();
+        do { update(); } while (System.currentTimeMillis() - start < duration);
+    }
+*/
 /*
     public void goToPoint(Pose2d pose, Func func, boolean moveNear, boolean slowDown, boolean stop, double maxPower) {
         long start = System.currentTimeMillis();
@@ -370,7 +386,7 @@ boolean wasClicked;
         drivetrain.goToPoint(pose, finalAdjustment, stop, maxPower); // need this to start the process so thresholds don't immediately become true
         do {
             update();
-        } while (this.stopChecker.get() && (func == null || (boolean) func.call()) && System.currentTimeMillis() - start <= 5000 && drivetrain.isBusy());
+        } while (!this.stopChecker.get() && (func == null || (boolean) func.call()) && System.currentTimeMillis() - start <= 5000 && drivetrain.isBusy());
     }
 
     public void goToPointWithIntake(Pose2d pose, Func func, boolean moveNear, boolean slowDown, boolean stop, double maxPower) {
@@ -412,7 +428,7 @@ boolean wasClicked;
 
         do {
             update();
-        } while (this.stopChecker.getAsBoolean() && (func == null || func.getAsBoolean()) && System.currentTimeMillis() - start <= 10000 && drivetrain.isBusy());
+        } while (!this.stopChecker.getAsBoolean() && (func == null || func.getAsBoolean()) && System.currentTimeMillis() - start <= 10000 && drivetrain.isBusy());
     }
 
     private void updateTelemetry() {

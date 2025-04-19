@@ -101,6 +101,6 @@ public class SubmersibleSelectionGUI {
     }
 
     private void preselect() {
-        for (int i = 11; i <= 18; ++i) for (int j = i % 2 == 0 ? 8 : 9; j <= 14; j += 2) sub[i][j] = true;
+        for (int i = 11; i <= 17; ++i) for (int j = i % 2 == 0 ? 8 : 9; j <= 13; j += 2) sub[i][j] = true;
     }
 }

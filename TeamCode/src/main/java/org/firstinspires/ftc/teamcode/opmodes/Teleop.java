@@ -20,11 +20,11 @@ import org.firstinspires.ftc.teamcode.utils.Utils;
 @TeleOp(name = "A. Teleop")
 public class Teleop extends LinearOpMode {
     public static double slidesInc = 0.4;
-    public static double extendoInc = 0.4;
+    //public static double extendoInc = 0.4;
     public static double extendoXSpeed = 0.5;
     public static double extendoYSpeed = 0.35;
     public static double intakeClawRotationInc = 0.1;
-    public static double intakeTurretRotationInc = -0.1;
+    //public static double intakeTurretRotationInc = -0.1;
     public static double extensionPreset = 15;
     public static double transitionDelay = 750;
 
@@ -35,7 +35,7 @@ public class Teleop extends LinearOpMode {
         Globals.hasSpecimenPreload = false;
 
         Robot robot = new Robot(hardwareMap);
-        robot.setStopChecker(() -> !isStopRequested());
+        robot.setStopChecker(this::isStopRequested);
 
         // Gamepad 1
         ButtonToggle lb_1 = new ButtonToggle();
@@ -48,7 +48,7 @@ public class Teleop extends LinearOpMode {
         ButtonToggle rsb_1 = new ButtonToggle();
 
         //Gamepad 2
-        ButtonToggle x_2 = new ButtonToggle();
+        //ButtonToggle x_2 = new ButtonToggle();
         ButtonToggle b_2 = new ButtonToggle();
 
         final double triggerThresh = 0.2;

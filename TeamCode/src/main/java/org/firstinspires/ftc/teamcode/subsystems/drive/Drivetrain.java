@@ -70,7 +70,7 @@ public class Drivetrain {
     public static double raiseAngle = 1.945;
     public static double downAngle = 0;
 
-    public Drivetrain(Vision vision, Robot robot) {
+    public Drivetrain(Robot robot) {
         HardwareMap hardwareMap = robot.hardwareMap;
         this.hardwareQueue = robot.hardwareQueue;
         this.sensors = robot.sensors;
@@ -100,7 +100,7 @@ public class Drivetrain {
 
         brakePad = new nPriorityServo(
             new Servo[] {robot.hardwareMap.get(Servo.class, "brakePad")},
-            "brakekPad",
+            "brakePad",
             nPriorityServo.ServoType.HITEC,
             0, 1, 0,
             new boolean[] {false},
@@ -124,12 +124,8 @@ public class Drivetrain {
 //        setMinPowersToOvercomeFriction();
     }
 
-    public Drivetrain(Robot robot) {
-        this(null, robot);
-    }
-
     // leftFront, leftRear, rightRear, rightFront
-    double[] minPowersToOvercomeFriction = new double[] {
+    double[] minPowersToOvercomeFriction = {
             0.2413194940290,
             0.2337791473,
             0.246122952040818,
@@ -632,7 +628,7 @@ public class Drivetrain {
             turn = rotateTeleopPID.update(turnError, -maxPower, maxPower);
             if (Math.abs(turnError) <= Math.toRadians(finalTurnThreshold) / 2) turn = 0;
         } else {
-            targetPoint.heading = robot.sensors.getOdometryPosition().heading;
+            targetPoint = robot.sensors.getOdometryPosition().clone();
             rotateTeleopPID.resetIntegral();
         }
 
